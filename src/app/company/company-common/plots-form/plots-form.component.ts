@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import {FormArray, FormControl, FormGroup} from '@angular/forms';
 import {ApiProductType} from '../../../../api/model/apiProductType';
 import {CompanyProductTypesService} from '../../../shared-services/company-product-types.service';
@@ -13,7 +13,6 @@ import {NgbModalImproved} from '../../../core/ngb-modal-improved/ngb-modal-impro
 import {
   OpenPlotDetailsExternallyModalComponent
 } from '../../company-farmers/open-plot-details-externally-modal/open-plot-details-externally-modal.component';
-import { MapComponent } from "../../../shared/map/map.component";
 
 @Component({
   selector: 'app-plots-form',
@@ -59,9 +58,6 @@ export class PlotsFormComponent implements OnInit {
 
   @Output()
   deletePlot = new EventEmitter<void>();
-
-  @ViewChild('map', { static: false })
-  map: MapComponent;
 
   static ApiPlotCreateEmptyObject(): ApiPlot {
     const obj = ApiPlot.formMetadata();
@@ -116,12 +112,6 @@ export class PlotsFormComponent implements OnInit {
       PlotsFormComponent.ApiPlotEmptyObjectFormFactory(),
       ApiPlotValidationScheme
     );
-  }
-
-  public updatePlots(): void {
-
-    this.plots = this.form.get('plots').value;
-    this.map.updateMap(this.plots);
   }
 
   updateLonLat(coordinates: Array<ApiPlotCoordinate>) {
