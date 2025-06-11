@@ -266,12 +266,6 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.map.on('load', () => this.mapLoaded());
   }
 
-  updateMap(plots: Array<ApiPlot>): void {
-
-    this.setExistingPlots(plots);
-    this.plots = plots;
-  }
-
   placeMarkerOnMap(lat: number, lng: number, plot?: ApiPlot, isPin?: boolean) {
     const idx = this.plotCoordinates.length;
 

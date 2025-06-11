@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import _ from 'lodash-es';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { ApiUserCustomer } from '../../../../api/model/apiUserCustomer';
@@ -32,13 +32,12 @@ import { CompanyProductTypesService } from '../../../shared-services/company-pro
 import { ApiProductType } from '../../../../api/model/apiProductType';
 import { ListNotEmptyValidator } from '../../../../shared/validation';
 import { ApiPayment } from '../../../../api/model/apiPayment';
-import {ApiFarmPlantInformation} from '../../../../api/model/apiFarmPlantInformation';
+import { ApiFarmPlantInformation } from '../../../../api/model/apiFarmPlantInformation';
 import { SelectedUserCompanyService } from '../../../core/selected-user-company.service';
-import { FileSaverService } from "ngx-filesaver";
-import { HttpClient } from "@angular/common/http";
-import { PlotsFormComponent } from "../../company-common/plots-form/plots-form.component";
-import { SelfOnboardingService } from "../../../shared-services/self-onboarding.service";
-import { NgbTooltip } from "@ng-bootstrap/ng-bootstrap";
+import { FileSaverService } from 'ngx-filesaver';
+import { HttpClient } from '@angular/common/http';
+import { SelfOnboardingService } from '../../../shared-services/self-onboarding.service';
+import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-company-farmers-details',
@@ -157,9 +156,6 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
     }
   ];
 
-  @ViewChild('plotsForm', { static: false })
-  plotsForm: PlotsFormComponent;
-
   @ViewChild('newFarmerTitleTooltip')
   newFarmerTitleTooltip: NgbTooltip;
 
@@ -220,6 +216,7 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.farmerForm = null;
     this.initData().then(() => {
       if (!this.update) {
         this.newFarmer();
@@ -601,7 +598,7 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
           if (!stayOnPage) {
             this.dismiss();
           } else {
-            this.plotsForm.updatePlots();
+            this.ngOnInit();
           }
         }
       }
