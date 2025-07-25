@@ -2,9 +2,9 @@
 
     window['env'] = window['env'] || {};
 
-    // Environment variables
-    window['env']['environmentName'] = 'production';
-    window['env']['appBaseUrl'] = '';  // Usar rutas relativas para que pasen por Nginx
+    // Environment variables for DEVELOPMENT
+    window['env']['environmentName'] = 'development';
+    window['env']['appBaseUrl'] = 'http://localhost:8080';  // Apuntar directamente al backend en desarrollo
     window['env']['qrCodeBasePath'] = '/api/stock-order'; // Endpoint público para QR (ver PublicController)
     window['env']['relativeFileUploadUrl'] = '/api/document'; // Endpoint para subir archivos (CommonController)
     window['env']['relativeFileUploadUrlManualType'] = '/api/document?type=MANUAL'; // Upload manual (ajustar si aplica)

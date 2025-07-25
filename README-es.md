@@ -197,9 +197,12 @@ Para producción, se recomienda desplegar el frontend usando Docker y configurar
 
 Edita `src/assets/env.js` para definir los endpoints reales del backend y otros parámetros:
 
+#### Para Producción (con Nginx como proxy)
+
 ```js
+// src/assets/env.js - CONFIGURACIÓN RECOMENDADA
 window['env']['environmentName'] = 'production';
-window['env']['appBaseUrl'] = 'http://TU_IP_O_DOMINIO:8080';
+window['env']['appBaseUrl'] = '';  // ✅ IMPORTANTE: Vacío para usar rutas relativas
 window['env']['qrCodeBasePath'] = '/api/stock-order';
 window['env']['relativeFileUploadUrl'] = '/api/document';
 window['env']['relativeFileUploadUrlManualType'] = '/api/document?type=MANUAL';
@@ -212,9 +215,68 @@ window['env']['beycoAuthURL'] = '';
 window['env']['beycoClientId'] = '';
 ```
 
-> **Nota:** Usa rutas relativas (`/api/...`) si frontend y backend están bajo el mismo dominio, o absolutas si están en servidores separados.
+#### Para Desarrollo (sin proxy)
 
-### 2. Construcción y despliegue con Docker
+```js
+// src/assets/env.development.js
+window['env']['environmentName'] = 'development';
+window['env']['appBaseUrl'] = 'http://localhost:8080';  // ✅ Directo al backend
+// ... resto igual
+```
+
+> **⚠️ CRÍTICO:** En producción, `appBaseUrl` debe estar **vacío** para que las peticiones pasen por Nginx y sean enrutadas al backend correctamente.
+
+### 2. Configuración de Nginx (OBLIGATORIO para producción)
+
+Para que las APIs funcionen correctamente, Nginx debe enrutar `/api/` al backend Java:
+
+#### nginx.conf (Configuración profesional)
+
+```nginx
+server {
+  listen 80;
+  server_name _;
+
+  # 🔥 CRÍTICO: Proxy /api/ al backend Java
+  location /api/ {
+    proxy_pass http://host.docker.internal:8080/api/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    
+    # Timeouts para APIs
+    proxy_connect_timeout 30s;
+    proxy_send_timeout 30s;
+    proxy_read_timeout 30s;
+    proxy_buffering off;
+  }
+
+  # Sirve el frontend Angular
+  location / {
+    root /app;
+    index index.html;
+    try_files $uri $uri/ /index.html;
+    
+    # Headers de seguridad
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+}
+```
+
+#### Validación rápida
+
+```bash
+# ✅ Debe devolver JSON del backend (no HTML)
+curl -X POST http://tu-servidor/api/user/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin@inatrace.com","password":"admin123"}'
+
+# ❌ Si devuelve HTML, Nginx NO está configurado correctamente
+```
+
+### 3. Construcción y despliegue con Docker
 
 Ejecuta los siguientes comandos desde la raíz del proyecto:
 
