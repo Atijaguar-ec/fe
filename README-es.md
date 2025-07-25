@@ -189,19 +189,58 @@ El sistema soporta 168 monedas, habilitadas manualmente por un administrador. Lo
 
 # Construcción y despliegue
 
-Las builds se realizan usando Docker y el archivo `Dockerfile`.
+## Despliegue profesional (recomendado)
 
-- Para construir, etiquetar y subir una imagen, ejecuta el script `docker-build.sh`.
-- Consulta el propio archivo para la sintaxis detallada.
+Para producción, se recomienda desplegar el frontend usando Docker y configurar las variables de entorno dinámicamente mediante el archivo `src/assets/env.js`.
 
-**Ejemplo para construir y etiquetar localmente:**
-```bash
-./docker-build.sh inatrace-fe 2.4.0
+### 1. Configuración de variables de entorno
+
+Edita `src/assets/env.js` para definir los endpoints reales del backend y otros parámetros:
+
+```js
+window['env']['environmentName'] = 'production';
+window['env']['appBaseUrl'] = 'http://TU_IP_O_DOMINIO:8080';
+window['env']['qrCodeBasePath'] = '/api/stock-order';
+window['env']['relativeFileUploadUrl'] = '/api/document';
+window['env']['relativeFileUploadUrlManualType'] = '/api/document?type=MANUAL';
+window['env']['relativeImageUploadUrl'] = '/api/image';
+window['env']['relativeImageUploadUrlAllSizes'] = '/api/image';
+window['env']['googleMapsApiKey'] = '';
+window['env']['tokenForPublicLogRoute'] = '';
+window['env']['mapboxAccessToken'] = '';
+window['env']['beycoAuthURL'] = '';
+window['env']['beycoClientId'] = '';
 ```
-**Ejemplo para construir, etiquetar y subir a un registro remoto:**
+
+> **Nota:** Usa rutas relativas (`/api/...`) si frontend y backend están bajo el mismo dominio, o absolutas si están en servidores separados.
+
+### 2. Construcción y despliegue con Docker
+
+Ejecuta los siguientes comandos desde la raíz del proyecto:
+
 ```bash
-./docker-build.sh my-docker-registry/inatrace-fe 2.4.0 push
+# Construir la imagen Docker
+sudo docker build -t inatrace-fe:latest .
+
+# Ejecutar el contenedor exponiendo el puerto 80
+sudo docker run -d --name inatrace-fe -p 80:80 inatrace-fe:latest
 ```
+
+Puedes personalizar el nombre, la etiqueta y los puertos según tu infraestructura. Para entornos profesionales, monta volúmenes o usa variables de entorno externas si lo requieres.
+
+### 3. Acceso
+
+Accede a la aplicación desde tu navegador en `http://TU_IP_O_DOMINIO`.
+
+### 4. Documentación técnica
+
+Consulta la guía `/docs/tecnico/guia-cicd-frontend.md` para pasos detallados de integración, recomendaciones de seguridad, HTTPS y despliegue automatizado.
+
+## Despliegue local para desarrollo
+
+1. Instala dependencias: `npm install`
+2. Configura el entorno copiando y editando `src/environments/environment.ts` a `environment.dev.ts`.
+3. Inicia el servidor de desarrollo: `npm run dev`
 
 ---
 # Solución de problemas frecuentes
