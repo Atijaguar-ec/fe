@@ -19,209 +19,104 @@
 
 /* tslint:disable:no-unused-variable member-ordering */
 
-import { Inject, Injectable, Optional }                      from '@angular/core';
+import { Inject, Injectable, Optional } from '@angular/core';
 import { ValidatorFn, Validators } from '@angular/forms';
 
-import { HttpClient, HttpHeaders, HttpParams,
-         HttpResponse, HttpEvent }                           from '@angular/common/http';
-import { CustomHttpUrlEncodingCodec }                        from '../encoder';
+import { HttpClient, HttpHeaders, HttpParams, HttpResponse, HttpEvent } from '@angular/common/http';
+import { CustomHttpUrlEncodingCodec } from '../encoder';
 
-import { Observable }                                        from 'rxjs';
-import { catchError }                                        from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { ApiBeycoOrderFields } from '../model/apiBeycoOrderFields';
 import { ApiResponseApiBeycoOrderFields } from '../model/apiResponseApiBeycoOrderFields';
 import { ApiResponseApiBeycoTokenResponse } from '../model/apiResponseApiBeycoTokenResponse';
 import { ApiResponseObject } from '../model/apiResponseObject';
 
-import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
-import { Configuration }                                     from '../configuration';
+import { BASE_PATH, COLLECTION_FORMATS } from '../variables';
+import { Configuration } from '../configuration';
 
 /**
  * Namespace for getBeycoOrderFieldsForSelectedStockOrders.
  */
-export namespace GetBeycoOrderFieldsForSelectedStockOrders {
-    /**
-     * Parameter map for getBeycoOrderFieldsForSelectedStockOrders.
-     */
-    export interface PartialParamMap {
-      /**
-       * ID's of selected stock orders
-       */
-      id: Array<number>;
-      /**
-       * ID of company
-       */
-      companyId: number;
-    }
-
-    /**
-     * Enumeration of all parameters for getBeycoOrderFieldsForSelectedStockOrders.
-     */
-    export enum Parameters {
-      /**
-       * ID's of selected stock orders
-       */
-      id = 'id',
-      /**
-       * ID of company
-       */
-      companyId = 'companyId'
-    }
-
-    /**
-     * A map of tuples with error name and `ValidatorFn` for each parameter of getBeycoOrderFieldsForSelectedStockOrders
-     * that does not have an own model.
-     */
-    export const ParamValidators: {[K in keyof GetBeycoOrderFieldsForSelectedStockOrders.PartialParamMap]?: [string, ValidatorFn][]} = {
-      id: [
-              ['required', Validators.required],
-      ],
-      companyId: [
-              ['required', Validators.required],
-      ],
-    };
+// --- GetBeycoOrderFieldsForSelectedStockOrders ---
+export interface GetBeycoOrderFieldsForSelectedStockOrdersPartialParamMap {
+  id: Array<number>;
+  companyId: number;
 }
+export enum GetBeycoOrderFieldsForSelectedStockOrdersParameters {
+  id = 'id',
+  companyId = 'companyId'
+}
+export const GetBeycoOrderFieldsForSelectedStockOrdersParamValidators: {
+  [K in keyof GetBeycoOrderFieldsForSelectedStockOrdersPartialParamMap]?: [string, ValidatorFn][]
+} = {
+  id: [['required', Validators.required]],
+  companyId: [['required', Validators.required]],
+};
+
 
 /**
  * Namespace for getToken.
  */
-export namespace GetToken {
-    /**
-     * Parameter map for getToken.
-     */
-    export interface PartialParamMap {
-      /**
-       * Authorization code from Beyco OAuth2
-       */
-      authCode: string;
-      /**
-       * ID of company
-       */
-      companyId: number;
-    }
-
-    /**
-     * Enumeration of all parameters for getToken.
-     */
-    export enum Parameters {
-      /**
-       * Authorization code from Beyco OAuth2
-       */
-      authCode = 'authCode',
-      /**
-       * ID of company
-       */
-      companyId = 'companyId'
-    }
-
-    /**
-     * A map of tuples with error name and `ValidatorFn` for each parameter of getToken
-     * that does not have an own model.
-     */
-    export const ParamValidators: {[K in keyof GetToken.PartialParamMap]?: [string, ValidatorFn][]} = {
-      authCode: [
-              ['required', Validators.required],
-      ],
-      companyId: [
-              ['required', Validators.required],
-      ],
-    };
+// --- GetToken ---
+export interface GetTokenPartialParamMap {
+  authCode: string;
+  companyId: number;
 }
+export enum GetTokenParameters {
+  authCode = 'authCode',
+  companyId = 'companyId'
+}
+export const GetTokenParamValidators: {
+  [K in keyof GetTokenPartialParamMap]?: [string, ValidatorFn][]
+} = {
+  authCode: [['required', Validators.required]],
+  companyId: [['required', Validators.required]],
+};
+
 
 /**
  * Namespace for refreshToken.
  */
-export namespace RefreshToken {
-    /**
-     * Parameter map for refreshToken.
-     */
-    export interface PartialParamMap {
-      /**
-       * Refresh token
-       */
-      X_Beyco_Refresh_Token: string;
-      /**
-       * ID of company
-       */
-      companyId: number;
-    }
-
-    /**
-     * Enumeration of all parameters for refreshToken.
-     */
-    export enum Parameters {
-      /**
-       * Refresh token
-       */
-      X_Beyco_Refresh_Token = 'X_Beyco_Refresh_Token',
-      /**
-       * ID of company
-       */
-      companyId = 'companyId'
-    }
-
-    /**
-     * A map of tuples with error name and `ValidatorFn` for each parameter of refreshToken
-     * that does not have an own model.
-     */
-    export const ParamValidators: {[K in keyof RefreshToken.PartialParamMap]?: [string, ValidatorFn][]} = {
-      X_Beyco_Refresh_Token: [
-              ['required', Validators.required],
-      ],
-      companyId: [
-              ['required', Validators.required],
-      ],
-    };
+// --- RefreshToken ---
+export interface RefreshTokenPartialParamMap {
+  X_Beyco_Refresh_Token: string;
+  companyId: number;
 }
+export enum RefreshTokenParameters {
+  X_Beyco_Refresh_Token = 'X_Beyco_Refresh_Token',
+  companyId = 'companyId'
+}
+export const RefreshTokenParamValidators: {
+  [K in keyof RefreshTokenPartialParamMap]?: [string, ValidatorFn][]
+} = {
+  X_Beyco_Refresh_Token: [['required', Validators.required]],
+  companyId: [['required', Validators.required]],
+};
+
 
 /**
  * Namespace for sendBeycoOrder.
  */
-export namespace SendBeycoOrder {
-    /**
-     * Parameter map for sendBeycoOrder.
-     */
-    export interface PartialParamMap {
-      /**
-       * JWT token
-       */
-      X_Beyco_Token: string;
-      /**
-       * ID of company
-       */
-      companyId: number;
-      ApiBeycoOrderFields: ApiBeycoOrderFields;
-    }
-
-    /**
-     * Enumeration of all parameters for sendBeycoOrder.
-     */
-    export enum Parameters {
-      /**
-       * JWT token
-       */
-      X_Beyco_Token = 'X_Beyco_Token',
-      /**
-       * ID of company
-       */
-      companyId = 'companyId',
-      ApiBeycoOrderFields = 'ApiBeycoOrderFields'
-    }
-
-    /**
-     * A map of tuples with error name and `ValidatorFn` for each parameter of sendBeycoOrder
-     * that does not have an own model.
-     */
-    export const ParamValidators: {[K in keyof SendBeycoOrder.PartialParamMap]?: [string, ValidatorFn][]} = {
-      X_Beyco_Token: [
-              ['required', Validators.required],
-      ],
-      companyId: [
-              ['required', Validators.required],
-      ],
-    };
+// --- SendBeycoOrder ---
+export interface SendBeycoOrderPartialParamMap {
+  X_Beyco_Token: string;
+  companyId: number;
+  ApiBeycoOrderFields: ApiBeycoOrderFields;
 }
+export enum SendBeycoOrderParameters {
+  X_Beyco_Token = 'X_Beyco_Token',
+  companyId = 'companyId',
+  ApiBeycoOrderFields = 'ApiBeycoOrderFields'
+}
+export const SendBeycoOrderParamValidators: {
+  [K in keyof SendBeycoOrderPartialParamMap]?: [string, ValidatorFn][]
+} = {
+  X_Beyco_Token: [['required', Validators.required]],
+  companyId: [['required', Validators.required]],
+};
+
 
 
 
@@ -268,19 +163,19 @@ export class BeycoOrderControllerService {
    * @param reportProgress flag to report request and response progress.
    */
   public getBeycoOrderFieldsForSelectedStockOrdersByMap(
-    map: GetBeycoOrderFieldsForSelectedStockOrders.PartialParamMap,
+    map: GetBeycoOrderFieldsForSelectedStockOrdersPartialParamMap,
     observe?: 'body',
     reportProgress?: boolean): Observable<ApiResponseApiBeycoOrderFields>;
   public getBeycoOrderFieldsForSelectedStockOrdersByMap(
-    map: GetBeycoOrderFieldsForSelectedStockOrders.PartialParamMap,
+    map: GetBeycoOrderFieldsForSelectedStockOrdersPartialParamMap,
     observe?: 'response',
     reportProgress?: boolean): Observable<HttpResponse<ApiResponseApiBeycoOrderFields>>;
   public getBeycoOrderFieldsForSelectedStockOrdersByMap(
-    map: GetBeycoOrderFieldsForSelectedStockOrders.PartialParamMap,
+    map: GetBeycoOrderFieldsForSelectedStockOrdersPartialParamMap,
     observe?: 'events',
     reportProgress?: boolean): Observable<HttpEvent<ApiResponseApiBeycoOrderFields>>;
   public getBeycoOrderFieldsForSelectedStockOrdersByMap(
-    map: GetBeycoOrderFieldsForSelectedStockOrders.PartialParamMap,
+    map: GetBeycoOrderFieldsForSelectedStockOrdersPartialParamMap,
     observe: any = 'body',
     reportProgress: boolean = false): Observable<any> {
     return this.getBeycoOrderFieldsForSelectedStockOrders(
@@ -363,19 +258,19 @@ export class BeycoOrderControllerService {
    * @param reportProgress flag to report request and response progress.
    */
   public getTokenByMap(
-    map: GetToken.PartialParamMap,
+    map: GetTokenPartialParamMap,
     observe?: 'body',
     reportProgress?: boolean): Observable<ApiResponseApiBeycoTokenResponse>;
   public getTokenByMap(
-    map: GetToken.PartialParamMap,
+    map: GetTokenPartialParamMap,
     observe?: 'response',
     reportProgress?: boolean): Observable<HttpResponse<ApiResponseApiBeycoTokenResponse>>;
   public getTokenByMap(
-    map: GetToken.PartialParamMap,
+    map: GetTokenPartialParamMap,
     observe?: 'events',
     reportProgress?: boolean): Observable<HttpEvent<ApiResponseApiBeycoTokenResponse>>;
   public getTokenByMap(
-    map: GetToken.PartialParamMap,
+    map: GetTokenPartialParamMap,
     observe: any = 'body',
     reportProgress: boolean = false): Observable<any> {
     return this.getToken(
@@ -456,19 +351,19 @@ export class BeycoOrderControllerService {
    * @param reportProgress flag to report request and response progress.
    */
   public refreshTokenByMap(
-    map: RefreshToken.PartialParamMap,
+    map: RefreshTokenPartialParamMap,
     observe?: 'body',
     reportProgress?: boolean): Observable<ApiResponseApiBeycoTokenResponse>;
   public refreshTokenByMap(
-    map: RefreshToken.PartialParamMap,
+    map: RefreshTokenPartialParamMap,
     observe?: 'response',
     reportProgress?: boolean): Observable<HttpResponse<ApiResponseApiBeycoTokenResponse>>;
   public refreshTokenByMap(
-    map: RefreshToken.PartialParamMap,
+    map: RefreshTokenPartialParamMap,
     observe?: 'events',
     reportProgress?: boolean): Observable<HttpEvent<ApiResponseApiBeycoTokenResponse>>;
   public refreshTokenByMap(
-    map: RefreshToken.PartialParamMap,
+    map: RefreshTokenPartialParamMap,
     observe: any = 'body',
     reportProgress: boolean = false): Observable<any> {
     return this.refreshToken(
@@ -546,19 +441,19 @@ export class BeycoOrderControllerService {
    * @param reportProgress flag to report request and response progress.
    */
   public sendBeycoOrderByMap(
-    map: SendBeycoOrder.PartialParamMap,
+    map: SendBeycoOrderPartialParamMap,
     observe?: 'body',
     reportProgress?: boolean): Observable<ApiResponseObject>;
   public sendBeycoOrderByMap(
-    map: SendBeycoOrder.PartialParamMap,
+    map: SendBeycoOrderPartialParamMap,
     observe?: 'response',
     reportProgress?: boolean): Observable<HttpResponse<ApiResponseObject>>;
   public sendBeycoOrderByMap(
-    map: SendBeycoOrder.PartialParamMap,
+    map: SendBeycoOrderPartialParamMap,
     observe?: 'events',
     reportProgress?: boolean): Observable<HttpEvent<ApiResponseObject>>;
   public sendBeycoOrderByMap(
-    map: SendBeycoOrder.PartialParamMap,
+    map: SendBeycoOrderPartialParamMap,
     observe: any = 'body',
     reportProgress: boolean = false): Observable<any> {
     return this.sendBeycoOrder(

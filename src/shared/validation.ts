@@ -184,10 +184,10 @@ export function multiFieldValidator(controlNames: string[], validator: FormGroup
 }
 
 function getAge(dateString) {
-    var today = new Date();
-    var birthDate = new Date(dateString);
-    var age = today.getFullYear() - birthDate.getFullYear();
-    var m = today.getMonth() - birthDate.getMonth();
+    const today = new Date();
+    const birthDate = new Date(dateString);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
         age--;
     }
@@ -196,102 +196,101 @@ function getAge(dateString) {
 
 export function DateOfBirthForMinimalAge(age: number): ValidatorFn {
     return (control: AbstractControl): {[key: string]: any} => {
-        let date = control.value
-        if (!date) return null
-        let calcAge = getAge(date)
-        if (calcAge < age) return {tooYoung: {age: calcAge, minAge: age}}
-        return null
-    }
+        const date = control.value;
+        if (!date) { return null; }
+        const calcAge = getAge(date);
+        if (calcAge < age) { return {tooYoung: {age: calcAge, minAge: age}}; }
+        return null;
+    };
 }
 
 export function YearNotInFuture(): ValidatorFn {
     return (control: AbstractControl): {[key: string]: any} => {
-        let year = control.value
-        if (!year) return null
-        var today = new Date();
-        var age = today.getFullYear() - year;
-        if (age < 0) return {yearInFuture: true}
-        return null
-    }
+        const year = control.value;
+        if (!year) { return null; }
+        const today = new Date();
+        if (year > today.getFullYear()) { return {yearInFuture: {year: year, currentYear: today.getFullYear()}}; }
+        return null;
+    };
 }
 
 export function DateNotInFuture(): ValidatorFn {
     return (control: AbstractControl): {[key: string]: any} => {
-        let dateString = control.value
-        if (!dateString) return null
-        let date = new Date(dateString)
-        let today = new Date()
-        let diff = today.getTime() - date.getTime()
+        const dateString = control.value;
+        if (!dateString) { return null; }
+        const date = new Date(dateString);
+        const today = new Date();
+        const diff = today.getTime() - date.getTime();
         if (diff < 0) {
-            return {dateInFuture: true}
+            return {dateInFuture: true};
         }
-        return null
-    }
+        return null;
+    };
 }
 
 export function DateNotInPast(): ValidatorFn {
     return (control: AbstractControl): {[key: string]: any} => {
-        let dateString = control.value
-        if (!dateString) return null
-        let date = new Date(dateString)
-        date.setHours(12)
-        let dateStr = date.toISOString().slice(0, 10)
-        let today = (new Date())
-        today.setHours(12)
-        let todayStr = today.toISOString().slice(0, 10)
+        const dateString = control.value;
+        if (!dateString) { return null; }
+        const date = new Date(dateString);
+        date.setHours(12);
+        const dateStr = date.toISOString().slice(0, 10);
+        const today = new Date();
+        today.setHours(12);
+        const todayStr = today.toISOString().slice(0, 10);
         if (dateStr < todayStr) {
-            return {dateInPast: true}
+            return {dateInPast: true};
         }
-        return null
-    }
+        return null;
+    };
 }
 
 function functionDatesInOrder(group: FormGroup, startControlName, endControlName) {
-    let start = group.get(startControlName) && group.get(startControlName).value as string
-    let end = group.get(endControlName) && group.get(endControlName).value as string
+    const start = group.get(startControlName) && group.get(startControlName).value as string;
+    const end = group.get(endControlName) && group.get(endControlName).value as string;
     if (!start || !end) {
-        return null
+        return null;
     }
-    let startDate = new Date(start);
-    let endDate = new Date(end);
-    let diff = endDate.getTime() - startDate.getTime()
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const diff = endDate.getTime() - startDate.getTime();
     if (diff < 0) {
-        return {startLaterThanEnd: true}
+        return {startLaterThanEnd: true};
     }
-    return null
+    return null;
 }
 
 export function ListNotEmptyValidator(): ValidatorFn {
     return (control: FormControl): ValidationErrors | null => {
         return (control.value && control.value.length > 0) ? null : {'required': true};
-    }
+    };
 }
 
 export function DatesInOrder(startControlName, endControlName): ValidatorFn {
-    return multiFieldValidator([startControlName, endControlName], (group: FormGroup) => functionDatesInOrder(group, startControlName, endControlName), ['startLaterThanEnd'])
+    return multiFieldValidator([startControlName, endControlName], (group: FormGroup) => functionDatesInOrder(group, startControlName, endControlName), ['startLaterThanEnd']);
 }
 
 export function mustBeChecked(control: AbstractControl): ValidationErrors | null {
-    const checked = control.value
-    return checked === true ? null : {notChecked: true}
+    const checked = control.value;
+    return checked === true ? null : {notChecked: true};
 }
 
-const tagRegex = /(<([^>]+)>)/ig
+const tagRegex = /(<([^>]+)>)/ig;
 
 export function MinLengthHTMLStripped(minLen: number): ValidatorFn {
     return (control: AbstractControl): {[key: string]: any} => {
-        let text = control.value
-        if(!text) return null
-        let stripped = text.replace(tagRegex, "");
-        return stripped.length >= minLen ? null : {minlength: {requiredLength: minLen}}
-    }
+        const text = control.value;
+        if(!text) { return null; }
+        const stripped = text.replace(tagRegex, "");
+        return stripped.length >= minLen ? null : {minlength: {requiredLength: minLen}};
+    };
 }
 
 export function requiredFieldIfOtherFieldHasValue(control: FormGroup, field: string, otherField: string, otherFieldValue: any): ValidationErrors | null {
-  if(!control || !control.value) return null;
-  let tip = control.value[otherField]
-  if(!tip || tip !== otherFieldValue) return null;
-  if(!control.value[field]) return {required: true}
+  if(!control || !control.value) { return null; }
+  const tip = control.value[otherField];
+  if(!tip || tip !== otherFieldValue) { return null; }
+  if(!control.value[field]) { return {required: true}; }
   return null;
 }
 
