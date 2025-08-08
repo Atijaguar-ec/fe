@@ -11,39 +11,41 @@ import { uuidv4 } from 'src/shared/utils';
 })
 export class CheckboxGroupMultiChoiceComponent implements OnInit, OnDestroy {
 
-    _formArray: FormArray = null;
-
     @Input() set formArray(value: FormArray) {
         this._formArray = value;
-        this.resubscribe()
+        this.resubscribe();
     }
 
     get formArray(): FormArray {
-        return this._formArray
+        return this._formArray;
     }
-
-    @Input()
-    useForm: boolean = false;
-
-    _form = null;
 
     @Input() set form(value: any) {
         this._form = value;
-        this.resubscribe()
+        this.resubscribe();
     }
 
     get form(): any {
-        return this._form
+        return this._form;
     }
+
+    constructor() { }
+
+    _formArray: FormArray = null;
+
+    @Input()
+    useForm = false;
+
+    _form = null;
 
     @Input()
     codebookService: CodebookHelperService<any>;
 
     @Input()
-    label = null
+    label = null;
 
     @Input()
-    htmlLabel = null
+    htmlLabel = null;
 
     // @Input()
     // selected = null;
@@ -52,7 +54,7 @@ export class CheckboxGroupMultiChoiceComponent implements OnInit, OnDestroy {
     horizontal = false;
 
     @Input()
-    invalid = false
+    invalid = false;
 
     @Input()
     noLabel = false;
@@ -67,18 +69,16 @@ export class CheckboxGroupMultiChoiceComponent implements OnInit, OnDestroy {
     // @Input()
     choiceArray = [];
 
-    checkboxes = []
+    checkboxes = [];
 
-    constructor() { }
+    choicesSub: Subscription = null;
 
-    choicesSub: Subscription = null
+    sub1: Subscription = null;
+    sub2: Subscription = null;
 
     ngOnInit() {
-        this.resubscribe()
+        this.resubscribe();
     }
-
-    sub1: Subscription = null
-    sub2: Subscription = null
     resubscribe() {
         if (this.codebookService) {
             this.sub1 = this.choicesSub = this.codebookService.enumOptions().subscribe(options => {
@@ -94,26 +94,26 @@ export class CheckboxGroupMultiChoiceComponent implements OnInit, OnDestroy {
                                     ? (x.id == this.form.value)
                                     : (x.id == this.form.value.id))
                             : !!this.formArray.value.find(y => x.id === (this.codebookService.isEnumFormControl ? y : y.id))
-                    }
-                })
-            })
+                    };
+                });
+            });
         }
         if (this.useForm && this.form) {
             this.sub2 = this.form.valueChanges.subscribe(newValue => {
-                if (!this.checkboxes) return
+                if (!this.checkboxes) { return; }
                 this.checkboxes = this.checkboxes.map(el => {
-                    el.selected = !!(this.codebookService.isEnumFormControl ? (el.selection.id == newValue) : (el.selection.id == newValue.id))
-                    return el
-                })
-            })
+                    el.selected = !!(this.codebookService.isEnumFormControl ? (el.selection.id == newValue) : (el.selection.id == newValue.id));
+                    return el;
+                });
+            });
         } else {
             this.sub2 = this.formArray.valueChanges.subscribe(newValues => {
-                if (!this.checkboxes) return
+                if (!this.checkboxes) { return; }
                 this.checkboxes = this.checkboxes.map(el => {
-                    el.selected = !!newValues.find(y => el.selection.id === (this.codebookService.isEnumFormControl ? y : y.id))
-                    return el
-                })
-            })
+                    el.selected = !!newValues.find(y => el.selection.id === (this.codebookService.isEnumFormControl ? y : y.id));
+                    return el;
+                });
+            });
         }
     }
 
@@ -122,40 +122,40 @@ export class CheckboxGroupMultiChoiceComponent implements OnInit, OnDestroy {
             return true;
         }
         if (this.useForm && this.form) {
-            return this.form.enabled === false
+            return this.form.enabled === false;
         }
-        return this.formArray && this.formArray.enabled === false
+        return this.formArray && this.formArray.enabled === false;
     }
 
     onKey(event, i, selection) {
         if (event.target.checked) {
             if (this.useForm && this.form) {
-                this.form.setValue(this.codebookService.isEnumFormControl() ? selection.id : selection)
+                this.form.setValue(this.codebookService.isEnumFormControl() ? selection.id : selection);
             } else {
-                let pos = this.formArray.value.findIndex(x => (this.codebookService.isEnumFormControl() ? x : x.id) === selection.id)
-                if (pos >= 0) return
-                let data = this.codebookService.isEnumFormControl()
+                const pos = this.formArray.value.findIndex(x => (this.codebookService.isEnumFormControl() ? x : x.id) === selection.id);
+                if (pos >= 0) { return; }
+                const data = this.codebookService.isEnumFormControl()
                     ? selection.id
                     : selection;
-                this.formArray.push(new FormControl(data))
+                this.formArray.push(new FormControl(data));
             }
-            this.checkboxes[i].selected = true
+            this.checkboxes[i].selected = true;
         } else {
             if (this.useForm && this.form) {
-                this.form.setValue(null)   // ALEN: prej je bilo "" - mora biti null
+                this.form.setValue(null);   // ALEN: prej je bilo "" - mora biti null
             } else {
-                let pos = this.formArray.value.findIndex(x => (this.codebookService.isEnumFormControl() ? x : x.id) === selection.id)
-                if (pos < 0) return
-                this.formArray.removeAt(pos)
+                const pos = this.formArray.value.findIndex(x => (this.codebookService.isEnumFormControl() ? x : x.id) === selection.id);
+                if (pos < 0) { return; }
+                this.formArray.removeAt(pos);
             }
-            this.checkboxes[i].selected = false
+            this.checkboxes[i].selected = false;
         }
         if (this.useForm && this.form) {
-            this.form.markAsDirty()
-            this.form.updateValueAndValidity()
+            this.form.markAsDirty();
+            this.form.updateValueAndValidity();
         } else {
-            this.formArray.markAsDirty()
-            this.formArray.updateValueAndValidity()
+            this.formArray.markAsDirty();
+            this.formArray.updateValueAndValidity();
         }
         // this.checkboxes.forEach((x, index) => {
         //   if(index === i && event.target.checked) x.selected = true
@@ -165,8 +165,8 @@ export class CheckboxGroupMultiChoiceComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        if (this.choicesSub) this.choicesSub.unsubscribe()
-        if (this.sub1) this.sub1.unsubscribe()
-        if (this.sub2) this.sub2.unsubscribe()
+        if (this.choicesSub) { this.choicesSub.unsubscribe(); }
+        if (this.sub1) { this.sub1.unsubscribe(); }
+        if (this.sub2) { this.sub2.unsubscribe(); }
     }
 }

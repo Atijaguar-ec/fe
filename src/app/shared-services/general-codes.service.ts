@@ -16,13 +16,21 @@ export class GeneralCodesService<T> implements CodebookHelperService<T>{
   ) {
   }
 
-  insertNullPrefixResultIfNonEmpty = false
-  public formGenerator(): (x: T, validators?: Array<ValidatorFn>) => FormGroup { //: (x: T, validators: Array<ValidatorFn>) => FormGroupTyped<T> | FormControl {
-    throw new Error("Method not implemented.");
+  insertNullPrefixResultIfNonEmpty = false;
+
+  lastKey = null;
+
+  sifrant$: Observable<PagedSearchResults<T>> = null;
+  enumOptions$: BehaviorSubject<T[]> = new BehaviorSubject<T[]>([]);
+
+  autocompleteMinPrefix = 2;
+  maxAllCandidates = 100;
+  public formGenerator(): (x: T, validators?: Array<ValidatorFn>) => FormGroup { // : (x: T, validators: Array<ValidatorFn>) => FormGroupTyped<T> | FormControl {
+    throw new Error('Method not implemented.');
   }
 
   public initializeCodebook(): void {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   public hasAutocomplete(): boolean {
@@ -35,10 +43,8 @@ export class GeneralCodesService<T> implements CodebookHelperService<T>{
 
   // makeQuery(key: string, params?: any): PagedSearchResults<T>,
   public makeQuery(key: string, params?: any): Observable<PagedSearchResults<T>> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
-
-  lastKey = null;
 
   public onTheFlyCodebook(key$: Observable<string>, selectedObjects$: Observable<Array<T>>, params$: Observable<any>): Observable<PagedSearchResults<T>> {
     return combineLatest(key$, selectedObjects$, params$).pipe(
@@ -53,50 +59,47 @@ export class GeneralCodesService<T> implements CodebookHelperService<T>{
       // }),
       distinctUntilChanged((prev, curr) => isEqual(prev, curr)),
       tap(val => {
-        this.lastKey = val[0]
+        this.lastKey = val[0];
       }),
       switchMap((val) => {
-        let pars = { ...val[2] }
+        const pars = { ...val[2] };
         if (!pars.offset) {
-          pars.offset = 0
+          pars.offset = 0;
         }
         if (!pars.limit) {
-          pars.limit = this.limit()
+          pars.limit = this.limit();
         }
-        return this.makeQuery(val[0], pars)
+        return this.makeQuery(val[0], pars);
       })
-    )
+    );
   }
 
-  sifrant$: Observable<PagedSearchResults<T>> = null;
-  enumOptions$: BehaviorSubject<T[]> = new BehaviorSubject<T[]>([])
-
   enumOptions(): BehaviorSubject<T[]> {
-    return this.enumOptions$
+    return this.enumOptions$;
   }
 
 
   public autocompleteCandidates(key$: Observable<string>, selectedObjects$: Observable<Array<T>>, params?: Observable<any>): Observable<PagedSearchResults<T>> {
     let paramStream$ = params;
     if (!paramStream$) {
-      paramStream$ = new BehaviorSubject<any>(null)
+      paramStream$ = new BehaviorSubject<any>(null);
     }
-    let acomplete: Observable<PagedSearchResults<T>> = combineLatest(
+    const acomplete: Observable<PagedSearchResults<T>> = combineLatest(
       key$,
       this.onTheFlyCodebook(key$, selectedObjects$, paramStream$),
       selectedObjects$,
       (key: string, sifrant: PagedSearchResults<T>, selectedObjects: Array<T>) => {
-        let choices = sifrant.results.filter((x: T) =>
+        const choices = sifrant.results.filter((x: T) =>
           (this.allowDuplicateSelection()
           || !(selectedObjects.find(el => this.identifier(el) === this.identifier(x)))
           )
           // && this.textRepresentation(x).toLocaleLowerCase().startsWith(key.toLocaleLowerCase())
-        )
+        );
         // if(this.canAddNew() && choices.length == 0) {
         //     return [null];
         // }
         if (this.insertNullPrefixResultIfNonEmpty && choices.length > 0) {
-          choices.splice(0, 0, null)
+          choices.splice(0, 0, null);
         }
         return {
           results: choices,
@@ -105,15 +108,12 @@ export class GeneralCodesService<T> implements CodebookHelperService<T>{
           totalCount: sifrant ? sifrant.totalCount : 0
         };
       }
-    )
+    );
     return acomplete;
   }
 
-  autocompleteMinPrefix: number = 2;
-  maxAllCandidates: number = 100
-
   public getAllCandidates(): Observable<Array<T>> {
-    return this.makeQuery("",
+    return this.makeQuery('',
       {
         offset: 0,
         limit: this.maxAllCandidates
@@ -121,19 +121,19 @@ export class GeneralCodesService<T> implements CodebookHelperService<T>{
     ).pipe(
       map(x => x.results),
       shareReplay(1)
-    )
+    );
   }
 
   public formatter(): (x: T) => string {
     return ((x: T) => this.textRepresentation(x));
   }
   public addElement(arr: FormArray, el: T): void {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   public removeElement(arr: FormArray, index: number): void {
     arr.removeAt(index);
-    arr.markAsDirty()
-    arr.updateValueAndValidity()
+    arr.markAsDirty();
+    arr.updateValueAndValidity();
   }
   // public makeEmpty(grp: FormGroupTyped<T>): void {
   //     throw new Error("Method not implemented.");
@@ -151,7 +151,7 @@ export class GeneralCodesService<T> implements CodebookHelperService<T>{
   //     throw new Error("Method not implemented.");
   // }
   public makeNewForInput(input: string): T {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   // public isMultipleChoice(): boolean {
   //     return false;
@@ -161,17 +161,17 @@ export class GeneralCodesService<T> implements CodebookHelperService<T>{
   }
 
   public valid(model: T, input: string): boolean {
-    if (!model) return false;
-    return typeof this.identifier(model) != "undefined" && this.identifier(model) != null
+    if (!model) { return false; }
+    return typeof this.identifier(model) != 'undefined' && this.identifier(model) != null;
   }
 
   public textRepresentation(el: T) {
-    throw new Error("Method not implemented.");
-    return "";
+    throw new Error('Method not implemented.');
+    return '';
   }
 
   public identifier(el: T) {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   public canAddNew() {
@@ -179,17 +179,17 @@ export class GeneralCodesService<T> implements CodebookHelperService<T>{
   }
 
   public placeholder(): string {
-    let placeholder = $localize`:@@generalCodes.input.placehoder:Select from codes ...`
-    return placeholder
+    const placeholder = $localize`:@@generalCodes.input.placehoder:Select from codes ...`;
+    return placeholder;
   }
 
   public pack(results: T[]): PagedSearchResults<T> {
     return {
-      results: results,
+      results,
       offset: 0,
       limit: results.length,
       totalCount: results.length
-    }
+    };
   }
 
   public isEnumFormControl(): boolean {
@@ -197,10 +197,10 @@ export class GeneralCodesService<T> implements CodebookHelperService<T>{
   }
 
   public enumValueToObject(val: any, enumOptions: T[]): T {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   public objectToEnumValue(el: T): any {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 }

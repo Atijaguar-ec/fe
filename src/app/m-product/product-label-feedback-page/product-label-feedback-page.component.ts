@@ -38,6 +38,15 @@ export class ProductLabelFeedbackPageComponent implements OnInit {
     }
   }
 
+  get statusList() {
+    const obj = {};
+    obj[''] = $localize`:@@productLabelFeedback.statusList.all:All`;
+    obj['PRAISE'] = $localize`:@@productLabelFeedback.statusList.registred:Praise`;
+    obj['PROPOSAL'] = $localize`:@@productLabelFeedback.statusList.active:Proposal`;
+    obj['COMPLAINT'] = $localize`:@@productLabelFeedback.statusList.deactivated:Complaint`;
+    return obj;
+  }
+
   faTimes = faTimes;
   faFilter = faFilter;
   routerSub: Subscription;
@@ -56,34 +65,6 @@ export class ProductLabelFeedbackPageComponent implements OnInit {
   allFeedbacks = 0;
   showedFeedbacks = 0;
 
-  ngOnInit(): void {
-    this.routerSub = this.router.events.subscribe(event => {
-      if (event instanceof NavigationEnd && event.url === '/feedback') {
-        this.reloadPage();
-      }
-    });
-    this.setAllFeedbacks().then();
-  }
-
-  async setAllFeedbacks() {
-    const res = await this.publicController.listProductLabelFeedbacks(this.labelId, null, 'COUNT').pipe(take(1)).toPromise();
-    if (res && res.status === 'OK' && res.data && res.data.count >= 0) {
-      this.allFeedbacks = res.data.count;
-    }
-  }
-
-  reloadPage() {
-    this.reloadPing$.next(true);
-  }
-
-  onPageChange(event) {
-    this.paging$.next(event);
-  }
-
-  changeSort(event) {
-    this.sortingParams$.next({ sortBy: event.key, sort: event.sortOrder })
-  }
-
   searchParams$ = combineLatest(
     this.searchName.valueChanges.pipe(
       startWith(null),
@@ -97,24 +78,7 @@ export class ProductLabelFeedbackPageComponent implements OnInit {
     }
   );
 
-  get statusList() {
-    const obj = {};
-    obj[''] = $localize`:@@productLabelFeedback.statusList.all:All`;
-    obj['PRAISE'] = $localize`:@@productLabelFeedback.statusList.registred:Praise`;
-    obj['PROPOSAL'] = $localize`:@@productLabelFeedback.statusList.active:Proposal`;
-    obj['COMPLAINT'] = $localize`:@@productLabelFeedback.statusList.deactivated:Complaint`;
-    return obj;
-  }
-
   codebookStatus = EnumSifrant.fromObject(this.statusList);
-
-  showStatus(status: string) {
-    this.searchStatus.setValue(status);
-  }
-
-  clearValue() {
-    this.searchStatus.setValue('');
-  }
 
   feedbacks$ = combineLatest(this.reloadPing$, this.paging$, this.searchParams$, this.sortingParams$,
     (ping: boolean, page: number, search: any, sorting: any) => {
@@ -175,18 +139,54 @@ export class ProductLabelFeedbackPageComponent implements OnInit {
       name: $localize`:@@productLabelFeedback.sortOptions.actions.name:Actions`,
       inactive: true
     }
-  ]
+  ];
+
+  ngOnInit(): void {
+    this.routerSub = this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd && event.url === '/feedback') {
+        this.reloadPage();
+      }
+    });
+    this.setAllFeedbacks().then();
+  }
+
+  async setAllFeedbacks() {
+    const res = await this.publicController.listProductLabelFeedbacks(this.labelId, null, 'COUNT').pipe(take(1)).toPromise();
+    if (res && res.status === 'OK' && res.data && res.data.count >= 0) {
+      this.allFeedbacks = res.data.count;
+    }
+  }
+
+  reloadPage() {
+    this.reloadPing$.next(true);
+  }
+
+  onPageChange(event) {
+    this.paging$.next(event);
+  }
+
+  changeSort(event) {
+    this.sortingParams$.next({ sortBy: event.key, sort: event.sortOrder });
+  }
+
+  showStatus(status: string) {
+    this.searchStatus.setValue(status);
+  }
+
+  clearValue() {
+    this.searchStatus.setValue('');
+  }
 
   async deleteFeedback(feedback) {
-    let result = await this.globalEventsManager.openMessageModal({
+    const result = await this.globalEventsManager.openMessageModal({
       type: 'warning',
       message: $localize`:@@productLabelFeedback.deleteFeedback.error.message:Are you sure you want to delete the feedback?`,
       options: { centered: true }
     });
-    if (result != "ok") return
-    let res = await this.productController.deleteProductLabelFeedback(feedback.id).pipe(take(1)).toPromise();
+    if (result != 'ok') { return; }
+    const res = await this.productController.deleteProductLabelFeedback(feedback.id).pipe(take(1)).toPromise();
     if (res && res.status == 'OK') {
-      this.reloadPage()
+      this.reloadPage();
     }
   }
 
@@ -210,17 +210,17 @@ export class ProductLabelFeedbackPageComponent implements OnInit {
   }
 
   setBoolean(b: boolean) {
-    if (b) return '✓';
+    if (b) { return '✓'; }
     return null;
   }
 
   async downloadFeedbacks() {
 
-    let res = await this.publicController.listProductLabelFeedbacks(this.labelId, null, null, null, null, "DESC").pipe(take(1)).toPromise();
+    const res = await this.publicController.listProductLabelFeedbacks(this.labelId, null, null, null, null, 'DESC').pipe(take(1)).toPromise();
     if (res && res.status === 'OK' && res.data && res.data.items) {
 
-      let csv = "Email" + ',' + '\n';
-      for (let item of res.data.items) {
+      let csv = 'Email' + ',' + '\n';
+      for (const item of res.data.items) {
         if (item.email) {
           csv += item.email + ',' + '\n';
         }

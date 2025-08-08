@@ -12,6 +12,18 @@ import { EnumSifrant } from 'src/app/shared-services/enum-sifrant';
 })
 export class KnowledgeBlogSelectSectionModalComponent implements OnInit {
 
+  constructor(
+    public activeModal: NgbActiveModal,
+  ) { }
+
+  get statusList() {
+    const obj = {};
+    obj['FAIRNESS'] = $localize`:@@productLabelFrontFeedback.statusList.fairness:Fairness`;
+    obj['QUALITY'] = $localize`:@@productLabelFrontFeedback.statusList.quality:Quality`;
+    obj['PROVENANCE'] = $localize`:@@productLabelFrontFeedback.statusList.provenance:Provenance`;
+    return obj;
+  }
+
   @Input()
   dismissable = true;
 
@@ -30,9 +42,7 @@ export class KnowledgeBlogSelectSectionModalComponent implements OnInit {
   form = new FormControl(null);
   subs: Subscription[] = [];
 
-  constructor(
-    public activeModal: NgbActiveModal,
-  ) { }
+  codebookStatus = EnumSifrant.fromObject(this.statusList);
 
   ngOnDestroy(): void {
     this.subs.forEach(sub => sub.unsubscribe());
@@ -42,22 +52,12 @@ export class KnowledgeBlogSelectSectionModalComponent implements OnInit {
   }
 
   cancel() {
-    this.activeModal.close()
+    this.activeModal.close();
   }
 
   onConfirm() {
     if (this.form.value) {
-      this.activeModal.close(this.form.value)
+      this.activeModal.close(this.form.value);
     }
   }
-
-  get statusList() {
-    let obj = {}
-    obj['FAIRNESS'] = $localize`:@@productLabelFrontFeedback.statusList.fairness:Fairness`
-    obj['QUALITY'] = $localize`:@@productLabelFrontFeedback.statusList.quality:Quality`
-    obj['PROVENANCE'] = $localize`:@@productLabelFrontFeedback.statusList.provenance:Provenance`
-    return obj;
-  }
-
-  codebookStatus = EnumSifrant.fromObject(this.statusList)
 }

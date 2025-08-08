@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { SelfOnboardingChecklistModalComponent } from "../self-onboarding-checklist-modal.component";
-import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
-import { NgbModalImproved } from "../../../core/ngb-modal-improved/ngb-modal-improved.service";
-import { SelfOnboardingService } from "../../../shared-services/self-onboarding.service";
+import { SelfOnboardingChecklistModalComponent } from '../self-onboarding-checklist-modal.component';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModalImproved } from '../../../core/ngb-modal-improved/ngb-modal-improved.service';
+import { SelfOnboardingService } from '../../../shared-services/self-onboarding.service';
 
 @Component({
   selector: 'app-checklist-add-processing-action-success-modal',

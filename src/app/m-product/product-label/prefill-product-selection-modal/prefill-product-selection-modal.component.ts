@@ -15,10 +15,10 @@ export class PrefillProductSelectionModalComponent implements OnInit, OnDestroy 
   dismissable = true;
 
   @Input()
-  title:string = null;
+  title: string = null;
 
   @Input()
-  instructionsHtmlProduct:string = null;
+  instructionsHtmlProduct: string = null;
 
   @Input()
   skipItemId: number = null;
@@ -44,12 +44,12 @@ export class PrefillProductSelectionModalComponent implements OnInit, OnDestroy 
   }
 
   cancel() {
-    this.activeModal.close()
+    this.activeModal.close();
   }
 
   onConfirm() {
     if (this.productForm.value) {
-      this.activeModal.close(this.productForm.value)
+      this.activeModal.close(this.productForm.value);
     }
   }
 

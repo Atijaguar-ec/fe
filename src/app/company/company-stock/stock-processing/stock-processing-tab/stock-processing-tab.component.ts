@@ -7,8 +7,8 @@ import { BehaviorSubject, Subscription } from 'rxjs';
 import { AuthService } from '../../../../core/auth.service';
 import { CompanyControllerService } from '../../../../../api/api/companyController.service';
 import { SelectedUserCompanyService } from '../../../../core/selected-user-company.service';
-import { SelfOnboardingService } from "../../../../shared-services/self-onboarding.service";
-import { NgbTooltip } from "@ng-bootstrap/ng-bootstrap";
+import { SelfOnboardingService } from '../../../../shared-services/self-onboarding.service';
+import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-stock-processing-tab',
@@ -57,7 +57,7 @@ export class StockProcessingTabComponent extends StockCoreTabComponent implement
       setTimeout(() => {
         this.procActionsTitleTooltip.close();
         this.facilityListTooltip.close();
-      }, 50)
+      }, 50);
 
       if (step === 5) {
         setTimeout(() => this.procActionsTitleTooltip.open(), 50);

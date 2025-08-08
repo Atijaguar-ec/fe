@@ -42,19 +42,20 @@ import { CodebookHelperService } from 'src/interfaces/CodebookHelperService';
   ]
 })
 export class TagListComponent implements OnInit {
-    @Input()
-    label: string;
-
-    private _formArray: FormArray;
 
     @Input() set formArray(value: FormArray) {
         this._formArray = value;
-        this.resubscribe()
+        this.resubscribe();
     }
 
     get formArray(): FormArray {
         return this._formArray;
     }
+    constructor() {}
+    @Input()
+    label: string;
+
+    private _formArray: FormArray;
 
     // private _arrayName: string;
     // @Input() set arrayName(value: string) {
@@ -67,16 +68,16 @@ export class TagListComponent implements OnInit {
     // }
 
     @Input()
-    autoCloseOnAdd: boolean = true
+    autoCloseOnAdd = true;
 
     @Input()
     codebookService: CodebookHelperService<any>;
 
     @Input()
-    isInvalid?: boolean = false;
+    isInvalid = false;
 
     @Input()
-    sortable?: boolean = false;
+    sortable = false;
 
     ///// POMEMBNO ///////
     // V modelChoice je objekt, ki vsebuje izbiro v typeaheadu, ne pa tekst ki se sproti piše
@@ -85,16 +86,14 @@ export class TagListComponent implements OnInit {
 
     term: any = null;   // search term
 
-    inputVisible: boolean = false;
+    inputVisible = false;
 
-    @ViewChild("newTagInput", { static: false })
+    @ViewChild('newTagInput', { static: false })
     newTagInputField: ElementRef<HTMLInputElement>;
     // same object with different name and type
     @ViewChild('instance', { static: false }) instance: NgbTypeahead;
 
-    formatter = (x: any) => "No format"
-
-    itemSelected: boolean = false;
+    itemSelected = false;
 
     focus$ = new Subject<string>();
     click$ = new Subject<string>();
@@ -102,53 +101,54 @@ export class TagListComponent implements OnInit {
     keydown$ = new Subject<any>();
     // specialKeys$ = new Subject<string>();
 
-    autocompleteSelection$ = null
-    noAutocompleteSelections$ = null // true if autocomplete has no choices
-    showNoChoicesWarning$ = null
+    autocompleteSelection$ = null;
+    noAutocompleteSelections$ = null; // true if autocomplete has no choices
+    showNoChoicesWarning$ = null;
     selectedObjects$ = new BehaviorSubject<Array<any>>([]);   // list of currently selected objects
 
-    isNew: boolean = false;   // new object creation mode
-    constructor() {}
+    isNew = false;   // new object creation mode
 
 
     buttonsPressed = false;
+
+    selectedObjectsSubscription: Subscription = null;
+
+    formatter = (x: any) => 'No format';
     onBlur() {
         setTimeout(() => {  // če kliknemo kljukico pri dodajanju sinonimov, to poskrbi, da se textinput ne zapre. Če kliknemo ven se zapre
             if(!this.buttonsPressed) {
-                this.toggleAddTag(false)
+                this.toggleAddTag(false);
             }
             this.buttonsPressed = false;
-        }, 300)
+        }, 300);
     }
 
     onFocus() {
 
     }
     ngOnInit() {
-        this.formatter = this.codebookService.formatter()
+        this.formatter = this.codebookService.formatter();
     }
 
-    selectedObjectsSubscription: Subscription = null;
-
     resubscribe() {
-        if(this.selectedObjectsSubscription) this.selectedObjectsSubscription.unsubscribe()
+        if(this.selectedObjectsSubscription) { this.selectedObjectsSubscription.unsubscribe(); }
         this.selectedObjectsSubscription = this.formArray.valueChanges.pipe(
             startWith(this.rawFormArray())
         ).subscribe(val => {
-            this.selectedObjects$.next(val)
-        })
+            this.selectedObjects$.next(val);
+        });
     }
     onDropFormArray(event) {
         // let formArray: FormArray = this.formArray()
-        let ctrl: AbstractControl = this.formArray.controls[event.previousIndex];
-        this.formArray.removeAt(event.previousIndex)
+        const ctrl: AbstractControl = this.formArray.controls[event.previousIndex];
+        this.formArray.removeAt(event.previousIndex);
         this.formArray.insert(event.currentIndex, ctrl);
-        this.formArray.markAsDirty()
-        this.formArray.updateValueAndValidity()
+        this.formArray.markAsDirty();
+        this.formArray.updateValueAndValidity();
     }
 
     typeaheadSearch = (text$: Observable<string>) => {
-        if (!this.typeaheadEnabled()) return of([]);
+        if (!this.typeaheadEnabled()) { return of([]); }
         const clicksWithClosedPopup$ = this.click$.pipe(
             filter(() => !this.instance.isPopupOpen())
         );
@@ -167,26 +167,26 @@ export class TagListComponent implements OnInit {
             this.selectedObjects$
         ).pipe(
             map(x => x.results)
-        )
+        );
         this.noAutocompleteSelections$ = this.autocompleteSelection$.pipe(
             map((choices: Array<any>) => this.newTagInputField && this.newTagInputField.nativeElement.value.length > 0 && choices.length == 0)
-        )
+        );
         // mora biti v drugem "threadu", če ne dobimo 'ExpressionChangedAfterItHasBeenCheckedError'
         setTimeout(() => {
             this.showNoChoicesWarning$ = this.noAutocompleteSelections$.pipe(
                 map((show: boolean) => show && !this.codebookService.canAddNew())
-            )
-        })
-        return this.autocompleteSelection$
+            );
+        });
+        return this.autocompleteSelection$;
     }
 
     rawFormArray(): any {
-        return this.formArray.getRawValue()
+        return this.formArray.getRawValue();
     }
 
     typeaheadEnabled() {
-        if (this.codebookService == null) return false;
-        if (!this.codebookService.hasAutocomplete()) return false;
+        if (this.codebookService == null) { return false; }
+        if (!this.codebookService.hasAutocomplete()) { return false; }
         return true;
     }
 
@@ -196,7 +196,7 @@ export class TagListComponent implements OnInit {
         this.inputVisible = visible;
         if (visible) {
             window.setTimeout(() => {
-                this.newTagInputField.nativeElement.focus()
+                this.newTagInputField.nativeElement.focus();
             }, 300);  // pazi timing glede na animacije - če ne se pop up ne pojavi na pravem mestu !!!
         }
     }
@@ -206,32 +206,32 @@ export class TagListComponent implements OnInit {
     }
 
     stopAddTag() {
-        this.modelChoice = null
+        this.modelChoice = null;
         this.newTagInputField.nativeElement.value = null;
     }
 
     removeTag(event, tag: any) {
-        this.codebookService.removeElement(this.formArray, tag)
+        this.codebookService.removeElement(this.formArray, tag);
     }
 
     newTagValid() {
-        if(!this.newTagInputField) return false;
-        return this.codebookService.valid(this.modelChoice, this.newTagInputField.nativeElement.value)
+        if(!this.newTagInputField) { return false; }
+        return this.codebookService.valid(this.modelChoice, this.newTagInputField.nativeElement.value);
     }
 
     finishAddTag() {
-        if (!this.newTagValid()) return;
+        if (!this.newTagValid()) { return; }
         let toAdd = null;
         if(this.typeaheadEnabled()) {
-            toAdd = this.modelChoice
+            toAdd = this.modelChoice;
         } else {
-            toAdd = this.codebookService.makeNewForInput(this.newTagInputField.nativeElement.value)
+            toAdd = this.codebookService.makeNewForInput(this.newTagInputField.nativeElement.value);
         }
         this.codebookService.addElement(this.formArray, toAdd);
 
-        this.isNew = false
+        this.isNew = false;
         if(this.autoCloseOnAdd) {
-            this.toggleAddTag()
+            this.toggleAddTag();
         }
         this.stopAddTag();
     }
@@ -245,10 +245,10 @@ export class TagListComponent implements OnInit {
         // enable direct item selection
         if(this.itemSelected) {
             setTimeout(() => {
-                this.itemSelected = false
-                this.finishAddTag()
+                this.itemSelected = false;
+                this.finishAddTag();
             }
-            , 0)
+            , 0);
         }
     }
 
@@ -259,29 +259,29 @@ export class TagListComponent implements OnInit {
     }
 
     createNew() {
-        this.isNew = true
+        this.isNew = true;
     }
 
     resetNew() {
-        this.isNew = false
+        this.isNew = false;
     }
 
     ngOnDestroy() {
-        if(this.selectedObjectsSubscription) this.selectedObjectsSubscription.unsubscribe()
+        if(this.selectedObjectsSubscription) { this.selectedObjectsSubscription.unsubscribe(); }
     }
 
     createNewTag() {
         this.buttonsPressed = true;
-        this.finishAddTag()
+        this.finishAddTag();
     }
 
     cancelCreateAddNewTag() {
         this.buttonsPressed = true;
-        this.toggleAddTag()
+        this.toggleAddTag();
     }
 
     mainCloseButtonToggle(){
         this.buttonsPressed = true;
-        this.toggleAddTag()
+        this.toggleAddTag();
     }
 }

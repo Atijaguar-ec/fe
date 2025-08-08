@@ -26,7 +26,7 @@ class UploadResponse {
         public headers: ParsedResponseHeaders) {
         // this.data = this.successful() && this.body ? JSON.parse(body) : {};
         // this.data = this.successful() && this.body ? (JSON.parse(body) as ApiResponseApiDocument).data : null;
-        this.extractData(body)
+        this.extractData(body);
     }
 
     public extractData(body) {
@@ -57,63 +57,70 @@ class AttachmentFileUploader extends FileUploader {
 })
 export class AttachmentUploaderComponent implements OnInit {
 
+    get fileInfo() {
+        return this._fileInfo;
+    }
+
+    set fileInfo(value) {
+        const changed = false;
+        const prevId = this.form && this.form.value && this.form.value.storageKey;
+        const newId = value && value.storageKey;
+        this._fileInfo = value;
+        if (this.form && prevId != newId) {
+            this.form.setValue(value);
+            this.form.markAsDirty();
+            this.form.updateValueAndValidity();
+        }
+    }
+
+    get uploadName(): string {
+        if (this.form) {
+            return this.form.value && (this.form.value).name;
+        }
+        return this.fileInfo && this.fileInfo.name;
+    }
+
+    get contentType(): string {
+        return this.fileInfo && this.fileInfo.contentType;
+    }
+
+    @Input() set form(value: FormControl | FormGroup) {
+        this._form = value;
+        const contentValue = value.value;
+        if (contentValue && contentValue.storageKey) {
+            this.fileInfo = contentValue;
+            this.uploadState = this.arrayMode ? 'start' : 'ok';
+        }
+        // this.resubscribe()
+    }
+
+    get form(): FormControl | FormGroup {
+        return this._form;
+    }
+
+    get isDisabled(): boolean {
+        return ((this.form && this.form.disabled) || this.disabled);
+    }
+
+    constructor(
+        public httpClient: HttpClient,
+        public fileService: CommonControllerService,
+        private fileSaverService: FileSaverService,
+        private modalService: NgbModalImproved,
+        private globalEventsManager: GlobalEventManagerService,
+        @Optional() @Host() public closable: ClosableComponent
+    ) { }
+
+
     ////////////////////////////////////
     ///// Fileinfo type specific fields
     ///////////////////////////////////
 
     private _fileInfo = null;
 
-    get fileInfo() {
-        return this._fileInfo;
-    }
-
-    set fileInfo(value) {
-        let changed = false;
-        let prevId = this.form && this.form.value && this.form.value.storageKey
-        let newId = value && value.storageKey
-        this._fileInfo = value
-        if (this.form && prevId != newId) {
-            this.form.setValue(value)
-            this.form.markAsDirty()
-            this.form.updateValueAndValidity()
-        }
-    }
-
-    get uploadName(): string {
-        if (this.form) {
-            return this.form.value && (this.form.value).name
-        }
-        return this.fileInfo && this.fileInfo.name
-    }
-
-    get contentType(): string {
-        return this.fileInfo && this.fileInfo.contentType
-    }
-
     uploader: AttachmentFileUploader;
 
-    downloadLink() {
-      if (this.fileInfo && this.downloadUrl) {
-        return this.downloadUrl + '/' + this.fileInfo.storageKey
-      } else if (this.fileInfo) {
-        return this.rootUrl + '/' + this.fileInfo.storageKey
-      }
-    }
-
-    identifier() {
-        return this.fileInfo && this.fileInfo.storageKey
-        // return this.form && this.form.value && this.form.value.storageKey
-    }
-
     inFocus = false;
-
-    onAddFocus() {
-        this.inFocus = true
-    }
-
-    onAddBlur() {
-        this.inFocus = false
-    }
     ////////////////////////////////////
     ////////////////////////////////////
 
@@ -122,16 +129,17 @@ export class AttachmentUploaderComponent implements OnInit {
     @Input()
     rootImageUrl: string = null;
 
+    // tslint:disable-next-line:no-input-rename
     @Input('url')
-    rootUrl: string = environment.relativeFileUploadUrl//"/api/uploads";
+    rootUrl: string = environment.relativeFileUploadUrl;// "/api/uploads";
 
     @Input()
     downloadUrl: string = null;
 
     @Input()
-    useAttachmentUploaderStyle = true
+    useAttachmentUploaderStyle = true;
 
-    rootUrlManualType: string = environment.relativeFileUploadUrlManualType//"/api/uploads";
+    rootUrlManualType: string = environment.relativeFileUploadUrlManualType;// "/api/uploads";
 
     // @Input()
     // downloadLinkGenerator: (x: number | string) => string = (x: number | string) => {
@@ -142,32 +150,14 @@ export class AttachmentUploaderComponent implements OnInit {
     // }
 
     @Input()
-    deleteRouteGenerator: (x: number | string) => string = null
+    deleteRouteGenerator: (x: number | string) => string = null;
 
-    _form: FormControl | FormGroup = null
-
-    @Input() set form(value: FormControl | FormGroup) {
-        this._form = value;
-        let contentValue = value.value
-        if (contentValue && contentValue.storageKey) {
-            this.fileInfo = contentValue
-            this.uploadState = this.arrayMode ? "start" : "ok"
-        }
-        // this.resubscribe()
-    }
-
-    get form(): FormControl | FormGroup {
-        return this._form;
-    }
+    _form: FormControl | FormGroup = null;
 
     @Input()
     flexCol = false;
 
-    @Input() disabled = false
-
-    get isDisabled(): boolean {
-        return ((this.form && this.form.disabled) || this.disabled)
-    }
+    @Input() disabled = false;
 
     // @Input()
     // metadataLinkGenerator: (x: number | string) => string = (x: number | string) => {
@@ -175,40 +165,40 @@ export class AttachmentUploaderComponent implements OnInit {
     // }
 
     @Input()
-    mode: string = 'drop'
+    mode = 'drop';
 
     @Input()
-    uploadAndForget: boolean = false;
+    uploadAndForget = false;
 
     @Input()
-    attachmentUploaderId: string = "file";
+    attachmentUploaderId = 'file';
 
     @Input()
-    label = null
+    label = null;
 
     @Input()
-    htmlLabel = null
+    htmlLabel = null;
 
     @Input()
-    invalid = false
+    invalid = false;
 
     @Input()
-    readOnly: boolean = false
+    readOnly = false;
 
     @Input()
-    allowedMimeType = ['application/pdf', 'image/png', 'image/jpeg']
+    allowedMimeType = ['application/pdf', 'image/png', 'image/jpeg'];
 
     @Input()
-    allowedMimeTypeErrorMessage: string = $localize`:@@ui.attachmentUploader.allowedMimeTypeErrorMessageDefault:Upload only file types: PDF, PNG and JPG.`
+    allowedMimeTypeErrorMessage: string = $localize`:@@ui.attachmentUploader.allowedMimeTypeErrorMessageDefault:Upload only file types: PDF, PNG and JPG.`;
 
     @Input()
     maxFileSize = 36 * 1024 * 1024; // 36MB
 
     @Input()
-    type: string = null
+    type: string = null;
 
     @Input()
-    arrayMode: boolean = false
+    arrayMode = false;
 
     @Input()
     hideBody = false;
@@ -216,9 +206,9 @@ export class AttachmentUploaderComponent implements OnInit {
     @Input()
     chainFile = false;
 
-    @Input() showShowIcon = true
+    @Input() showShowIcon = true;
 
-    @Input() comment = null
+    @Input() comment = null;
 
     @Output() onFileInfoLoad = new EventEmitter<any>();
 
@@ -228,9 +218,9 @@ export class AttachmentUploaderComponent implements OnInit {
 
     @Output() onDelete = new EventEmitter<any>();
 
-    faPlusCircle = faPlusCircle
+    faPlusCircle = faPlusCircle;
 
-    draggingFileOver: boolean = false;
+    draggingFileOver = false;
 
     icon: IconDefinition = faFileUpload;
 
@@ -243,18 +233,9 @@ export class AttachmentUploaderComponent implements OnInit {
     deleteIcon = faTrashAlt;
     showIcon = faEye;
 
-    constructor(
-        public httpClient: HttpClient,
-        public fileService: CommonControllerService,
-        private fileSaverService: FileSaverService,
-        private modalService: NgbModalImproved,
-        private globalEventsManager: GlobalEventManagerService,
-        @Optional() @Host() public closable: ClosableComponent
-    ) { }
-
-    metadataPOST$: Subject<any> = new Subject<any>()
+    metadataPOST$: Subject<any> = new Subject<any>();
     metadataGET$: Observable<any> = null;
-    metadata$: Observable<any> = null
+    metadata$: Observable<any> = null;
 
     metadataErrorGET$ = new Subject<any>();
     metadataErrorPOST$ = new Subject<any>();
@@ -262,14 +243,51 @@ export class AttachmentUploaderComponent implements OnInit {
 
     metadataSuccessGET$: Subject<boolean> = new Subject<boolean>();
     metadataSuccessPUT$: Subject<boolean> = new Subject<boolean>();
-    metadataSuccess$ = merge(this.metadataSuccessGET$, this.metadataSuccessPUT$)
+    metadataSuccess$ = merge(this.metadataSuccessGET$, this.metadataSuccessPUT$);
 
     onLoadPing = new Subject<any>();
 
     uploaderSubscription: Subscription = null;
     finalSubscription: Subscription = null;
 
-    nalozeno = $localize`:@@ui.attachmentUploader.nalozeno:Uploaded &nbsp;`
+    nalozeno = $localize`:@@ui.attachmentUploader.nalozeno:Uploaded &nbsp;`;
+
+    labelClosedIndicator = this.hideBody;
+    closableSub: Subscription;
+    closableSub2: Subscription;
+
+    static truncateFilenameGeneric(n: string, len = 30) {
+        if (!n) { return n; }
+        let ext = null;
+        if (n.indexOf('.') < 0) { ext = ''; }
+        else { ext = n.substring(n.lastIndexOf('.') + 1, n.length); }
+        let filename = n.replace(/(.*)\.[^\.]*$/, '$1');
+        if (filename.length <= len) {
+            return n;
+        }
+        filename = filename.substr(0, len) + (n.length > len ? '[...]' : '');
+        return filename + '.' + ext;
+    }
+    downloadLink() {
+      if (this.fileInfo && this.downloadUrl) {
+        return this.downloadUrl + '/' + this.fileInfo.storageKey;
+      } else if (this.fileInfo) {
+        return this.rootUrl + '/' + this.fileInfo.storageKey;
+      }
+    }
+
+    identifier() {
+        return this.fileInfo && this.fileInfo.storageKey;
+        // return this.form && this.form.value && this.form.value.storageKey
+    }
+
+    onAddFocus() {
+        this.inFocus = true;
+    }
+
+    onAddBlur() {
+        this.inFocus = false;
+    }
 
     resubscribe() {
         // if(this.form) {
@@ -277,8 +295,8 @@ export class AttachmentUploaderComponent implements OnInit {
         this.metadataGET$ = this.onLoadPing.pipe(
             distinctUntilChanged(),
             map(val => {
-                if (this.form && this.form.value) return this.form.value
-                return null
+                if (this.form && this.form.value) { return this.form.value; }
+                return null;
             }),
             // switchMap(fileId => {
             //     if (fileId != null) return (this.fileService.getFileInfo(fileId).pipe(
@@ -291,29 +309,29 @@ export class AttachmentUploaderComponent implements OnInit {
             //     return of(null)
             // }),
             tap((val) => {
-                this.metadataSuccessGET$.next(!!val)
+                this.metadataSuccessGET$.next(!!val);
                 // this.onLoad.next(val)
                 if (val) {
                     // this.uploadName = val.name
                     // this.uploadUrl = val.url
-                    this.uploadState = this.arrayMode ? "start" : "ok"
+                    this.uploadState = this.arrayMode ? 'start' : 'ok';
                     // this.icon = this.getIcon(val ? val.contentType : null);
                 }
             })
-        )  // metadataGET$
+        );  // metadataGET$
         this.metadata$ = merge(this.metadataGET$, this.metadataPOST$)
             .pipe(
                 shareReplay()
-            )
+            );
 
         if (this.finalSubscription) {
-            this.finalSubscription.unsubscribe()
+            this.finalSubscription.unsubscribe();
         }
         this.finalSubscription = this.metadata$.subscribe((val) => {   // ta subscription je obvezen, če ne se nič ne sproži
-            this.onFileInfoLoad.next(val)
+            this.onFileInfoLoad.next(val);
             this.fileInfo = val;
-            this.uploadUrl = this.downloadLink()
-        })
+            this.uploadUrl = this.downloadLink();
+        });
         // }
     }
 
@@ -326,24 +344,20 @@ export class AttachmentUploaderComponent implements OnInit {
       return (validator && validator.required);
     }
 
-    labelClosedIndicator = this.hideBody
-    closableSub: Subscription
-    closableSub2: Subscription
-
     ngOnInit() {
         if (this.closable && this.closable.mode === 'intelligent') {
-            this.closable.form = this.form
-            this.hideBody = this.closable.controlledHideField$.value
-            this.labelClosedIndicator = this.closable.hideField$.value
+            this.closable.form = this.form;
+            this.hideBody = this.closable.controlledHideField$.value;
+            this.labelClosedIndicator = this.closable.hideField$.value;
             this.closableSub = this.closable.controlledHideField$.subscribe(val => {
-              this.hideBody = val
-            })
+              this.hideBody = val;
+            });
             this.closableSub2 = this.closable.hideField$.subscribe(val => {
-              this.labelClosedIndicator = val
-            })
+              this.labelClosedIndicator = val;
+            });
         }
 
-        let config = {
+        const config = {
           url: this.rootImageUrl ? this.rootImageUrl : (this.type ? this.rootUrlManualType + this.type : this.rootUrl),
           autoUpload: true,
           removeAfterUpload: true,
@@ -359,16 +373,16 @@ export class AttachmentUploaderComponent implements OnInit {
         this.uploaderSubscription = this.uploader.uploadResponse.subscribe((ev: UploadResponse) => {
           if (ev.successful()) {
             if (!this.uploadAndForget) {
-              this.uploadState = this.arrayMode ? "start" : "ok"
+              this.uploadState = this.arrayMode ? 'start' : 'ok';
               this.icon = this.getIcon(ev.data);
             }
-            this.uploadingStatus.next(this.uploadState)
-            this.onUpload.next(ev.data)
-            this.metadataPOST$.next(ev.data)
+            this.uploadingStatus.next(this.uploadState);
+            this.onUpload.next(ev.data);
+            this.metadataPOST$.next(ev.data);
           } else {
             this.icon = faExclamationTriangle;
-            this.onUpload.next(null)
-            this.metadataPOST$.next(null)
+            this.onUpload.next(null);
+            this.metadataPOST$.next(null);
           }
           if (this.rootImageUrl && ev.status500()) {
             this.globalEventsManager.push(
@@ -378,13 +392,13 @@ export class AttachmentUploaderComponent implements OnInit {
                 title: $localize`:@@ui.attachmentUploader.uploader.uploadResponse.error.title:Error`,
                 message: $localize`:@@ui.attachmentUploader.uploader.uploadResponse.error.message:Something went wrong on the server side. Please try again.`
               }
-            )
+            );
           }
         });
 
-        this.resubscribe()
+        this.resubscribe();
         if (this.form) {
-            this.onLoadPing.next(1)
+            this.onLoadPing.next(1);
         }
 
         this.uploader.onWhenAddingFileFailed = (item, filter) => {
@@ -397,7 +411,7 @@ export class AttachmentUploaderComponent implements OnInit {
                             title: $localize`:@@ui.attachmentUploader.uploader.onWhenAddingFileFailed.fileSize.error.title:File is too large!`,
                             message: $localize`:@@ui.attachmentUploader.uploader.onWhenAddingFileFailed.fileSize.error.message:Uploaded file size ${formatBytes(item.size)} is larger that the limit ${formatBytes(this.maxFileSize)}.`
                         }
-                    )
+                    );
                     break;
                 case 'mimeType':
                     this.globalEventsManager.push(
@@ -407,7 +421,7 @@ export class AttachmentUploaderComponent implements OnInit {
                             title: $localize`:@@ui.attachmentUploader.uploader.onWhenAddingFileFailed.mimeType.error.title:Wrong file format!`,
                             message: this.allowedMimeTypeErrorMessage
                         }
-                    )
+                    );
                     break;
                 default:
                     break;
@@ -418,11 +432,11 @@ export class AttachmentUploaderComponent implements OnInit {
     }
 
     isImage() {
-        return this.contentType === 'image/jpeg' || this.contentType === 'image/png'
+        return this.contentType === 'image/jpeg' || this.contentType === 'image/png';
     }
 
     getIcon(data) {
-        if (this.isImage()) return faFileImage;
+        if (this.isImage()) { return faFileImage; }
         return faFile;
     }
 
@@ -435,18 +449,18 @@ export class AttachmentUploaderComponent implements OnInit {
             this.icon = faFileUpload;
             // this.uploadName = null;
             // this.uploadUrl = null;
-            this.metadataPOST$.next(null)
+            this.metadataPOST$.next(null);
             this.uploadState = 'start';
-            this.uploadingStatus.next(this.uploadState)
+            this.uploadingStatus.next(this.uploadState);
         }
         this.onDelete.next(null);
-        if (!this.deleteRouteGenerator || !this.identifier()) return;
+        if (!this.deleteRouteGenerator || !this.identifier()) { return; }
         // if (!this.uploadUrl) return;
         this.httpClient.delete(this.deleteRouteGenerator(this.identifier()), { observe: 'response', responseType: 'text' })
             .subscribe((resp) => {
                 if (resp.ok) {
                     this.uploadState = 'start';
-                    this.uploadingStatus.next(this.uploadState)
+                    this.uploadingStatus.next(this.uploadState);
                     this.icon = faFileUpload;
                     // this.uploadName = null;
                     // this.uploadUrl = null;
@@ -462,10 +476,10 @@ export class AttachmentUploaderComponent implements OnInit {
                 modal: false,
                 fileInfo: this.fileInfo,
                 chainApi: this.downloadUrl ? true : false
-            })
+            });
         } else {
             if (this.mode === 'simpleAsTextField' && this.fileInfo) {
-                let res = await this.fileService.getDocument(this.fileInfo.storageKey).pipe(take(1)).toPromise();
+                const res = await this.fileService.getDocument(this.fileInfo.storageKey).pipe(take(1)).toPromise();
                 if (res) {
                     this.fileSaverService.save(res, this.fileInfo.name);
                 }
@@ -474,34 +488,21 @@ export class AttachmentUploaderComponent implements OnInit {
     }
 
     truncateFilename(n: string, len = 30) {
-        return AttachmentUploaderComponent.truncateFilenameGeneric(n, len)
+        return AttachmentUploaderComponent.truncateFilenameGeneric(n, len);
     }
 
-    static truncateFilenameGeneric(n: string, len = 30) {
-        if (!n) return n
-        let ext = null
-        if (n.indexOf('.') < 0) ext = ''
-        else ext = n.substring(n.lastIndexOf(".") + 1, n.length)
-        let filename = n.replace(/(.*)\.[^\.]*$/, '$1');
-        if (filename.length <= len) {
-            return n;
-        }
-        filename = filename.substr(0, len) + (n.length > len ? '[...]' : '');
-        return filename + '.' + ext;
-    };
-
     onDownload() {
-        if (!this.fileInfo) return
+        if (!this.fileInfo) { return; }
         if (this.rootImageUrl) {
-          let subImg = this.fileService.getImage(this.fileInfo.storageKey).subscribe(res => {
+          const subImg = this.fileService.getImage(this.fileInfo.storageKey).subscribe(res => {
             this.fileSaverService.save(res, this.fileInfo.name);
             subImg.unsubscribe();
-          })
+          });
         } else{
-          let sub = this.fileService.getDocument(this.fileInfo.storageKey).subscribe(res => {
+          const sub = this.fileService.getDocument(this.fileInfo.storageKey).subscribe(res => {
             this.fileSaverService.save(res, this.fileInfo.name);
-            sub.unsubscribe()
-          })
+            sub.unsubscribe();
+          });
 
         }
 
@@ -509,13 +510,13 @@ export class AttachmentUploaderComponent implements OnInit {
 
     ngOnDestroy() {
         if (this.finalSubscription) {
-            this.finalSubscription.unsubscribe()
+            this.finalSubscription.unsubscribe();
         }
         if (this.uploaderSubscription) {
             this.uploaderSubscription.unsubscribe();
         }
-        if (this.closableSub) this.closableSub.unsubscribe()
-        if (this.closableSub2) this.closableSub2.unsubscribe()
+        if (this.closableSub) { this.closableSub.unsubscribe(); }
+        if (this.closableSub2) { this.closableSub2.unsubscribe(); }
     }
 
     deleteCurrentReadOnly() {}

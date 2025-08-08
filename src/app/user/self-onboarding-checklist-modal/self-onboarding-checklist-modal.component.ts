@@ -2,10 +2,10 @@ import { Component, Input, OnInit } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { SelfOnboardingService } from '../../shared-services/self-onboarding.service';
 import { FormControl, FormGroup } from '@angular/forms';
-import { ApiCompanyOnboardingState } from "../../../api/model/apiCompanyOnboardingState";
-import { CompanyControllerService } from "../../../api/api/companyController.service";
-import { SelectedUserCompanyService } from "../../core/selected-user-company.service";
-import { take } from "rxjs/operators";
+import { ApiCompanyOnboardingState } from '../../../api/model/apiCompanyOnboardingState';
+import { CompanyControllerService } from '../../../api/api/companyController.service';
+import { SelectedUserCompanyService } from '../../core/selected-user-company.service';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-self-onboarding-checklist-modal',
@@ -38,7 +38,7 @@ export class SelfOnboardingChecklistModalComponent implements OnInit {
         const companyOnboardingState = await this.companyControllerService.getCompanyOnboardingState(value.id).toPromise();
         this.companyOnboardingState = companyOnboardingState.data;
         this.updateSelfOnboardingStatus();
-      })
+      });
     } else {
 
       this.updateSelfOnboardingStatus();

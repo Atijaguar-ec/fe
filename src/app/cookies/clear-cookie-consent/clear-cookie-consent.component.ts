@@ -18,7 +18,7 @@ export class ClearCookieConsentComponent implements OnInit, OnDestroy {
         private cookieManagementService: CookieManagementService
     ) { }
 
-    sub: Subscription = null
+    sub: Subscription = null;
     ngOnInit() {
 
         this.sub = this.route.paramMap.pipe(
@@ -26,31 +26,31 @@ export class ClearCookieConsentComponent implements OnInit, OnDestroy {
                 return {
                     type: m.get('type'),
                     value: m.get('value'),
-                }
+                };
             })
         ).subscribe(val => {
-            if ([...this.cookieManagementService.activeCookies, 'ALL', 'CHAT'].indexOf(val.type) < 0) return
-            if (['true', 'false', 'null'].indexOf(val.value) < 0) return
-            let type = val.type
-            let value = JSON.parse(val.value)
+            if ([...this.cookieManagementService.activeCookies, 'ALL', 'CHAT'].indexOf(val.type) < 0) { return; }
+            if (['true', 'false', 'null'].indexOf(val.value) < 0) { return; }
+            const type = val.type;
+            const value = JSON.parse(val.value);
 
             if (type === 'ALL') {
-                this.cookieManagementService.activeCookies.forEach(typ => this.cookieManagementService.consentToCookie(typ, value))
+                this.cookieManagementService.activeCookies.forEach(typ => this.cookieManagementService.consentToCookie(typ, value));
             } else if (type === 'CHAT') {
                 if (environment.chatApp === 'intercom') {
-                    this.cookieManagementService.consentToCookie('INTERCOM', value)
+                    this.cookieManagementService.consentToCookie('INTERCOM', value);
                 }
                 if (environment.chatApp === 'rocket') {
-                    this.cookieManagementService.consentToCookie('ROCKET', value)
+                    this.cookieManagementService.consentToCookie('ROCKET', value);
                 }
             } else {
-                this.cookieManagementService.consentToCookie(type, value)
+                this.cookieManagementService.consentToCookie(type, value);
             }
-            window.location.href = '/s/cookies'
-        })
+            window.location.href = '/s/cookies';
+        });
     }
 
     ngOnDestroy() {
-        if (this.sub) this.sub.unsubscribe()
+        if (this.sub) { this.sub.unsubscribe(); }
     }
 }

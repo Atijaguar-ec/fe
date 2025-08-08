@@ -3,9 +3,9 @@ import {FormControl} from '@angular/forms';
 import { NgbActiveModal, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import {ActiveCompaniesService} from '../../../shared-services/active-companies.service';
 import {ActiveValueChainService} from '../../../shared-services/active-value-chain.service';
-import { SelfOnboardingService } from "../../../shared-services/self-onboarding.service";
-import { Subscription } from "rxjs";
-import { take } from "rxjs/operators";
+import { SelfOnboardingService } from '../../../shared-services/self-onboarding.service';
+import { Subscription } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-new-product-modal',

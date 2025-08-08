@@ -21,8 +21,8 @@ export class ContentsLinkParentDirective implements OnInit, OnDestroy {
     ) { }
 
     get sectionId() {
-        if(!this.href) return null
-        return this.href.slice(1)
+        if(!this.href) { return null; }
+        return this.href.slice(1);
     }
 
     ngOnInit() {
@@ -32,8 +32,8 @@ export class ContentsLinkParentDirective implements OnInit, OnDestroy {
             this.active = `#${ sectionName }` === this.href;
         });
         this.contents._errorSections$.subscribe(sectionErrors => {
-            this.isError = this.contents.submitted && sectionErrors[this.sectionId]
-        })
+            this.isError = this.contents.submitted && sectionErrors[this.sectionId];
+        });
     }
 
     ngOnDestroy() {

@@ -11,7 +11,7 @@ export class CompanyDocumentCategoryFilterPipe implements PipeTransform {
     }
     // filter items array, items which match and return true will be
     // kept, false will be filtered out
-    console.log(items)
+    console.log(items);
     return items.filter(item => !item.value || !item.value.category || item.value.category == filter);
 }
 

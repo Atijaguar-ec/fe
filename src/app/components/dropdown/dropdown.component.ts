@@ -8,79 +8,81 @@ import { fancyNavigate } from 'src/shared/utils';
     styleUrls: ['./dropdown.component.scss']
 })
 export class DropdownComponent implements OnInit {
-    @Input() links = []
-    @Input() top = false
-    @Input() dark = false
-    @Input() arrow = true
-    @Input() arrowBrand = false
-    @Input() choiceMode = false
-    @Input() searchMenuPlacement = false
-
-    @ViewChild('dropdownContainer', {static: false}) dropdownContainer;
 
     constructor(
         private router: Router,
         private route: ActivatedRoute,
     ) {}
+    @Input() links = [];
+    @Input() top = false;
+    @Input() dark = false;
+    @Input() arrow = true;
+    @Input() arrowBrand = false;
+    @Input() choiceMode = false;
+    @Input() searchMenuPlacement = false;
 
-    open: number = null
-    oldOpen: number = -1
+    @ViewChild('dropdownContainer', {static: false}) dropdownContainer;
+
+    open: number = null;
+    oldOpen = -1;
+
+    selectedLink = null;
+
+    toAutoClose = -1;
+
+    delay = 1000;
 
     toggleDropdown(i) {
-        if (this.open === i)
-            this.closeDropdowns()
-        else
-            this.openDropdown(i)
+        if (this.open === i) {
+            this.closeDropdowns();
+        }
+        else {
+            this.openDropdown(i);
+        }
     }
 
     leave(i) {
         if(this.open === i) {
-            this.toAutoClose = i
+            this.toAutoClose = i;
             setTimeout(() => {
-                if(this.toAutoClose === i) this.closeDropdowns()
-            }, this.delay)
+                if(this.toAutoClose === i) { this.closeDropdowns(); }
+            }, this.delay);
         }
     }
 
-    selectedLink = null;
-
     setSelectedLink(link) {
-        this.selectedLink = link
+        this.selectedLink = link;
     }
 
 
     registerEnter(i) {
-        this.toAutoClose = -1
+        this.toAutoClose = -1;
     }
-
-    toAutoClose: number = -1
-
-    delay = 1000
     openDropdown(i) {
-        this.toAutoClose = -1
-        this.open = i
+        this.toAutoClose = -1;
+        this.open = i;
     }
 
     closeDropdowns() {
-        this.open = null
-        this.oldOpen = -1
+        this.open = null;
+        this.oldOpen = -1;
         // this.removeListener()
     }
 
     closeDropdownsWithDelay(i) {
-        this.toAutoClose = i
+        this.toAutoClose = i;
         setTimeout(() => {
-            if(this.toAutoClose === i) this.closeDropdowns()
-        }, this.delay)
+            if(this.toAutoClose === i) { this.closeDropdowns(); }
+        }, this.delay);
     }
 
     navigateTo(link: string) {
-        fancyNavigate(this.route, this.router, link)
+        fancyNavigate(this.route, this.router, link);
     }
 
     getTitle(dropdown) {
-        if (this.choiceMode && this.selectedLink) return this.selectedLink.title
-        return dropdown.title
+        if (this.choiceMode && this.selectedLink) { return this.selectedLink.title; }
+        return dropdown.title;
     }
 
     // removeListener() {

@@ -28,25 +28,25 @@ export class ScrollPositionDirective {
   }
 
   get canGoLeft() {
-    return this.elRef.nativeElement.scrollLeft > 10
+    return this.elRef.nativeElement.scrollLeft > 10;
   }
 
   get canGoRight() {
-    let el = this.elRef.nativeElement
+    const el = this.elRef.nativeElement;
     return el.scrollWidth - el.scrollLeft - 10 > this.scrollContainer.width;
   }
 
 
-  @HostListener('scroll', ['$event']) private onScroll($event:Event):void {
+  @HostListener('scroll', ['$event']) private onScroll($event: Event): void {
     this.hasLeft.next(this.canGoLeft);
     this.hasRight.next(this.canGoRight);
-  };
+  }
 
   ngOnInit() {
     // console.log("INIT:", this.canGoLeft, this.canGoRight)
     setTimeout(() => {
       this.hasLeft.next(this.canGoLeft);
       this.hasRight.next(this.canGoRight);
-    }, 500)
+    }, 500);
   }
 }

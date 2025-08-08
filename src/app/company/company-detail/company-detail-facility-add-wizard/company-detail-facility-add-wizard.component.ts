@@ -2,29 +2,29 @@ import { Component, Input, OnInit } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { ActiveFacilityTypeService } from '../../../shared-services/active-facility-types.service';
 import { ApiFacilityType } from '../../../../api/model/apiFacilityType';
-import { FormControl, FormGroup, Validators } from "@angular/forms";
-import { faTimes } from "@fortawesome/free-solid-svg-icons";
-import { CompanyValueChainsService } from "../../../shared-services/company-value-chains.service";
-import { CompanyControllerService } from "../../../../api/api/companyController.service";
-import { ActivatedRoute, Router } from "@angular/router";
-import { ApiValueChain } from "../../../../api/model/apiValueChain";
-import { ListNotEmptyValidator } from "../../../../shared/validation";
-import { SemiProductsForValueChainsService } from "../../../shared-services/semi-products-for-value-chains.service";
-import { CodebookTranslations } from "../../../shared-services/codebook-translations";
-import { SemiProductControllerService } from "../../../../api/api/semiProductController.service";
-import { ApiSemiProduct } from "../../../../api/model/apiSemiProduct";
-import { FinalProductsForCompanyService } from "../../../shared-services/final-products-for-company.service";
-import { FinalProductControllerService } from "../../../../api/api/finalProductController.service";
-import { ApiFinalProduct } from "../../../../api/model/apiFinalProduct";
-import { defaultEmptyObject, generateFormFromMetadata } from "../../../../shared/utils";
-import { ApiFacility } from "../../../../api/model/apiFacility";
-import { ApiFacilityValidationScheme } from "../company-detail-facility-add/validation";
-import { ApiFacilityLocation } from "../../../../api/model/apiFacilityLocation";
-import { ApiAddress } from "../../../../api/model/apiAddress";
-import { ApiFacilityTranslation } from "../../../../api/model/apiFacilityTranslation";
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { CompanyValueChainsService } from '../../../shared-services/company-value-chains.service';
+import { CompanyControllerService } from '../../../../api/api/companyController.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ApiValueChain } from '../../../../api/model/apiValueChain';
+import { ListNotEmptyValidator } from '../../../../shared/validation';
+import { SemiProductsForValueChainsService } from '../../../shared-services/semi-products-for-value-chains.service';
+import { CodebookTranslations } from '../../../shared-services/codebook-translations';
+import { SemiProductControllerService } from '../../../../api/api/semiProductController.service';
+import { ApiSemiProduct } from '../../../../api/model/apiSemiProduct';
+import { FinalProductsForCompanyService } from '../../../shared-services/final-products-for-company.service';
+import { FinalProductControllerService } from '../../../../api/api/finalProductController.service';
+import { ApiFinalProduct } from '../../../../api/model/apiFinalProduct';
+import { defaultEmptyObject, generateFormFromMetadata } from '../../../../shared/utils';
+import { ApiFacility } from '../../../../api/model/apiFacility';
+import { ApiFacilityValidationScheme } from '../company-detail-facility-add/validation';
+import { ApiFacilityLocation } from '../../../../api/model/apiFacilityLocation';
+import { ApiAddress } from '../../../../api/model/apiAddress';
+import { ApiFacilityTranslation } from '../../../../api/model/apiFacilityTranslation';
 import LanguageEnum = ApiFacilityTranslation.LanguageEnum;
-import { FacilityControllerService } from "../../../../api/api/facilityController.service";
-import { SelfOnboardingService } from "../../../shared-services/self-onboarding.service";
+import { FacilityControllerService } from '../../../../api/api/facilityController.service';
+import { SelfOnboardingService } from '../../../shared-services/self-onboarding.service';
 
 @Component({
   selector: 'app-company-detail-facility-add-wizard',
@@ -75,7 +75,7 @@ export class CompanyDetailFacilityAddWizardComponent implements OnInit {
   facilityLocationParentForm = generateFormFromMetadata(ApiFacility.formMetadata(), this.emptyObject(), ApiFacilityValidationScheme);
   submittedFacilityLocationForm = false;
 
-  currentStep: number = 1;
+  currentStep = 1;
 
   @Input()
   companyId: string;
@@ -127,7 +127,7 @@ export class CompanyDetailFacilityAddWizardComponent implements OnInit {
 
   setCollectionFacility(isCollectionFacility: boolean) {
     this.collectionFacility = isCollectionFacility;
-    this.currentStep++
+    this.currentStep++;
   }
 
   setFacilityConfiguration() {
@@ -223,7 +223,7 @@ export class CompanyDetailFacilityAddWizardComponent implements OnInit {
       company: {
         id: Number(this.companyId)
       },
-      facilityLocation: facilityLocation,
+      facilityLocation,
       translations: [
         { name: this.facilityNameControl.value, language: LanguageEnum.EN },
         { name: this.facilityNameControl.value, language: LanguageEnum.DE },
@@ -243,7 +243,7 @@ export class CompanyDetailFacilityAddWizardComponent implements OnInit {
       displayPriceDeterminedLater: this.priceDeterminedLater.value,
       displayTare: this.ableToDocumentTare.value,
       displayWomenOnly: this.mayContainWomenOnly.value
-    }
+    };
 
     this.facilityControllerService.createOrUpdateFacility(facility).subscribe(() => {
       this.selfOnboardingService.setAddFacilityCurrentStep('success');

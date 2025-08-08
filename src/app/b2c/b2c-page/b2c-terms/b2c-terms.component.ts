@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { B2cPageComponent } from '../b2c-page.component';
-import { ApiBusinessToCustomerSettings } from "../../../../api/model/apiBusinessToCustomerSettings";
+import { ApiBusinessToCustomerSettings } from '../../../../api/model/apiBusinessToCustomerSettings';
 
 @Component({
   selector: 'app-b2c-terms',

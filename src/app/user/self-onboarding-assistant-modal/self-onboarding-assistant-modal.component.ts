@@ -1,11 +1,11 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import {
   SelfOnboardingChecklistModalComponent
-} from "../self-onboarding-checklist-modal/self-onboarding-checklist-modal.component";
-import { NgbModalImproved } from "../../core/ngb-modal-improved/ngb-modal-improved.service";
-import { SelfOnboardingService } from "../../shared-services/self-onboarding.service";
-import { ApiUserGet } from "../../../api/model/apiUserGet";
+} from '../self-onboarding-checklist-modal/self-onboarding-checklist-modal.component';
+import { NgbModalImproved } from '../../core/ngb-modal-improved/ngb-modal-improved.service';
+import { SelfOnboardingService } from '../../shared-services/self-onboarding.service';
+import { ApiUserGet } from '../../../api/model/apiUserGet';
 
 @Component({
   selector: 'app-self-onboarding-assistant-modal',

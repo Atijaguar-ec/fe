@@ -9,9 +9,9 @@ export class ClosableTextinputComponent implements OnInit {
 
   constructor() { }
 
-  @Input() form
-  @Input() label
-  @Input() placeholder
+  @Input() form;
+  @Input() label;
+  @Input() placeholder;
 
   showInput = true;
   ngOnInit(): void {

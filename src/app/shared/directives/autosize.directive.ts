@@ -14,7 +14,7 @@ import {
 })
 export class AutosizeDirective implements AfterViewInit, DoCheck {
     @Input()
-    public autosize: boolean = true;
+    public autosize = true;
 
     @HostBinding('style.overflow')
     public overflow = 'hidden';
@@ -48,7 +48,7 @@ export class AutosizeDirective implements AfterViewInit, DoCheck {
             // mark as changed
             this.sizeWasSet = true;
         } else {
-            if (this.sizeWasSet) this.setHeight('auto');
+            if (this.sizeWasSet) { this.setHeight('auto'); }
             this.sizeWasSet = false;
         }
 

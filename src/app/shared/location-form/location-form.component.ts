@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 import { CountryService } from 'src/app/shared-services/countries.service';
 import { GlobalEventManagerService } from 'src/app/core/global-event-manager.service';
 import { EnumSifrant } from 'src/app/shared-services/enum-sifrant';
-import { ApiCountry } from "../../../api/model/apiCountry";
+import { ApiCountry } from '../../../api/model/apiCountry';
 
 @Component({
   selector: 'location-form',
@@ -15,6 +15,22 @@ import { ApiCountry } from "../../../api/model/apiCountry";
 })
 export class LocationFormComponent implements OnInit, OnDestroy {
 
+  @ViewChild(GoogleMap) set map(map: GoogleMap) {
+    if (map) { this.gMap = map; this.fitBounds(); }
+  }
+
+  constructor(
+    public countryCodes: CountryService,
+    public globalEventsManager: GlobalEventManagerService
+  ) { }
+
+  get publiclyVisible() {
+    const obj = {};
+    obj['true'] = $localize`:@@locationForm.publiclyVisible.yes:YES`;
+    obj['false'] = $localize`:@@locationForm.publiclyVisible.no:NO`;
+    return obj;
+  }
+
   faTimes = faTimes;
 
   @Input()
@@ -22,10 +38,6 @@ export class LocationFormComponent implements OnInit, OnDestroy {
 
   @Input()
   submitted = false;
-
-  @ViewChild(GoogleMap) set map(map: GoogleMap) {
-    if (map) { this.gMap = map; this.fitBounds(); }
-  }
 
   gMap = null;
   isGoogleMapsLoaded = false;
@@ -39,10 +51,9 @@ export class LocationFormComponent implements OnInit, OnDestroy {
   initialBounds: any = [];
   subs: Subscription[] = [];
 
-  constructor(
-    public countryCodes: CountryService,
-    public globalEventsManager: GlobalEventManagerService
-  ) { }
+  marker = null;
+
+  codebookStatus = EnumSifrant.fromObject(this.publiclyVisible);
 
   ngOnInit(): void {
 
@@ -99,12 +110,12 @@ export class LocationFormComponent implements OnInit, OnDestroy {
   }
 
   showRwandaFields() {
-    let country = this.form.get('address.country')?.value as ApiCountry;
+    const country = this.form.get('address.country')?.value as ApiCountry;
     return country && country.code === 'RW';
   }
 
   showHondurasFields() {
-    let country = this.form.get('address.country')?.value as ApiCountry;
+    const country = this.form.get('address.country')?.value as ApiCountry;
     return country && country.code === 'HN';
   }
 
@@ -224,8 +235,6 @@ export class LocationFormComponent implements OnInit, OnDestroy {
     this.gMap.fitBounds(this.bounds.union(minBounds));
   }
 
-  marker = null;
-
   updateLonLat() {
 
     if (this.marker) {
@@ -272,13 +281,4 @@ export class LocationFormComponent implements OnInit, OnDestroy {
     this.marker = null;
     this.initialBounds = [];
   }
-
-  get publiclyVisible() {
-    const obj = {};
-    obj['true'] = $localize`:@@locationForm.publiclyVisible.yes:YES`;
-    obj['false'] = $localize`:@@locationForm.publiclyVisible.no:NO`;
-    return obj;
-  }
-
-  codebookStatus = EnumSifrant.fromObject(this.publiclyVisible);
 }

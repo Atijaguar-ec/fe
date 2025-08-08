@@ -18,14 +18,6 @@ export class ActiveProductsService extends GeneralSifrantService<ApiProductListR
     super();
   }
 
-  public identifier(el: ApiProductListResponse) {
-    return el.id;
-  }
-
-  public textRepresentation(el: ApiProductListResponse) {
-    return `${el.name}`
-  }
-
   requestParams = {
     statuses: null,
     requestType: 'FETCH',
@@ -34,30 +26,38 @@ export class ActiveProductsService extends GeneralSifrantService<ApiProductListR
     status: 'ACTIVE',
   } as ListProducts.PartialParamMap;
 
+  public identifier(el: ApiProductListResponse) {
+    return el.id;
+  }
+
+  public textRepresentation(el: ApiProductListResponse) {
+    return `${el.name}`;
+  }
+
   public makeQuery(key: string, params?: any): Observable<PagedSearchResults<ApiProductListResponse>> {
     // console.log("MAKE Q")
-    let limit = params && params.limit ? params.limit : this.limit()
+    const limit = params && params.limit ? params.limit : this.limit();
 
-    let reqPars = {
+    const reqPars = {
       ...this.requestParams,
       name: key
-    }
-    let tmp = this.producController.listProductsByMap(reqPars).pipe(
+    };
+    const tmp = this.producController.listProductsByMap(reqPars).pipe(
       map((res: ApiPaginatedResponseApiProductListResponse) => {
         return {
           results: res.data.items,
           offset: 0,
-          limit: limit,
+          limit,
           totalCount: res.data.count
-        }
+        };
       })
-    )
+    );
     return tmp;
   }
 
   public placeholder(): string {
-    let placeholder = $localize`:@@activeProducts.input.placehoder:Type product name ...`
-    return placeholder
+    const placeholder = $localize`:@@activeProducts.input.placehoder:Type product name ...`;
+    return placeholder;
   }
 
 }

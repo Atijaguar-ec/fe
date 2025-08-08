@@ -11,27 +11,37 @@ import { environment } from 'src/environments/environment';
 })
 export class CookieManagementModalComponent implements OnInit {
 
-    @Input()
-    dismissable = true;
-
-    checked1
-
     constructor(
         public activeModal: NgbActiveModal,
         private modalService: NgbModalImproved
     ) { }
+
+    get chatEngine() {
+        return environment.chatApp;
+    }
+
+    @Input()
+    dismissable = true;
+
+    checked1;
 
     form = new FormGroup({
         googleAnalytics: new FormControl(null),
         facebookPixel: new FormControl(null),
         intercom: new FormControl(null),
         rocket: new FormControl(null)
-    })
+    });
+
+    static openCookieManagement(modalService: NgbModalImproved) {
+        const modalRef = modalService.open(CookieManagementModalComponent, { centered: true });
+        Object.assign(modalRef.componentInstance, {
+        });
+    }
     ngOnInit() {
-        this.form.get('googleAnalytics').setValue(JSON.parse(localStorage.getItem('cookieConsentGoogleAnalytics')))
-        this.form.get('facebookPixel').setValue(JSON.parse(localStorage.getItem('cookieConsentFacebookPixel')))
-        this.form.get('intercom').setValue(JSON.parse(localStorage.getItem('cookieConsentIntercom')))
-        this.form.get('rocket').setValue(JSON.parse(localStorage.getItem('cookieConsentRocket')))
+        this.form.get('googleAnalytics').setValue(JSON.parse(localStorage.getItem('cookieConsentGoogleAnalytics')));
+        this.form.get('facebookPixel').setValue(JSON.parse(localStorage.getItem('cookieConsentFacebookPixel')));
+        this.form.get('intercom').setValue(JSON.parse(localStorage.getItem('cookieConsentIntercom')));
+        this.form.get('rocket').setValue(JSON.parse(localStorage.getItem('cookieConsentRocket')));
         // console.log(this.form)
         // this.form.valueChanges.subscribe(val => {
         //     console.log(val)
@@ -43,7 +53,7 @@ export class CookieManagementModalComponent implements OnInit {
             || localStorage.getItem('cookieConsentFacebookPixel')
             || localStorage.getItem('cookieConsentIntercom')
             || localStorage.getItem('cookieConsentRocket')
-            || localStorage.getItem('cookieConsent')
+            || localStorage.getItem('cookieConsent');
     }
 
     isAllConsent() {
@@ -51,24 +61,14 @@ export class CookieManagementModalComponent implements OnInit {
             && localStorage.getItem('cookieConsentFacebookPixel')
             && localStorage.getItem('cookieConsentIntercom')
             && localStorage.getItem('cookieConsentRocket')
-            && localStorage.getItem('cookieConsent')
+            && localStorage.getItem('cookieConsent');
     }
 
     save() {
-        localStorage.setItem('cookieConsentGoogleAnalytics', JSON.stringify(!!this.form.get('googleAnalytics').value))
-        localStorage.setItem('cookieConsentFacebookPixel', JSON.stringify(!!this.form.get('facebookPixel').value))
-        localStorage.setItem('cookieConsentIntercom', JSON.stringify(!!this.form.get('intercom').value))
-        localStorage.setItem('cookieConsentRocket', JSON.stringify(!!this.form.get('rocket').value))
-        window.location.reload()
-    }
-
-    static openCookieManagement(modalService: NgbModalImproved) {
-        const modalRef = modalService.open(CookieManagementModalComponent, { centered: true });
-        Object.assign(modalRef.componentInstance, {
-        })
-    }
-
-    get chatEngine() {
-        return environment.chatApp
+        localStorage.setItem('cookieConsentGoogleAnalytics', JSON.stringify(!!this.form.get('googleAnalytics').value));
+        localStorage.setItem('cookieConsentFacebookPixel', JSON.stringify(!!this.form.get('facebookPixel').value));
+        localStorage.setItem('cookieConsentIntercom', JSON.stringify(!!this.form.get('intercom').value));
+        localStorage.setItem('cookieConsentRocket', JSON.stringify(!!this.form.get('rocket').value));
+        window.location.reload();
     }
 }

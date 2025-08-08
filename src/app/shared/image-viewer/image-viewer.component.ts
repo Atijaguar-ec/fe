@@ -12,6 +12,19 @@ import { CommonControllerService } from 'src/api/api/commonController.service';
     styleUrls: ['./image-viewer.component.scss']
 })
 export class ImageViewerComponent implements OnInit, OnDestroy {
+    @Input() set fileInfo(value: ApiDocument) {
+        this._fileInfo = value;
+        this.fileInfo$.next(value);
+    }
+
+    get fileInfo(): ApiDocument {
+        return this._fileInfo;
+    }
+
+    constructor(
+        private fileService: CommonControllerService,
+        private sanitizer: DomSanitizer
+    ) { }
 
     @Input()
     url: string = null;
@@ -23,39 +36,28 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
     height: number = null;
 
     @Input()
-    signInImage: boolean = false;
+    signInImage = false;
 
     @Input()
-    centerVertical: boolean = false;
+    centerVertical = false;
 
-    private _fileInfo = null
-    @Input() set fileInfo(value: ApiDocument) {
-        this._fileInfo = value
-        this.fileInfo$.next(value)
-    }
-
-    get fileInfo(): ApiDocument {
-        return this._fileInfo
-    }
+    private _fileInfo = null;
 
 
     @Input()
-    directLink: boolean = true
+    directLink = true;
 
     @Input()
-    chainApi: boolean = false;
-
-    constructor(
-        private fileService: CommonControllerService,
-        private sanitizer: DomSanitizer
-    ) { }
+    chainApi = false;
 
     private fileInfo$ = new BehaviorSubject(this.fileInfo);
     public dataUrl$ = this.fileInfo$.pipe(
         distinctUntilChanged((prev, curr) => prev.storageKey == curr.storageKey),
         switchMap(info => this.loadImage(info)),
         shareReplay(1)
-    )
+    );
+
+    private unsubscribeList = new UnsubscribeList();
 
     private loadImage(fileInfo: ApiDocument): Observable<any> {
         return this.fileService.getDocument(fileInfo.storageKey).pipe(
@@ -65,8 +67,6 @@ export class ImageViewerComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
     }
-
-    private unsubscribeList = new UnsubscribeList();
 
     ngOnDestroy() {
         this.unsubscribeList.cleanup();

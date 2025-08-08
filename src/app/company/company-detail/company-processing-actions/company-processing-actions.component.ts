@@ -11,7 +11,7 @@ import { take } from 'rxjs/operators';
 import {
   CompanyDetailProcessingActionsAddWizardComponent
 } from './company-detail-processing-actions-add-wizard/company-detail-processing-actions-add-wizard.component';
-import { NgbModalImproved } from "../../../core/ngb-modal-improved/ngb-modal-improved.service";
+import { NgbModalImproved } from '../../../core/ngb-modal-improved/ngb-modal-improved.service';
 
 @Component({
   selector: 'app-company-processing-actions',

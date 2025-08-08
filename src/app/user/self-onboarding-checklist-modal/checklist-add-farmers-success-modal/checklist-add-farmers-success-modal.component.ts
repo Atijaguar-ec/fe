@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
-import { SelfOnboardingService } from "../../../shared-services/self-onboarding.service";
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { SelfOnboardingService } from '../../../shared-services/self-onboarding.service';
 
 @Component({
     selector: 'app-checklist-add-farmers-success-modal',

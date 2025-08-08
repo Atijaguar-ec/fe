@@ -21,6 +21,39 @@ import { PublicControllerService } from '../../../../api/api/publicController.se
 })
 export class B2cFeedbackComponent implements OnInit {
 
+  constructor(
+      @Inject(B2cPageComponent) private b2cPage: B2cPageComponent,
+      private globalEventsManager: GlobalEventManagerService,
+      private publicController: PublicControllerService
+  ) {
+    this.b2cSettings = b2cPage.b2cSettings;
+  }
+
+  get statusList() {
+    const obj = {};
+    obj['PRAISE'] = $localize`:@@frontPage.feedback.statusList.registred:Praise`;
+    obj['PROPOSAL'] = $localize`:@@frontPage.feedback.statusList.active:Proposal`;
+    obj['COMPLAINT'] = $localize`:@@frontPage.feedback.statusList.deactivated:Complaint`;
+    return obj;
+  }
+
+  get ageCodes() {
+    const obj = {};
+    obj['Male'] = $localize`:@@frontPage.feedback.ageCodes.male:Male`;
+    obj['Female'] = $localize`:@@frontPage.feedback.ageCodes.female:Female`;
+    obj['N/A'] = $localize`:@@frontPage.feedback.ageCodes.na:N/A`;
+    return obj;
+  }
+
+
+  get tasteCodes() {
+    const obj = {};
+    obj['Better'] = $localize`:@@frontPage.feedback.tasteCodes.better:Better`;
+    obj['Same'] = $localize`:@@frontPage.feedback.tasteCodes.same:Same`;
+    obj['Worse'] = $localize`:@@frontPage.feedback.tasteCodes.worse:Worse`;
+    return obj;
+  }
+
   b2cSettings: ApiBusinessToCustomerSettings;
 
   submitted = false;
@@ -34,14 +67,9 @@ export class B2cFeedbackComponent implements OnInit {
   productName = '';
 
   gdprHtmlContext = '';
-
-  constructor(
-      @Inject(B2cPageComponent) private b2cPage: B2cPageComponent,
-      private globalEventsManager: GlobalEventManagerService,
-      private publicController: PublicControllerService
-  ) {
-    this.b2cSettings = b2cPage.b2cSettings;
-  }
+  codebookStatus = EnumSifrant.fromObject(this.statusList);
+  codebookAgeCodes = EnumSifrant.fromObject(this.ageCodes);
+  codebookTasteCodes = EnumSifrant.fromObject(this.tasteCodes);
 
   ngOnInit(): void {
     this.initLabel();
@@ -109,33 +137,5 @@ export class B2cFeedbackComponent implements OnInit {
   prepareData() {
     return this.feedbackForm.value;
   }
-
-  get statusList() {
-    const obj = {};
-    obj['PRAISE'] = $localize`:@@frontPage.feedback.statusList.registred:Praise`;
-    obj['PROPOSAL'] = $localize`:@@frontPage.feedback.statusList.active:Proposal`;
-    obj['COMPLAINT'] = $localize`:@@frontPage.feedback.statusList.deactivated:Complaint`;
-    return obj;
-  }
-  codebookStatus = EnumSifrant.fromObject(this.statusList);
-
-  get ageCodes() {
-    const obj = {};
-    obj['Male'] = $localize`:@@frontPage.feedback.ageCodes.male:Male`;
-    obj['Female'] = $localize`:@@frontPage.feedback.ageCodes.female:Female`;
-    obj['N/A'] = $localize`:@@frontPage.feedback.ageCodes.na:N/A`;
-    return obj;
-  }
-  codebookAgeCodes = EnumSifrant.fromObject(this.ageCodes);
-
-
-  get tasteCodes() {
-    const obj = {};
-    obj['Better'] = $localize`:@@frontPage.feedback.tasteCodes.better:Better`;
-    obj['Same'] = $localize`:@@frontPage.feedback.tasteCodes.same:Same`;
-    obj['Worse'] = $localize`:@@frontPage.feedback.tasteCodes.worse:Worse`;
-    return obj;
-  }
-  codebookTasteCodes = EnumSifrant.fromObject(this.tasteCodes);
 
 }

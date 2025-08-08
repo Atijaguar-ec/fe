@@ -34,7 +34,7 @@ export class MessageModalComponent implements OnInit {
      * Show close (x) button at top left
      */
     @Input()
-    public dismissable: boolean = true;
+    public dismissable = true;
 
     @Input()
     buttonTitles: Partial<MessageButtonStringDict> = this.messageLabels.buttons;
@@ -49,7 +49,7 @@ export class MessageModalComponent implements OnInit {
         question: faQuestionCircle,
         warning: faExclamationTriangle,
         error: faExclamationCircle,
-    }
+    };
 
     ngOnInit() {
     }

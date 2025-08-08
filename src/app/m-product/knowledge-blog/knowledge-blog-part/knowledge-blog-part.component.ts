@@ -19,25 +19,6 @@ import { GlobalEventManagerService } from 'src/app/core/global-event-manager.ser
 })
 export class KnowledgeBlogPartComponent extends ComponentCanDeactivate implements OnInit {
 
-  public canDeactivate(): boolean {
-    return !this.form || !(this.changed)
-  }
-
-  @Input()
-  form: FormGroup;
-  listManager = null;
-  title: string = "";
-  currentType: string = "";
-
-  tempLink = this.router.url.substr(0, this.router.url.lastIndexOf("/"));
-  goToLink: string = this.tempLink.substr(0, this.tempLink.lastIndexOf("/"));
-
-  submitted = false;
-  knowledgeBlogId = this.route.snapshot.params.knowledgeBlogId;
-  type = this.route.snapshot.params.type;
-  productId = this.route.snapshot.params.id;
-  showPage: boolean = false;
-
   constructor(
     private productController: ProductControllerService,
     private route: ActivatedRoute,
@@ -45,33 +26,64 @@ export class KnowledgeBlogPartComponent extends ComponentCanDeactivate implement
     private location: Location,
     private router: Router
   ) {
-    super()
-  }
-
-  ngOnInit(): void {
-    this.initializeData()
+    super();
   }
 
 
   get changed(): Boolean {
-    return this.form.dirty
+    return this.form.dirty;
   }
 
   get invalid() {
-    return this.form.invalid
+    return this.form.invalid;
+  }
+
+  @Input()
+  form: FormGroup;
+  listManager = null;
+  title = '';
+  currentType = '';
+
+  tempLink = this.router.url.substr(0, this.router.url.lastIndexOf('/'));
+  goToLink: string = this.tempLink.substr(0, this.tempLink.lastIndexOf('/'));
+
+  submitted = false;
+  knowledgeBlogId = this.route.snapshot.params.knowledgeBlogId;
+  type = this.route.snapshot.params.type;
+  productId = this.route.snapshot.params.id;
+  showPage = false;
+
+  static CreateEmptyObject(): ApiDocument {
+    const obj = ApiDocument.formMetadata();
+    return defaultEmptyObject(obj) as ApiDocument;
+  }
+
+  static EmptyObjectFormFactory(): () => FormControl {
+    return () => {
+      const f = new FormControl(KnowledgeBlogPartComponent.CreateEmptyObject());
+      return f;
+    };
+  }
+
+  public canDeactivate(): boolean {
+    return !this.form || !(this.changed);
+  }
+
+  ngOnInit(): void {
+    this.initializeData();
   }
 
   async initializeData() {
     this.titleName(this.type);
 
-    if (this.type === 'fairness') { this.currentType = "FAIRNESS"; }
-    if (this.type === 'quality') { this.currentType = "QUALITY"; }
-    if (this.type === 'provenance') { this.currentType = "PROVENANCE"; }
+    if (this.type === 'fairness') { this.currentType = 'FAIRNESS'; }
+    if (this.type === 'quality') { this.currentType = 'QUALITY'; }
+    if (this.type === 'provenance') { this.currentType = 'PROVENANCE'; }
 
     if (this.knowledgeBlogId) {
       this.showPage = true;
-      let resp = await this.productController.getProductKnowledgeBlog(this.knowledgeBlogId).pipe(take(1)).toPromise();
-      let knowledgeBlogData = resp.data;
+      const resp = await this.productController.getProductKnowledgeBlog(this.knowledgeBlogId).pipe(take(1)).toPromise();
+      const knowledgeBlogData = resp.data;
       this.form = generateFormFromMetadata(ApiKnowledgeBlogPart.formMetadata(), knowledgeBlogData);
     } else {
       this.form = generateFormFromMetadata(ApiKnowledgeBlogPart.formMetadata(), {});
@@ -80,43 +92,31 @@ export class KnowledgeBlogPartComponent extends ComponentCanDeactivate implement
   }
 
   titleName(type: string) {
-    if (this.knowledgeBlogId) this.title += $localize`:@@knowledgeBlogPart.title.edit:Edit `;
-    else this.title += $localize`:@@knowledgeBlogPart.title.edit:Add `;
+    if (this.knowledgeBlogId) { this.title += $localize`:@@knowledgeBlogPart.title.edit:Edit `; }
+    else { this.title += $localize`:@@knowledgeBlogPart.title.edit:Add `; }
 
-    if (this.type === 'fairness') this.title += $localize`:@@knowledgeBlogPart.title.fairness:Fairness`;
-    if (this.type === 'quality') this.title += $localize`:@@knowledgeBlogPart.title.quality:Quality`;
-    if (this.type === 'provenance') this.title += $localize`:@@knowledgeBlogPart.title.provenance:Provenance`;
+    if (this.type === 'fairness') { this.title += $localize`:@@knowledgeBlogPart.title.fairness:Fairness`; }
+    if (this.type === 'quality') { this.title += $localize`:@@knowledgeBlogPart.title.quality:Quality`; }
+    if (this.type === 'provenance') { this.title += $localize`:@@knowledgeBlogPart.title.provenance:Provenance`; }
   }
 
   initializeListManagers() {
     this.listManager = new ListEditorManager<ApiDocument>(
       this.form.get('documents') as FormArray,
       KnowledgeBlogPartComponent.EmptyObjectFormFactory(), null
-    )
-  }
-
-  static CreateEmptyObject(): ApiDocument {
-    let obj = ApiDocument.formMetadata();
-    return defaultEmptyObject(obj) as ApiDocument
-  }
-
-  static EmptyObjectFormFactory(): () => FormControl {
-    return () => {
-      let f = new FormControl(KnowledgeBlogPartComponent.CreateEmptyObject())
-      return f
-    }
+    );
   }
 
   async save() {
     this.submitted = true;
-    if (!this.changed) return // nothing to save
+    if (!this.changed) { return; } // nothing to save
     if (this.invalid) {
       this.globalEventsManager.push({
         action: 'error',
         notificationType: 'error',
         title: $localize`:@@knowledgeBlogPart.save.error.title:Error`,
         message: $localize`:@@knowledgeBlogPart.save.error.message:Errors on page. Please check!`
-      })
+      });
       return false;
     }
 
@@ -125,9 +125,9 @@ export class KnowledgeBlogPartComponent extends ComponentCanDeactivate implement
     if (this.knowledgeBlogId) {
       try {
         this.globalEventsManager.showLoading(true);
-        let data = this.form.value
+        let data = this.form.value;
         data = { type: this.currentType as ApiKnowledgeBlog.TypeEnum, ...data, id: this.knowledgeBlogId };
-        let res = await this.productController.updateProductKnowledgeBlog(data).pipe(take(1)).toPromise()
+        const res = await this.productController.updateProductKnowledgeBlog(data).pipe(take(1)).toPromise();
         if (res && res.status === 'OK') {
           this.form.markAsPristine();
           this.goBack();
@@ -141,9 +141,9 @@ export class KnowledgeBlogPartComponent extends ComponentCanDeactivate implement
     } else {
       try {
         this.globalEventsManager.showLoading(true);
-        let data = this.form.value
+        let data = this.form.value;
         data = { type: this.currentType as ApiKnowledgeBlog.TypeEnum, ...data };
-        let res = await this.productController.addProductKnowledgeBlog(this.productId, data).pipe(take(1)).toPromise()
+        const res = await this.productController.addProductKnowledgeBlog(this.productId, data).pipe(take(1)).toPromise();
         if (res && res.status === 'OK') {
           this.form.markAsPristine();
           this.goBack();
@@ -164,7 +164,7 @@ export class KnowledgeBlogPartComponent extends ComponentCanDeactivate implement
   }
 
   viewPage() {
-    this.router.navigate(['/', 'blog', this.productId, this.type, this.knowledgeBlogId])
+    this.router.navigate(['/', 'blog', this.productId, this.type, this.knowledgeBlogId]);
   }
 
 }

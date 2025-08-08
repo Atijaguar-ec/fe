@@ -108,6 +108,21 @@
                   "with": "src/environments/environment.dev.ts"
                 }
               ]
+            },
+            "test": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                }
+              ],
+              "optimization": true,
+              "aot": true,
+              "buildOptimizer": true,
+              "sourceMap": false,
+              "namedChunks": false,
+              "vendorChunk": false,
+              "extractLicenses": true
             }
           }
         },
@@ -156,7 +171,12 @@
               "e2e/tsconfig.json"
             ],
             "exclude": [
-              "**/node_modules/**"
+              "**/node_modules/**",
+              "src/api/**",
+              "src/shared/validation.ts",
+              "src/**/validation.ts",
+              "src/**/Validation.ts",
+              "src/shared/utils.ts"
             ]
           }
         },

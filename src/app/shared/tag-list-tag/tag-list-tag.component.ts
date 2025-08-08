@@ -27,7 +27,7 @@ import { initial } from 'lodash-es';
             })),
             transition(
                 'active=>deleted',
-                animate("300ms")
+                animate('300ms')
             )
         ])
     ]
@@ -35,35 +35,35 @@ import { initial } from 'lodash-es';
 })
 export class TagListTagComponent implements OnInit {
 
+    constructor() { }
+
     @Input()
-    text: string = null
+    text: string = null;
 
     @Output() onRemove = new EventEmitter<any>();
 
-    deleted = false
+    deleted = false;
 
-    constructor() { }
+    initialWidth = 0;
+
+    @ViewChild('tagElement', {static: false}) tagElement: ElementRef;
 
     ngOnInit() {
     }
 
     onDelete(event) {
-        this.deleted = true
+        this.deleted = true;
     }
-
-    initialWidth = 0;
 
     startAnimation(event) {
         if (event.fromState === 'active' && event.toState === 'deleted') {
-            this.initialWidth = this.tagElement.nativeElement.offsetWidth
+            this.initialWidth = this.tagElement.nativeElement.offsetWidth;
         }
     }
 
-    @ViewChild('tagElement', {static: false}) tagElement : ElementRef;
-
     deleteAfterAnimation(event) {
         if(event.fromState === 'active' && event.toState === 'deleted') {
-            this.onRemove.next(event)
+            this.onRemove.next(event);
         }
     }
 }

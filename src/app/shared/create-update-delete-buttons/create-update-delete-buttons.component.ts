@@ -7,7 +7,7 @@ import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 })
 export class CreateUpdateDeleteButtonsComponent implements OnInit {
     @Input()
-    mode: 'create' | 'update' | 'delete' = 'create'
+    mode: 'create' | 'update' | 'delete' = 'create';
 
     @Output() onCancel = new EventEmitter<any>();
     @Output() onCreate = new EventEmitter<any>();

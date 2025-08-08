@@ -9,7 +9,7 @@ export class HeavyLabelDirective {
     }
 
     ngAfterViewInit() {
-        let label = this.el.nativeElement.querySelector('label');
+        const label = this.el.nativeElement.querySelector('label');
         if(label) {
             this.renderer.addClass(label, 'heavy-label');
         } else {

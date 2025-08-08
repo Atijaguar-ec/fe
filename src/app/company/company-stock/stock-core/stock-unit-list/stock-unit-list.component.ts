@@ -21,8 +21,8 @@ import { NgbModalImproved } from '../../../../core/ngb-modal-improved/ngb-modal-
 import { ProcessingOrderControllerService } from '../../../../../api/api/processingOrderController.service';
 import { ToastrService } from 'ngx-toastr';
 import { FileSaverService } from 'ngx-filesaver';
-import { NgbTooltip } from "@ng-bootstrap/ng-bootstrap";
-import { SelfOnboardingService } from "../../../../shared-services/self-onboarding.service";
+import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { SelfOnboardingService } from '../../../../shared-services/self-onboarding.service';
 
 @Component({
   selector: 'app-stock-unit-list',
@@ -224,7 +224,7 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
             setTimeout(() => this.deliveriesListTooltip.open(), 50);
           }
         })
-    )
+    );
   }
 
   ngOnDestroy(): void {

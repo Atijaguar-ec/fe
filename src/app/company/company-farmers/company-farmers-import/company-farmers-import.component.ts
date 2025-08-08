@@ -9,7 +9,7 @@ import { ApiUserCustomer } from '../../../../api/model/apiUserCustomer';
 import { GlobalEventManagerService } from '../../../core/global-event-manager.service';
 import { LanguageCodeHelper } from '../../../language-code-helper';
 import { SelectedUserCompanyService } from '../../../core/selected-user-company.service';
-import { ApiUserCustomerImportRowValidationError } from "../../../../api/model/apiUserCustomerImportRowValidationError";
+import { ApiUserCustomerImportRowValidationError } from '../../../../api/model/apiUserCustomerImportRowValidationError';
 
 @Component({
   selector: 'app-company-farmers-import',

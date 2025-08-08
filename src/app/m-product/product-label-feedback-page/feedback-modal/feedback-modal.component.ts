@@ -20,6 +20,37 @@ import { EnumSifrant } from '../../../shared-services/enum-sifrant';
 })
 export class FeedbackModalComponent implements OnInit {
 
+  constructor(
+    public activeModal: NgbActiveModal,
+    private globalEventsManager: GlobalEventManagerService,
+    private publicController: PublicControllerService
+  ) { }
+
+  get statusList() {
+    const obj = {};
+    obj['PRAISE'] = $localize`:@@productLabelFrontFeedback.statusList.registred:Praise`;
+    obj['PROPOSAL'] = $localize`:@@productLabelFrontFeedback.statusList.active:Proposal`;
+    obj['COMPLAINT'] = $localize`:@@productLabelFrontFeedback.statusList.deactivated:Complaint`;
+    return obj;
+  }
+
+  get ageCodes() {
+    const obj = {};
+    obj['Male'] = $localize`:@@customerDetail.ageCodes.male:Male`;
+    obj['Female'] = $localize`:@@customerDetail.ageCodes.female:Female`;
+    obj['N/A'] = $localize`:@@customerDetail.ageCodes.na:N/A`;
+    return obj;
+  }
+
+
+  get tasteCodes() {
+    const obj = {};
+    obj['Better'] = $localize`:@@customerDetail.tasteCodes.better:Better`;
+    obj['Same'] = $localize`:@@customerDetail.tasteCodes.same:Same`;
+    obj['Worse'] = $localize`:@@customerDetail.tasteCodes.worse:Worse`;
+    return obj;
+  }
+
   submitted = false;
 
   @Input()
@@ -36,12 +67,9 @@ export class FeedbackModalComponent implements OnInit {
   productName: string;
 
   readOnly = false;
-
-  constructor(
-    public activeModal: NgbActiveModal,
-    private globalEventsManager: GlobalEventManagerService,
-    private publicController: PublicControllerService
-  ) { }
+  codebookStatus = EnumSifrant.fromObject(this.statusList);
+  codebookAgeCodes = EnumSifrant.fromObject(this.ageCodes);
+  codebookTasteCodes = EnumSifrant.fromObject(this.tasteCodes);
 
   ngOnInit(): void {
     if (this.labelId) {
@@ -93,33 +121,5 @@ export class FeedbackModalComponent implements OnInit {
   prepareData() {
     return this.feedbackForm.value;
   }
-
-  get statusList() {
-    const obj = {};
-    obj['PRAISE'] = $localize`:@@productLabelFrontFeedback.statusList.registred:Praise`
-    obj['PROPOSAL'] = $localize`:@@productLabelFrontFeedback.statusList.active:Proposal`
-    obj['COMPLAINT'] = $localize`:@@productLabelFrontFeedback.statusList.deactivated:Complaint`
-    return obj;
-  }
-  codebookStatus = EnumSifrant.fromObject(this.statusList);
-
-  get ageCodes() {
-    const obj = {};
-    obj['Male'] = $localize`:@@customerDetail.ageCodes.male:Male`;
-    obj['Female'] = $localize`:@@customerDetail.ageCodes.female:Female`;
-    obj['N/A'] = $localize`:@@customerDetail.ageCodes.na:N/A`;
-    return obj;
-  }
-  codebookAgeCodes = EnumSifrant.fromObject(this.ageCodes);
-
-
-  get tasteCodes() {
-    const obj = {};
-    obj['Better'] = $localize`:@@customerDetail.tasteCodes.better:Better`;
-    obj['Same'] = $localize`:@@customerDetail.tasteCodes.same:Same`;
-    obj['Worse'] = $localize`:@@customerDetail.tasteCodes.worse:Worse`;
-    return obj;
-  }
-  codebookTasteCodes = EnumSifrant.fromObject(this.tasteCodes);
 
 }

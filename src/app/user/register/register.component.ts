@@ -3,7 +3,7 @@ import { FormGroup, FormControl, Validators, AbstractControl, ValidationErrors }
 import { EmailValidator } from 'src/shared/validation';
 import { UserControllerService } from 'src/api/api/userController.service';
 import { GlobalEventManagerService } from 'src/app/core/global-event-manager.service';
-import { Router } from "@angular/router";
+import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 
 @Component({
@@ -13,17 +13,16 @@ import { BehaviorSubject } from 'rxjs';
 })
 export class RegisterComponent implements OnInit {
 
-  _registerErrorStatus$: BehaviorSubject<string>;
-
   constructor(
     public userController: UserControllerService,
     protected globalEventsManager: GlobalEventManagerService,
     private router: Router
     ) {}
 
-  ngOnInit(): void {
-    this._registerErrorStatus$ = new BehaviorSubject<string>("");
-  }
+  // convenience getter for easy access to form fields
+  get f() { return this.registerForm.controls; }
+
+  _registerErrorStatus$: BehaviorSubject<string>;
 
   registerForm = new FormGroup({
     name: new FormControl(null, [Validators.required]),
@@ -31,32 +30,33 @@ export class RegisterComponent implements OnInit {
     email: new FormControl(null, [Validators.required, EmailValidator()]),
     password: new FormControl(null, [Validators.required, Validators.minLength(8)]),
     condition: new FormControl(null, [this.conditionConfirmation.bind(this)])
-  })
+  });
 
-  conditionConfirmation(control: AbstractControl): ValidationErrors | null {
-    const condition = control.value
-    return condition === true ? null : { conditionsNotConfirmed: true }
+  submitted = false;
+
+  ngOnInit(): void {
+    this._registerErrorStatus$ = new BehaviorSubject<string>('');
   }
 
-  // convenience getter for easy access to form fields
-  get f() { return this.registerForm.controls; }
-
-  submitted: boolean = false
+  conditionConfirmation(control: AbstractControl): ValidationErrors | null {
+    const condition = control.value;
+    return condition === true ? null : { conditionsNotConfirmed: true };
+  }
   onSubmit() {
-    this._registerErrorStatus$.next("");
-    this.submitted = true
+    this._registerErrorStatus$.next('');
+    this.submitted = true;
     if (!this.registerForm.invalid) {
-      let sub = this.userController.createUser(this.registerForm.value)
+      const sub = this.userController.createUser(this.registerForm.value)
         .subscribe(val => {
           this.router.navigate(['/account-activation']);
-          sub.unsubscribe()
+          sub.unsubscribe();
           this.globalEventsManager.showLoading(false);
         },
         error => {
           this._registerErrorStatus$.next(error.error.status);
           this.globalEventsManager.showLoading(false);
         }
-      )
+      );
     }
   }
 
