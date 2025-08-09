@@ -1,4 +1,5 @@
 /* tslint:disable:max-line-length */
+/// <reference types="@angular/localize" />
 import { Injectable } from '@angular/core';
 // import { I18n } from '@ngx-translate/i18n-polyfill';
 

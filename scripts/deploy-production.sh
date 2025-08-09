@@ -25,7 +25,7 @@ echo ""
 # Función para verificar que el backend esté corriendo
 check_backend() {
     echo "🔍 Verificando backend..."
-    if curl -f http://127.0.0.1:8080/actuator/health > /dev/null 2>&1; then
+    if curl -f http://5.161.183.137:8080/actuator/health > /dev/null 2>&1; then
         echo "✅ Backend está corriendo en puerto 8080"
     else
         echo "⚠️  Backend no responde en puerto 8080"

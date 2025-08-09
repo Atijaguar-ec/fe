@@ -3,7 +3,7 @@ var converter = require('api-spec-converter');
 var child_process = require('child_process');
 var fetch = require("node-fetch");
 
-var swagger_docs_host = 'http://localhost:8080/v3/api-docs'
+var swagger_docs_host = 'http://5.161.183.137:8080/v3/api-docs'
 
 function afterBuild(code) {
     if (code === 0) {
