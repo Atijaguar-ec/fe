@@ -1,4 +1,5 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { PrefillProductSelectionModalComponent } from './prefill-product-selection-modal.component';
 
@@ -6,9 +7,18 @@ describe('PrefillProductSelectionModalComponent', () => {
   let component: PrefillProductSelectionModalComponent;
   let fixture: ComponentFixture<PrefillProductSelectionModalComponent>;
 
+  // Mock NgbActiveModal
+  const mockNgbActiveModal = {
+    close: jasmine.createSpy('close'),
+    dismiss: jasmine.createSpy('dismiss')
+  };
+
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ PrefillProductSelectionModalComponent ]
+      declarations: [ PrefillProductSelectionModalComponent ],
+      providers: [
+        { provide: NgbActiveModal, useValue: mockNgbActiveModal }
+      ]
     })
     .compileComponents();
   }));
