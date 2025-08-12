@@ -4,7 +4,7 @@
 
 export const environment = {
     production: false,
-    environmentName: window['env']['environmentName'] || '',
+    environmentName: window['env']['environmentName'] || 'development',
     basePath: '',
     appBaseUrl: window['env']['appBaseUrl'] || '',
     qrCodeBasePath: window['env']['qrCodeBasePath'] || '',
@@ -16,9 +16,9 @@ export const environment = {
     relativeImageUploadUrlAllSizes: window['env']['relativeImageUploadUrlAllSizes'] || '',
     version: '2.40.0-SNAPSHOT',
 
-    googleMapsApiKey: window['env']['googleMapsApiKey'] || '',
+    googleMapsApiKey: window['env']['googleMapsApiKey'] || 'AIzaSyAP1JuiYWi0A_Zf8BK0YIfl4nCKoxHnPHU',
     googleAnalyticsId: '',
-    mapboxAccessToken: window['env']['mapboxAccessToken'] || '',
+    mapboxAccessToken: window['env']['mapboxAccessToken'] || 'pk.eyJ1IjoiYWx2YXJvZ2VvdmFuaSIsImEiOiJjbWN5bDFkbG0wcGt4Mm5xNngydnZ0cTUxIn0.e15Wl5VmuU4S2QIiO5242A',
     facebookPixelId: null,
     intercomAppId: null,
     chatApp: null,
