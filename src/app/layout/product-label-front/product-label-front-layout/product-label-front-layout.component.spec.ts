@@ -2,6 +2,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { ProductLabelFrontLayoutComponent } from './product-label-front-layout.component';
+import { LayoutSharedModule } from '../../../layout/layout-shared.module';
 
 describe('ProductLabelFrontLayoutComponent', () => {
   let component: ProductLabelFrontLayoutComponent;
@@ -9,7 +10,7 @@ describe('ProductLabelFrontLayoutComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [ RouterTestingModule ],
+      imports: [ RouterTestingModule, LayoutSharedModule ],
       declarations: [ ProductLabelFrontLayoutComponent ]
     })
     .compileComponents();

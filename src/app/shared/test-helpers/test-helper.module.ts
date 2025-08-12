@@ -5,6 +5,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { ToastrModule } from 'ngx-toastr';
 
 @NgModule({
   imports: [
@@ -13,8 +14,9 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     RouterTestingModule,
     FormsModule,
     ReactiveFormsModule,
+    NgbModule,
     BrowserAnimationsModule,
-    NgbModule
+    ToastrModule.forRoot()
   ],
   exports: [
     CommonModule,
@@ -22,8 +24,9 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     RouterTestingModule,
     FormsModule,
     ReactiveFormsModule,
+    NgbModule,
     BrowserAnimationsModule,
-    NgbModule
+    ToastrModule
   ]
 })
 export class TestHelperModule { }
