@@ -33,15 +33,15 @@ export class KnowledgeBlogFrontComponent implements OnInit {
 
 
     if (this.knowledgeBlogId) {
-      let resp = await this.productController.getProductKnowledgeBlog(this.knowledgeBlogId).pipe(take(1)).toPromise();
+      const resp = await this.productController.getProductKnowledgeBlog(this.knowledgeBlogId).pipe(take(1)).toPromise();
       this.knowledgeBlogData = resp.data;
-      if (this.knowledgeBlogData.youtubeUrl) this.youtubeUrl = this.checkExternalLink(this.knowledgeBlogData.youtubeUrl)
+      if (this.knowledgeBlogData.youtubeUrl) { this.youtubeUrl = this.checkExternalLink(this.knowledgeBlogData.youtubeUrl); }
     }
 
   }
 
   checkExternalLink(link: string): string {
-    if (!link) return '#';
+    if (!link) { return '#'; }
     if (!link.startsWith('https://') && !link.startsWith('http://')) {
       return 'http://' + link;
     }

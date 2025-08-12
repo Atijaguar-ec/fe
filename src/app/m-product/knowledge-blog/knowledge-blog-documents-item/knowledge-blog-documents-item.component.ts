@@ -27,37 +27,37 @@ export class KnowledgeBlogDocumentsItemComponent extends GenericEditableItemComp
   }
 
   @Input()
-  disableDelete = false
+  disableDelete = false;
 
   @Input()
-  formTitle = null
+  formTitle = null;
 
   faStamp = faStamp;
 
-  public generateForm(value: any): FormGroup {
-    return generateFormFromMetadata(ApiDocument.formMetadata(), value)
-  }
-
   static createEmptyObject(): ApiDocument {
-    let obj = ApiDocument.formMetadata();
-    return defaultEmptyObject(obj) as ApiDocument
+    const obj = ApiDocument.formMetadata();
+    return defaultEmptyObject(obj) as ApiDocument;
   }
 
   static emptyObjectFormFactory(): () => FormControl {
     return () => {
-      let f = new FormControl(KnowledgeBlogDocumentsItemComponent.createEmptyObject())
-      return f
-    }
+      const f = new FormControl(KnowledgeBlogDocumentsItemComponent.createEmptyObject());
+      return f;
+    };
+  }
+
+  public generateForm(value: any): FormGroup {
+    return generateFormFromMetadata(ApiDocument.formMetadata(), value);
   }
 
 
   onDownload() {
-    let apiDoc = this.form.value as ApiDocument
+    const apiDoc = this.form.value as ApiDocument;
     if (apiDoc && apiDoc.storageKey) {
-      let sub = this.commonController.getDocument(apiDoc.storageKey).subscribe(res => {
+      const sub = this.commonController.getDocument(apiDoc.storageKey).subscribe(res => {
         this.fileSaverService.save(res, apiDoc.name);
-        sub.unsubscribe()
-      })
+        sub.unsubscribe();
+      });
     }
   }
 

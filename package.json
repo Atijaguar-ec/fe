@@ -5,8 +5,9 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "build:test": "ng build --configuration=test --aot=true --buildOptimizer=true --optimization=true",
-    "build:prod": "ng build --prod=true --aot=true --buildOptimizer=true --optimization=true",
+    "build:test": "ng build --configuration=test",
+    "build:prod": "ng build --configuration=production",
+    "build:fast": "ng build --prod=false --aot=false --buildOptimizer=false --optimization=false",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
@@ -76,6 +77,7 @@
     "@types/node": "^12.12.42",
     "api-spec-converter": "^2.11.0",
     "codelyzer": "^5.1.2",
+    "husky": "^4.3.8",
     "jasmine-core": "~3.5.0",
     "jasmine-spec-reporter": "~5.0.0",
     "karma": "~5.0.0",
@@ -83,11 +85,23 @@
     "karma-coverage-istanbul-reporter": "~3.0.2",
     "karma-jasmine": "~3.3.0",
     "karma-jasmine-html-reporter": "^1.5.0",
+    "lint-staged": "^16.1.2",
     "openapi-typescript-angular-generator": "https://github.com/alenabelium/openapi-typescript-angular-generator#v3.4",
     "protractor": "~7.0.0",
     "replace-in-file": "^5.0.2",
     "ts-node": "~7.0.0",
     "tslint": "~6.1.0",
     "typescript": "~3.9.6"
+  },
+  "husky": {
+    "hooks": {
+      "pre-push": "npm run lint"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,js,json}": [
+      "npm run lint"
+    ]
   }
 }
+

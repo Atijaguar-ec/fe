@@ -11,10 +11,10 @@ import { FormControl } from '@angular/forms';
 export class ResultSorterComponent implements OnInit {
 
     @Input()
-    sortOptions: SortOption[] = []
+    sortOptions: SortOption[] = [];
 
     @Input()
-    defaultSortingIndex: number = 0;
+    defaultSortingIndex = 0;
 
     @Input()
     defaultSortOrder: SortOrder = 'ASC';
@@ -28,11 +28,11 @@ export class ResultSorterComponent implements OnInit {
     oznacen: number = null;
     sortOrder: SortOrder = null;
 
-    ASC: SortOrder = 'ASC'
-    DESC: SortOrder = 'DESC'
+    ASC: SortOrder = 'ASC';
+    DESC: SortOrder = 'DESC';
 
-    faCaretDown = faCaretDown
-    faCaretUp = faCaretUp
+    faCaretDown = faCaretDown;
+    faCaretUp = faCaretUp;
 
 
 
@@ -41,43 +41,43 @@ export class ResultSorterComponent implements OnInit {
 
   toggleSortOrder() {
         if (this.sortOrder == this.ASC) {
-            this.sortOrder = this.DESC
+            this.sortOrder = this.DESC;
         } else {
-            this.sortOrder = this.ASC
+            this.sortOrder = this.ASC;
         }
-        this.emitState()
+        this.emitState();
     }
 
     emitState() {
-        let state = {
+        const state = {
             key: this.sortOptions[this.oznacen].key,
             sortOrder: this.sortOrder,
             checked: this.cbChecked ? this.cbChecked.value : null
-        }
-        this.sortByKey.next(state)
+        };
+        this.sortByKey.next(state);
     }
 
     ngOnInit() {
-        this.sortOrder = this.defaultSortOrder
+        this.sortOrder = this.defaultSortOrder;
         if (this.defaultSortingIndex != null) {
             this.oznacen = this.defaultSortingIndex;
-            this.sortOrder = this.sortOptions[this.oznacen].defaultSortOrder || this.defaultSortOrder
+            this.sortOrder = this.sortOptions[this.oznacen].defaultSortOrder || this.defaultSortOrder;
             // this.emitState()
         }
     }
 
     onClick(item: SortOption, i: number) {
-        if(item.inactive) return;
-        if (item.selectAllCheckbox) this.cbChecked.setValue(!this.cbChecked.value);
+        if(item.inactive) { return; }
+        if (item.selectAllCheckbox) { this.cbChecked.setValue(!this.cbChecked.value); }
         if(this.oznacen === i) {
           this.toggleSortOrder();
           return;
         }
         if (i != this.oznacen) {
-            this.sortOrder = item.defaultSortOrder || this.ASC
+            this.sortOrder = item.defaultSortOrder || this.ASC;
         }
         this.oznacen = i;
-        this.emitState()
+        this.emitState();
     }
 
 }

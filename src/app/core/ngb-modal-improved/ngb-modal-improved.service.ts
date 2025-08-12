@@ -35,8 +35,8 @@ export class NgbModalImproved {
         if (this._ngbModal == null) {
             this._ngbModal = this.injector.get(NgbModal);
             // handle back button and location change
-            this.location.onPopState(ev => { this._ngbModal.dismissAll('back_button'); })
-            this.location.onHashChange(ev => { this._ngbModal.dismissAll('location_change'); })
+            this.location.onPopState(ev => { this._ngbModal.dismissAll('back_button'); });
+            this.location.onHashChange(ev => { this._ngbModal.dismissAll('location_change'); });
         }
         return this._ngbModal;
     }
@@ -53,7 +53,7 @@ export class NgbModalImproved {
      * Also see the `NgbModalImprovedOptions` and [`NgbModalOptions`](#/components/modal/api#NgbModalOptions) for the list of supported options.
      */
     public open(content: any, options?: NgbModalImprovedOptions, inputs?: any): NgbModalRef {
-        let opts = options || {};
+        const opts = options || {};
         const modalRef = this.ngbModal.open(content, options);
         if (inputs) {
             Object.assign(modalRef.componentInstance, inputs);

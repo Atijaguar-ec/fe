@@ -19,7 +19,7 @@ fi
 
 tag=$version
 
-docker build -t $repoName:$tag .
+docker build --build-arg BUILD_OPTIMIZATION=false -t $repoName:$tag .
 
 if [ "$push" == "push" ]; then
   docker push $repoName:$tag

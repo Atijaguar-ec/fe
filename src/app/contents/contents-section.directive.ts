@@ -17,55 +17,55 @@ export class ContentsSectionDirective implements OnInit, OnDestroy {
     // scrollOffset = 0
 
     @Input()
-    isParent = false
+    isParent = false;
 
     // @HostBinding('id') @Input() contentsSection: string;
 
     @Input() contentsSection: any;
 
-    _forms: AbstractControl[] = null
+    _forms: AbstractControl[] = null;
     @Input() set forms(value: AbstractControl[]) {
-        let initial = this._forms == null
+        const initial = this._forms == null;
         this._forms = value;
 
         if(!initial) {
-            this.resubscribe()  // prvi resubscribe je v init
+            this.resubscribe();  // prvi resubscribe je v init
         }
 
     }
 
     get forms(): AbstractControl[] {
-        return this._forms
+        return this._forms;
     }
 
-    _errors: any[] = null
+    _errors: any[] = null;
     @Input() set errors(value: any[]) {
-        let initial = this._errors == null
+        const initial = this._errors == null;
         this._errors = value;
 
         if(!initial) {
-            this.resubscribe()  // prvi resubscribe je v init
+            this.resubscribe();  // prvi resubscribe je v init
         }
 
     }
 
     get errors(): any[] {
-        return this._errors
+        return this._errors;
     }
 
 
 
     @HostBinding('id') get id() {
-        return this.contentsSection.anchor
+        return this.contentsSection.anchor;
     }
 
     // za parent komponente
     subError: Subscription;
-    currentErrorSections = {}
+    currentErrorSections = {};
     _errorSections$: BehaviorSubject<any>;
     _errorReporter$ = new BehaviorSubject<SectionError>(null);
 
-    error$ = new BehaviorSubject<boolean>(false)
+    error$ = new BehaviorSubject<boolean>(false);
 
     constructor(
         @Host() @SkipSelf() public contents: ContentsDirective,
@@ -80,8 +80,8 @@ export class ContentsSectionDirective implements OnInit, OnDestroy {
     // }
 
     get scrollOffset() {
-        if(!this.contents) return 0
-        return this.contents.scrollOffset
+        if(!this.contents) { return 0; }
+        return this.contents.scrollOffset;
     }
 
 
@@ -96,70 +96,70 @@ export class ContentsSectionDirective implements OnInit, OnDestroy {
             this.detectActiveChanges();
         });
         if(this.isParent) {
-            this._errorSections$ = new BehaviorSubject<any>({})
+            this._errorSections$ = new BehaviorSubject<any>({});
             this.subError = this._errorReporter$.subscribe((error: SectionError) =>{
                 if(error) {
-                    this.currentErrorSections[error.section] = error.error
-                    this._errorSections$.next(this.currentErrorSections)
+                    this.currentErrorSections[error.section] = error.error;
+                    this._errorSections$.next(this.currentErrorSections);
                 }
-            })
+            });
         }
-        this.resubscribe()
+        this.resubscribe();
         if(this.isParent) {
             this.contents._errorReporter$.next({
                 section: this.contentsSection.anchor,
                 error: Object.values(this.currentErrorSections).some(x => x)
-            })
+            });
 
             this.errorSub = this._errorSections$.subscribe(val => {
-                let error = Object.values(val).some(x => x)
+                const error = Object.values(val).some(x => x);
                 this.contents._errorReporter$.next({
                     section: this.contentsSection.anchor,
-                    error: error
-                })
-            })
+                    error
+                });
+            });
         }
     }
 
     resubscribe() {
         if(this.forms || this.errors) {
-            let err = (this.forms && this.forms.some((x: AbstractControl) => x.invalid))
-                      || (this.errors && this.errors.some(x => !!x))
+            const err = (this.forms && this.forms.some((x: AbstractControl) => x.invalid))
+                      || (this.errors && this.errors.some(x => !!x));
             this.contents._errorReporter$.next({
                 section: this.contentsSection.anchor,
                 error: err
-            })
+            });
             if(this.parentContentsSection) {
                 this.parentContentsSection._errorReporter$.next({
                     section: this.contentsSection.anchor,
                     error: err
-                })
+                });
             }
-            if(this.errorReportSub) this.errorReportSub.unsubscribe()
+            if(this.errorReportSub) { this.errorReportSub.unsubscribe(); }
             this.errorReportSub = combineLatest(...(this.forms.map((x: AbstractControl) => x.statusChanges.pipe(startWith(x.status)))), function(...args) {
-                return [...args]
+                return [...args];
             }).subscribe(statuses => {
-                let error = statuses.some(status => status == 'INVALID')
+                const error = statuses.some(status => status == 'INVALID');
                 if(!this.isParent) {
                     this.contents._errorReporter$.next({
                         section: this.contentsSection.anchor,
-                        error: error
-                    })
+                        error
+                    });
                 }
                 if(this.parentContentsSection) {
                     this.parentContentsSection._errorReporter$.next({
                         section: this.contentsSection.anchor,
-                        error: error
-                    })
+                        error
+                    });
                 }
-            })
+            });
 
             //
             if(!this.isParent) {
-                if(this.errorSub) this.errorSub.unsubscribe()
+                if(this.errorSub) { this.errorSub.unsubscribe(); }
                 this.errorSub = this.contents._errorSections$.subscribe(val => {
-                    this.error$.next((val && val[this.contentsSection.anchor]))
-                })
+                    this.error$.next((val && val[this.contentsSection.anchor]));
+                });
             }
         }
     }
@@ -167,8 +167,8 @@ export class ContentsSectionDirective implements OnInit, OnDestroy {
     ngOnDestroy() {
         this.ngUnsubscribe.next();
         this.ngUnsubscribe.complete();
-        if(this.errorReportSub) this.errorReportSub.unsubscribe()
-        if(this.subError) this.subError.unsubscribe()
+        if(this.errorReportSub) { this.errorReportSub.unsubscribe(); }
+        if(this.subError) { this.subError.unsubscribe(); }
     }
 
     // || !this.contents._activeSection$.value
@@ -176,14 +176,14 @@ export class ContentsSectionDirective implements OnInit, OnDestroy {
     detectActiveChanges() {
         if (this.isInRange()) {
             if(this.isParent) {
-                this.contents._activeParentSection$.next(this.contentsSection.anchor)
+                this.contents._activeParentSection$.next(this.contentsSection.anchor);
             } else {
                 this.contents._activeSection$.next(this.contentsSection.anchor);
             }
         } else {
             if(this.isParent) {
                 if(this.contents._activeParentSection$.value === this.contentsSection.anchor) {
-                    this.contents._activeParentSection$.next(null)
+                    this.contents._activeParentSection$.next(null);
                 }
             }
         }

@@ -6,7 +6,7 @@ import { generateFormFromMetadata } from 'src/shared/utils';
 import { GeneralSifrantService } from './general-sifrant.service';
 
 export interface ApiEnumWithLabelString {
-  id?: string,
+  id?: string;
   name?: string;
 }
 
@@ -20,23 +20,13 @@ export class EnumSifrant extends GeneralSifrantService<ApiEnumWithLabelString> {
         this.initializeCodebook();
     }
 
-    _placeholder = $localize`:@@enumSifrant.placeholder:Select option ... `
-
-    public placeholder() {
-      return this._placeholder
+    get rawSifrant() {
+        return this._rawSifrant;
     }
 
-    public setPlaceholder(value: string) {
-        this._placeholder = value;
-    }
+    _placeholder = $localize`:@@enumSifrant.placeholder:Select option ... `;
 
-    public identifier(el: ApiEnumWithLabelString) {
-        return el.id;
-    }
-
-    public textRepresentation(el: ApiEnumWithLabelString) {
-        return el.name;
-    }
+    _rawSifrant = null;
 
     // public formGenerator() {
         // return (el: ApiEnumWithLabelString) => generateFormFromMetadata(ApiEnumWithLabelString.formMetadata(), el);
@@ -51,14 +41,24 @@ export class EnumSifrant extends GeneralSifrantService<ApiEnumWithLabelString> {
         return new EnumSifrant(Object.keys(obj), key => obj[key]);
     }
 
-    _rawSifrant = null;
+    public placeholder() {
+      return this._placeholder;
+    }
 
-    get rawSifrant() {
-        return this._rawSifrant;
+    public setPlaceholder(value: string) {
+        this._placeholder = value;
+    }
+
+    public identifier(el: ApiEnumWithLabelString) {
+        return el.id;
+    }
+
+    public textRepresentation(el: ApiEnumWithLabelString) {
+        return el.name;
     }
 
     public makeQuery(key: string, params?: any): Observable<PagedSearchResults<ApiEnumWithLabelString>> {
-        let lkey = key ? key.toLocaleLowerCase() : null
+        const lkey = key ? key.toLocaleLowerCase() : null;
         return this.sifrant$.pipe(
             map((allChoices: PagedSearchResults<ApiEnumWithLabelString>) => {
                 return {
@@ -66,15 +66,15 @@ export class EnumSifrant extends GeneralSifrantService<ApiEnumWithLabelString> {
                     offset: allChoices.offset,
                     limit: allChoices.limit,
                     totalCount: allChoices.totalCount
-                }
+                };
             })
-        )
+        );
     }
 
     public initializeEnumOptions() {
         this.sifrant$.subscribe((val: PagedSearchResults<ApiEnumWithLabelString>) => {
-            this.enumOptions$.next(val.results)
-        })
+            this.enumOptions$.next(val.results);
+        });
     }
 
     public initializeCodebook() {
@@ -90,11 +90,11 @@ export class EnumSifrant extends GeneralSifrantService<ApiEnumWithLabelString> {
                     offset: 0,
                     limit: x.length,
                     totalCount: x.length
-                } as PagedSearchResults<ApiEnumWithLabelString>
+                } as PagedSearchResults<ApiEnumWithLabelString>;
             }),
             shareReplay(1)
-        )
-        this.initializeEnumOptions()
+        );
+        this.initializeEnumOptions();
     }
 
     public isEnumFormControl(): boolean {
@@ -102,17 +102,17 @@ export class EnumSifrant extends GeneralSifrantService<ApiEnumWithLabelString> {
     }
 
     public enumValueToObject(val: any, enumOptions: ApiEnumWithLabelString[]): ApiEnumWithLabelString {
-        if (!enumOptions || enumOptions.length == 0) return null
-        let res: ApiEnumWithLabelString = enumOptions.find(x => x.id === val);
-        if (!res) return null;
+        if (!enumOptions || enumOptions.length == 0) { return null; }
+        const res: ApiEnumWithLabelString = enumOptions.find(x => x.id === val);
+        if (!res) { return null; }
         return {
             id: val,
             name: res.name
-        } as ApiEnumWithLabelString
+        } as ApiEnumWithLabelString;
     }
 
     public objectToEnumValue(el: ApiEnumWithLabelString): any {
-        return el.id
+        return el.id;
     }
 
 }

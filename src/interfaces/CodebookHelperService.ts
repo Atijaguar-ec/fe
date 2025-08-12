@@ -17,7 +17,7 @@ export interface CodebookHelperService<T> {
     makeQuery(key: string, params?: any, organizationId?: string): Observable<PagedSearchResults<T>>;
     getAllCandidates(): Observable<Array<T>>;
     initializeCodebook(): void;
-    formatter(): (x:T) => string;
+    formatter(): (x: T) => string;
     addElement(arr: FormArray, el: T): void;
     removeElement(arr: FormArray, index: number): void;
     // makeEmpty(grp: FormGroupTyped<T>): void;

@@ -15,10 +15,43 @@ import { constants } from 'buffer';
     styleUrls: ['./content-section.component.scss']
 })
 export class ContentSectionComponent implements OnInit, OnDestroy {
-    @Input() title = ""
+    constructor(
+        @Host() public contentsSection: ContentsSectionDirective,
+        @Host() public contents: ContentsDirective,
+        private modalService: NgbModalImproved
+    ) { }
 
-    @Input() scrollId = ''
-    @Input() pageScrollOffset = 0
+    get isActive() {
+        return this.contentsSection.contentsSection.anchor === this.currentSection.value;
+    }
+    // get isError() {
+    //     return this.contents.submitted && this.contentsSection.isError
+    // }
+    get faqs() {
+        return this.contents.faqsForSection(this.contentsSection.contentsSection.anchor);
+    }
+
+    get areFaqs() {
+        return this.faqs.length > 0;
+    }
+    get data() {
+        if(this.contentsSection) {
+            return this.contentsSection.contentsSection;
+        }
+        return null;
+    }
+
+    get titleIcon() {
+      if (this.contentsSection && this.contentsSection.contentsSection) {
+        return this.contentsSection.contentsSection.icon;
+      }
+      return null;
+    }
+
+    @Input() title = '';
+
+    @Input() scrollId = '';
+    @Input() pageScrollOffset = 0;
 
     @Input()
     spacingNedded = true;
@@ -28,63 +61,18 @@ export class ContentSectionComponent implements OnInit, OnDestroy {
 
     @Output() onIconClickChange = new EventEmitter<any>();
 
-    faQuestionCircle = faQuestionCircle
-    private scrollFun: EventListenerOrEventListenerObject = (event: Event) => this.updateStickiness();
+    faQuestionCircle = faQuestionCircle;
 
-    sticky = true
+    sticky = true;
 
-    currentSection = new BehaviorSubject(null)
-    constructor(
-        @Host() public contentsSection: ContentsSectionDirective,
-        @Host() public contents: ContentsDirective,
-        private modalService: NgbModalImproved
-    ) { }
-
-    get isActive() {
-        return this.contentsSection.contentsSection.anchor === this.currentSection.value
-    }
+    currentSection = new BehaviorSubject(null);
 
     error$ = this.contentsSection.error$.pipe(
         map(val => this.contents.submitted && val),
         shareReplay(1)
-    )
-    // get isError() {
-    //     return this.contents.submitted && this.contentsSection.isError
-    // }
-    get faqs() {
-        return this.contents.faqsForSection(this.contentsSection.contentsSection.anchor)
-    }
+    );
 
-    get areFaqs() {
-        return this.faqs.length > 0
-    }
-    get data() {
-        if(this.contentsSection) {
-            return this.contentsSection.contentsSection
-        }
-        return null
-    }
-
-    get titleIcon() {
-      if (this.contentsSection && this.contentsSection.contentsSection) {
-        return this.contentsSection.contentsSection.icon
-      }
-      return null
-    }
-
-    sub: Subscription = null
-    ngOnInit() {
-        this.sub = this.contents._activeSection$.subscribe(val => {
-            this.currentSection.next(val)
-        })
-        // this.unsubscribeScrollEventListener();
-        // this.subscribeScrollEventListener();
-    }
-
-    ngOnChanges() {
-        // this.unsubscribeScrollEventListener();
-        // this.subscribeScrollEventListener();
-    }
+    sub: Subscription = null;
 
     // // Subscribe to scrollingView scroll events. Sections will detectChanges() on scroll changes.
     // subscribeScrollEventListener() {
@@ -97,7 +85,19 @@ export class ContentSectionComponent implements OnInit, OnDestroy {
 
     @ViewChild('sideTitle', { static: true }) sideTitle;
     @ViewChild('parent', { static: true }) parent;
-    marginTop = `${this.pageScrollOffset}px`;;
+    marginTop = `${this.pageScrollOffset}px`;    private scrollFun: EventListenerOrEventListenerObject = (event: Event) => this.updateStickiness();
+    ngOnInit() {
+        this.sub = this.contents._activeSection$.subscribe(val => {
+            this.currentSection.next(val);
+        });
+        // this.unsubscribeScrollEventListener();
+        // this.subscribeScrollEventListener();
+    }
+
+    ngOnChanges() {
+        // this.unsubscribeScrollEventListener();
+        // this.subscribeScrollEventListener();
+    }
 
     updateStickiness() {
         const pageOffset: number = documentOffset();
@@ -140,12 +140,12 @@ export class ContentSectionComponent implements OnInit, OnDestroy {
         const modalRef = this.modalService.open(FaqModalComponent, { centered: true });
         Object.assign(modalRef.componentInstance, {
             faqs: this.faqs
-        })
+        });
 
     }
 
     ngOnDestroy(): void {
-        if(this.sub) this.sub.unsubscribe()
+        if(this.sub) { this.sub.unsubscribe(); }
         // this.unsubscribeScrollEventListener();
     }
 

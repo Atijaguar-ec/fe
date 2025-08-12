@@ -8,13 +8,13 @@ export class FormatProcessingEvidenceTypeTypePipe implements PipeTransform {
   transform(value: string): any {
     switch (value) {
       case 'DOCUMENT':
-        return $localize`:@@processingEvidenceTypeType.document:Document`
+        return $localize`:@@processingEvidenceTypeType.document:Document`;
       case 'FIELD':
-        return $localize`:@@processingEvidenceTypeType.field:Field`
+        return $localize`:@@processingEvidenceTypeType.field:Field`;
       case 'CALCULATED':
-        return $localize`:@@processingEvidenceTypeType.calculated:Calculated`
+        return $localize`:@@processingEvidenceTypeType.calculated:Calculated`;
       default:
-        return "-"
+        return '-';
     }
   }
 

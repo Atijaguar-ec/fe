@@ -16,9 +16,9 @@ import {
   OpenPlotDetailsExternallyModalComponent
 } from '../open-plot-details-externally-modal/open-plot-details-externally-modal.component';
 import { NgbModalImproved } from '../../../core/ngb-modal-improved/ngb-modal-improved.service';
-import { ApiCompany } from "../../../../api/model/apiCompany";
-import { NgbTooltip } from "@ng-bootstrap/ng-bootstrap";
-import { SelfOnboardingService } from "../../../shared-services/self-onboarding.service";
+import { ApiCompany } from '../../../../api/model/apiCompany';
+import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { SelfOnboardingService } from '../../../shared-services/self-onboarding.service';
 
 @Component({
   selector: 'app-company-farmers-list',

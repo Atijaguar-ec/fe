@@ -12,7 +12,7 @@ import { ProducersItemComponent } from './producers-item/producers-item.componen
 import { CompanySelectModalComponent } from './company-select-modal/company-select-modal.component';
 import { PlotsItemComponent } from './plots-item/plots-item.component';
 import { PlotsFormComponent } from './plots-form/plots-form.component';
-import { FormatFarmerImportValidationErrorPipe } from "./pipes/format-farmer-import-validation-error.pipe";
+import { FormatFarmerImportValidationErrorPipe } from './pipes/format-farmer-import-validation-error.pipe';
 
 @NgModule({
   declarations: [

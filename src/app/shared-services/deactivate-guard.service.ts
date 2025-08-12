@@ -8,8 +8,8 @@ import { CanDeactivate } from '@angular/router';
 export class DeactivateGuardService implements CanDeactivate<ComponentCanDeactivate> {
   canDeactivate(component: ComponentCanDeactivate): boolean {
     if(!component.canDeactivate()){
-      let message = $localize`:@@deactivateGuard.message:Changes you made so far will not be saved. Do you want to continue?`
-        if (confirm(message)) {
+      const message = $localize`:@@deactivateGuard.message:Changes you made so far will not be saved. Do you want to continue?`;
+      if (confirm(message)) {
             return true;
         } else {
             return false;

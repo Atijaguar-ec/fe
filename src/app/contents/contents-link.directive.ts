@@ -23,8 +23,8 @@ export class ContentsLinkDirective implements OnInit, OnDestroy {
     subError: Subscription;
 
     get sectionId() {
-        if(!this.href) return null
-        return this.href.slice(1)
+        if(!this.href) { return null; }
+        return this.href.slice(1);
     }
     ngOnInit() {
         this.contents._activeSection$.pipe(
@@ -33,8 +33,8 @@ export class ContentsLinkDirective implements OnInit, OnDestroy {
             this.active = `#${ sectionName }` === this.href;
         });
         this.contents._errorSections$.subscribe(sectionErrors => {
-            this.isError = this.contents.submitted && sectionErrors[this.sectionId]
-        })
+            this.isError = this.contents.submitted && sectionErrors[this.sectionId];
+        });
     }
 
     ngOnDestroy() {

@@ -27,41 +27,11 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
     if (map) {
       this.gMap = map;
       this.fitBounds();}
-  };
-
-  @ViewChild(MapInfoWindow) set infoWindow(infoWindow: MapInfoWindow) {
-    if (infoWindow) this.gInfoWindow = infoWindow;
-  };
-
-  public canDeactivate(): boolean {
-    return !this.batchDetailForm || !(this.changed)
   }
 
-  goToLink: string = this.router.url.substr(0, this.router.url.lastIndexOf("/"));
-
-  faTrashAlt = faTrashAlt;
-  gInfoWindow = null;
-  gMap = null;
-  gInfoWindowText: string = "";
-  markers: any = [];
-  defaultCenter = {
-    lat: 5.274054,
-    lng: 21.514503
-  };
-  defaultZoom = 3;
-  zoomForOnePin = 10;
-  bounds: any;
-  initialBounds: any = [];
-  isGoogleMapsLoaded: boolean = false;
-
-  batch: ApiProductLabelBatch = {};
-
-  batchDetailForm: FormGroup;
-  submitted: boolean = false;
-  rootImageUrl: string = environment.relativeImageUploadUrlAllSizes;
-  title: string = "";
-
-  subs: Subscription[] = [];
+  @ViewChild(MapInfoWindow) set infoWindow(infoWindow: MapInfoWindow) {
+    if (infoWindow) { this.gInfoWindow = infoWindow; }
+  }
 
   constructor(
     private globalEventsManager: GlobalEventManagerService,
@@ -72,24 +42,73 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
     private router: Router
   ) { }
 
+  get mode() {
+    const id = this.route.snapshot.params.batchId;
+    return id == null ? 'create' : 'update';
+  }
+
+  get origCheck() {
+    return this.batchDetailForm.get('traceOrigin').value == null || !this.batchDetailForm.get('traceOrigin').value ||
+    (this.batchDetailForm.get('traceOrigin').value && this.batchDetailForm.get('locations').value.length > 0);
+  }
+
+  get changed() {
+    return this.batchDetailForm.dirty;
+  }
+
+  // origin location helper methods
+  get originLocations(): FormArray {
+    return this.batchDetailForm.get('locations') as FormArray;
+  }
+
+  goToLink: string = this.router.url.substr(0, this.router.url.lastIndexOf('/'));
+
+  faTrashAlt = faTrashAlt;
+  gInfoWindow = null;
+  gMap = null;
+  gInfoWindowText = '';
+  markers: any = [];
+  defaultCenter = {
+    lat: 5.274054,
+    lng: 21.514503
+  };
+  defaultZoom = 3;
+  zoomForOnePin = 10;
+  bounds: any;
+  initialBounds: any = [];
+  isGoogleMapsLoaded = false;
+
+  batch: ApiProductLabelBatch = {};
+
+  batchDetailForm: FormGroup;
+  submitted = false;
+  rootImageUrl: string = environment.relativeImageUploadUrlAllSizes;
+  title = '';
+
+  subs: Subscription[] = [];
+
+  public canDeactivate(): boolean {
+    return !this.batchDetailForm || !(this.changed);
+  }
+
   ngOnDestroy(): void {
     this.subs.forEach(sub => sub.unsubscribe());
   }
 
   ngOnInit(): void {
-    if (this.mode === "create") {
+    if (this.mode === 'create') {
       this.newBatch();
       this.title = $localize`:@@batchDetail.title.new:Add batch`;
     } else {
       this.getBatch();
       this.title = $localize`:@@batchDetail.title.edit:Edit batch`;
     }
-    let sub2 = this.globalEventsManager.loadedGoogleMapsEmitter.subscribe(
+    const sub2 = this.globalEventsManager.loadedGoogleMapsEmitter.subscribe(
       loaded => {
-        if (loaded) this.isGoogleMapsLoaded = true;
+        if (loaded) { this.isGoogleMapsLoaded = true; }
       },
       error => { }
-    )
+    );
     this.subs.push(sub2);
 
   }
@@ -101,11 +120,11 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
   getBatch(): void {
     this.globalEventsManager.showLoading(true);
     const id = +this.route.snapshot.paramMap.get('batchId');
-    let sub = this.productController.getProductLabelBatch(id)
+    const sub = this.productController.getProductLabelBatch(id)
       .subscribe(batch => {
         this.batch = batch.data;
 
-        this.batchDetailForm = generateFormFromMetadata(ApiProductLabelBatch.formMetadata(), batch.data, ApiProductLabelBatchValidationScheme)
+        this.batchDetailForm = generateFormFromMetadata(ApiProductLabelBatch.formMetadata(), batch.data, ApiProductLabelBatchValidationScheme);
         this.initializeOriginLocations(this.originLocations.value);
 
         this.initializeMarkers(this.originLocations.value);
@@ -118,14 +137,9 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
     this.subs.push(sub);
   }
 
-  get mode() {
-    let id = this.route.snapshot.params.batchId;
-    return id == null ? 'create' : 'update'
-  }
-
 
   goBack(): void {
-    this.location.back()
+    this.location.back();
   }
 
 
@@ -137,16 +151,16 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
         notificationType: 'error',
         title: $localize`:@@batchDetail.saveBatch.error.title:Error`,
         message: $localize`:@@batchDetail.saveBatch.error.message:Errors on page. Please check!`
-      })
-      return
+      });
+      return;
     }
 
     this.prepareRequest();
-    let params = this.route.snapshot.params;
-    let res = await this.productController.updateProductLabelBatch({ ...params, ...this.batchDetailForm.value }).pipe(take(1)).toPromise()
+    const params = this.route.snapshot.params;
+    const res = await this.productController.updateProductLabelBatch({ ...params, ...this.batchDetailForm.value }).pipe(take(1)).toPromise();
     if (res && res.status == 'OK' && goBack) {
-      this.batchDetailForm.markAsPristine()
-      this.goBack()
+      this.batchDetailForm.markAsPristine();
+      this.goBack();
     }
   }
 
@@ -158,72 +172,58 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
         notificationType: 'error',
         title: $localize`:@@batchDetail.createBatch.error.title:Error`,
         message: $localize`:@@batchDetail.createBatch.error.message:Errors on page. Please check!`
-      })
-      return
+      });
+      return;
     }
 
     this.prepareRequest();
-    let res = await this.productController.createProductLabelBatch(this.batchDetailForm.value).pipe(take(1)).toPromise()
+    const res = await this.productController.createProductLabelBatch(this.batchDetailForm.value).pipe(take(1)).toPromise();
     if (res && res.status == 'OK' && goBack) {
-      this.batchDetailForm.markAsPristine()
+      this.batchDetailForm.markAsPristine();
       this.goBack();
       this.globalEventsManager.showLoading(false);
     }
 
   }
 
-  validateLocations () {
+  validateLocations() {
     return this.origCheck;
   }
 
-  get origCheck() {
-    return this.batchDetailForm.get('traceOrigin').value == null || !this.batchDetailForm.get('traceOrigin').value ||
-    (this.batchDetailForm.get('traceOrigin').value && this.batchDetailForm.get('locations').value.length > 0)
-  }
-
-  get changed() {
-    return this.batchDetailForm.dirty;
-  }
-
   prepareRequest() {
-    let pd = this.batchDetailForm.get('productionDate').value;
-    if (pd != null) this.batchDetailForm.get('productionDate').setValue(dateISOString(pd));
-    let ed = this.batchDetailForm.get('expiryDate').value;
-    if (ed != null) this.batchDetailForm.get('expiryDate').setValue(dateISOString(ed));
-    if (this.mode == 'create') this.batchDetailForm.get('labelId').setValue(Number(this.route.snapshot.params.labelId));
+    const pd = this.batchDetailForm.get('productionDate').value;
+    if (pd != null) { this.batchDetailForm.get('productionDate').setValue(dateISOString(pd)); }
+    const ed = this.batchDetailForm.get('expiryDate').value;
+    if (ed != null) { this.batchDetailForm.get('expiryDate').setValue(dateISOString(ed)); }
+    if (this.mode == 'create') { this.batchDetailForm.get('labelId').setValue(Number(this.route.snapshot.params.labelId)); }
   }
 
   onFileUpload(event) {
   }
 
   fitBounds() {
-    if (this.initialBounds.length == 0) return;
-    this.bounds = new google.maps.LatLngBounds()
-    for (let bound of this.initialBounds) {
+    if (this.initialBounds.length == 0) { return; }
+    this.bounds = new google.maps.LatLngBounds();
+    for (const bound of this.initialBounds) {
       this.bounds.extend(bound);
     }
     if (this.bounds.isEmpty()) {
-      this.gMap.googleMap.setCenter(this.defaultCenter)
+      this.gMap.googleMap.setCenter(this.defaultCenter);
       this.gMap.googleMap.setZoom(this.defaultZoom);
       return;
     }
-    let center = this.bounds.getCenter()
-    let offset = 0.02
-    let northEast = new google.maps.LatLng(
+    const center = this.bounds.getCenter();
+    const offset = 0.02;
+    const northEast = new google.maps.LatLng(
       center.lat() + offset,
       center.lng() + offset
-    )
-    let southWest = new google.maps.LatLng(
+    );
+    const southWest = new google.maps.LatLng(
       center.lat() - offset,
       center.lng() - offset
-    )
-    let minBounds = new google.maps.LatLngBounds(southWest, northEast)
-    this.gMap.fitBounds(this.bounds.union(minBounds))
-  }
-
-  //origin location helper methods
-  get originLocations(): FormArray {
-    return this.batchDetailForm.get('locations') as FormArray
+    );
+    const minBounds = new google.maps.LatLngBounds(southWest, northEast);
+    this.gMap.fitBounds(this.bounds.union(minBounds));
   }
 
   createOrFillOriginLocationsItem(loc: any, create: boolean): FormGroup {
@@ -236,18 +236,18 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
   }
 
   initializeOriginLocations(locs): void {
-    let tmp = new FormArray([]);
-    for (let loc of locs) {
+    const tmp = new FormArray([]);
+    for (const loc of locs) {
       tmp.push(this.createOrFillOriginLocationsItem(loc, false));
-    };
+    }
     (this.batchDetailForm as FormGroup).setControl('locations', tmp);
-    this.batchDetailForm.updateValueAndValidity()
+    this.batchDetailForm.updateValueAndValidity();
   }
 
   initializeMarkers(locs): void {
     this.markers = [];
-    for (let loc of locs) {
-      let tmp = {
+    for (const loc of locs) {
+      const tmp = {
         position: {
           lat: loc.latitude,
           lng: loc.longitude
@@ -256,21 +256,21 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
           text: loc.numberOfFarmers ? String(loc.numberOfFarmers) : ' '
         },
         infoText: loc.pinName
-      }
+      };
       this.markers.push(tmp);
       this.initialBounds.push(tmp.position);
     }
   }
 
   addOriginLocations(loc) {
-    let tmp = {
+    const tmp = {
       position: loc,
       label: {
         text: ' '
       },
       infoText: ' '
-    }
-    this.markers.push(tmp)
+    };
+    this.markers.push(tmp);
     this.initialBounds.push(tmp.position);
     this.originLocations.push(this.createOrFillOriginLocationsItem(loc, true) as FormGroup);
     this.batchDetailForm.markAsDirty();
@@ -286,23 +286,23 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
   updateMarkerLocation(loc, index) {
     this.originLocations.at(index).get('latitude').setValue(loc.lat);
     this.originLocations.at(index).get('longitude').setValue(loc.lng);
-    let tmpCurrent = this.markers[index];
-    let tmp = {
+    const tmpCurrent = this.markers[index];
+    const tmp = {
       position: loc,
       label: tmpCurrent.label,
       infoText: tmpCurrent.infoText
-    }
+    };
     this.markers.splice(index, 1, tmp);
     this.initialBounds.splice(index, 1, tmp.position);
   }
 
   updateInfoWindow(infoText, index) {
-    let tmpCurrent = this.markers[index];
-    let tmp = {
+    const tmpCurrent = this.markers[index];
+    const tmp = {
       position: tmpCurrent.position,
       label: tmpCurrent.label,
-      infoText: infoText
-    }
+      infoText
+    };
     this.markers.splice(index, 1, tmp);
   }
 
@@ -320,7 +320,7 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
   }
 
   onKey(event, index) {
-    this.updateInfoWindow(event.target.value, index)
+    this.updateInfoWindow(event.target.value, index);
   }
 
   async prefillFromProduct() {
@@ -328,18 +328,18 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
     Object.assign(modalRef.componentInstance, {
       title: $localize`:@@batchDetail.prefillFromProduct.title:Prefill locations from product?`,
       instructionsHtml: $localize`:@@batchDetail.prefillFromProduct.instructionsHtml:This action will replace all your current locations with product's locations`
-    })
-    let confiem = await modalRef.result;
+    });
+    const confiem = await modalRef.result;
     if (confirm) {
       const productId = +this.route.snapshot.paramMap.get('id');
       this.productController.getProduct(productId).pipe(take(1))
         .subscribe(resp => {
-          if (resp.status == "OK") {
+          if (resp.status == 'OK') {
             this.prefillLocations(resp.data.origin.locations);
           }
 
         }
-        )
+        );
     }
   }
 

@@ -12,7 +12,7 @@ export class TranslateCodebookPipe implements PipeTransform {
   }
 
   transform(obj: any, field: string): string {
-    return this.codebookTranslations.translate(obj, field)
+    return this.codebookTranslations.translate(obj, field);
   }
 
 

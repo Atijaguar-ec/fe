@@ -52,8 +52,8 @@ import { ApiProductLabelCompanyDocument } from '../../../api/model/apiProductLab
 import { ImageViewerComponent } from '../../shared/image-viewer/image-viewer.component';
 import { maxActiveArrayControls } from '../../../shared/validation';
 import { SelectedUserCompanyService } from '../../core/selected-user-company.service';
-import { NgbTooltip } from "@ng-bootstrap/ng-bootstrap";
-import { SelfOnboardingService } from "../../shared-services/self-onboarding.service";
+import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { SelfOnboardingService } from '../../shared-services/self-onboarding.service';
 
 @Component({
   selector: 'app-product-label',

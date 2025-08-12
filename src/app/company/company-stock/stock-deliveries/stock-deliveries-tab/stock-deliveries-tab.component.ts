@@ -14,9 +14,9 @@ import { CodebookTranslations } from '../../../../shared-services/codebook-trans
 import { ApiFacility } from '../../../../../api/model/apiFacility';
 import { FileSaverService } from 'ngx-filesaver';
 import { SelectedUserCompanyService } from '../../../../core/selected-user-company.service';
-import { StockOrderControllerService } from "../../../../../api/api/stockOrderController.service";
-import { SelfOnboardingService } from "../../../../shared-services/self-onboarding.service";
-import { NgbTooltip } from "@ng-bootstrap/ng-bootstrap";
+import { StockOrderControllerService } from '../../../../../api/api/stockOrderController.service';
+import { SelfOnboardingService } from '../../../../shared-services/self-onboarding.service';
+import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-stock-deliveries-tab',

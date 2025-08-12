@@ -18,7 +18,7 @@ export class ProductLabelFrontLayoutComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    //There must be a better way of doing this?
+    // There must be a better way of doing this?
     if (this.router.url.startsWith('/p/')) {
       this.isGreenPaddingNeeded = true;
       this.isBreadcrumbsSpaceNeeded = false;

@@ -26,10 +26,10 @@ export class PrefillLocationsFromProductModalComponent implements OnInit {
   }
 
   cancel() {
-    this.activeModal.close()
+    this.activeModal.close();
   }
 
   onConfirm() {
-    this.activeModal.close(true)
+    this.activeModal.close(true);
   }
 }

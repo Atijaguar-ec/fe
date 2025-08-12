@@ -8,10 +8,10 @@ import { Component, OnInit, Output, EventEmitter, ElementRef, ViewChild, Input }
 export class MiniButtonsComponent implements OnInit {
 
     @Input()
-    error = false
+    error = false;
 
     @Input()
-    cancelButtonOnly = false
+    cancelButtonOnly = false;
 
     @Output() onSave = new EventEmitter<any>();
 
@@ -26,12 +26,12 @@ export class MiniButtonsComponent implements OnInit {
     }
 
     save(event) {
-        this.onSave.next(event)
-        this.okButton.nativeElement.blur()   // odstranjevanje fokusa iz gumba, da se ne zaganja na klik v tipkovnici
+        this.onSave.next(event);
+        this.okButton.nativeElement.blur();   // odstranjevanje fokusa iz gumba, da se ne zaganja na klik v tipkovnici
     }
 
     cancel(event) {
-        this.onCancel.next(event)
-        if (!this.cancelButtonOnly) this.okButton.nativeElement.blur()
+        this.onCancel.next(event);
+        if (!this.cancelButtonOnly) { this.okButton.nativeElement.blur(); }
     }
 }

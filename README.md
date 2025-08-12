@@ -40,6 +40,74 @@ This new major release includes new functionalities, refactorings, optimizations
 * Node 14
 * Angular 10
 * Docker
+
+---
+
+## Despliegue en producción: Nginx y Docker
+
+---
+
+## Aplicar cambios de configuración (nginx.conf)
+
+Cada vez que realices cambios en el archivo `nginx.conf` (o cualquier otro archivo de configuración relevante para el frontend), debes reconstruir la imagen Docker y volver a desplegar el contenedor para que los cambios tengan efecto.
+
+### Pasos para aplicar los cambios:
+
+1. **Construye la nueva imagen del frontend:**
+   ```bash
+   cd /opt/fe
+   ./docker-build.sh inatrace-fe latest
+   ```
+
+2. **Detén y elimina el contenedor anterior:**
+   ```bash
+   docker stop inatrace-fe || true
+   docker rm inatrace-fe || true
+   ```
+
+3. **Levanta el nuevo contenedor con Docker Compose:**
+   ```bash
+   cd /opt/fe/.ci
+   docker compose --env-file .env -f docker-compose.yml up -d --force-recreate
+   ```
+
+4. **Verifica el estado y los logs:**
+   ```bash
+   docker ps
+   docker logs inatrace-fe --tail 100
+   ```
+
+### Notas importantes:
+- Si el backend (`inatrace-be`) no está corriendo, el proxy `/api/` fallará.
+- El archivo `nginx.conf` es la única configuración relevante de Nginx en producción (los otros archivos han sido eliminados para evitar confusión).
+- Si necesitas exponer la API a otros orígenes, revisa los headers CORS en el bloque proxy de nginx.conf.
+
+---
+
+- El archivo de configuración de Nginx que se usa por defecto en la imagen Docker del frontend es `fe/nginx.conf`, ya que así está definido en el Dockerfile (`COPY nginx.conf /etc/nginx/nginx.conf`).
+- Los archivos `nginx-docker-compose.conf` y `nginx-production.conf` son variantes avanzadas y solo se usan si los montas explícitamente al correr el contenedor (por ejemplo, con `-v $(pwd)/nginx-docker-compose.conf:/etc/nginx/nginx.conf:ro`).
+- El archivo `.ci/docker-compose.yml` lanza el contenedor del frontend usando la imagen generada y la configuración interna (`nginx.conf`). No hace bind-mount de ningún archivo de configuración por defecto.
+- Si necesitas cambiar la configuración de Nginx en producción, edita `nginx.conf`, reconstruye la imagen y vuelve a desplegar. Si quieres probar una variante, monta el archivo deseado con Docker Compose agregando un volumen.
+
+**Ejemplo de despliegue con Compose:**
+```bash
+cd fe/.ci
+# Asegúrate de que IMAGE_NAME y TAG están correctos en .env
+docker compose --env-file .env -f docker-compose.yml up -d --force-recreate
+```
+
+**Para usar una configuración alternativa de Nginx:**
+Agrega un volumen en docker-compose.yml:
+```yaml
+    volumes:
+      - ../nginx-docker-compose.conf:/etc/nginx/nginx.conf:ro
+```
+
+**IMPORTANTE:**
+- El proxy de `/api/` es gestionado por Nginx en producción. El frontend Angular solo debe hacer peticiones a rutas relativas (`/api/...`). Los archivos de proxy como `proxy.INATrace-local.conf.json` solo se usan en desarrollo local con Angular CLI (`ng serve`).
+
+---
+
 * WebStorm or VS Code (recommended)
 * VS Code pluggins:
   * Debugger for Chrome

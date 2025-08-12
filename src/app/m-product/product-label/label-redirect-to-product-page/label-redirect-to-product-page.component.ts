@@ -14,9 +14,9 @@ export class LabelRedirectToProductPageComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    let labelId = +this.route.snapshot.paramMap.get('labelId');
-    let productId = this.route.snapshot.paramMap.get('id');
-    this.router.navigate(['/product-labels', productId], { state: { labelId: labelId } });
+    const labelId = +this.route.snapshot.paramMap.get('labelId');
+    const productId = this.route.snapshot.paramMap.get('id');
+    this.router.navigate(['/product-labels', productId], { state: { labelId } });
   }
 
 }

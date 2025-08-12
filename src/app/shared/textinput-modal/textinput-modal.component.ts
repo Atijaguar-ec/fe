@@ -15,7 +15,7 @@ export class TextinputModalComponent implements OnInit {
     form: FormControl;
 
     @Input()
-    rows?: number = 5;
+    rows = 5;
 
     @Input()
     id?: number;
@@ -27,7 +27,7 @@ export class TextinputModalComponent implements OnInit {
     public cancelCallback: () => void;
 
     @Input()
-    submitted = false // ??
+    submitted = false; // ??
 
     @Input()
     public saveCallback: () => string;
@@ -51,21 +51,21 @@ export class TextinputModalComponent implements OnInit {
     ngAfterViewInit() {
         // hack da dela initial autoresize
         setTimeout(() => {
-            this.vnos.first.textareafield.first.nativeElement.focus()
-        })
+            this.vnos.first.textareafield.first.nativeElement.focus();
+        });
     }
 
     onSave() {
         if(this.saveCallback) {
-            this.saveCallback()
+            this.saveCallback();
         }
-        this.activeModal.close('Save click')
+        this.activeModal.close('Save click');
     }
 
     onCancel() {
         if(this.cancelCallback) {
-            this.cancelCallback()
+            this.cancelCallback();
         }
-        this.activeModal.close('Cancel click')
+        this.activeModal.close('Cancel click');
     }
 }

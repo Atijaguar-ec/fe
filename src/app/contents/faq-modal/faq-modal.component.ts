@@ -9,7 +9,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 export class FaqModalComponent implements OnInit {
 
     @Input()
-    faqs = []
+    faqs = [];
 
     @Input()
     dismissable = true;

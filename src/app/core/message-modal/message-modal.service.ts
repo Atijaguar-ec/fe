@@ -6,15 +6,15 @@ import { MessageButtonStringDict, MessageResultType, MessageType } from './messa
 import { MessageModalComponent } from './message-modal.component';
 
 export interface MessageModalDefinition {
-    type: MessageType,
-    title?: string,
-    message: string,
-    buttons?: Array<MessageResultType>,
-    focusButton?: MessageResultType,
-    dismissable?: boolean,
-    buttonTitles?: Partial<MessageButtonStringDict>,
-    buttonClasses?: Partial<MessageButtonStringDict>,
-    options?: NgbModalOptions,
+    type: MessageType;
+    title?: string;
+    message: string;
+    buttons?: Array<MessageResultType>;
+    focusButton?: MessageResultType;
+    dismissable?: boolean;
+    buttonTitles?: Partial<MessageButtonStringDict>;
+    buttonClasses?: Partial<MessageButtonStringDict>;
+    options?: NgbModalOptions;
 }
 
 @Injectable({
@@ -25,12 +25,12 @@ export class MessageModalService {
 
     public defaultNgbModalOptions: NgbModalOptions = {
         centered: true,
-    }
+    };
 
     public open(definition: MessageModalDefinition): Promise<MessageResultType> {
-        let options = Object.assign({}, this.defaultNgbModalOptions, definition.options || {});
-        let inputs = objectSlice(definition, ['type', 'title', 'message', 'buttons', 'focusButton', 'dismissable', 'buttonTitles', 'buttonClasses']);
-        let modalRef = this.ngbModal.open(MessageModalComponent, options, inputs);
+        const options = Object.assign({}, this.defaultNgbModalOptions, definition.options || {});
+        const inputs = objectSlice(definition, ['type', 'title', 'message', 'buttons', 'focusButton', 'dismissable', 'buttonTitles', 'buttonClasses']);
+        const modalRef = this.ngbModal.open(MessageModalComponent, options, inputs);
         return modalRef.result;
     }
 }

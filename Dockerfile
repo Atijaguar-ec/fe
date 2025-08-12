@@ -4,7 +4,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-RUN npm run build:prod
+ARG BUILD_OPTIMIZATION=true
+RUN if [ "$BUILD_OPTIMIZATION" = "false" ]; then npm run build:fast; else npm run build:prod; fi
 
 FROM nginx:stable-alpine as production-stage
 RUN mkdir /app

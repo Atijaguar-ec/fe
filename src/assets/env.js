@@ -3,19 +3,19 @@
     window['env'] = window['env'] || {};
 
     // Environment variables
-    window['env']['environmentName'] = '';
-    window['env']['appBaseUrl'] = '';
-    window['env']['qrCodeBasePath'] = '';
-    window['env']['relativeFileUploadUrl'] = '';
-    window['env']['relativeFileUploadUrlManualType'] = '';
-    window['env']['relativeImageUploadUrl'] = '';
-    window['env']['relativeImageUploadUrlAllSizes'] = ''
-    window['env']['googleMapsApiKey'] = '';
+    window['env']['environmentName'] = 'production';
+    window['env']['appBaseUrl'] = '';  // Usar rutas relativas para que pasen por Nginx
+    window['env']['qrCodeBasePath'] = '/api/stock-order'; // Endpoint público para QR (ver PublicController)
+    window['env']['relativeFileUploadUrl'] = '/api/document'; // Endpoint para subir archivos (CommonController)
+    window['env']['relativeFileUploadUrlManualType'] = '/api/document?type='; // Upload manual (ajustar si aplica)
+    window['env']['relativeImageUploadUrl'] = '/api/image'; // Endpoint para subir imágenes (CommonController)
+    window['env']['relativeImageUploadUrlAllSizes'] = '/api/image'; // El backend maneja variantes por parámetro, usar mismo endpoint
+    window['env']['googleMapsApiKey'] = 'AIzaSyAP1JuiYWi0A_Zf8BK0YIfl4nCKoxHnPHU';
     window['env']['tokenForPublicLogRoute'] = '';
-    window['env']['mapboxAccessToken'] = '';
+    window['env']['mapboxAccessToken'] = 'pk.eyJ1IjoiYWx2YXJvZ2VvdmFuaSIsImEiOiJjbWN5bDFkbG0wcGt4Mm5xNngydnZ0cTUxIn0.e15Wl5VmuU4S2QIiO5242A';
 
     // Environment variables for Beyco integration
-    window['env']['beycoAuthURL'] = ''
-    window['env']['beycoClientId'] = ''
+    window['env']['beycoAuthURL'] = '';
+    window['env']['beycoClientId'] = '';
 
 })(this);

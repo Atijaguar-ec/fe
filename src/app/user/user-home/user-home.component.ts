@@ -23,19 +23,19 @@ import {
 } from '../self-onboarding-checklist-modal/checklist-add-product-success-modal/checklist-add-product-success-modal.component';
 import {
   ChecklistAddFacilitySuccessModalComponent
-} from "../self-onboarding-checklist-modal/checklist-add-facility-success-modal/checklist-add-facility-success-modal.component";
+} from '../self-onboarding-checklist-modal/checklist-add-facility-success-modal/checklist-add-facility-success-modal.component';
 import {
   ChecklistAddProcessingActionSuccessModalComponent
-} from "../self-onboarding-checklist-modal/checklist-add-processing-action-success-modal/checklist-add-processing-action-success-modal.component";
-import { CompanyControllerService } from "../../../api/api/companyController.service";
+} from '../self-onboarding-checklist-modal/checklist-add-processing-action-success-modal/checklist-add-processing-action-success-modal.component';
+import { CompanyControllerService } from '../../../api/api/companyController.service';
 import {
   ChecklistAddFarmersSuccessModalComponent
-} from "../self-onboarding-checklist-modal/checklist-add-farmers-success-modal/checklist-add-farmers-success-modal.component";
-import { NgbTooltip } from "@ng-bootstrap/ng-bootstrap";
-import { Router } from "@angular/router";
+} from '../self-onboarding-checklist-modal/checklist-add-farmers-success-modal/checklist-add-farmers-success-modal.component';
+import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { Router } from '@angular/router';
 import {
   GuidedTourSuccessModalComponent
-} from "../self-onboarding-checklist-modal/guided-tour-success-modal/guided-tour-success-modal.component";
+} from '../self-onboarding-checklist-modal/guided-tour-success-modal/guided-tour-success-modal.component';
 
 @Component({
   selector: 'app-user-home',
@@ -169,7 +169,7 @@ export class UserHomeComponent implements OnInit, OnDestroy, AfterViewInit {
                 const userProfile = this.user;
                 Object.assign(modalRef.componentInstance, {
                   userProfile,
-                  companyOnboardingState: companyOnboardingState
+                  companyOnboardingState
                 });
               }
             }

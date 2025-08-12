@@ -17,7 +17,7 @@ export class CountryService extends GeneralCodesService<ApiCountry> {
     protected commonController: CommonControllerService
   ) {
     super();
-    this.initializeCodebook()
+    this.initializeCodebook();
   }
 
   public identifier(el: ApiCountry) {
@@ -35,11 +35,11 @@ export class CountryService extends GeneralCodesService<ApiCountry> {
 
   public addElement(arr: FormArray, el: ApiCountry): void {
     arr.push(this.formGenerator()(el) as FormGroup);
-    arr.markAsDirty()
+    arr.markAsDirty();
   }
 
   public makeQuery(key: string, params?: any): Observable<PagedSearchResults<ApiCountry>> {
-    let lkey = key ? key.toLocaleLowerCase() : null
+    const lkey = key ? key.toLocaleLowerCase() : null;
     return this.sifrant$.pipe(
       map((allChoices: PagedSearchResults<ApiCountry>) => {
         return {
@@ -47,15 +47,15 @@ export class CountryService extends GeneralCodesService<ApiCountry> {
           offset: allChoices.offset,
           limit: allChoices.limit,
           totalCount: allChoices.totalCount
-        }
+        };
       })
-    )
+    );
   }
 
   public initializeCodebook() {
-    this.sifrant$ = this.sifrant$ || this.commonController.getCountries(null,"FETCH", 500, null, null, "ASC").pipe(
+    this.sifrant$ = this.sifrant$ || this.commonController.getCountries(null,'FETCH', 500, null, null, 'ASC').pipe(
       map(x => this.pack(x.data.items))
-    )
+    );
   }
 
 

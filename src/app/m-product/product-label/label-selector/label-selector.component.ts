@@ -12,17 +12,10 @@ import { FormControl } from '@angular/forms';
   styleUrls: ['./label-selector.component.scss']
 })
 export class LabelSelectorComponent implements OnInit {
-
-  appName: string = environment.appName;
-  qrCodeSize = 110;
-  firstSelect = true;
-  currentLabel = null;
-
-  _labels: ApiProductLabelGet[] = null
   @Input() set labels(value: ApiProductLabelGet[]) {
     this._labels = value;
     if(this.firstSelect && value && value.length > 0) {
-      this.selectItem({label: value[0], preventEmit: false})
+      this.selectItem({label: value[0], preventEmit: false});
       this.firstSelect = false;
     }
   }
@@ -31,8 +24,19 @@ export class LabelSelectorComponent implements OnInit {
     return this._labels;
   }
 
+  constructor(
+    public theme: ThemeService
+  ) { }
+
+  appName: string = environment.appName;
+  qrCodeSize = 110;
+  firstSelect = true;
+  currentLabel = null;
+
+  _labels: ApiProductLabelGet[] = null;
+
   @Input()
-  productId: number = null
+  productId: number = null;
 
   @Input()
   toSelect: Observable<number> = null;
@@ -46,10 +50,10 @@ export class LabelSelectorComponent implements OnInit {
   @Input()
   editable = false;
 
-  faPlus = faPlus
-  faPlusSquare = faPlusSquare
-  faChevronLeft = faChevronLeft
-  faChevronRight = faChevronRight
+  faPlus = faPlus;
+  faPlusSquare = faPlusSquare;
+  faChevronLeft = faChevronLeft;
+  faChevronRight = faChevronRight;
 
   selected = null;
 
@@ -61,33 +65,34 @@ export class LabelSelectorComponent implements OnInit {
 
   @Output() onTitleChange = new EventEmitter<any>();
 
-  hasLeft = new BehaviorSubject(false)
-  hasRight = new BehaviorSubject(false)
+  hasLeft = new BehaviorSubject(false);
+  hasRight = new BehaviorSubject(false);
+
+  @ViewChild('scroll', { static: false })
+  scrollBox: ElementRef;
+
+  selectSub: Subscription = null;
 
   createNew() {
-    this.onCreate.next(true)
+    this.onCreate.next(true);
   }
 
   isSelected(item) {
-    if (this.selected && this.selected.selected === false) return false
-    return this.selected && this.selected.label && item && this.selected.label.id === item.id
+    if (this.selected && this.selected.selected === false) { return false; }
+    return this.selected && this.selected.label && item && this.selected.label.id === item.id;
   }
 
   selectItem(event) {
-    if (!event) return;
-    let label = event.label
-    let preventEmit = event.preventEmit
-    if (!label) label = this.currentLabel;
+    if (!event) { return; }
+    let label = event.label;
+    const preventEmit = event.preventEmit;
+    if (!label) { label = this.currentLabel; }
     this.currentLabel = label;
-    this.selected = {label: label, selected: event.selected };
+    this.selected = {label, selected: event.selected };
     if (!preventEmit) {
-      this.onSelect.next(label)
+      this.onSelect.next(label);
     }
   }
-
-  constructor(
-    public theme: ThemeService
-  ) { }
 
   showInView(event) {
 
@@ -115,58 +120,53 @@ export class LabelSelectorComponent implements OnInit {
     }
   }
 
-  @ViewChild('scroll', { static: false })
-  scrollBox: ElementRef;
-
   nudgeRight() {
     if (this.scrollBox) {
-      this.scrollBox.nativeElement.scrollBy({behavior: 'smooth', left: 180})
+      this.scrollBox.nativeElement.scrollBy({behavior: 'smooth', left: 180});
     }
   }
 
   nudgeLeft() {
     if (this.scrollBox) {
-      this.scrollBox.nativeElement.scrollBy({behavior: 'smooth', left: -180})
+      this.scrollBox.nativeElement.scrollBy({behavior: 'smooth', left: -180});
     }
   }
 
   delete(label) {
-    if(!label) return;
-    let position = this.labels.findIndex(x => x.id === label.id)
-    this.onDelete.next({label, position})
+    if(!label) { return; }
+    const position = this.labels.findIndex(x => x.id === label.id);
+    this.onDelete.next({label, position});
   }
 
   titleChange(label) {
-    if(!label) return;
-    let position = this.labels.findIndex(x => x.id === label.id);
+    if(!label) { return; }
+    const position = this.labels.findIndex(x => x.id === label.id);
     this.onTitleChange.next({ label, position });
   }
-
-  selectSub: Subscription = null
   ngOnInit(): void {
     if(this.toSelect) {
       this.selectSub = this.toSelect.subscribe((val: any) => {
-        if (val == null) return;
+        if (val == null) { return; }
         if(val.position != null) { // negative values mean -(index + 1) of deleted position
           let prev = val.position - 1;
           prev = prev < 0 ? 0 : prev;
           if(prev < this.labels.length) { // valid index
-            this.selectItem({ label: this.labels[prev], preventEmit: false})
+            this.selectItem({ label: this.labels[prev], preventEmit: false});
           } else {
-            this.selectItem(null)
+            this.selectItem(null);
           }
           return;
         }
-        let item = this.labels.find(x => x.id = val.id)
+        const item = this.labels.find(x => x.id = val.id);
         if(item) {
-          if (val.selected != null) this.selectItem({ label: item, preventEmit: val.preventEmit, selected: val.selected })
-          else this.selectItem({ label: item, preventEmit: val.preventEmit })
+          if (val.selected != null) { this.selectItem({ label: item, preventEmit: val.preventEmit, selected: val.selected }); }
+          else { this.selectItem({ label: item, preventEmit: val.preventEmit }); }
         }
-      })
+      });
     }
   }
 
   ngOnDestroy() {
-    if(this.selectSub) this.selectSub.unsubscribe()
+    if(this.selectSub) { this.selectSub.unsubscribe(); }
   }
 }

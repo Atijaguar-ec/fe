@@ -12,7 +12,7 @@ export class ToggleSwitchComponent implements OnInit {
   formControlCheckbox = new FormControl(false);
 
   @Input()
-  disabled: boolean = false;
+  disabled = false;
 
   constructor() { }
 

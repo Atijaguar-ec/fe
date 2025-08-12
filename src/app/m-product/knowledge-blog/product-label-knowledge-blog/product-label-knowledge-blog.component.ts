@@ -19,22 +19,6 @@ import { KnowledgeBlogSelectSectionModalComponent } from '../knowledge-blog-sele
 })
 export class ProductLabelKnowledgeBlogComponent implements OnInit {
 
-  faTimes = faTimes;
-  faFilter = faFilter;
-  productId = this.route.snapshot.params.id;
-  reloadPingList$ = new BehaviorSubject<boolean>(false)
-  pagingParams$ = new BehaviorSubject({})
-  sortingParams$ = new BehaviorSubject({ sortBy: 'title', sort: 'ASC' })
-  paging$ = new BehaviorSubject<number>(1);
-  page: number = 0;
-  pageSize = 10;
-  searchName = new FormControl(null)
-  searchStatus = new FormControl("")
-  routerSub: Subscription;
-
-  allBlogs: number = 0;
-  showedBlogs: number = 0;
-
 
   constructor(
     private globalEventsManager: GlobalEventManagerService,
@@ -45,40 +29,30 @@ export class ProductLabelKnowledgeBlogComponent implements OnInit {
   ) {
   }
 
-  ngOnInit(): void {
-    this.routerSub = this.router.events.subscribe(event => {
-      if (event instanceof NavigationEnd && event.url === '/knowledgeBlog') {
-        this.reloadPage()
-      }
-    })
-    this.setAllBlogs();
+  get statusList() {
+    const obj = {};
+    obj[''] = $localize`:@@productLabelKnowledgeBlog.type.all:All`;
+    obj['FAIRNESS'] = $localize`:@@productLabelKnowledgeBlog.type.fairness:Fairness`;
+    obj['QUALITY'] = $localize`:@@productLabelKnowledgeBlog.type.quality:Quality`;
+    obj['PROVENANCE'] = $localize`:@@productLabelKnowledgeBlog.type.provenance:Provenance`;
+    return obj;
   }
 
-  async setAllBlogs() {
+  faTimes = faTimes;
+  faFilter = faFilter;
+  productId = this.route.snapshot.params.id;
+  reloadPingList$ = new BehaviorSubject<boolean>(false);
+  pagingParams$ = new BehaviorSubject({});
+  sortingParams$ = new BehaviorSubject({ sortBy: 'title', sort: 'ASC' });
+  paging$ = new BehaviorSubject<number>(1);
+  page = 0;
+  pageSize = 10;
+  searchName = new FormControl(null);
+  searchStatus = new FormControl('');
+  routerSub: Subscription;
 
-    let res = await this.productController.getProductKnowledgeBlogs(this.productId, null, 'COUNT').pipe(take(1)).toPromise();
-    if (res && res.status === 'OK' && res.data && res.data.count >= 0) {
-      this.allBlogs = res.data.count;
-    }
-
-  }
-
-
-  ngOnDestroy() {
-    if (this.routerSub) this.routerSub.unsubscribe()
-  }
-
-  onPageChange(event) {
-    this.paging$.next(event);
-  }
-
-  changeSort(event) {
-    this.sortingParams$.next({ sortBy: event.key, sort: event.sortOrder })
-  }
-
-  reloadPage() {
-    this.reloadPingList$.next(true)
-  }
+  allBlogs = 0;
+  showedBlogs = 0;
 
   sortOptions = [
     {
@@ -101,27 +75,18 @@ export class ProductLabelKnowledgeBlogComponent implements OnInit {
       name: $localize`:@@productLabelKnowledgeBlog.sortOptions.actions.name:Actions`,
       inactive: true
     }
-  ]
+  ];
 
   searchParams$ = combineLatest(
     this.searchStatus.valueChanges.pipe(
       startWith(null)
     ),
     (type: string) => {
-      return { type }
+      return { type };
     }
-  )
+  );
 
-  codebookStatus = EnumSifrant.fromObject(this.statusList)
-
-  get statusList() {
-    let obj = {}
-    obj[""] = $localize`:@@productLabelKnowledgeBlog.type.all:All`
-    obj['FAIRNESS'] = $localize`:@@productLabelKnowledgeBlog.type.fairness:Fairness`
-    obj['QUALITY'] = $localize`:@@productLabelKnowledgeBlog.type.quality:Quality`
-    obj['PROVENANCE'] = $localize`:@@productLabelKnowledgeBlog.type.provenance:Provenance`
-    return obj;
-  }
+  codebookStatus = EnumSifrant.fromObject(this.statusList);
 
 
   blogs$ = combineLatest(this.reloadPingList$, this.paging$, this.searchParams$, this.sortingParams$,
@@ -131,7 +96,7 @@ export class ProductLabelKnowledgeBlogComponent implements OnInit {
         ...sorting,
         offset: (page - 1) * this.pageSize,
         limit: this.pageSize
-      }
+      };
     }).pipe(
       tap(val => this.globalEventsManager.showLoading(true)),
       switchMap(params => {
@@ -140,28 +105,86 @@ export class ProductLabelKnowledgeBlogComponent implements OnInit {
       map((resp: ApiPaginatedResponseApiKnowledgeBlogBase) => {
         if (resp) {
 
-          if (resp.data && resp.data.count && (this.pageSize - resp.data.count > 0)) this.showedBlogs = resp.data.count;
+          if (resp.data && resp.data.count && (this.pageSize - resp.data.count > 0)) { this.showedBlogs = resp.data.count; }
           else {
-            let temp = resp.data.count - (this.pageSize * (this.page - 1));
+            const temp = resp.data.count - (this.pageSize * (this.page - 1));
             this.showedBlogs = temp >= this.pageSize ? this.pageSize : temp;
           }
 
-          return resp.data
+          return resp.data;
         }
       }),
       tap(val => this.globalEventsManager.showLoading(false)),
       shareReplay(1)
-    )
+    );
+
+
+  fairnessSection = {
+    anchor: 'FAIRNESS',
+    title: $localize`:@@productLabelKnowledgeBlog.title.fairness:Fairness`
+  };
+
+  qualitySection = {
+    anchor: 'QUALITY',
+    title: $localize`:@@productLabelKnowledgeBlog.title.quality:Quality`
+  };
+
+  provenanceSection = {
+    anchor: 'PROVENANCE',
+    title: $localize`:@@productLabelKnowledgeBlog.title.provenance:Provenance`,
+  };
+
+
+  toc = [
+    this.fairnessSection,
+    this.qualitySection,
+    this.provenanceSection,
+  ];
+
+  ngOnInit(): void {
+    this.routerSub = this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd && event.url === '/knowledgeBlog') {
+        this.reloadPage();
+      }
+    });
+    this.setAllBlogs();
+  }
+
+  async setAllBlogs() {
+
+    const res = await this.productController.getProductKnowledgeBlogs(this.productId, null, 'COUNT').pipe(take(1)).toPromise();
+    if (res && res.status === 'OK' && res.data && res.data.count >= 0) {
+      this.allBlogs = res.data.count;
+    }
+
+  }
+
+
+  ngOnDestroy() {
+    if (this.routerSub) { this.routerSub.unsubscribe(); }
+  }
+
+  onPageChange(event) {
+    this.paging$.next(event);
+  }
+
+  changeSort(event) {
+    this.sortingParams$.next({ sortBy: event.key, sort: event.sortOrder });
+  }
+
+  reloadPage() {
+    this.reloadPingList$.next(true);
+  }
 
   blogDetail(blog) {
     if (blog) {
-      this.router.navigate(['/', 'product-labels', this.productId, 'knowledge-blog', blog.type.toLowerCase(), blog.id])
+      this.router.navigate(['/', 'product-labels', this.productId, 'knowledge-blog', blog.type.toLowerCase(), blog.id]);
     }
   }
 
   viewPage(blog) {
     if (blog) {
-      this.router.navigate(['/', 'blog', this.productId, blog.type.toLowerCase(), blog.id])
+      this.router.navigate(['/', 'blog', this.productId, blog.type.toLowerCase(), blog.id]);
     }
   }
 
@@ -171,47 +194,24 @@ export class ProductLabelKnowledgeBlogComponent implements OnInit {
     Object.assign(modalRef.componentInstance, {
       title: $localize`:@@productLabelKnowledgeBlog.selectSection.title:Type selection`,
       instructionsHtml: $localize`:@@productLabelKnowledgeBlog.selectSection.instructionsHtml:Select type`,
-    })
-    let type = await modalRef.result;
+    });
+    const type = await modalRef.result;
     if (type) {
-      this.router.navigate(['/', 'product-labels', this.productId, 'knowledge-blog', type.toLowerCase(), 'new'])
+      this.router.navigate(['/', 'product-labels', this.productId, 'knowledge-blog', type.toLowerCase(), 'new']);
     }
   }
-
-
-  fairnessSection = {
-    anchor: 'FAIRNESS',
-    title: $localize`:@@productLabelKnowledgeBlog.title.fairness:Fairness`
-  }
-
-  qualitySection = {
-    anchor: 'QUALITY',
-    title: $localize`:@@productLabelKnowledgeBlog.title.quality:Quality`
-  }
-
-  provenanceSection = {
-    anchor: 'PROVENANCE',
-    title: $localize`:@@productLabelKnowledgeBlog.title.provenance:Provenance`,
-  }
-
-
-  toc = [
-    this.fairnessSection,
-    this.qualitySection,
-    this.provenanceSection,
-  ]
 
   showStatus(status: string) {
     this.searchStatus.setValue(status);
   }
 
   clearValue() {
-    this.searchStatus.setValue("");
+    this.searchStatus.setValue('');
   }
 
   showPagination() {
-    if (((this.showedBlogs - this.pageSize) == 0 && this.allBlogs >= this.pageSize) || this.page > 1) return true;
-    else return false
+    if (((this.showedBlogs - this.pageSize) == 0 && this.allBlogs >= this.pageSize) || this.page > 1) { return true; }
+    else { return false; }
   }
 
 }

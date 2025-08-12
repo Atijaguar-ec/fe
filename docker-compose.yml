@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  inatrace-fe:
+    image: inatrace-fe:latest
+    container_name: inatrace-fe
+    ports:
+      - "80:80"
+    networks:
+      - backend
+    restart: always
+networks:
+  backend:
+    external: true
+    name: inatrace-backend-network

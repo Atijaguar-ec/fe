@@ -9,7 +9,7 @@ import { BehaviorSubject } from 'rxjs';
 export class AccordionComponent implements OnInit {
     constructor() { }
 
-    open$ = new BehaviorSubject<number>(null)
+    open$ = new BehaviorSubject<number>(null);
 
     ngOnInit() {
     }

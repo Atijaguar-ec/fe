@@ -9,10 +9,10 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 export class InstructionsModalComponent implements OnInit {
 
     @Input()
-    instructions = null
+    instructions = null;
 
     @Input()
-    title = "Pomen ikon in gumbov"
+    title = 'Pomen ikon in gumbov';
 
     @Input()
     dismissable = true;

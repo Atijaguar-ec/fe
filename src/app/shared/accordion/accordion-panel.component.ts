@@ -26,11 +26,11 @@ import { Subscribable, Subscription } from 'rxjs';
         ]),
         trigger('rotateIconOpen', [
             state('closed', style({
-                'transform': 'rotate(0deg)',
+                transform: 'rotate(0deg)',
                 'transform-origin': '50% 50%'
             })),
             state('open', style({
-                'transform': 'rotate(90deg)',
+                transform: 'rotate(90deg)',
                 'transform-origin': '50% 50%'
             })),
             transition('closed <=> open', animate('200ms'))
@@ -38,8 +38,10 @@ import { Subscribable, Subscription } from 'rxjs';
     ]
 })
 export class AccordionPanelComponent implements OnInit, OnDestroy {
+
+    constructor(@Host() public accordion: AccordionComponent) { }
     @Input()
-    startOpen: boolean = false;
+    startOpen = false;
 
     @Input()
     title: string;
@@ -51,49 +53,47 @@ export class AccordionPanelComponent implements OnInit, OnDestroy {
     panelId: number = null;
 
     @Input()
-    masterMode = false
+    masterMode = false;
 
     @Input()
-    showArrow = true
+    showArrow = true;
 
-    open: boolean = false;
-
-    constructor(@Host() public accordion: AccordionComponent) { }
+    open = false;
 
     faChevronRight = faChevronRight;
     faBars = faBars;
+
+    sub: Subscription = null;
 
     ngOnInit() {
         this.open = this.startOpen;
         if(this.masterMode && this.panelId != null && this.accordion) {
             this.sub = this.accordion.open$.subscribe(val => {
                 if(val === this.panelId) {
-                    if(!this.open) this.open = true
+                    if(!this.open) { this.open = true; }
                 } else {
-                    if(this.open) this.open = false;
+                    if(this.open) { this.open = false; }
                 }
-            })
+            });
         }
     }
 
     notify() {
         if(this.masterMode && this.panelId != null) {
             if(this.open) {
-                this.accordion.open$.next(this.panelId)
+                this.accordion.open$.next(this.panelId);
             } else {
-                this.accordion.open$.next(null)
+                this.accordion.open$.next(null);
             }
         }
     }
 
     toggle() {
         this.open = !this.open;
-        this.notify()
+        this.notify();
     }
-
-    sub: Subscription = null
     ngOnDestroy(): void {
-        if(this.sub) this.sub.unsubscribe()
+        if(this.sub) { this.sub.unsubscribe(); }
     }
 
 }

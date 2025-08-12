@@ -28,7 +28,7 @@ import { FormControl } from '@angular/forms';
       })),
       transition(
         'closed=>open',
-        animate("200ms")
+        animate('200ms')
       ),
       transition(
         'open=>closed',
@@ -49,7 +49,7 @@ import { FormControl } from '@angular/forms';
       })),
       transition(
         'closed=>open',
-        animate("200ms")
+        animate('200ms')
       ),
       transition(
         'open=>closed',
@@ -69,7 +69,7 @@ import { FormControl } from '@angular/forms';
       })),
       transition(
         'closed=>open',
-        animate("200ms")
+        animate('200ms')
       ),
       transition(
         'open=>closed',
@@ -90,47 +90,47 @@ import { FormControl } from '@angular/forms';
       })),
       transition(
         'active=>deleted',
-        animate("300ms")
+        animate('300ms')
       )
     ])
   ]
 })
 export class SmartTagComponent implements OnInit {
-
-  faImage = faImage;
   constructor() { }
 
-  _isOpen: boolean = false;
-
   @Input() set isOpen(value: boolean) {
-    let oldValue = this._isOpen;
+    const oldValue = this._isOpen;
     this._isOpen = value;
     if (value && !oldValue) {
       this.scrollToTarget();
     }
   }
 
-  @Input()
-  readOnly?: boolean;
-
   get isOpen(): boolean {
     return this._isOpen;
   }
+
+  faImage = faImage;
+
+  _isOpen = false;
+
+  @Input()
+  readOnly?: boolean;
 
   @Input()
   formControlInput?: FormControl;
 
   @Input()
-  disableEdit: boolean = false
+  disableEdit = false;
 
   @Input()
-  disableDelete: boolean = false
+  disableDelete = false;
 
   @Input()
-  viewOnly: boolean = false
+  viewOnly = false;
 
   @Input()
-  disableRowClick: boolean = false
+  disableRowClick = false;
 
   @Output() onView = new EventEmitter<any>();
 
@@ -138,47 +138,53 @@ export class SmartTagComponent implements OnInit {
 
   @Output() onDelete = new EventEmitter<any>();
 
-  ngOnInit() {
-  }
-
   @ViewChild('startTabElementJump', { static: false }) startTabElementJump;
   @ViewChild('startTabElementTarget', { static: false }) startTabElementTarget;
   @ViewChild('endTabElementJump', { static: false }) endTabElementJump;
   @ViewChild('endTabElementTarget', { static: false }) endTabElementTarget;
 
+  @ViewChild('target', { static: false })
+  targetElement: ElementRef<HTMLInputElement>;
+
+  deleted = false;
+
+  showEditableComponent = true;
+
+  @ViewChildren('editComponent') editComponent;
+  @ViewChildren('fullTag') fullTag;
+  @ViewChildren('editIcon') editIcon;
+
+  ngOnInit() {
+  }
+
   onEndFocus() {
-    this.startTabElementTarget.nativeElement.focus()
+    this.startTabElementTarget.nativeElement.focus();
   }
 
   onStartFocus() {
-    this.endTabElementTarget.nativeElement.focus()
+    this.endTabElementTarget.nativeElement.focus();
   }
 
   isDisabled() {
     if (this.formControlInput) {
-      return this.formControlInput.enabled === false
+      return this.formControlInput.enabled === false;
     }
-    return false
+    return false;
   }
-
-  @ViewChild("target", { static: false })
-  targetElement: ElementRef<HTMLInputElement>;
 
   scrollToTarget(n = 10) {
     if (n == 0) {
       // console.log("Cannot find editor element")
-      return
+      return;
     }
     window.setTimeout(() => {
       if (this.targetElement) {   // scrolanje novega podokna v vidno polje
-        this.targetElement.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        this.targetElement.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       } else {
-        this.scrollToTarget(n - 1)
+        this.scrollToTarget(n - 1);
       }
-    }, 200)
+    }, 200);
   }
-
-  deleted = false;
 
   deleteTriggered(event) {
     this.deleted = true;
@@ -189,39 +195,33 @@ export class SmartTagComponent implements OnInit {
       // if(this.listEditorManager && this.listEditorManagerPosition != null) {
       //     this.listEditorManager.delete(this.listEditorManagerPosition)
       // }
-      this.onDelete.next(true)
+      this.onDelete.next(true);
     }
   }
 
-  showEditableComponent = true;
-
-  @ViewChildren('editComponent') editComponent;
-  @ViewChildren('fullTag') fullTag;
-  @ViewChildren('editIcon') editIcon;
-
   startShowEditableComponentAnimation() {
     if (this.editComponent.first.nativeElement.style.display === '') {
-      this.editComponent.first.nativeElement.style.display = 'none'
+      this.editComponent.first.nativeElement.style.display = 'none';
     } else {
-      this.editComponent.first.nativeElement.style.display = ''
+      this.editComponent.first.nativeElement.style.display = '';
     }
     // console.log(this.editComponent)
     // if(this.isOpen) this.showEditableComponent = true;
   }
   endShowEditableComponentAnimation() {
     if (this.isOpen) {  // pri keriranju
-      this.editComponent.first.nativeElement.style.display = ''
+      this.editComponent.first.nativeElement.style.display = '';
     }
   }
 
   onEditHandler(trigger) {
-    if (this.disableRowClick && trigger === 'fullTag') return;
-    let returnFocusElement = trigger === 'fullTag' ? this.fullTag.first.nativeElement : this.editIcon.first.nativeElement
+    if (this.disableRowClick && trigger === 'fullTag') { return; }
+    const returnFocusElement = trigger === 'fullTag' ? this.fullTag.first.nativeElement : this.editIcon.first.nativeElement;
     this.onEdit.next(returnFocusElement);
   }
 
   onBackdrop() {
-    this.scrollToTarget()
+    this.scrollToTarget();
   }
 
 }

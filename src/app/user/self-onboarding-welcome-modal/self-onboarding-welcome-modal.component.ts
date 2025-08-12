@@ -5,7 +5,7 @@ import { NgbModalImproved } from '../../core/ngb-modal-improved/ngb-modal-improv
 import {
   SelfOnboardingChecklistModalComponent
 } from '../self-onboarding-checklist-modal/self-onboarding-checklist-modal.component';
-import { ApiCompanyOnboardingState } from "../../../api/model/apiCompanyOnboardingState";
+import { ApiCompanyOnboardingState } from '../../../api/model/apiCompanyOnboardingState';
 
 @Component({
   selector: 'app-self-onboarding-welcome-modal',

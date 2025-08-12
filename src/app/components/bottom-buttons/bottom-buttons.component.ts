@@ -10,20 +10,25 @@ import { Location } from '@angular/common';
 })
 export class BottomButtonsComponent implements OnInit {
 
-  @Input()
-  saveButtonLabel: string = $localize`:@@bottomButoms.button.save:Save`
+  constructor(
+    private globalEventsManager: GlobalEventManagerService,
+    private location: Location
+  ) { }
 
   @Input()
-  backButton = true
+  saveButtonLabel: string = $localize`:@@bottomButoms.button.save:Save`;
 
   @Input()
-  downloadButton = false
+  backButton = true;
 
   @Input()
-  updateButton = false
+  downloadButton = false;
 
   @Input()
-  form: FormGroup = null
+  updateButton = false;
+
+  @Input()
+  form: FormGroup = null;
 
   // Either we use form or fields 'changed' and 'invalid'
   @Input()
@@ -39,31 +44,31 @@ export class BottomButtonsComponent implements OnInit {
   success = false;
 
   @Input()
-  ignoreErrorsOnSave=false
+  ignoreErrorsOnSave=false;
 
   @Input()
-  floatingSave = true
+  floatingSave = true;
 
   @Input()
-  floatingSaveTitle = $localize`:@@bottomButoms.button.floatingSave:Save`
+  floatingSaveTitle = $localize`:@@bottomButoms.button.floatingSave:Save`;
 
   @Input()
-  floatingValidate = false
+  floatingValidate = false;
 
   @Input()
-  floatingValidateTitle = $localize`:@@bottomButoms.button.floatingValidate:Validation check`
+  floatingValidateTitle = $localize`:@@bottomButoms.button.floatingValidate:Validation check`;
 
   @Input()
-  ignoreOnSubmitDirty = false
+  ignoreOnSubmitDirty = false;
 
   @Input()
-  submitTitle: string = $localize`:@@bottomButoms.button.submit:Submit`
+  submitTitle: string = $localize`:@@bottomButoms.button.submit:Submit`;
 
   @Input()
-  onSubmitMessage: string = $localize`:@@bottomButoms.message.onSubmit:Do you want to submit an application?`
+  onSubmitMessage: string = $localize`:@@bottomButoms.message.onSubmit:Do you want to submit an application?`;
 
   @Input()
-  customBackFn: boolean = false; //In case of nested forms, such as product label
+  customBackFn = false; // In case of nested forms, such as product label
 
   @Output() onBack = new EventEmitter<boolean>();
   @Output() onValidate = new EventEmitter<boolean>();
@@ -72,29 +77,24 @@ export class BottomButtonsComponent implements OnInit {
   @Output() onDownload = new EventEmitter<boolean>();
   @Output() onUpdate = new EventEmitter<boolean>();
 
-  constructor(
-    private globalEventsManager: GlobalEventManagerService,
-    private location: Location
-  ) { }
+  lastPress = null;
 
   ngOnInit() { }
 
 
   isBack() {
-    return this.backButton
+    return this.backButton;
   }
 
   backEnabled() {
     return true;
   }
 
-  lastPress = null;
-
   async back() {
-    this.lastPress = 'BACK'
-    if (!this.isBack()) return;
+    this.lastPress = 'BACK';
+    if (!this.isBack()) { return; }
     if ((this.form && this.form.dirty) || (!this.form && this.changed)) {
-      let result = await this.globalEventsManager.openMessageModal({
+      const result = await this.globalEventsManager.openMessageModal({
         type: 'warning',
         title: $localize`:@@bottomButoms.back.error.title:Changes not saved!`,
         message: $localize`:@@bottomButoms.back.error.message:The form contains unsaved changes that will be discarded.`,
@@ -102,10 +102,10 @@ export class BottomButtonsComponent implements OnInit {
         dismissable: false,
         buttonTitles: { ok: 'Discard change', cancel: 'Go back' }
       });
-      if (result !== "ok") return;
+      if (result !== 'ok') { return; }
     }
-    if (this.customBackFn) this.onBack.next(true)
-    else this.location.back()
+    if (this.customBackFn) { this.onBack.next(true); }
+    else { this.location.back(); }
   }
 
   isValidate() {
@@ -113,14 +113,14 @@ export class BottomButtonsComponent implements OnInit {
   }
 
   validateEnabled() {
-    if(!this.isValidate()) return false;
+    if(!this.isValidate()) { return false; }
     // if(this.form && this.form.dirty) return false;
     return true;
   }
 
   validate() {
-    this.lastPress = 'VALIDATE'
-    if(!this.isValidate()) return;
+    this.lastPress = 'VALIDATE';
+    if(!this.isValidate()) { return; }
     // if(this.form && this.form.dirty) {
     //   this.globalEventsManager.push(
     //     {
@@ -140,22 +140,22 @@ export class BottomButtonsComponent implements OnInit {
             title: $localize`:@@bottomButoms.validate.error.title:Invalid or missing input!`,
             message: $localize`:@@bottomButoms.validate.error.message:Check and correct the input`
           }
-      )
+      );
     }
-    this.onValidate.next(true)
+    this.onValidate.next(true);
   }
 
   isSubmit() {
-    return this.onSubmit.observers.length > 0 && ((this.form && this.form.enabled === true) || !this.form)
+    return this.onSubmit.observers.length > 0 && ((this.form && this.form.enabled === true) || !this.form);
   }
 
   submitEnabled() {
-    return !this.form || (this.form && (this.ignoreOnSubmitDirty || !this.form.dirty) && this.form.valid === true)
+    return !this.form || (this.form && (this.ignoreOnSubmitDirty || !this.form.dirty) && this.form.valid === true);
   }
 
   async submit() {
-    this.lastPress = 'SUBMIT'
-    if(!this.isSubmit()) return;
+    this.lastPress = 'SUBMIT';
+    if(!this.isSubmit()) { return; }
     if(((this.form && this.form.dirty) || (!this.form && this.changed)) && !this.ignoreOnSubmitDirty) {
       this.globalEventsManager.push(
         {
@@ -164,7 +164,7 @@ export class BottomButtonsComponent implements OnInit {
             title: $localize`:@@bottomButoms.submit.warning.title:Save the data!`,
             message: $localize`:@@bottomButoms.submit.warning.message:Please, save the data before continuing`
           }
-      )
+      );
     } else if((this.form && this.form.invalid) || (!this.form && this.invalid)) {
       this.globalEventsManager.push(
         {
@@ -173,15 +173,15 @@ export class BottomButtonsComponent implements OnInit {
             title: $localize`:@@bottomButoms.submit.error.title:Invalid or missing input!`,
             message: $localize`:@@bottomButoms.submit.error.message:Check and correct the input`
           }
-      )
+      );
     } else if (!this.ignoreOnSubmitDirty) {
-      let result = await this.globalEventsManager.openMessageModal({
+      const result = await this.globalEventsManager.openMessageModal({
           type: 'warning',
           message: this.onSubmitMessage
       });
-      if (result !== "ok") return;
+      if (result !== 'ok') { return; }
     }
-    this.onSubmit.next(true)
+    this.onSubmit.next(true);
   }
 
   isSave() {
@@ -189,15 +189,15 @@ export class BottomButtonsComponent implements OnInit {
   }
 
   saveEnabled() {
-    return (this.form && this.form.dirty) || (!this.form && this.changed)
+    return (this.form && this.form.dirty) || (!this.form && this.changed);
   }
 
   save() {
     // console.log("SV", this.form, this.changed)
-    this.lastPress = 'SAVE'
-    if(!this.isSave()) return;
-    if((this.form && !this.form.dirty) || (!this.form && !this.changed)) return;
-    this.onSave.next(true)
+    this.lastPress = 'SAVE';
+    if(!this.isSave()) { return; }
+    if((this.form && !this.form.dirty) || (!this.form && !this.changed)) { return; }
+    this.onSave.next(true);
   }
 
   isDownload() {
@@ -209,9 +209,9 @@ export class BottomButtonsComponent implements OnInit {
   }
 
   download() {
-    this.lastPress = 'DOWNLOAD'
-    if(!this.isDownload()) return;
-    this.onDownload.next(true)
+    this.lastPress = 'DOWNLOAD';
+    if(!this.isDownload()) { return; }
+    this.onDownload.next(true);
   }
 
   isUpdate() {
@@ -223,8 +223,8 @@ export class BottomButtonsComponent implements OnInit {
   }
 
   update() {
-    this.lastPress = 'UPDATE'
-    if(!this.isUpdate()) return;
-    this.onUpdate.next(true)
+    this.lastPress = 'UPDATE';
+    if(!this.isUpdate()) { return; }
+    this.onUpdate.next(true);
   }
 }

@@ -12,6 +12,16 @@ import { ApiProductLabelBatchValidationScheme } from './validation';
   styleUrls: ['./batch-edit-modal.component.scss']
 })
 export class BatchEditModalComponent implements OnInit {
+
+
+  constructor(
+    public activeModal: NgbActiveModal,
+    public sifrantCompany: ActiveCompaniesService,
+  ) { }
+
+  get saveText() {
+    return this.batch ? this.saveTextButton : this.createTextButton;
+  }
   // @Input()
   // company = null
 
@@ -28,35 +38,25 @@ export class BatchEditModalComponent implements OnInit {
   batch: ApiProductLabelBatch = null;
 
   form: FormGroup;
-  saveTextButton: string = "Save";
-  createTextButton: string = "Create";
+  saveTextButton = 'Save';
+  createTextButton = 'Create';
 
-
-  constructor(
-    public activeModal: NgbActiveModal,
-    public sifrantCompany: ActiveCompaniesService,
-  ) { }
+  submitted = false;
 
   ngOnInit(): void {
     if(this.batch) {
-      this.form = generateFormFromMetadata(ApiProductLabelBatch.formMetadata(), this.batch, ApiProductLabelBatchValidationScheme)
+      this.form = generateFormFromMetadata(ApiProductLabelBatch.formMetadata(), this.batch, ApiProductLabelBatchValidationScheme);
     } else {
-      this.form = generateFormFromMetadata(ApiProductLabelBatch.formMetadata(), {}, ApiProductLabelBatchValidationScheme)
+      this.form = generateFormFromMetadata(ApiProductLabelBatch.formMetadata(), {}, ApiProductLabelBatchValidationScheme);
     }
   }
 
   cancel() {
-    this.activeModal.close()
+    this.activeModal.close();
   }
-
-  get saveText() {
-    return this.batch ? this.saveTextButton : this.createTextButton
-  }
-
-  submitted = false;
   onConfirm() {
     this.submitted = true;
-    if(this.form.invalid) return;
-    this.activeModal.close(this.form.value)
+    if(this.form.invalid) { return; }
+    this.activeModal.close(this.form.value);
   }
 }

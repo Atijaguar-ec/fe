@@ -12,8 +12,8 @@ import { CodebookTranslations } from '../../../../shared-services/codebook-trans
 import { map, startWith, take } from 'rxjs/operators';
 import { BeycoTokenService } from '../../../../shared-services/beyco-token.service';
 import { SelectedUserCompanyService } from '../../../../core/selected-user-company.service';
-import { SelfOnboardingService } from "../../../../shared-services/self-onboarding.service";
-import { NgbTooltip } from "@ng-bootstrap/ng-bootstrap";
+import { SelfOnboardingService } from '../../../../shared-services/self-onboarding.service';
+import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-stock-all-stock-tab',

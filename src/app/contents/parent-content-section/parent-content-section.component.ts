@@ -12,8 +12,8 @@ export class ParentContentSectionComponent implements OnInit {
     // @Input()
     // data = null
 
-    currentSection = new BehaviorSubject(null)
-    sub: Subscription = null
+    currentSection = new BehaviorSubject(null);
+    sub: Subscription = null;
 
     constructor(
         @Host() public contentsSection: ContentsSectionDirective,
@@ -22,19 +22,19 @@ export class ParentContentSectionComponent implements OnInit {
 
     get data() {
         if(this.contentsSection) {
-            return this.contentsSection.contentsSection
+            return this.contentsSection.contentsSection;
         }
-        return null
+        return null;
     }
 
     get isActive() {
-        return this.contentsSection.contentsSection.anchor === this.currentSection.value
+        return this.contentsSection.contentsSection.anchor === this.currentSection.value;
     }
 
     ngOnInit() {
         this.sub = this.contents._activeParentSection$.subscribe(val => {
-            this.currentSection.next(val)
-        })
+            this.currentSection.next(val);
+        });
         // this.unsubscribeScrollEventListener();
         // this.subscribeScrollEventListener();
     }

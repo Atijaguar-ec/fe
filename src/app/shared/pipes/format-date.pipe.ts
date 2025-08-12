@@ -13,7 +13,7 @@ export class FormatDatePipe implements PipeTransform {
       // private localizationService: LocalizationService
     ) {}
     transform(value: number | string | Date, style: FormatDateStyle = 'date'): any {
-      return null // TODO
+      return null; // TODO
         // if (value == null) return null;
         // switch (style) {
         //     case "date":

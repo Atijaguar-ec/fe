@@ -1,29 +1,29 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { Router } from "@angular/router";
-import { ApiEnumWithLabelString, EnumSifrant } from "../../../../shared-services/enum-sifrant";
-import { ApiProcessingAction } from "../../../../../api/model/apiProcessingAction";
-import { take } from "rxjs/operators";
-import { FormControl, Validators } from "@angular/forms";
-import { faTimes } from "@fortawesome/free-solid-svg-icons";
-import { CompanyValueChainsService } from "../../../../shared-services/company-value-chains.service";
-import { ApiValueChain } from "../../../../../api/model/apiValueChain";
-import { ListNotEmptyValidator } from "../../../../../shared/validation";
-import { SemiProductsForValueChainsService } from "../../../../shared-services/semi-products-for-value-chains.service";
-import { CompanyControllerService } from "../../../../../api/api/companyController.service";
-import { SemiProductControllerService } from "../../../../../api/api/semiProductController.service";
-import { CodebookTranslations } from "../../../../shared-services/codebook-translations";
-import { FinalProductsForCompanyService } from "../../../../shared-services/final-products-for-company.service";
-import { FinalProductControllerService } from "../../../../../api/api/finalProductController.service";
-import { ApiSemiProduct } from "../../../../../api/model/apiSemiProduct";
-import { ApiFacility } from "../../../../../api/model/apiFacility";
-import { CompanyFacilitiesService } from "../../../../shared-services/company-facilities.service";
-import { FacilityControllerService } from "../../../../../api/api/facilityController.service";
-import { ApiProcessingActionTranslation } from "../../../../../api/model/apiProcessingActionTranslation";
+import { Router } from '@angular/router';
+import { ApiEnumWithLabelString, EnumSifrant } from '../../../../shared-services/enum-sifrant';
+import { ApiProcessingAction } from '../../../../../api/model/apiProcessingAction';
+import { take } from 'rxjs/operators';
+import { FormControl, Validators } from '@angular/forms';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { CompanyValueChainsService } from '../../../../shared-services/company-value-chains.service';
+import { ApiValueChain } from '../../../../../api/model/apiValueChain';
+import { ListNotEmptyValidator } from '../../../../../shared/validation';
+import { SemiProductsForValueChainsService } from '../../../../shared-services/semi-products-for-value-chains.service';
+import { CompanyControllerService } from '../../../../../api/api/companyController.service';
+import { SemiProductControllerService } from '../../../../../api/api/semiProductController.service';
+import { CodebookTranslations } from '../../../../shared-services/codebook-translations';
+import { FinalProductsForCompanyService } from '../../../../shared-services/final-products-for-company.service';
+import { FinalProductControllerService } from '../../../../../api/api/finalProductController.service';
+import { ApiSemiProduct } from '../../../../../api/model/apiSemiProduct';
+import { ApiFacility } from '../../../../../api/model/apiFacility';
+import { CompanyFacilitiesService } from '../../../../shared-services/company-facilities.service';
+import { FacilityControllerService } from '../../../../../api/api/facilityController.service';
+import { ApiProcessingActionTranslation } from '../../../../../api/model/apiProcessingActionTranslation';
 import LanguageEnum = ApiProcessingActionTranslation.LanguageEnum;
 import TypeEnum = ApiProcessingAction.TypeEnum;
-import { ProcessingActionControllerService } from "../../../../../api/api/processingActionController.service";
-import { SelfOnboardingService } from "../../../../shared-services/self-onboarding.service";
+import { ProcessingActionControllerService } from '../../../../../api/api/processingActionController.service';
+import { SelfOnboardingService } from '../../../../shared-services/self-onboarding.service';
 
 @Component({
   selector: 'app-company-detail-processing-actions-add-wizard',
@@ -72,7 +72,7 @@ export class CompanyDetailProcessingActionsAddWizardComponent implements OnInit 
   facilities: ApiFacility[] = [];
   selectedProcActionFacilities: ApiFacility[] = [];
 
-  currentStep: number = 1;
+  currentStep = 1;
 
   @Input()
   companyId: string;
@@ -261,22 +261,22 @@ export class CompanyDetailProcessingActionsAddWizardComponent implements OnInit 
 
   createNewProcessingAction() {
 
-    let processingAction: ApiProcessingAction = {
+    const processingAction: ApiProcessingAction = {
       company: {
         id: Number(this.companyId)
       },
       type: this.selectedProcActionType,
       translations: [
-        { name: this.procActionNameControl.value, description: "", language: LanguageEnum.EN },
-        { name: this.procActionNameControl.value, description: "", language: LanguageEnum.DE },
-        { name: this.procActionNameControl.value, description: "", language: LanguageEnum.RW },
-        { name: this.procActionNameControl.value, description: "", language: LanguageEnum.ES },
+        { name: this.procActionNameControl.value, description: '', language: LanguageEnum.EN },
+        { name: this.procActionNameControl.value, description: '', language: LanguageEnum.DE },
+        { name: this.procActionNameControl.value, description: '', language: LanguageEnum.RW },
+        { name: this.procActionNameControl.value, description: '', language: LanguageEnum.ES },
       ],
       prefix: this.procActionLOTNameControl.value,
       valueChains: this.selectedCompanyValueChainsControl.value,
       inputSemiProduct: this.selectedInputSemiProductControl.value,
       supportedFacilities: this.selectedProcActionFacilities
-    }
+    };
 
     switch (this.selectedProcActionType) {
       case TypeEnum.PROCESSING:

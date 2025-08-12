@@ -13,23 +13,6 @@ import { GlobalEventManagerService } from '../../core/global-event-manager.servi
 })
 export class ResetPasswordComponent implements OnInit {
 
-  passwordsDoNotMatch(group: FormGroup): ValidationErrors | null {
-    const password = group && group.value && group.value.password
-    const confirmPassword = group && group.value && group.value.confirmPassword
-    if (!password && !confirmPassword) return null
-    return password === confirmPassword
-      ? null
-      : { doNotMatch: true }
-  }
-
-  form = new FormGroup({
-    password: new FormControl(null, [Validators.required, Validators.minLength(8)]),
-    confirmPassword: new FormControl(null, [Validators.required, Validators.minLength(8)])
-  }, [multiFieldValidator(['confirmPassword'], this.passwordsDoNotMatch.bind(this), ['doNotMatch'])])
-
-  submitted: boolean = false;
-  _resetPassErrorStatus$: BehaviorSubject<string>;
-
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -37,13 +20,30 @@ export class ResetPasswordComponent implements OnInit {
     protected globalEventsManager: GlobalEventManagerService
   ) { }
 
+  form = new FormGroup({
+    password: new FormControl(null, [Validators.required, Validators.minLength(8)]),
+    confirmPassword: new FormControl(null, [Validators.required, Validators.minLength(8)])
+  }, [multiFieldValidator(['confirmPassword'], this.passwordsDoNotMatch.bind(this), ['doNotMatch'])]);
+
+  submitted = false;
+  _resetPassErrorStatus$: BehaviorSubject<string>;
+
+  passwordsDoNotMatch(group: FormGroup): ValidationErrors | null {
+    const password = group && group.value && group.value.password;
+    const confirmPassword = group && group.value && group.value.confirmPassword;
+    if (!password && !confirmPassword) { return null; }
+    return password === confirmPassword
+      ? null
+      : { doNotMatch: true };
+  }
+
   ngOnInit(): void {
-    this._resetPassErrorStatus$ = new BehaviorSubject<string>("");
+    this._resetPassErrorStatus$ = new BehaviorSubject<string>('');
   }
 
   onSubmit() {
     this.submitted = true;
-    if (this.form.invalid) return
+    if (this.form.invalid) { return; }
     this.globalEventsManager.showLoading(true);
     this.route.params.subscribe(params => {
       this.userController.resetPassword({ token: params.token, password: this.form.get('password').value})
@@ -55,7 +55,7 @@ export class ResetPasswordComponent implements OnInit {
             this._resetPassErrorStatus$.next(error.error.status);
             this.globalEventsManager.showLoading(false);
           }
-        )
+        );
     });
   }
 

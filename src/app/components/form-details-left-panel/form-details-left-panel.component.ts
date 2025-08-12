@@ -13,13 +13,13 @@ export class FormDetailsLeftPanelComponent implements OnInit {
   title: string = null;
 
   @Input()
-  showIcon: boolean = false;
+  showIcon = false;
 
   @Input()
   goToLink: string = null;
 
   @Input()
-  goToBack: boolean = false;
+  goToBack = false;
 
 
   constructor(
@@ -35,7 +35,7 @@ export class FormDetailsLeftPanelComponent implements OnInit {
   }
 
   goTo(){
-    if (this.goToLink) this.router.navigate([this.goToLink])
-    if (this.goToBack) this.goBack();
+    if (this.goToLink) { this.router.navigate([this.goToLink]); }
+    if (this.goToBack) { this.goBack(); }
   }
 }
