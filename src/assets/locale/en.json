@@ -578,6 +578,7 @@
     "formatCompanyCerts.certificationTypes.rainforestAlliance": "Rainforest Alliance",
     "formatCompanyCerts.certificationTypes.carbonNeutral": "Carbon Neutral",
     "formatCompanyCerts.certificationTypes.fairtrade": "Fairtrade",
+    "formatCompanyCerts.certificationTypes.NOP/Euorganic/biosuisse": "Orgánico (NOP/EU Organic/Bio Suisse)",
     "datepickerDate.input.placeholder": "D. M. LLLL",
     "ui.createUpdateDeleteButtons.cancel.btn.label": "Cancel",
     "ui.createUpdateDeleteButtons.create.btn.label": "Create",

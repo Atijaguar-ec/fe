@@ -134,7 +134,7 @@
                     i18n-placeholder="@@companyDetail.textinput.companyCity.placeholder">
                   </textinput>
                   <textinput [form]="$any(companyDetailForm.get('headquarters.state'))"
-                    label="State / Province / Region"
+                    label="Province / Canton / Parish"
                     style="width: 100%" placeholder="Enter State / Province / Region"
                     i18n-label="@@companyDetail.textinput.companyState.label"
                     i18n-placeholder="@@companyDetail.textinput.companyState.placeholder">
@@ -388,18 +388,18 @@
         </div>
       </div>
 
-      <div class="af-form-row">
-        <div class="af-form-block--c12">
-          <h2 i18n="@@companyDetail.beycoIntegration.title">Beyco Integration</h2>
-          <div class="af-form-element pt-0">
-            <checkbox-input [form]="$any(companyDetailForm.get('allowBeycoIntegration'))">
-              <checkbox-input-rich-label i18n="@@companyDetail.beycoIntegration.allowConfirmation">
-                Company is allowed to export stock orders on Beyco platform.
-              </checkbox-input-rich-label>
-            </checkbox-input>
-          </div>
-        </div>
-      </div>
+<!--        <div class="af-form-row">-->
+<!--            <div class="af-form-block&#45;&#45;c12">-->
+<!--                <h2 i18n="@@companyDetail.beycoIntegration.title">Beyco Integration</h2>-->
+<!--                <div class="af-form-element pt-0">-->
+<!--                    <checkbox-input [form]="$any(companyDetailForm.get('allowBeycoIntegration'))">-->
+<!--                        <checkbox-input-rich-label i18n="@@companyDetail.beycoIntegration.allowConfirmation">-->
+<!--                            Company is allowed to export stock orders on Beyco platform.-->
+<!--                        </checkbox-input-rich-label>-->
+<!--                    </checkbox-input>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
 
       <div class="af-form-row">
         <div class="af-form-block--c12">

@@ -173,6 +173,10 @@
           }
         }
       }
-    }},
-  "defaultProject": "inatrace-fe"
+    }
+  },
+  "defaultProject": "inatrace-fe",
+  "cli": {
+    "analytics": "0ee223f5-0653-4378-afaf-9e51ad4ce095"
+  }
 }
