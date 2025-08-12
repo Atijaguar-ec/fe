@@ -3,24 +3,35 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { GoogleMapsModule } from '@angular/google-maps';
 
-import { BatchDetailPageComponent } from './batch-detail-page.component';
+import { ProductListComponent } from './product-list.component';
 import { ProductControllerService } from 'src/api/api/productController.service';
-import { GlobalEventManagerService } from 'src/app/core/global-event-manager.service';
-import { NgbModalImproved } from 'src/app/core/ngb-modal-improved/ngb-modal-improved.service';
+import { GlobalEventManagerService } from '../../core/global-event-manager.service';
+import { AuthService } from '../../core/auth.service';
+import { NgbModalImproved } from '../../core/ngb-modal-improved/ngb-modal-improved.service';
+import { SelfOnboardingService } from '../../shared-services/self-onboarding.service';
 
-describe('BatchDetailPageComponent', () => {
-  let component: BatchDetailPageComponent;
-  let fixture: ComponentFixture<BatchDetailPageComponent>;
+describe('ProductListComponent', () => {
+  let component: ProductListComponent;
+  let fixture: ComponentFixture<ProductListComponent>;
   let mockGlobalEventManagerService: any;
+  let mockAuthService: any;
   let mockNgbModalImproved: any;
+  let mockSelfOnboardingService: any;
 
   beforeEach(async(() => {
     // Mock GlobalEventManagerService
     mockGlobalEventManagerService = {
+      showLoading: jasmine.createSpy('showLoading'),
       showLoadingSpinner: jasmine.createSpy('showLoadingSpinner'),
       hideLoadingSpinner: jasmine.createSpy('hideLoadingSpinner')
+    };
+    
+    // Mock AuthService
+    mockAuthService = {
+      userProfile$: {
+        pipe: jasmine.createSpy('pipe').and.returnValue({ subscribe: jasmine.createSpy('subscribe') })
+      }
     };
     
     // Mock NgbModalImproved
@@ -30,27 +41,31 @@ describe('BatchDetailPageComponent', () => {
         result: Promise.resolve()
       })
     };
+    
+    // Mock SelfOnboardingService
+    mockSelfOnboardingService = {};
 
     TestBed.configureTestingModule({
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,
         ReactiveFormsModule,
-        NgbModule,
-        GoogleMapsModule
+        NgbModule
       ],
-      declarations: [ BatchDetailPageComponent ],
+      declarations: [ ProductListComponent ],
       providers: [
         ProductControllerService,
         { provide: GlobalEventManagerService, useValue: mockGlobalEventManagerService },
-        { provide: NgbModalImproved, useValue: mockNgbModalImproved }
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: NgbModalImproved, useValue: mockNgbModalImproved },
+        { provide: SelfOnboardingService, useValue: mockSelfOnboardingService }
       ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(BatchDetailPageComponent);
+    fixture = TestBed.createComponent(ProductListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

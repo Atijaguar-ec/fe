@@ -1,14 +1,29 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { ErrorModalComponent } from './error-modal.component';
 
 describe('ErrorModalComponent', () => {
   let component: ErrorModalComponent;
   let fixture: ComponentFixture<ErrorModalComponent>;
+  let mockNgbActiveModal: any;
 
   beforeEach(async(() => {
+    // Mock NgbActiveModal
+    mockNgbActiveModal = {
+      close: jasmine.createSpy('close'),
+      dismiss: jasmine.createSpy('dismiss')
+    };
+
     TestBed.configureTestingModule({
-      declarations: [ ErrorModalComponent ]
+      imports: [
+        NgbModule
+      ],
+      declarations: [ ErrorModalComponent ],
+      providers: [
+        { provide: NgbActiveModal, useValue: mockNgbActiveModal }
+      ]
     })
     .compileComponents();
   }));
