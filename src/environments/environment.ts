@@ -4,7 +4,7 @@
 
 export const environment = {
     production: false,
-    environmentName: window['env']['environmentName'] || 'development',
+    environmentName: (window['env'] && window['env']['environmentName']) || 'development',
     basePath: '',
     appBaseUrl: window['env']['appBaseUrl'] || '',
     qrCodeBasePath: window['env']['qrCodeBasePath'] || '',
