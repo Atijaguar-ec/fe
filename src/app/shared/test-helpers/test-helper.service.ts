@@ -26,6 +26,16 @@ export class TestHelperService {
     };
   }
 
+  createNgbModalImprovedMock(): any {
+    return {
+      open: () => ({
+        result: Promise.resolve(),
+        componentInstance: {}
+      }),
+      dismissAll: () => {}
+    };
+  }
+
   createToastrServiceMock(): any {
     return {
       success: () => {},
