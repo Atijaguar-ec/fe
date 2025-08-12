@@ -7,7 +7,7 @@
     window['env']['appBaseUrl'] = '';  // Usar rutas relativas para que pasen por Nginx
     window['env']['qrCodeBasePath'] = '/api/stock-order'; // Endpoint público para QR (ver PublicController)
     window['env']['relativeFileUploadUrl'] = '/api/document'; // Endpoint para subir archivos (CommonController)
-    window['env']['relativeFileUploadUrlManualType'] = '/api/document?type=MANUAL'; // Upload manual (ajustar si aplica)
+    window['env']['relativeFileUploadUrlManualType'] = '/api/document?type='; // Upload manual (ajustar si aplica)
     window['env']['relativeImageUploadUrl'] = '/api/image'; // Endpoint para subir imágenes (CommonController)
     window['env']['relativeImageUploadUrlAllSizes'] = '/api/image'; // El backend maneja variantes por parámetro, usar mismo endpoint
     window['env']['googleMapsApiKey'] = 'AIzaSyAP1JuiYWi0A_Zf8BK0YIfl4nCKoxHnPHU';

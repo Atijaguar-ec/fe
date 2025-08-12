@@ -8,7 +8,7 @@ import { FileItem, FileUploader, ParsedResponseHeaders, FileUploaderOptions } fr
 import { FileSaverService } from 'ngx-filesaver';
 import { merge, Observable, Subject, Subscription } from 'rxjs';
 import { distinctUntilChanged, map, shareReplay, tap, take } from 'rxjs/operators';
-import { ImageViewerComponent } from 'src/app/shared/image-viewer/image-viewer.component';
+import { ImageViewerComponent } from '../image-viewer/image-viewer.component';
 import { NgbModalImproved } from 'src/app/core/ngb-modal-improved/ngb-modal-improved.service';
 import { environment } from 'src/environments/environment';
 import { formatBytes } from 'src/shared/utils';
@@ -357,14 +357,17 @@ export class AttachmentUploaderComponent implements OnInit {
             });
         }
 
+        const computedUrl = this.rootImageUrl ? this.rootImageUrl : (this.type ? this.rootUrlManualType + this.type : this.rootUrl);
+        const safeUrl = (!computedUrl || computedUrl === '/') ? environment.relativeFileUploadUrl : computedUrl;
         const config = {
-          url: this.rootImageUrl ? this.rootImageUrl : (this.type ? this.rootUrlManualType + this.type : this.rootUrl),
+          url: safeUrl,
           autoUpload: true,
           removeAfterUpload: true,
           // authTokenHeader: 'X-AUTH-TOKEN',
           // authToken: this.loginService.getToken(),
           allowedMimeType: this.allowedMimeType,
-          maxFileSize: this.maxFileSize
+          maxFileSize: this.maxFileSize,
+          withCredentials: true
         } as FileUploaderOptions;
         // if(this.allowedFileType) {
         //     config.allowedFileType = this.allowedFileType
