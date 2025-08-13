@@ -1,4 +1,6 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { LayoutModule } from 'src/app/layout/layout.module';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { PageContentComponent } from './page-content.component';
 
@@ -8,6 +10,7 @@ describe('PageContentComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
+      imports: [ LayoutModule, RouterTestingModule ],
       declarations: [ PageContentComponent ]
     })
     .compileComponents();

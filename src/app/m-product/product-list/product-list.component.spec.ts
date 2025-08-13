@@ -3,6 +3,10 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { LayoutModule } from 'src/app/layout/layout.module';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { of } from 'rxjs';
+import { SharedModule } from 'src/app/shared/shared.module';
 
 import { ProductListComponent } from './product-list.component';
 import { ProductControllerService } from 'src/api/api/productController.service';
@@ -18,6 +22,7 @@ describe('ProductListComponent', () => {
   let mockAuthService: any;
   let mockNgbModalImproved: any;
   let mockSelfOnboardingService: any;
+  let mockProductControllerService: any;
 
   beforeEach(async(() => {
     // Mock GlobalEventManagerService
@@ -29,9 +34,7 @@ describe('ProductListComponent', () => {
     
     // Mock AuthService
     mockAuthService = {
-      userProfile$: {
-        pipe: jasmine.createSpy('pipe').and.returnValue({ subscribe: jasmine.createSpy('subscribe') })
-      }
+      userProfile$: of({ role: 'USER' })
     };
     
     // Mock NgbModalImproved
@@ -43,18 +46,32 @@ describe('ProductListComponent', () => {
     };
     
     // Mock SelfOnboardingService
-    mockSelfOnboardingService = {};
+    mockSelfOnboardingService = {
+      addProductCurrentStep$: of(0),
+      setAddProductCurrentStep: jasmine.createSpy('setAddProductCurrentStep')
+    };
+
+    // Mock ProductControllerService
+    mockProductControllerService = {
+      listProductsByMap: jasmine.createSpy('listProductsByMap').and.returnValue(of({ data: { count: 0 } })),
+      listProductsAdminByMap: jasmine.createSpy('listProductsAdminByMap').and.returnValue(of({ data: { count: 0 } })),
+      listProducts: jasmine.createSpy('listProducts').and.returnValue(of({ status: 'OK', data: { count: 0 } })),
+      listProductsAdmin: jasmine.createSpy('listProductsAdmin').and.returnValue(of({ status: 'OK', data: { count: 0 } }))
+    };
 
     TestBed.configureTestingModule({
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,
         ReactiveFormsModule,
-        NgbModule
+        NgbModule,
+        LayoutModule,
+        FontAwesomeModule,
+        SharedModule
       ],
       declarations: [ ProductListComponent ],
       providers: [
-        ProductControllerService,
+        { provide: ProductControllerService, useValue: mockProductControllerService },
         { provide: GlobalEventManagerService, useValue: mockGlobalEventManagerService },
         { provide: AuthService, useValue: mockAuthService },
         { provide: NgbModalImproved, useValue: mockNgbModalImproved },

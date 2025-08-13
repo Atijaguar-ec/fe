@@ -1,4 +1,6 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { LayoutModule } from 'src/app/layout/layout.module';
 
 import { LandingPageLayoutComponent } from './landing-page-layout.component';
 
@@ -8,6 +10,7 @@ describe('LandingPageLayoutComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
+      imports: [ RouterTestingModule, LayoutModule ],
       declarations: [ LandingPageLayoutComponent ]
     })
     .compileComponents();

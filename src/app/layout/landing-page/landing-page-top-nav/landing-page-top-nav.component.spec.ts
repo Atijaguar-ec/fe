@@ -1,4 +1,6 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { LayoutModule } from 'src/app/layout/layout.module';
 
 import { LandingPageTopNavComponent } from './landing-page-top-nav.component';
 
@@ -8,6 +10,7 @@ describe('LandingPageTopNavComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
+      imports: [ RouterTestingModule, LayoutModule ],
       declarations: [ LandingPageTopNavComponent ]
     })
     .compileComponents();

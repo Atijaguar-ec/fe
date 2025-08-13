@@ -3,6 +3,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router, RouterEvent } from '@angular/router';
 import { of, Subject } from 'rxjs';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { AuthorisedSideNavComponent } from './authorised-side-nav.component';
 import { AuthService } from 'src/app/core/auth.service';
@@ -59,7 +60,8 @@ describe('AuthorisedSideNavComponent', () => {
           { path: 'home', component: AuthorisedSideNavComponent },
           { path: 'my-stock', component: AuthorisedSideNavComponent }
         ]),
-        NgbModule
+        NgbModule,
+        NgbTooltipModule
       ],
       declarations: [ AuthorisedSideNavComponent ],
       providers: [

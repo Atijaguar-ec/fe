@@ -1,4 +1,5 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { AuthorisedSideNavService } from '../services/authorised-side-nav.service';
 
 import { AuthorisedSideNavTogglerComponent } from './authorised-side-nav-toggler.component';
 
@@ -8,7 +9,10 @@ describe('AuthorisedSideNavTogglerComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ AuthorisedSideNavTogglerComponent ]
+      declarations: [ AuthorisedSideNavTogglerComponent ],
+      providers: [
+        { provide: AuthorisedSideNavService, useValue: { toggleSideNav: jasmine.createSpy('toggleSideNav') } }
+      ]
     })
     .compileComponents();
   }));
