@@ -1,7 +1,8 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { ActivatedRoute, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { ActivatedRoute, Router, RouterEvent } from '@angular/router';
+import { of, Subject } from 'rxjs';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { AuthorisedSideNavComponent } from './authorised-side-nav.component';
 import { AuthService } from 'src/app/core/auth.service';
@@ -21,7 +22,8 @@ describe('AuthorisedSideNavComponent', () => {
     // Mock services
     mockAuthService = {
       getCurrentUser: jasmine.createSpy('getCurrentUser').and.returnValue({}),
-      logout: jasmine.createSpy('logout')
+      logout: jasmine.createSpy('logout'),
+      userProfile$: of({ role: 'USER', status: 'ACTIVE' })
     };
 
     mockActivatedRoute = {
@@ -30,8 +32,14 @@ describe('AuthorisedSideNavComponent', () => {
       }
     };
     
+    // Crear un mock más completo del Router para manejar eventos y navegación
+    const routerEvents = new Subject<RouterEvent>();
     mockRouter = {
-      navigate: jasmine.createSpy('navigate')
+      navigate: jasmine.createSpy('navigate'),
+      events: routerEvents.asObservable(),
+      url: '/home',
+      createUrlTree: jasmine.createSpy('createUrlTree').and.returnValue({}),
+      serializeUrl: jasmine.createSpy('serializeUrl').and.returnValue('')
     };
     
     mockAboutAppInfoService = {
@@ -39,12 +47,19 @@ describe('AuthorisedSideNavComponent', () => {
     };
     
     mockSelfOnboardingService = {
-      getSelfOnboardingStatus: jasmine.createSpy('getSelfOnboardingStatus').and.returnValue(of({}))
+      getSelfOnboardingStatus: jasmine.createSpy('getSelfOnboardingStatus').and.returnValue(of({})),
+      addProductCurrentStep$: of(0),
+      addFacilityCurrentStep$: of(0),
+      addProcessingActionCurrentStep$: of(0)
     };
 
     TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule
+        RouterTestingModule.withRoutes([
+          { path: 'home', component: AuthorisedSideNavComponent },
+          { path: 'my-stock', component: AuthorisedSideNavComponent }
+        ]),
+        NgbModule
       ],
       declarations: [ AuthorisedSideNavComponent ],
       providers: [
