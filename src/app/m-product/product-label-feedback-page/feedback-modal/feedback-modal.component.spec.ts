@@ -1,4 +1,5 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ToastrModule } from 'ngx-toastr';
@@ -36,7 +37,8 @@ describe('ProductLabelFrontFeedbackComponent', () => {
       providers: [
         { provide: NgbActiveModal, useValue: mockNgbActiveModal },
         { provide: NgbModalImproved, useValue: mockNgbModalImproved }
-      ]
+      ],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));
@@ -44,6 +46,9 @@ describe('ProductLabelFrontFeedbackComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(FeedbackModalComponent);
     component = fixture.componentInstance;
+    // Ensure ngOnInit runs the branch that initializes an empty form
+    // instead of trying to read fields from an undefined `feedback`.
+    component.labelId = 123 as any;
     fixture.detectChanges();
   });
 
