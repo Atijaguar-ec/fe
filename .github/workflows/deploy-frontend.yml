@@ -77,7 +77,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: fe
+          file: fe/Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
@@ -100,13 +101,16 @@ jobs:
           script: |
             cd /opt/inatrace/frontend
             
-            # Pull latest image
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            
-            # Update docker-compose with new image
-            export IMAGE_TAG=latest
+            # Compose variables to match the image built in CI
+            export IMAGE_NAME=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            export TAG=latest
+
+            # Pull latest image for compose
+            docker-compose pull
+
+            # Recreate services with the new image
             docker-compose down
-            docker-compose up -d
+            docker-compose up -d --force-recreate --remove-orphans
             
             # Health check
             sleep 10
