@@ -137,8 +137,8 @@ jobs:
             docker pull ${IMAGE_NAME}@${DIGEST}
             docker tag ${IMAGE_NAME}@${DIGEST} ${IMAGE_NAME}:${TAG}
 
-            # Ensure compose uses the freshly tagged image; fail fast if pull/tag had issues
-            docker-compose pull || { echo "docker-compose pull failed"; exit 1; }
+            # Compose will use the freshly tagged local image; skip docker-compose pull
+            echo "Using locally tagged image ${IMAGE_NAME}:${TAG}"
 
             # Recreate services with the new image
             docker-compose down

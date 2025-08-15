@@ -12,8 +12,9 @@ jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -72,6 +73,40 @@ jobs:
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign image with Cosign (keyless)
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ steps.set_image_name_lc.outputs.image_name_lc }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          echo "Signing ${IMAGE}@${DIGEST} with Cosign (keyless)"
+          cosign sign --yes ${IMAGE}@${DIGEST}
+
+      - name: Generate SBOM (Syft)
+        id: sbom
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ steps.set_image_name_lc.outputs.image_name_lc }}@${{ steps.build.outputs.digest }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Upload SBOM as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.ref_name }}
+          path: sbom.spdx.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Create GitHub Release and attach SBOM
+        uses: softprops/action-gh-release@v1
+        with:
+          files: sbom.spdx.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Summary
         run: |
