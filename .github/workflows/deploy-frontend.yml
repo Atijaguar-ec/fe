@@ -41,6 +41,7 @@ jobs:
       packages: write
     outputs:
       image_name_lc: ${{ steps.set_image_name_lc.outputs.image_name_lc }}
+      image_digest: ${{ steps.build.outputs.digest }}
 
     steps:
       - name: Checkout code
@@ -90,6 +91,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -117,6 +119,7 @@ jobs:
           username: ${{ secrets.HETZNER_USER }}
           key: ${{ secrets.HETZNER_SSH_KEY }}
           script: |
+            set -euo pipefail
             cd /opt/inatrace/frontend
             
             # Compose variables to match the image built in CI
@@ -128,8 +131,14 @@ jobs:
               echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin || true
             fi
 
-            # Pull latest image for compose
-            docker-compose pull
+            # Pull exact image by digest (reproducible) and retag as :latest for docker-compose
+            DIGEST='${{ needs.build.outputs.image_digest }}'
+            echo "Pulling image by digest: ${IMAGE_NAME}@${DIGEST}"
+            docker pull ${IMAGE_NAME}@${DIGEST}
+            docker tag ${IMAGE_NAME}@${DIGEST} ${IMAGE_NAME}:${TAG}
+
+            # Ensure compose uses the freshly tagged image; fail fast if pull/tag had issues
+            docker-compose pull || { echo "docker-compose pull failed"; exit 1; }
 
             # Recreate services with the new image
             docker-compose down
