@@ -44,6 +44,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js (for codegen)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '14'
+          cache: 'npm'
+
+      - name: Install dependencies (codegen)
+        run: npm ci
+
+      - name: Generate API client
+        run: npm run generate-api
+
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
