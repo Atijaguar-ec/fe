@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ toLower(github.repository) }}-frontend
+  IMAGE_NAME: ${{ github.repository }}-frontend
 
 jobs:
   test:
@@ -39,10 +39,17 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      image_name_lc: ${{ steps.set_image_name_lc.outputs.image_name_lc }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Compute lowercase image name
+        id: set_image_name_lc
+        run: |
+          echo "image_name_lc=$(echo '${{ github.repository }}-frontend' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
       - name: Setup Node.js (for codegen)
         uses: actions/setup-node@v4
@@ -75,7 +82,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ steps.set_image_name_lc.outputs.image_name_lc }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -113,8 +120,13 @@ jobs:
             cd /opt/inatrace/frontend
             
             # Compose variables to match the image built in CI
-            export IMAGE_NAME=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            export IMAGE_NAME=${{ env.REGISTRY }}/${{ needs.build.outputs.image_name_lc }}
             export TAG=latest
+
+            # Optional: login to GHCR if image is private (requires secrets)
+            if [ -n "${{ secrets.GHCR_USERNAME }}" ] && [ -n "${{ secrets.GHCR_TOKEN }}" ]; then
+              echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin || true
+            fi
 
             # Pull latest image for compose
             docker-compose pull
