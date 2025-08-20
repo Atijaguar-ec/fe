@@ -3,6 +3,8 @@ import { ActivatedRoute } from '@angular/router';
 import { GlobalEventManagerService } from '../../../../core/global-event-manager.service';
 import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { CompanyProcessingActionsService } from '../../../../shared-services/company-processing-actions.service';
+import { CompanyProcessingActionsService as CompanyProcessingActionsApiService } from '../../../../core/api/company-processing-actions.service';
+import { ApiCompanyProcessingAction } from '../../../../../api/model/apiCompanyProcessingAction';
 import { ProcessingActionControllerService } from '../../../../../api/api/processingActionController.service';
 import { ApiProcessingAction } from '../../../../../api/model/apiProcessingAction';
 import { ProcessingActionType } from '../../../../../shared/types';

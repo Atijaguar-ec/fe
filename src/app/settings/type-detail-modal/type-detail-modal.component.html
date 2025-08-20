@@ -267,6 +267,19 @@
             </div>
           </ng-container>
         </textinput>
+
+        <!-- Facility Type: Order field -->
+        <textinput
+                *ngIf="this.type === 'facility-types'"
+                hideAsterisk="true"
+                [form]="$any(form.get('order'))"
+                label="Order"
+                style="width: 100%"
+                placeholder="Enter order (lower shows first)"
+                i18n-label="@@facilityTypeDetail.textinput.order.label"
+                i18n-placeholder="@@facilityTypeDetail.textinput.order.placeholder"
+                type="number">
+        </textinput>
       </ng-container>
 
       <ng-container *ngIf="this.type === 'measurement-unit-types'">

@@ -116,8 +116,9 @@
         <ng-container *ngIf="(type !== 'semi-products' &&  type !== 'processing-evidence-types' && type !== 'processing-evidence-fields' && type !== 'product-types')">
           <tr *ngFor="let type of types.items">
             <td [attr.data-label]="sortOptions[0].name"><span>{{ type.code }}</span></td>
-            <td [attr.data-label]="sortOptions[1].name"><span>{{ type | translateCodebook: 'label' }}</span></td>
-            <td [attr.data-label]="sortOptions[2].name">
+            <td [attr.data-label]="sortOptions[1].name"><span>{{ type.order }}</span></td>
+            <td [attr.data-label]="sortOptions[2].name"><span>{{ type | translateCodebook: 'label' }}</span></td>
+            <td [attr.data-label]="sortOptions[3].name">
               <span>
               <a (click)="edit(type)"
                  class="company-action"
