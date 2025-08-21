@@ -47,36 +47,40 @@
           </ng-container>
         </textinput>
 
-        <ng-container>
-          <attachment-uploader
-            allowedMimeType="['image/png', 'image/jpeg', 'application/pdf']"
-            allowedMimeTypeErrorMessage="Upload only file types: PNG, JPG, JPEG, and PDF."
-            mode="simpleAsTextField"
-            label="Certificate or Standard (PDF)"
-            i18n-label="@@certAndStdItems.attachment-uploader.label"
-            i18n-allowedMimeTypeErrorMessage="@@certAndStdItems.attachment-uploader.allowedMimeTypeErrorMessage"
-            [form]="form.get('certificate')"
-            [attachmentUploaderId]="'standardsAndCertificates'+listEditorManagerPosition"
-            [invalid]="submitted && form.get('certificate').invalid"
-            [readOnly]="form.get('certificate').disabled || viewOnly">
-            <attachment-uploader-content i18n="@@certAndStdItems.attachment-uploader.content">
-              Upload certificate
-            </attachment-uploader-content>
-            <attachment-uploader-errors>
-              <ng-container *ngIf="submitted">
-                <div *ngIf="form.get('certificate').errors as errors" validation-error class="sc-invalid-feedback">
-                  <div *ngIf="errors.required" i18n="@@certAndStdItems.attachment-uploader.error">
-                    <span>
-                      Document is required
-                    </span>
-                  </div>
-                </div>
-              </ng-container>
-            </attachment-uploader-errors>
-          </attachment-uploader>
-          <small i18n="@@certAndStdItems.attachment-uploader.small">With every certificate or standard listed above, upload pdf/image proofs of holding those certificates and following the standards (make sure to not upload confidential information)</small>
+          <ng-container>
+              <attachment-uploader
+                      [allowedMimeType]="['image/png', 'image/jpeg', 'application/pdf']"
+                      allowedMimeTypeErrorMessage="Upload only file types: PNG, JPG, JPEG, and PDF."
+                      mode="simpleAsTextField"
+                      label="Certificate or Standard (PDF)"
+                      i18n-label="@@certAndStdItems.attachment-uploader.label"
+                      i18n-allowedMimeTypeErrorMessage="@@certAndStdItems.attachment-uploader.allowedMimeTypeErrorMessage"
+                      [form]="form.get('certificate')"
+                      [attachmentUploaderId]="'standardsAndCertificates' + listEditorManagerPosition"
+                      [invalid]="submitted && form.get('certificate').invalid"
+                      [readOnly]="form.get('certificate').disabled || viewOnly">
 
-        </ng-container>
+                  <attachment-uploader-content i18n="@@certAndStdItems.attachment-uploader.content">
+                      Upload certificate
+                  </attachment-uploader-content>
+
+                  <attachment-uploader-errors>
+                      <ng-container *ngIf="submitted">
+                          <div *ngIf="form.get('certificate').errors as errors" validation-error class="sc-invalid-feedback">
+                              <div *ngIf="errors.required" i18n="@@certAndStdItems.attachment-uploader.error">
+            <span>
+              Document is required
+            </span>
+                              </div>
+                          </div>
+                      </ng-container>
+                  </attachment-uploader-errors>
+              </attachment-uploader>
+
+              <small i18n="@@certAndStdItems.attachment-uploader.small">
+                  With every certificate or standard listed above, upload pdf/image proofs of holding those certificates and following the standards (make sure to not upload confidential information)
+              </small>
+          </ng-container>
 
         <single-choice label="Type"
           i18n-label="@@certAndStdItems.textinput.type.label"
