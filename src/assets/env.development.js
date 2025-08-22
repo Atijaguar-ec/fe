@@ -4,7 +4,7 @@
 
     // Environment variables for DEVELOPMENT
     window['env']['environmentName'] = 'development';
-    window['env']['appBaseUrl'] = 'http://192.168.2.105';  // Apuntar directamente al backend en desarrollo
+    window['env']['appBaseUrl'] = 'http://192.168.2.152:8080';  // Apuntar directamente al backend en desarrollo
     window['env']['qrCodeBasePath'] = '/api/stock-order'; // Endpoint público para QR (ver PublicController)
     window['env']['relativeFileUploadUrl'] = '/api/document'; // Endpoint para subir archivos (CommonController)
     window['env']['relativeFileUploadUrlManualType'] = '/api/document?type=MANUAL'; // Upload manual (ajustar si aplica)

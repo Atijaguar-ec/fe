@@ -60,25 +60,55 @@ export class FacilityCardComponent implements OnInit {
   }
 
   facilityType() {
+    console.log('facilityType debug:', {
+      facilityType: this.facility.facilityType,
+      order: this.facility.facilityType?.order,
+      orderType: typeof this.facility.facilityType?.order
+    });
 
-    switch (this.facility.facilityType.code) {
-      case 'WASHING_STATION':
-      case 'BENEFICIO_HUMEDO':
-        return 'af-card-icon-shape af-card-icon-shape--seedling';
-      case 'DRYING_BED':
-        return 'af-card-icon-shape af-card-icon-shape--proto';
-      case 'STORAGE':
-      case 'ALMACEN':
-      case 'GREEN_COFFEE_STORAGE':
-      case 'ALMACEN_CAFE_ORO':
-      case 'ROASTED_COFFEE_STORAGE':
-        return 'af-card-icon-shape af-card-icon-shape--home';
-      case 'HULLING_STATION':
-      case 'MAQUILADO_CAFE':
-      case 'BENEFICIO_SECO':
-        return 'af-card-icon-shape af-card-icon-shape--cogwheel';
+    switch (this.facility.facilityType?.order) {
+      case 1:
+        return 'af-card-icon-shape af-card-icon-shape--first';
+      case 2:
+        return 'af-card-icon-shape af-card-icon-shape--second';
+      case 3:
+        return 'af-card-icon-shape af-card-icon-shape--third';
+      case 4:
+        return 'af-card-icon-shape af-card-icon-shape--fourth';
+      case 5:
+        return 'af-card-icon-shape af-card-icon-shape--fifth';
+      case 6:
+        return 'af-card-icon-shape af-card-icon-shape--sixth';
+      case 7:
+        return 'af-card-icon-shape af-card-icon-shape--seventh';
+      case 8:
+        return 'af-card-icon-shape af-card-icon-shape--eighth';
+      case 9:
+        return 'af-card-icon-shape af-card-icon-shape--ninth';
+      case 10:
+        return 'af-card-icon-shape af-card-icon-shape--tenth';
+      case 11:
+        return 'af-card-icon-shape af-card-icon-shape--eleventh';
+      case 12:
+        return 'af-card-icon-shape af-card-icon-shape--twelfth';
+      case 13:
+        return 'af-card-icon-shape af-card-icon-shape--thirteenth';
+      case 14:
+        return 'af-card-icon-shape af-card-icon-shape--fourteenth';
+      case 15:
+        return 'af-card-icon-shape af-card-icon-shape--fifteenth';
+      case 16:
+        return 'af-card-icon-shape af-card-icon-shape--sixteenth';
+      case 17:
+        return 'af-card-icon-shape af-card-icon-shape--seventeenth';
+      case 18:
+        return 'af-card-icon-shape af-card-icon-shape--eighteenth';
+      case 19:
+        return 'af-card-icon-shape af-card-icon-shape--nineteenth';
+      case 20:
+        return 'af-card-icon-shape af-card-icon-shape--twentieth';
       default:
-        return 'af-card-icon-shape af-card-icon-shape--cogwheel';
+        return 'af-card-icon-shape af-card-icon-shape--default';
     }
   }
 

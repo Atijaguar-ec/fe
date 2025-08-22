@@ -21,7 +21,7 @@
 
 
 /**
- * list of supported facility types
+ * Facility type
  */
 
 export interface ApiFacilityType { 
@@ -38,7 +38,7 @@ export interface ApiFacilityType {
      */
     label: string;
     /**
-     * order for displaying facility types (lower = first)
+     * Order for displaying facility types (lower = first)
      */
     order?: number;
 }
@@ -64,7 +64,7 @@ export namespace ApiFacilityType {
          */
         label = 'label',
         /**
-         * order for displaying facility types (lower = first)
+         * Order for displaying facility types (lower = first)
          */
         order = 'order'
     }
@@ -145,6 +145,9 @@ export namespace ApiFacilityType {
   //                   validators: []
   //               },
   //               label: {
+  //                   validators: []
+  //               },
+  //               order: {
   //                   validators: []
   //               },
   //     }

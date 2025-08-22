@@ -177,8 +177,8 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
   markers: any = [];
   journeyMarkers: any[] = [];
   defaultCenter = {
-    lat: 5.274054,
-    lng: 21.514503
+    lat: -1.831239,
+    lng: -78.183406
   };
   defaultZoom = 3;
   bounds: any;

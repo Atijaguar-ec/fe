@@ -24,8 +24,8 @@ export class ProductLabelStatisticsPageComponent implements OnInit, OnDestroy {
   gMap = null;
   markers: any = [];
   defaultCenter = {
-    lat: 37.0769238,
-    lng: 24.2160421
+    lat: -1.831239,
+    lng: -78.183406
   };
   defaultZoom = 2;
   zoomForOnePin = 10;

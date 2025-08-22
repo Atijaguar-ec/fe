@@ -23,16 +23,16 @@ export class LocationFormNewComponent implements OnInit {
     if (map) { this.gMap = map; this.fitBounds(); }
   }
 
-  gMap = null;
+  gMap: GoogleMap | null = null;
   isGoogleMapsLoaded = false;
-  marker = null;
-  bounds;
-  initialBounds = [];
+  marker: { position: { lat: number; lng: number } } | null = null;
+  bounds: google.maps.LatLngBounds | null = null;
+  initialBounds: { lat: number; lng: number }[] = [];
   defaultCenter = {
-    lat: 5.274054,
-    lng: 21.514503
+    lat: -1.831239,
+    lng: -78.183406
   };
-  defaultZoom = 3;
+  defaultZoom = 6;
 
   codebookStatus = EnumSifrant.fromObject(this.publiclyVisible);
 
@@ -116,16 +116,30 @@ export class LocationFormNewComponent implements OnInit {
   }
 
   fitBounds() {
+    if (!this.gMap || !this.gMap.googleMap) {
+      return;
+    }
+    
     this.bounds = new google.maps.LatLngBounds();
     for (const bound of this.initialBounds) {
-      this.bounds.extend(bound);
+      if (bound && bound.lat != null && bound.lng != null) {
+        this.bounds.extend(bound);
+      }
     }
+    
     if (this.bounds.isEmpty()) {
       this.gMap.googleMap.setCenter(this.defaultCenter);
       this.gMap.googleMap.setZoom(this.defaultZoom);
       return;
     }
+    
     const center = this.bounds.getCenter();
+    if (!center) {
+      this.gMap.googleMap.setCenter(this.defaultCenter);
+      this.gMap.googleMap.setZoom(this.defaultZoom);
+      return;
+    }
+    
     const offset = 0.02;
     const northEast = new google.maps.LatLng(
         center.lat() + offset,

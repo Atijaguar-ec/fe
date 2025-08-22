@@ -21,18 +21,12 @@
 import { ApiProcessingAction } from './apiProcessingAction';
 
 
-/**
- * Company-specific processing action configuration with overrides
- */
 
 export interface ApiCompanyProcessingAction { 
     /**
      * Entity id
      */
     id?: number;
-    /**
-     * The base processing action
-     */
     processingAction?: ApiProcessingAction;
     /**
      * Whether this processing action is enabled for the company
@@ -68,9 +62,6 @@ export namespace ApiCompanyProcessingAction {
          * Entity id
          */
         id = 'id',
-        /**
-         * The base processing action
-         */
         processingAction = 'processingAction',
         /**
          * Whether this processing action is enabled for the company
@@ -227,4 +218,5 @@ export namespace ApiCompanyProcessingAction {
 
 
 }
+
 
