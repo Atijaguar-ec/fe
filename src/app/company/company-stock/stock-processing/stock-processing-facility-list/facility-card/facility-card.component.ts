@@ -60,13 +60,9 @@ export class FacilityCardComponent implements OnInit {
   }
 
   facilityType() {
-    console.log('facilityType debug:', {
-      facilityType: this.facility.facilityType,
-      order: this.facility.facilityType?.order,
-      orderType: typeof this.facility.facilityType?.order
-    });
+    const order = this.getFacilityOrder();
 
-    switch (this.facility.facilityType?.order) {
+    switch (order) {
       case 1:
         return 'af-card-icon-shape af-card-icon-shape--first';
       case 2:
@@ -110,6 +106,16 @@ export class FacilityCardComponent implements OnInit {
       default:
         return 'af-card-icon-shape af-card-icon-shape--default';
     }
+  }
+
+  private getFacilityOrder(): number {
+    const code = this.facility?.facilityType?.code || '';
+    if (!code) {
+      return 0;
+    }
+    // Derive a deterministic order (1..20) from the code
+    const sum = Array.from(code).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    return (sum % 20) + 1;
   }
 
   facilityTypeColor() {
