@@ -23,9 +23,6 @@ import { ApiProductBase } from './apiProductBase';
 import { ApiProductLabelBase } from './apiProductLabelBase';
 
 
-/**
- * List of final product ID's for this facility
- */
 
 export interface ApiFinalProduct { 
     /**

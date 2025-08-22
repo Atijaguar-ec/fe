@@ -386,7 +386,7 @@ export namespace GetDeliveriesAggregatedData {
 })
 export class DashboardControllerService {
 
-    protected basePath = 'http://192.168.2.152:8080';
+    protected basePath = 'http://5.161.183.137:8080';
     public defaultHeaders = new HttpHeaders();
     public configuration = new Configuration();
 

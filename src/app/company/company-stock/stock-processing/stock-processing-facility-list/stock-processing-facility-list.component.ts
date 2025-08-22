@@ -59,27 +59,18 @@ export class StockProcessingFacilityListComponent implements OnInit {
         tap(() => this.globalEventsManager.showLoading(true)),
         switchMap(() => this.processingActionControllerService.listProcessingActionsByCompany(this.companyId)),
         tap((res: ApiPaginatedResponseApiProcessingAction) => {
-          if (res) {
-            this.processingActions = res.data.items;
-          }
+          this.processingActions = res?.data?.items ?? [];
         }),
         switchMap(() => this.loadEntityList()),
         map((res: ApiPaginatedResponseApiFacility) => {
-          if (res) {
-            this.showedFacilities = res.data.count;
-            this.showing.emit(this.showedFacilities);
-            this.arrangeFacilities(res.data.items);
-            return res.data;
-          } else {
-            return null;
-          }
+          const data = (res?.data ?? { items: [], count: 0 }) as ApiPaginatedListApiFacility;
+          this.showedFacilities = data.count ?? 0;
+          this.showing.emit(this.showedFacilities);
+          this.arrangeFacilities(data.items ?? []);
+          return data;
         }),
-        tap((res) => {
-          if (res) {
-            this.allFacilities = res.count;
-          } else {
-            this.allFacilities = 0;
-          }
+        tap((res: ApiPaginatedListApiFacility) => {
+          this.allFacilities = res?.count ?? 0;
           this.countAll.emit(this.allFacilities);
         }),
         tap(() => this.globalEventsManager.showLoading(false))
@@ -102,7 +93,9 @@ export class StockProcessingFacilityListComponent implements OnInit {
     for (const facility of facilities) {
       // Safe access with null checks
       const facilityType = facility?.facilityType;
-      if (!facilityType?.code) continue;
+      if (!facilityType?.code) {
+        continue;
+      }
       
       const code = facilityType.code;
       const order = (facilityType as any).order || 999;

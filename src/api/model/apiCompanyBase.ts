@@ -22,7 +22,7 @@ import { ApiAddress } from './apiAddress';
 
 
 /**
- * Facility company
+ * Company that receives the payment
  */
 
 export interface ApiCompanyBase { 
