@@ -34,7 +34,12 @@ export class CompanyProcessingActionsService {
   /**
    * Update a company processing action configuration
    */
-  updateCompanyProcessingAction(companyId: number, processingActionId: number, config: ApiCompanyProcessingAction, language: string = 'EN'): Observable<{data: ApiCompanyProcessingAction}> {
+  updateCompanyProcessingAction(
+    companyId: number,
+    processingActionId: number,
+    config: ApiCompanyProcessingAction,
+    language: string = 'EN'
+  ): Observable<{data: ApiCompanyProcessingAction}> {
     return this.http.put<{data: ApiCompanyProcessingAction}>(
       `${environment.basePath}/api/company/${companyId}/processing-actions/${processingActionId}`,
       config,
