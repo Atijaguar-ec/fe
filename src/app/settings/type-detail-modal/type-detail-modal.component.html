@@ -21,18 +21,8 @@
                                   : (submitted && this.form.get('translations').errors && this.form.get('translations').errors.required
                                       ? 'af-translation-language--error'
                                       : '')">
-            <img src="../../../assets/icons/icon-flag--united-kingdom.svg" alt="Selected EN lang">
+            <img src="../../../assets/icons/icon-flag--united-kingdom.svg" alt="Select EN lang">
             <span>EN</span>
-          </div>
-          <div (click)="selectLanguage(languageEnum.DE)"
-               [ngClass]="selectedLanguage === languageEnum.DE ? 'af-translation-language--selected' : ''">
-            <img src="../../../assets/icons/icon-flag--germany.svg" alt="Select DE lang">
-            <span>DE</span>
-          </div>
-          <div (click)="selectLanguage(languageEnum.RW)"
-               [ngClass]="selectedLanguage === languageEnum.RW ? 'af-translation-language--selected' : ''">
-            <img src="../../../assets/icons/icon-flag--rwanda.svg" alt="Select RW lang">
-            <span>RW</span>
           </div>
           <div (click)="selectLanguage(languageEnum.ES)"
                [ngClass]="selectedLanguage === languageEnum.ES ? 'af-translation-language--selected' : ''">
@@ -160,16 +150,8 @@
             <img src="../../../assets/icons/icon-flag--united-kingdom.svg" alt="Selected EN lang">
             <span>EN</span>
           </div>
-          <div (click)="selectLanguage(languageEnum.DE)"
-               [ngClass]="selectedLanguage === languageEnum.DE ? 'af-translation-language--selected' : ''">
-            <img src="../../../assets/icons/icon-flag--germany.svg" alt="Select DE lang">
-            <span>DE</span>
-          </div>
-          <div (click)="selectLanguage(languageEnum.RW)"
-               [ngClass]="selectedLanguage === languageEnum.RW ? 'af-translation-language--selected' : ''">
-            <img src="../../../assets/icons/icon-flag--rwanda.svg" alt="Select RW lang">
-            <span>RW</span>
-          </div>
+          
+          
           <div (click)="selectLanguage(languageEnum.ES)"
                [ngClass]="selectedLanguage === languageEnum.ES ? 'af-translation-language--selected' : ''">
             <img src="../../../assets/icons/icon-flag--spain.svg" alt="Select ES lang">
@@ -267,6 +249,27 @@
             </div>
           </ng-container>
         </textinput>
+
+        <!-- Facility Type: Order field -->
+        <textinput
+                *ngIf="this.type === 'facility-types'"
+                hideAsterisk="true"
+                [form]="$any(form.get('order'))"
+                label="Order"
+                style="width: 100%"
+                placeholder="Enter order (lower shows first)"
+                i18n-label="@@facilityTypeDetail.textinput.order.label"
+                i18n-placeholder="@@facilityTypeDetail.textinput.order.placeholder"
+                [isInvalid]="submitted && form.get('order').invalid"
+                type="number">
+          <ng-container *ngIf="submitted">
+            <div *ngIf="form.get('order').errors as errors" class="sc-invalid-feedback">
+              <div *ngIf="errors.pattern" i18n="@@facilityTypeDetail.textinput.order.error.numeric">
+                Order must be a number
+              </div>
+            </div>
+          </ng-container>
+        </textinput>
       </ng-container>
 
       <ng-container *ngIf="this.type === 'measurement-unit-types'">
@@ -305,16 +308,7 @@
             <img src="../../../assets/icons/icon-flag--united-kingdom.svg" alt="Selected EN lang">
             <span>EN</span>
           </div>
-          <div (click)="selectLanguage(languageEnum.DE)"
-               [ngClass]="selectedLanguage === languageEnum.DE ? 'af-translation-language--selected' : ''">
-            <img src="../../../assets/icons/icon-flag--germany.svg" alt="Select DE lang">
-            <span>DE</span>
-          </div>
-          <div (click)="selectLanguage(languageEnum.RW)"
-               [ngClass]="selectedLanguage === languageEnum.RW ? 'af-translation-language--selected' : ''">
-            <img src="../../../assets/icons/icon-flag--rwanda.svg" alt="Select RW lang">
-            <span>RW</span>
-          </div>
+          
           <div (click)="selectLanguage(languageEnum.ES)"
                [ngClass]="selectedLanguage === languageEnum.ES ? 'af-translation-language--selected' : ''">
             <img src="../../../assets/icons/icon-flag--spain.svg" alt="Select ES lang">
@@ -400,16 +394,7 @@
             <img src="../../../assets/icons/icon-flag--united-kingdom.svg" alt="Selected EN lang">
             <span>EN</span>
           </div>
-          <div (click)="selectLanguage(languageEnum.DE)"
-               [ngClass]="selectedLanguage === languageEnum.DE ? 'af-translation-language--selected' : ''">
-            <img src="../../../assets/icons/icon-flag--germany.svg" alt="Select DE lang">
-            <span>DE</span>
-          </div>
-          <div (click)="selectLanguage(languageEnum.RW)"
-               [ngClass]="selectedLanguage === languageEnum.RW ? 'af-translation-language--selected' : ''">
-            <img src="../../../assets/icons/icon-flag--rwanda.svg" alt="Select RW lang">
-            <span>RW</span>
-          </div>
+         
           <div (click)="selectLanguage(languageEnum.ES)"
                [ngClass]="selectedLanguage === languageEnum.ES ? 'af-translation-language--selected' : ''">
             <img src="../../../assets/icons/icon-flag--spain.svg" alt="Select ES lang">

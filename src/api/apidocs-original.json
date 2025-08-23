@@ -359,8 +359,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -1185,8 +1183,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -1312,8 +1308,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -1419,8 +1413,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -1516,8 +1508,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -1684,8 +1674,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -1799,8 +1787,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -1934,8 +1920,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -2257,8 +2241,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -2307,8 +2289,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -2889,8 +2869,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -3027,8 +3005,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -3076,8 +3052,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -3205,8 +3179,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -3316,8 +3288,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -3423,8 +3393,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -3504,8 +3472,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -3633,8 +3599,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -3744,8 +3708,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -3851,8 +3813,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -3932,8 +3892,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -3971,8 +3929,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -4062,8 +4018,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -4101,8 +4055,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -4161,8 +4113,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -4290,8 +4240,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -4401,8 +4349,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -4481,8 +4427,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -4530,8 +4474,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -4643,8 +4585,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -4878,8 +4818,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -5014,8 +4952,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -5150,8 +5086,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -5349,8 +5283,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -5523,8 +5455,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -5612,8 +5542,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -5661,8 +5589,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -5710,8 +5636,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -5760,8 +5684,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -5809,8 +5731,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -5858,8 +5778,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -5907,8 +5825,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -6143,8 +6059,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -6652,8 +6566,6 @@
             "schema": {
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -7166,8 +7078,6 @@
             "schema": {
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -7379,8 +7289,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -7429,8 +7337,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -7491,8 +7397,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -7540,8 +7444,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -7590,8 +7492,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -7652,8 +7552,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -7808,8 +7706,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -7891,8 +7787,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -7961,8 +7855,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -8145,8 +8037,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -8602,8 +8492,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -8666,8 +8554,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -8800,8 +8686,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -8924,8 +8808,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -10068,8 +9950,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -11050,8 +10930,6 @@
               "default": "EN",
               "enum": [
                 "EN",
-                "DE",
-                "RW",
                 "ES"
               ],
               "type": "string"
@@ -12185,8 +12063,6 @@
             "description": "language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -13391,8 +13267,6 @@
             "description": "Language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -13471,8 +13345,6 @@
             "description": "language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -13539,8 +13411,6 @@
             "description": "language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -13837,8 +13707,6 @@
             "description": "Facility language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -16409,8 +16277,6 @@
             "description": "Processing action language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -16573,8 +16439,6 @@
             "description": "Processing action language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -16650,8 +16514,6 @@
             "description": "Processing evidence field language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -16737,8 +16599,6 @@
             "description": "Processing evidence type language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -17080,8 +16940,6 @@
             "description": "Label language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -17199,8 +17057,6 @@
             "description": "Label language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -17502,8 +17358,6 @@
             "description": "Label language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -17550,8 +17404,6 @@
             "description": "Label language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -17607,8 +17459,6 @@
             "description": "Label language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -17771,8 +17621,6 @@
             "description": "language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -17844,8 +17692,6 @@
             "description": "Product type language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -20210,8 +20056,6 @@
             "description": "Semi product language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -20813,8 +20657,6 @@
             "description": "language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -20864,8 +20706,6 @@
             "description": "language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -21182,8 +21022,6 @@
             "description": "language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"
@@ -21243,8 +21081,6 @@
             "description": "language",
             "enum": [
               "EN",
-              "DE",
-              "RW",
               "ES"
             ],
             "type": "string"

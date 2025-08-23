@@ -39,10 +39,10 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
   isGoogleMapsLoaded = false;
   markers: any = [];
   defaultCenter = {
-    lat: 5.274054,
-    lng: 21.514503
+    lat: -1.831239,
+    lng: -78.183406
   };
-  defaultZoom = 3;
+  defaultZoom = 7;
   bounds: any;
   initialBounds: any = [];
   gInfoWindowText = '';

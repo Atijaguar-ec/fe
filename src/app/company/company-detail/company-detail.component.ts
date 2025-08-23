@@ -279,7 +279,12 @@ export class CompanyDetailComponent extends CompanyDetailTabManagerComponent imp
 
   fillWebPageAndSocialMediaForm(): void {
     if (!!this.company.webPage) { this._hideWebPageField$.next(false); }
-    for (const [key, value] of Object.entries(this.company.mediaLinks)) {
+    const links: any = (this.company && (this.company as any).mediaLinks) ? (this.company as any).mediaLinks : {};
+    if (!this.socialMediaForm) {
+      this.socialMediaForm = CompanyDetailComponent.generateSocialMediaForm();
+      (this.companyDetailForm as FormGroup).setControl('mediaLinks', this.socialMediaForm);
+    }
+    for (const [key, value] of Object.entries(links)) {
       if (key === 'facebook' && !!value) {
         this._hideFacebookField$.next(false);
         this.socialMediaForm.get('facebook').setValue(value);

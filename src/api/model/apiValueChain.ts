@@ -27,7 +27,7 @@ import { ApiSemiProduct } from './apiSemiProduct';
 
 
 /**
- * company value chains
+ * List of value chains for this facility
  */
 
 export interface ApiValueChain { 

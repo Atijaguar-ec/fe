@@ -57,8 +57,9 @@ export class TypeDetailModalComponent implements OnInit {
   codebookProcessingEvidenceTypeType = EnumSifrant.fromObject(this.processingEvidenceTypeType);
   codebookProcessingEvidenceFieldType = EnumSifrant.fromObject(this.processingEvidenceFieldType);
 
-  languages = [LanguageEnum.EN, LanguageEnum.DE, LanguageEnum.RW, LanguageEnum.ES];
-  selectedLanguage = LanguageEnum.EN;
+  // Allow English and Spanish for facility types and translations
+  languages = [LanguageEnum.EN, LanguageEnum.ES];
+  selectedLanguage = LanguageEnum.ES;
 
   isRegionalAdmin = false;
 
@@ -171,6 +172,19 @@ export class TypeDetailModalComponent implements OnInit {
     let res = null;
 
     if (this.type === 'facility-types') {
+      // Ensure 'order' is sent as a number (not a string)
+      if (data.hasOwnProperty('order')) {
+        if (data.order === '' || data.order === undefined) {
+          delete data.order; // optional field; omit if empty
+        } else {
+          const parsed = Number(data.order);
+          if (!isNaN(parsed)) {
+            data.order = parsed;
+          } else {
+            delete data.order; // avoid sending invalid value
+          }
+        }
+      }
       res = await this.facilityTypeService.createOrUpdateFacilityType(data).pipe(take(1)).toPromise();
     }
 

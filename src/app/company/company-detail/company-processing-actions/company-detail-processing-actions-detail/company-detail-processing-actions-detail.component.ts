@@ -74,8 +74,9 @@ export class CompanyDetailProcessingActionsDetailComponent extends CompanyDetail
   valueChains: Array<ApiValueChain> = [];
   selectedCompanyValueChainsControl = new FormControl(null, [ListNotEmptyValidator()]);
 
-  languages = ['EN', 'DE', 'RW', 'ES'];
-  selectedLanguage = 'EN';
+  // Limit UI languages to EN and ES; default to ES
+  languages = ['EN', 'ES'];
+  selectedLanguage = 'ES';
   faTimes = faTimes;
 
   booleanTrue = {

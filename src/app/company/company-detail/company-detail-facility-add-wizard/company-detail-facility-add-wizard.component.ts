@@ -226,8 +226,6 @@ export class CompanyDetailFacilityAddWizardComponent implements OnInit {
       facilityLocation,
       translations: [
         { name: this.facilityNameControl.value, language: LanguageEnum.EN },
-        { name: this.facilityNameControl.value, language: LanguageEnum.DE },
-        { name: this.facilityNameControl.value, language: LanguageEnum.RW },
         { name: this.facilityNameControl.value, language: LanguageEnum.ES }
       ],
       facilityType: this.selectedFacilityType,

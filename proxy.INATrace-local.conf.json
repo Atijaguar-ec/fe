@@ -13,7 +13,7 @@
       "secure": false,
       "logLevel": "debug",
       "pathRewrite": {
-
+ 
       },
       "changeOrigin": true
   }

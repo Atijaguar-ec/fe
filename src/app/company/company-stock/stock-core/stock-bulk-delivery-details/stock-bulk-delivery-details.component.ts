@@ -401,8 +401,7 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   private cannotUpdatePO() {
-    return (this.purchaseOrderBulkForm.invalid || this.employeeForm.invalid || this.checkWomenOnlyForm() ||
-      this.checkAllTareInvalid()) || this.checkAllDamagedPriceDeductionInvalid();
+    return (this.purchaseOrderBulkForm.invalid || this.employeeForm.invalid || this.checkWomenOnlyForm());
   }
 
   private checkWomenOnlyForm(): boolean {
@@ -411,25 +410,19 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   private checkAllTareInvalid(): boolean {
-    const invalidExist = this.farmersFormArray.controls.find((control, index) => this.tareInvalidCheck(index));
-    return invalidExist !== undefined;
+    return false;
   }
 
   tareInvalidCheck(idx: number) {
-    const tare: number = Number(this.farmersFormArray.at(idx).get('tare').value).valueOf();
-    const totalGrossQuantity: number = Number(this.farmersFormArray.at(idx).get('totalGrossQuantity').value).valueOf();
-    return tare && totalGrossQuantity && (tare > totalGrossQuantity);
+    return false;
   }
 
   private checkAllDamagedPriceDeductionInvalid(): boolean {
-    const invalidExist = this.farmersFormArray.controls.find((control, index) => this.damagedPriceDeductionInvalidCheck(index));
-    return invalidExist !== undefined;
+    return false;
   }
 
   damagedPriceDeductionInvalidCheck(idx: number) {
-    const damagedPriceDeduction: number = Number(this.farmersFormArray.at(idx).get('damagedPriceDeduction').value).valueOf();
-    const pricePerUnit: number = Number(this.farmersFormArray.at(idx).get('pricePerUnit').value).valueOf();
-    return damagedPriceDeduction && pricePerUnit && (damagedPriceDeduction > pricePerUnit);
+    return false;
   }
 
   damagedWeightDeductionInvalidCheck(idx: number) {
@@ -558,7 +551,7 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   showTare(idx: number) {
-    return this.facility && this.facility.displayTare || this.farmersFormArray.at(idx).get('tare').value;
+    return false;
   }
 
   get readonlyTare() {
@@ -566,7 +559,7 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   showDamagedPriceDeduction(idx: number) {
-    return this.facility && this.facility.displayPriceDeductionDamage || this.farmersFormArray.at(idx).get('damagedPriceDeduction').value;
+    return false;
   }
 
   showDamagedWeightDeduction(idx: number) {
@@ -626,20 +619,12 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
         );
         nextFormGroup.get('organic').updateValueAndValidity();
 
-        // This is for field tare
-        nextFormGroup.get('tare').setValidators(
-          this.facility &&
-          this.facility.displayTare ?
-            [Validators.required] : []
-        );
+        // This is for field tare (disabled)
+        nextFormGroup.get('tare').setValidators([]);
         nextFormGroup.get('tare').updateValueAndValidity();
 
-        // This is for field damagedPriceDeduction
-        nextFormGroup.get('damagedPriceDeduction').setValidators(
-          this.facility &&
-          this.facility.displayPriceDeductionDamage ?
-            [Validators.required] : []
-        );
+        // This is for field damagedPriceDeduction (disabled)
+        nextFormGroup.get('damagedPriceDeduction').setValidators([]);
         nextFormGroup.get('damagedPriceDeduction').updateValueAndValidity();
 
         // This is for field damagedWeightDeduction

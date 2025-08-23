@@ -78,6 +78,9 @@ export const ApiFacilityTypeValidationScheme = {
     label: {
       validators: [Validators.required]
     },
+    order: {
+      validators: [Validators.pattern(/^[0-9]+$/)]
+    },
   }
 } as SimpleValidationScheme<ApiFacilityType>;
 

@@ -69,10 +69,10 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
   gInfoWindowText = '';
   markers: any = [];
   defaultCenter = {
-    lat: 5.274054,
-    lng: 21.514503
+    lat: -1.831239,
+    lng: -78.183406
   };
-  defaultZoom = 3;
+  defaultZoom = 7;
   zoomForOnePin = 10;
   bounds: any;
   initialBounds: any = [];

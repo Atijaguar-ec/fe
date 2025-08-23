@@ -21,7 +21,7 @@
 
 
 /**
- * Measurement unit type of final product
+ * list of supported measuring unit types
  */
 
 export interface ApiMeasureUnitType { 
