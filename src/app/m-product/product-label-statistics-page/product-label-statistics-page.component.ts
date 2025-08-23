@@ -27,7 +27,7 @@ export class ProductLabelStatisticsPageComponent implements OnInit, OnDestroy {
     lat: -1.831239,
     lng: -78.183406
   };
-  defaultZoom = 2;
+  defaultZoom = 7;
   zoomForOnePin = 10;
   bounds: any;
   isGoogleMapsLoaded = false;

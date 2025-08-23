@@ -31,7 +31,7 @@ export class GeoaddressFormComponent implements OnInit, OnDestroy {
     lat: -1.831239,
     lng: -78.183406
   };
-  defaultZoom = 3;
+  defaultZoom = 7;
   zoomForOnePin = 10;
   bounds: any;
   initialBounds: any = [];

@@ -32,7 +32,7 @@ export class LocationFormNewComponent implements OnInit {
     lat: -1.831239,
     lng: -78.183406
   };
-  defaultZoom = 6;
+  defaultZoom = 7;
 
   codebookStatus = EnumSifrant.fromObject(this.publiclyVisible);
 

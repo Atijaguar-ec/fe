@@ -42,7 +42,7 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
     lat: -1.831239,
     lng: -78.183406
   };
-  defaultZoom = 3;
+  defaultZoom = 7;
   bounds: any;
   initialBounds: any = [];
   gInfoWindowText = '';

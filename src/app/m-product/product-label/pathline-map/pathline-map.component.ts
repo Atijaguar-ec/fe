@@ -21,7 +21,7 @@ export class PathlineMapComponent implements OnInit, OnChanges, OnDestroy {
         lat: -1.831239,
         lng: -78.183406
     };
-    defaultZoom = 3;
+    defaultZoom = 7;
 
     gMap: GoogleMap = null;
     bounds: google.maps.LatLngBounds;
