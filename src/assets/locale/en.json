@@ -847,6 +847,7 @@
     "settingsTypes.tableCol.delete": "Delete",
     "settingsTypes.noTypes": "No types found",
     "settingsTypes.sortOptions.id.name": "Id",
+    "settingsTypes.sortOptions.order.name": "Order",
     "settingsTypes.sortOptions.label.name": "Label",
     "settingsTypes.sortOptions.actions.name": "Actions",
     "settingsTypes.sortOptions.label.type": "Type",

@@ -48,7 +48,7 @@ export namespace ApproveTransaction {
        * Transaction ID
        */
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -87,7 +87,7 @@ export namespace GetStockOrderInputTransactions {
        * Company ID
        */
       stockOrderId: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -127,7 +127,7 @@ export namespace RejectTransaction {
        */
       id: number;
       ApiTransaction: ApiTransaction;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**

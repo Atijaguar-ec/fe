@@ -23,6 +23,8 @@ export class ActiveFacilityTypeService extends GeneralSifrantService<ApiFacility
   requestParams = {
     limit: 1000,
     offset: 0,
+    sortBy: 'order',
+    sort: 'ASC',
   } as GetFacilityTypeList.PartialParamMap;
 
   public identifier(el: ApiFacilityType) {

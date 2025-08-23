@@ -140,7 +140,7 @@ export namespace ExportBulkPaymentsByCompany {
        * Company ID
        */
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -179,7 +179,7 @@ export namespace ExportPaymentsByCompany {
        * Company ID
        */
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**

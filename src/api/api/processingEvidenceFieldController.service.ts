@@ -111,7 +111,7 @@ export namespace GetProcessingEvidenceField {
        * ProcessingEvidenceField ID
        */
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -166,7 +166,7 @@ export namespace GetProcessingEvidenceFieldList {
        * Direction of sorting (ASC or DESC). Default DESC.
        */
       sort?: 'ASC' | 'DESC';
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -250,7 +250,7 @@ export namespace ListProcessingEvidenceFieldsByValueChain {
        * Direction of sorting (ASC or DESC). Default DESC.
        */
       sort?: 'ASC' | 'DESC';
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -341,7 +341,7 @@ export namespace ListProcessingEvidenceFieldsByValueChains {
        * Direction of sorting (ASC or DESC). Default DESC.
        */
       sort?: 'ASC' | 'DESC';
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**

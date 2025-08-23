@@ -181,7 +181,7 @@ export namespace GetValueChain {
        * Value chain ID
        */
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**

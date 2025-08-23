@@ -111,7 +111,7 @@ export namespace GetProcessingAction {
        * ProcessingAction ID
        */
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -150,7 +150,7 @@ export namespace GetProcessingActionDetail {
        * ProcessingAction ID
        */
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -197,7 +197,7 @@ export namespace ListProcessingActionsByCompany {
        * Only final product actions
        */
       onlyFinalProducts?: boolean;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
       /**
        * Only count, only fetch, or return both values (if null)
        */

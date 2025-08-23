@@ -416,7 +416,7 @@ export namespace GetQRTagPublicData {
        * Return aggregated history
        */
       withHistory?: boolean;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**

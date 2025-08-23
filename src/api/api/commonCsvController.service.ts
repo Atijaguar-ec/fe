@@ -182,7 +182,7 @@ export namespace GeneratePurchasesByCompanyCsv {
        * Company ID
        */
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
       /**
        * Only count, only fetch, or return both values (if null)
        */

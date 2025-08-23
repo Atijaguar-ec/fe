@@ -1531,6 +1531,7 @@
     "settingsTypes.tableCol.delete": "Borrar",
     "settingsTypes.noTypes": "No se encontraron tipos",
     "settingsTypes.sortOptions.id.name": "Identificación",
+    "settingsTypes.sortOptions.order.name": "Orden",
     "settingsTypes.sortOptions.label.name": "Etiqueta",
     "settingsTypes.sortOptions.actions.name": "Comportamiento",
     "settingsTypes.sortOptions.fairness.name": "Justicia",

@@ -12,6 +12,7 @@ import {
 } from '@angular/animations';
 import { faHandMiddleFinger, faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import { AbstractControl, FormGroup, FormArray } from '@angular/forms';
+import { ListEditorManager } from './list-editor-manager';
 import { ClosableComponent } from '../closable/closable.component';
 import { Subscription } from 'rxjs';
 import { Subject } from 'rxjs/internal/Subject';
@@ -113,16 +114,16 @@ export class ListEditorComponent implements OnInit {
     headerFormatter: (value: any) => string;
 
     @Input()
-    initCallback?: () => void = null;
+    initCallback?: () => void;
 
     @Input()
-    saveCallback?: () => boolean = null;
+    saveCallback?: () => boolean;
 
     @Input()
-    cancelCallback?: () => void = null;
+    cancelCallback?: () => void;
 
     @Input()
-    deleteCallback?: () => void = null;
+    deleteCallback?: () => void;
 
     @Input()
     toggleCallback?: (state: boolean) => void;
@@ -134,7 +135,7 @@ export class ListEditorComponent implements OnInit {
     invalid = false;
 
     @Input()
-    listEditorManager = null;
+    listEditorManager: ListEditorManager<any> | null = null;
 
     @Input()
     disabled = false;
@@ -165,9 +166,12 @@ export class ListEditorComponent implements OnInit {
     faPlusCircle = faPlusCircle;
 
     ngOnInit() {
-      if(this.closable && this.closable.mode === 'intelligent') {
-        this.closable.openOnValueChange = (value: any[]) =>value.length > 0;
-        this.closable.form = this.listEditorManager.formArray;
+      if (this.closable && this.closable.mode === 'intelligent') {
+        this.closable.openOnValueChange = (value: any[]) => value.length > 0;
+        // Guard against undefined listEditorManager
+        if (this.listEditorManager) {
+          this.closable.form = this.listEditorManager.formArray;
+        }
         this.hideItems = this.closable.controlledHideField$.value;
         this.labelClosedIndicator = this.closable.hideField$.value;
         this.closableSub = this.closable.controlledHideField$.subscribe(val => {
@@ -292,7 +296,7 @@ export class ListEditorComponent implements OnInit {
 
     init(i: number) {
         if (this.listEditorManager) {
-            this.listEditorManager.toggle(i);
+            this.listEditorManager.toggle(i, null);
         }
         if (this.initCallback) {
             this.initCallback();

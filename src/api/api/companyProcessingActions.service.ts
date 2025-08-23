@@ -51,7 +51,7 @@ export namespace GetAllProcessingActionConfigurations {
       /**
        * Language for translations
        */
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -96,7 +96,7 @@ export namespace GetEnabledProcessingActions {
       /**
        * Language for translations
        */
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -181,7 +181,7 @@ export namespace UpdateCompanyProcessingAction {
       /**
        * Language for translations
        */
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**

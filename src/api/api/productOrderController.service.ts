@@ -45,7 +45,7 @@ export namespace CreateProductOrder {
      */
     export interface PartialParamMap {
       ApiProductOrder: ApiProductOrder;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -78,7 +78,7 @@ export namespace GetProductOrder {
        * Product order ID
        */
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**

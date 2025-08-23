@@ -69,7 +69,7 @@ export namespace AddUserCustomer {
        */
       companyId: number;
       ApiUserCustomer: ApiUserCustomer;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -162,7 +162,7 @@ export namespace CreateUserCustomerPlot {
        */
       id: number;
       ApiPlot: ApiPlot;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -303,7 +303,7 @@ export namespace ExportFarmerDataByCompany {
        * Company ID
        */
       companyId: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -715,7 +715,7 @@ export namespace GetCompanyProductTypes {
        * Company ID
        */
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
       /**
        * Only count, only fetch, or return both values (if null)
        */
@@ -1015,7 +1015,7 @@ export namespace GetUserCustomer {
        * User customer ID
        */
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -1058,7 +1058,7 @@ export namespace GetUserCustomersForCompanyAndType {
        * Type of user customer (collector, farmer)
        */
       type: 'COLLECTOR' | 'FARMER';
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
       /**
        * Name or surname
        */
@@ -1176,7 +1176,7 @@ export namespace GetUserCustomersPlotsForCompany {
        * Company ID
        */
       companyId: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -1219,7 +1219,7 @@ export namespace ImportFarmersSpreadsheet {
        * Document ID
        */
       documentId: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -1264,7 +1264,7 @@ export namespace ListCompanies {
       /**
        * Language
        */
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
       /**
        * Company status, sortable
        */
@@ -1370,7 +1370,7 @@ export namespace ListCompaniesAdmin {
       /**
        * Language
        */
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
       /**
        * Company status, sortable
        */
@@ -1481,7 +1481,7 @@ export namespace RefreshGeoIDForUserCustomerPlot {
        * Plot ID
        */
       plotId: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -1576,7 +1576,7 @@ export namespace UpdateUserCustomer {
      */
     export interface PartialParamMap {
       ApiUserCustomer: ApiUserCustomer;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**

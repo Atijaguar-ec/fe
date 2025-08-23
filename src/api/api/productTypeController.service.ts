@@ -102,7 +102,7 @@ export namespace GetProductType {
      */
     export interface PartialParamMap {
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -134,7 +134,7 @@ export namespace GetProductTypes {
      * Parameter map for getProductTypes.
      */
     export interface PartialParamMap {
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**

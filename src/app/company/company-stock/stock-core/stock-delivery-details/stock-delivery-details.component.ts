@@ -645,7 +645,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   get showTare() {
-    return this.facility && this.facility.displayTare || this.stockOrderForm.get('tare').value;
+    return false;
   }
 
   get readonlyTare() {
@@ -653,7 +653,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   get showDamagedPriceDeduction() {
-    return this.facility && this.facility.displayPriceDeductionDamage || this.stockOrderForm.get('damagedPriceDeduction').value;
+    return false;
   }
 
   get showDamagedWeightDeduction() {
@@ -709,20 +709,11 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
             [Validators.required] : []
     );
     this.stockOrderForm.get('organic').updateValueAndValidity();
-    this.stockOrderForm.get('tare').setValidators(
-        this.orderType === 'PURCHASE_ORDER' &&
-        this.facility &&
-        this.facility.displayTare ?
-            [Validators.required] : []
-    );
+    this.stockOrderForm.get('tare').setValidators([]);
+    this.stockOrderForm.get('tare').setValue(null);
     this.stockOrderForm.get('tare').updateValueAndValidity();
-    this.stockOrderForm.get('damagedPriceDeduction').setValidators(
-        this.orderType === 'PURCHASE_ORDER' &&
-        this.facility &&
-        this.facility.displayPriceDeductionDamage &&
-        !this.stockOrderForm.get('priceDeterminedLater').value ?
-            [Validators.required] : []
-    );
+    this.stockOrderForm.get('damagedPriceDeduction').setValidators([]);
+    this.stockOrderForm.get('damagedPriceDeduction').setValue(null);
     this.stockOrderForm.get('damagedPriceDeduction').updateValueAndValidity();
     this.stockOrderForm.get('damagedWeightDeduction').setValidators(
         this.orderType === 'PURCHASE_ORDER' &&

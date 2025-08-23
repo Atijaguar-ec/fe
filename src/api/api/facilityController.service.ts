@@ -181,7 +181,7 @@ export namespace GetFacility {
        * Facility ID
        */
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -220,7 +220,7 @@ export namespace GetFacilityDetail {
        * Facility ID
        */
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -259,7 +259,7 @@ export namespace ListAllFacilitiesByCompany {
        * Company ID
        */
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
       /**
        * Only count, only fetch, or return both values (if null)
        */
@@ -350,7 +350,7 @@ export namespace ListAvailableSellingFacilitiesForCompany {
        * Company ID
        */
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
       /**
        * Semi product ID
        */
@@ -461,7 +461,7 @@ export namespace ListCollectingFacilitiesByCompany {
        * Company ID
        */
       id: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
       /**
        * Only count, only fetch, or return both values (if null)
        */
@@ -560,7 +560,7 @@ export namespace ListFacilitiesByCompany {
        * Final product ID
        */
       finalProductId?: number;
-      language?: 'EN' | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
       /**
        * Only count, only fetch, or return both values (if null)
        */
