@@ -141,7 +141,7 @@ export namespace ExportDeliveriesByCompany {
        * Company ID
        */
       companyId: number;
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
+      language?: 'EN' | 'ES';
     }
 
     /**
@@ -180,7 +180,7 @@ export namespace ExportGeoData {
        * StockOrder ID
        */
       id: number;
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
+      language?: 'EN' | 'ES';
     }
 
     /**
@@ -267,7 +267,7 @@ export namespace GetAvailableStockForStockUnitInFacility {
        * Production date range end
        */
       productionDateEnd?: string;
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
+      language?: 'EN' | 'ES';
     }
 
     /**
@@ -412,7 +412,7 @@ export namespace GetQuoteOrdersInFacility {
        * Return only open stock orders
        */
       openOnly?: boolean;
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
+      language?: 'EN' | 'ES';
     }
 
     /**
@@ -505,7 +505,7 @@ export namespace GetStockOrder {
        * Return the processing order base data
        */
       withProcessingOrder?: boolean;
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
+      language?: 'EN' | 'ES';
     }
 
     /**
@@ -550,7 +550,7 @@ export namespace GetStockOrderAggregatedHistory {
        * StockOrder ID
        */
       id: number;
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
+      language?: 'EN' | 'ES';
     }
 
     /**
@@ -657,7 +657,7 @@ export namespace GetStockOrderListByCompanyId {
        * Search by ProducerUserCustomer name
        */
       query?: string;
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
+      language?: 'EN' | 'ES';
     }
 
     /**
@@ -856,7 +856,7 @@ export namespace GetStockOrderListByFacilityId {
        * Search by ProducerUserCustomer name
        */
       query?: string;
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
+      language?: 'EN' | 'ES';
     }
 
     /**
@@ -981,7 +981,7 @@ export namespace GetStockOrderProcessingOrder {
        * StockOrder ID
        */
       id: number;
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
+      language?: 'EN' | 'ES';
     }
 
     /**
@@ -1052,7 +1052,7 @@ export namespace GetStockOrdersInFacilityForCustomer {
        * Return only open stock orders
        */
       openOnly?: boolean;
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
+      language?: 'EN' | 'ES';
     }
 
     /**

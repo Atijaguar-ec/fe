@@ -1196,7 +1196,7 @@ export namespace ListProducts {
        * Direction of sorting (ASC or DESC). Default DESC.
        */
       sort?: 'ASC' | 'DESC';
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
+      language?: 'EN' | 'ES';
     }
 
     /**

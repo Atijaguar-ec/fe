@@ -78,7 +78,7 @@ export namespace GetGroupedStockOrderList {
        * Semi-product ID
        */
       semiProductId?: number;
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
+      language?: 'EN' | 'ES';
     }
 
     /**

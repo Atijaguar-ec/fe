@@ -118,7 +118,7 @@ export namespace ExportDeliveriesData {
        * Production date range end
        */
       productionDateEnd?: string;
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
+      language?: 'EN' | 'ES';
     }
 
     /**
@@ -222,7 +222,7 @@ export namespace ExportProcessingPerformanceData {
      */
     export interface PartialParamMap {
       ApiProcessingPerformanceRequest: ApiProcessingPerformanceRequest;
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
+      language?: 'EN' | 'ES';
     }
 
     /**

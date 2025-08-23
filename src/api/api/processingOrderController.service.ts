@@ -46,7 +46,7 @@ export namespace CreateOrUpdateProcessingOrder {
      */
     export interface PartialParamMap {
       ApiProcessingOrder: ApiProcessingOrder;
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
+      language?: 'EN' | 'ES';
     }
 
     /**
@@ -114,7 +114,7 @@ export namespace GetProcessingOrder {
        * ProcessingOrder ID
        */
       id: number;
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
+      language?: 'EN' | 'ES';
     }
 
     /**
