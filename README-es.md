@@ -298,6 +298,30 @@ Accede a la aplicación desde tu navegador en `http://TU_IP_O_DOMINIO`.
 
 Consulta la guía `/docs/tecnico/guia-cicd-frontend.md` para pasos detallados de integración, recomendaciones de seguridad, HTTPS y despliegue automatizado.
 
+## Notas técnicas AS-IS
+
+### i18n: scripts y flujo
+- Scripts disponibles:
+  - `generate-translations.js`
+  - `copy-translation-from-csv.js`
+  - `copy-translation-to-csv.js`
+- Flujo recomendado (local/CI): extraer → validar → sincronizar CSV/JSON → verificar que no existan diffs antes del build.
+- En CI, ejecutar `node generate-translations.js` y fallar si `git diff` detecta cambios sin commitear.
+
+### E2E: estado Protractor y plan de migración
+- Estado actual: Protractor (deprecado) con specs en `e2e/src/` y configuración `e2e/protractor.conf.js`.
+- Se mantiene por compatibilidad mientras se prepara migración a Playwright según `docs/mejoras/03-dual-core-migracion-progresiva.md`.
+- Recomendación: conservar smoke tests mínimos y planificar suite nueva en Playwright para el core Angular 19.
+
+### Lint: TSLint
+- Lint actual con TSLint (`tslint.json`).
+- Archivo histórico de incidencias: `lint_errors.txt`.
+- Plan: migrar a ESLint en la transición al core moderno (ver `docs/mejoras/03-dual-core-migracion-progresiva.md`).
+
+### Entornos y Nginx (recordatorio)
+- En producción, `window['env']['appBaseUrl']` debe estar vacío para enrutar vía Nginx.
+- El proxy `/api/` hacia backend se define en `nginx.conf`. Validar con curl según ejemplo en esta guía.
+
 ## Despliegue local para desarrollo
 
 1. Instala dependencias: `npm install`

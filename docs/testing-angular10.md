@@ -79,7 +79,24 @@ El workflow de GitHub Actions (`.github/workflows/deploy-frontend.yml`) ejecuta 
 
 ---
 
-## 7. Recursos
+## 7. E2E (Protractor) - Estado actual y migración
+
+### Estado actual
+- Runner: Protractor (deprecado), configuración en `e2e/protractor.conf.js`.
+- Ubicación de pruebas: `e2e/src/`.
+- Uso: `npm run e2e` (si está definido en `package.json`).
+
+### Recomendaciones
+- Mantener un set mínimo de smoke tests E2E para validar login, navegación y rutas críticas.
+- Evitar expandir cobertura con Protractor debido a su deprecación.
+
+### Ruta de migración
+- Nueva suite E2E con Playwright para el core moderno (Angular 19), como se describe en `docs/mejoras/03-dual-core-migracion-progresiva.md`.
+- Convivencia temporal: Protractor valida el core Angular 10; Playwright valida el core Angular 19.
+
+---
+
+## 8. Recursos
 - [Testing Angular](https://angular.io/guide/testing)
 - [Karma Runner](https://karma-runner.github.io/)
 - [Jasmine](https://jasmine.github.io/)
