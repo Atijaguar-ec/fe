@@ -108,9 +108,14 @@ export class TypeListComponent implements OnInit, OnChanges {
       inactive: true
     },
     {
+      key: 'order',
+      name: $localize`:@@settingsTypes.sortOptions.order.name:Order`,
+      defaultSortOrder: 'ASC'
+    },
+    {
       key: 'label',
       name: $localize`:@@settingsTypes.sortOptions.label.name:Label`,
-      defaultSortOrder: 'ASC'
+      inactive: true
     },
     {
       key: 'actions',

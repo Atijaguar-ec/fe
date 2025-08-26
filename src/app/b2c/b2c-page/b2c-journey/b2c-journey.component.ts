@@ -39,8 +39,8 @@ export class B2cJourneyComponent implements OnInit {
   bounds: any;
 
   defaultCenter = {
-    lat: 5.274054,
-    lng: 21.514503
+    lat: -1.831239,
+    lng: -78.183406
   };
   defaultZoom = 2;
 

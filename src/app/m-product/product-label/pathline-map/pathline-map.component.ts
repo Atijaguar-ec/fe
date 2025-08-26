@@ -18,10 +18,10 @@ export class PathlineMapComponent implements OnInit, OnChanges, OnDestroy {
     isGoogleMapsLoaded = false;
 
     defaultCenter = {
-        lat: 5.274054,
-        lng: 21.514503
+        lat: -1.831239,
+        lng: -78.183406
     };
-    defaultZoom = 3;
+    defaultZoom = 7;
 
     gMap: GoogleMap = null;
     bounds: google.maps.LatLngBounds;

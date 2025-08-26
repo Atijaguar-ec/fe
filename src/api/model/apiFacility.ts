@@ -28,7 +28,7 @@ import { ApiValueChain } from './apiValueChain';
 
 
 /**
- * Source facility
+ * List of facilities where this processing starts
  */
 
 export interface ApiFacility { 

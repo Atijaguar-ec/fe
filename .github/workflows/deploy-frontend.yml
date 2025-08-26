@@ -2,7 +2,10 @@ name: Deploy Frontend to Hetzner
 
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
+      - 'v*'
   pull_request:
     branches: [main]
 

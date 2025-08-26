@@ -62,8 +62,9 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
 
   faTimes = faTimes;
 
-  languages = [LanguageEnum.EN, LanguageEnum.DE, LanguageEnum.RW, LanguageEnum.ES];
-  selectedLanguage = LanguageEnum.EN;
+  // Limit UI languages to EN and ES; default to ES
+  languages = [LanguageEnum.EN, LanguageEnum.ES];
+  selectedLanguage = LanguageEnum.ES;
 
   private valueChainSubs: Subscription;
 

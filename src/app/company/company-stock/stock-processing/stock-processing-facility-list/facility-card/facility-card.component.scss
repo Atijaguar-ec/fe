@@ -115,6 +115,71 @@
             &--cogwheel {
               mask: url(/assets/icons/icon-card-cogwheel.svg) no-repeat;
             }
+            
+            // Order-based icons (numbers/ranking)
+            &--first {
+              mask: url(/assets/icons/icon-card-1.svg) no-repeat;
+            }
+            &--second {
+              mask: url(/assets/icons/icon-card-2.svg) no-repeat;
+            }
+            &--third {
+              mask: url(/assets/icons/icon-card-3.svg) no-repeat;
+            }
+            &--fourth {
+              mask: url(/assets/icons/icon-card-4.svg) no-repeat;
+            }
+            &--fifth {
+              mask: url(/assets/icons/icon-card-5.svg) no-repeat;
+            }
+            &--sixth {
+              mask: url(/assets/icons/icon-card-6.svg) no-repeat;
+            }
+            &--seventh {
+              mask: url(/assets/icons/icon-card-7.svg) no-repeat;
+            }
+            &--eighth {
+              mask: url(/assets/icons/icon-card-8.svg) no-repeat;
+            }
+            &--ninth {
+              mask: url(/assets/icons/icon-card-9.svg) no-repeat;
+            }
+            &--tenth {
+              mask: url(/assets/icons/icon-card-10.svg) no-repeat;
+            }
+            &--eleventh {
+              mask: url(/assets/icons/icon-card-11.svg) no-repeat;
+            }
+            &--twelfth {
+              mask: url(/assets/icons/icon-card-12.svg) no-repeat;
+            }
+            &--thirteenth {
+              mask: url(/assets/icons/icon-card-13.svg) no-repeat;
+            }
+            &--fourteenth {
+              mask: url(/assets/icons/icon-card-14.svg) no-repeat;
+            }
+            &--fifteenth {
+              mask: url(/assets/icons/icon-card-15.svg) no-repeat;
+            }
+            &--sixteenth {
+              mask: url(/assets/icons/icon-card-16.svg) no-repeat;
+            }
+            &--seventeenth {
+              mask: url(/assets/icons/icon-card-17.svg) no-repeat;
+            }
+            &--eighteenth {
+              mask: url(/assets/icons/icon-card-18.svg) no-repeat;
+            }
+            &--nineteenth {
+              mask: url(/assets/icons/icon-card-19.svg) no-repeat;
+            }
+            &--twentieth {
+              mask: url(/assets/icons/icon-card-20.svg) no-repeat;
+            }
+            &--default {
+              mask: url(/assets/icons/icon-card-cogwheel.svg) no-repeat;
+            }
           }
         }
       }

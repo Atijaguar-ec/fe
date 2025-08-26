@@ -96,8 +96,8 @@ export class HammerConfig extends HammerGestureConfig {
   }
 }
 
-registerLocaleData(localeDe);
-registerLocaleData(localeRw);
+// registerLocaleData(localeDe);
+// registerLocaleData(localeRw);
 registerLocaleData(localeEs);
 
 export function getConfiguration(): Configuration {
@@ -173,7 +173,7 @@ export function getConfiguration(): Configuration {
                 trackingIds: [environment.googleAnalyticsId]
             }
         }),
-        //////////
+        // --------
         CoreModule,
         ComponentsModule,
         LayoutModule,
