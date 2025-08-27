@@ -109,17 +109,21 @@ export class UserDetailComponent extends ComponentCanDeactivate implements OnIni
     this.loadingUserCompanies = true;
     try {
       for (const id of data.companyIds) {
-        const res = await this.companyController.getCompany(id).pipe(take(1)).toPromise();
+        const res = await this.companyController.getCompany(id, 'ES').pipe(take(1)).toPromise();
+        console.log('Company API response for ID', id, ':', res);
         if (res && res.status === 'OK' && res.data) {
+          console.log('Company data:', res.data);
+          console.log('Company name field:', res.data.name);
           tmp.push({
             companyId: id,
-            companyName: res.data.name
+            companyName: res.data.name || `Id: ${id}` // Fallback if name is still missing
           });
         }
       }
     } finally {
       this.loadingUserCompanies = false;
     }
+    
 
     this.myCompanies = tmp;
   }
@@ -136,7 +140,7 @@ export class UserDetailComponent extends ComponentCanDeactivate implements OnIni
 
       if (result !== 'ok') { return; }
 
-      const res = await this.companyController.getCompany(company.companyId).pipe(take(1)).toPromise();
+      const res = await this.companyController.getCompany(company.companyId, 'ES').pipe(take(1)).toPromise();
       if (res && res.status === 'OK' && res.data) {
         this.selUserCompanyService.setSelectedCompany(res.data);
         this.changedCompany = true;
