@@ -7,9 +7,9 @@
     // Estos valores sirven como fallback seguro en producción cuando no hay variables inyectadas.
     window['env']['environmentName'] = 'production';
     window['env']['appBaseUrl'] = '';  // Rutas relativas para pasar por Nginx (location /api/)
-    window['env']['qrCodeBasePath'] = '/api/stock-order'; // Endpoint público para QR (PublicController)
-    window['env']['relativeFileUploadUrl'] = '/api/documents'; // Subida de archivos (CommonController)
-    window['env']['relativeFileUploadUrlManualType'] = '/api/documents?type='; // Upload manual (ajustar si aplica)
+    window['env']['qrCodeBasePath'] = 'q-cd'; // Endpoint público para QR (PublicController)
+    window['env']['relativeFileUploadUrl'] = '/api/common/document'; // Subida de archivos (CommonController)
+    window['env']['relativeFileUploadUrlManualType'] = '/api/common/document?type='; // Upload manual (ajustar si aplica)
     window['env']['relativeImageUploadUrl'] = '/api/common/image'; // Subida de imágenes (corrige /api/image -> /api/common/image)
     window['env']['relativeImageUploadUrlAllSizes'] = '/api/common/image'; // Mismo endpoint; tamaño vía params en backend
     window['env']['googleMapsApiKey'] = 'AIzaSyAP1JuiYWi0A_Zf8BK0YIfl4nCKoxHnPHU';
