@@ -31,10 +31,6 @@ export interface ApiCompanyBase {
      */
     id?: number;
     /**
-     * company name
-     */
-    name?: string;
-    /**
      * company abbreviation
      */
     abbreviation?: string;
@@ -71,6 +67,10 @@ export interface ApiCompanyBase {
      * social media URL links (Facebook, Instagram, Twitter, YouTube, ...)
      */
     mediaLinks?: { [key: string]: string; };
+    /**
+     * company name
+     */
+    name?: string;
 }
 
 /**
@@ -85,10 +85,6 @@ export namespace ApiCompanyBase {
          * Entity id
          */
         id = 'id',
-        /**
-         * company name
-         */
-        name = 'name',
         /**
          * company abbreviation
          */
@@ -125,7 +121,11 @@ export namespace ApiCompanyBase {
         /**
          * social media URL links (Facebook, Instagram, Twitter, YouTube, ...)
          */
-        mediaLinks = 'mediaLinks'
+        mediaLinks = 'mediaLinks',
+        /**
+         * company name
+         */
+        name = 'name'
     }
 
 
@@ -141,17 +141,6 @@ export namespace ApiCompanyBase {
                     name: 'id',
                     classname: 'ApiCompanyBase',
                     dataType: 'number',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'name',
-                    classname: 'ApiCompanyBase',
-                    dataType: 'string',
                     isPrimitiveType: true,
                     isListContainer: false,
                     complexType: ''
@@ -267,13 +256,20 @@ export namespace ApiCompanyBase {
                     isListContainer: false,
                     complexType: ''
                 },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'name',
+                    classname: 'ApiCompanyBase',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
             ],
             validators: {
                 id: [
-                ],
-                name: [
-                        ['minlength', 0],
-                        ['maxlength', 255],
                 ],
                 abbreviation: [
                         ['minlength', 0],
@@ -307,6 +303,10 @@ export namespace ApiCompanyBase {
                 ],
                 mediaLinks: [
                 ],
+                name: [
+                        ['minlength', 0],
+                        ['maxlength', 255],
+                ],
             }
         }
     }
@@ -315,9 +315,6 @@ export namespace ApiCompanyBase {
   //     validators: [],
   //     fields: {
   //               id: {
-  //                   validators: []
-  //               },
-  //               name: {
   //                   validators: []
   //               },
   //               abbreviation: {
@@ -348,6 +345,9 @@ export namespace ApiCompanyBase {
   //                   validators: []
   //               },
   //               mediaLinks: {
+  //                   validators: []
+  //               },
+  //               name: {
   //                   validators: []
   //               },
   //     }

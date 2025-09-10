@@ -37,10 +37,6 @@ export interface ApiCompanyGet {
      */
     id?: number;
     /**
-     * company name
-     */
-    name?: string;
-    /**
      * company abbreviation
      */
     abbreviation?: string;
@@ -115,6 +111,10 @@ export interface ApiCompanyGet {
      * Flag indicating that the company supports collectors for deliveries
      */
     supportsCollectors?: boolean;
+    /**
+     * company name
+     */
+    name?: string;
 }
 
 /**
@@ -129,10 +129,6 @@ export namespace ApiCompanyGet {
          * Entity id
          */
         id = 'id',
-        /**
-         * company name
-         */
-        name = 'name',
         /**
          * company abbreviation
          */
@@ -207,7 +203,11 @@ export namespace ApiCompanyGet {
         /**
          * Flag indicating that the company supports collectors for deliveries
          */
-        supportsCollectors = 'supportsCollectors'
+        supportsCollectors = 'supportsCollectors',
+        /**
+         * company name
+         */
+        name = 'name'
     }
 
     /**
@@ -252,17 +252,6 @@ export namespace ApiCompanyGet {
                     name: 'id',
                     classname: 'ApiCompanyGet',
                     dataType: 'number',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'name',
-                    classname: 'ApiCompanyGet',
-                    dataType: 'string',
                     isPrimitiveType: true,
                     isListContainer: false,
                     complexType: ''
@@ -507,13 +496,20 @@ export namespace ApiCompanyGet {
                     isListContainer: false,
                     complexType: ''
                 },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'name',
+                    classname: 'ApiCompanyGet',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
             ],
             validators: {
                 id: [
-                ],
-                name: [
-                        ['minlength', 0],
-                        ['maxlength', 255],
                 ],
                 abbreviation: [
                         ['minlength', 0],
@@ -571,6 +567,10 @@ export namespace ApiCompanyGet {
                 ],
                 supportsCollectors: [
                 ],
+                name: [
+                        ['minlength', 0],
+                        ['maxlength', 255],
+                ],
             }
         }
     }
@@ -579,9 +579,6 @@ export namespace ApiCompanyGet {
   //     validators: [],
   //     fields: {
   //               id: {
-  //                   validators: []
-  //               },
-  //               name: {
   //                   validators: []
   //               },
   //               abbreviation: {
@@ -645,6 +642,9 @@ export namespace ApiCompanyGet {
   //                   validators: []
   //               },
   //               supportsCollectors: {
+  //                   validators: []
+  //               },
+  //               name: {
   //                   validators: []
   //               },
   //     }
