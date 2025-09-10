@@ -399,7 +399,7 @@
                         <div class="af-c8">
                             <ng-container>
                                 <attachment-uploader
-                                        allowedMimeType="['image/png', 'image/jpeg', 'application/pdf']"
+                                        [allowedMimeType]="['image/png', 'image/jpeg', 'application/pdf']"
                                         allowedMimeTypeErrorMessage="Upload only file types: PNG, JPG and JPEG."
                                         i18n-allowedMimeTypeErrorMessage="@@paymentForm.attachment-uploader.allowedMimeTypeErrorMessage"
                                         mode="simpleAsTextField"

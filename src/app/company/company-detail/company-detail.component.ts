@@ -219,7 +219,7 @@ export class CompanyDetailComponent extends CompanyDetailTabManagerComponent imp
     const id = +this.route.snapshot.paramMap.get('id');
 
     this.sub = forkJoin([
-      this.companyController.getCompany(id).pipe(take(1))
+      this.companyController.getCompany(id, 'ES').pipe(take(1))
     ]).subscribe({
       next: ([company]) => {
         this.company = company.data;
@@ -355,7 +355,7 @@ export class CompanyDetailComponent extends CompanyDetailTabManagerComponent imp
         title: $localize`:@@companyDetail.create.error.title:Error`,
         message: $localize`:@@companyDetail.create.error.message:Errors on page. Please check!`
       });
-      return;
+      return; 
     }
 
     try {

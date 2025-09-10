@@ -47,7 +47,7 @@
 
         <ng-container>
           <attachment-uploader
-            allowedMimeType="[image/png', 'image/jpeg', 'application/pdf']"
+            [allowedMimeType]="['image/png', 'image/jpeg', 'application/pdf']"
             allowedMimeTypeErrorMessage="Upload only file types: PNG, JPG and JPEG."
             mode="simpleAsTextField"
             label="Production record (PDF/PNG/JPG)"

@@ -287,7 +287,7 @@
     "productLabelStakeholdersCollectors.sortOptions.gender.name": "Género",
     "productLabelStakeholdersCollectors.sortOptions.id.name": "Número de identificación",
     "productLabelStakeholdersCollectors.sortOptions.city.name": "Ciudad/Pueblo/Aldea",
-    "productLabelStakeholdersCollectors.sortOptions.state.name": "Estado/Provincia/Región",
+    "productLabelStakeholdersCollectors.sortOptions.state.name": "Provincia/Cantón/Parroquia",
     "productLabelStakeholdersCollectors.sortOptions.actions.name": "Acciones",
     "productLabelStakeholdersCollectors.deleteCollector.error.message": "¿Está seguro que desea eliminar el colector?",
     "productLabelStakeholdersCollectors.noCollectors": "No se encuentran colectores",
