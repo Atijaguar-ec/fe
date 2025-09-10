@@ -65,6 +65,8 @@ jobs:
         run: npm ci
 
       - name: Generate API client
+        env:
+          SWAGGER_DOCS_HOST: ${{ secrets.BACKEND_API_ORIGIN }}/v3/api-docs
         run: npm run generate-api
 
       - name: Set up Docker Buildx
@@ -123,6 +125,7 @@ jobs:
           key: ${{ secrets.HETZNER_SSH_KEY }}
           script: |
             set -euo pipefail
+            # Directorio de despliegue del FE en el servidor
             cd /opt/inatrace/frontend
             
             # Compose variables to match the image built in CI
@@ -140,24 +143,33 @@ jobs:
             docker pull ${IMAGE_NAME}@${DIGEST}
             docker tag ${IMAGE_NAME}@${DIGEST} ${IMAGE_NAME}:${TAG}
 
-            # Compose will use the freshly tagged local image; skip docker-compose pull
+            # Compose will use the freshly tagged local image; skip compose pull
             echo "Using locally tagged image ${IMAGE_NAME}:${TAG}"
 
-            # Recreate services with the new image
-            docker-compose down
-            docker-compose up -d --force-recreate --remove-orphans
+            # Escribir/actualizar .ci/.env con parámetros del despliegue (multiempresa)
+            mkdir -p .ci
+            cat > .ci/.env << EOF
+            IMAGE_NAME=${IMAGE_NAME}
+            TAG=${TAG}
+            FRONTEND_DOMAIN=${{ secrets.FRONTEND_DOMAIN }}
+            LETSENCRYPT_EMAIL=${{ secrets.LETSENCRYPT_EMAIL }}
+            EOF
+
+            # Recrear stack HTTPS con nginx-proxy + acme-companion + FE
+            docker compose --env-file .ci/.env -f .ci/docker-compose.https.yml down || true
+            docker compose --env-file .ci/.env -f .ci/docker-compose.https.yml up -d --force-recreate --remove-orphans
             
             # Health check with retry
             for i in {1..3}; do
               sleep 10
-              if curl -f http://localhost:80 > /dev/null 2>&1; then
+              if curl -fsS https://${{ secrets.FRONTEND_DOMAIN }}/ > /dev/null 2>&1; then
                 echo "Health check passed"
                 break
               elif [ $i -eq 3 ]; then
                 echo "Health check failed after 3 attempts, rolling back"
-                docker-compose logs --tail=50
-                docker-compose down
-                docker-compose up -d --force-recreate
+                docker compose --env-file .ci/.env -f .ci/docker-compose.https.yml logs --tail=100 || true
+                # Intento de reinicio simple del FE sin tumbar proxy
+                docker compose --env-file .ci/.env -f .ci/docker-compose.https.yml up -d --force-recreate inatrace-frontend
                 exit 1
               else
                 echo "Health check attempt $i failed, retrying..."
