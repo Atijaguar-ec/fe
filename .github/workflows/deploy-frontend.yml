@@ -155,8 +155,13 @@ jobs:
             LETSENCRYPT_EMAIL=${{ secrets.LETSENCRYPT_EMAIL }}
             EOF
 
-            # Recrear stack HTTPS con nginx-proxy + acme-companion + FE
-            docker compose --env-file .ci/.env -f .ci/docker-compose.https.yml down || true
+            # Preflight: evitar conflicto por nombre de contenedor si quedó de corridas previas
+            docker ps -a --format '{{.Names}}' | grep -q '^inatrace-fe$' && docker rm -f inatrace-fe || true
+
+            # Asegurar red externa si es requerida por el compose
+            docker network create inatrace-backend-network || true
+
+            # Levantar/recrear solo los servicios necesarios sin bajar otros stacks
             docker compose --env-file .ci/.env -f .ci/docker-compose.https.yml up -d --force-recreate --remove-orphans
             
             # Health check with retry
@@ -168,7 +173,7 @@ jobs:
               elif [ $i -eq 3 ]; then
                 echo "Health check failed after 3 attempts, rolling back"
                 docker compose --env-file .ci/.env -f .ci/docker-compose.https.yml logs --tail=100 || true
-                # Intento de reinicio simple del FE sin tumbar proxy
+                # Intento de reinicio simple del FE sin tumbar proxy (usar nombre del servicio del compose)
                 docker compose --env-file .ci/.env -f .ci/docker-compose.https.yml up -d --force-recreate inatrace-frontend
                 exit 1
               else
