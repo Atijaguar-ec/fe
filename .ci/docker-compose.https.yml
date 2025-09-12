@@ -1,4 +1,4 @@
-version: "3.8"
+# version removed (Compose v2)
 
 services:
   # Reverse proxy that terminates TLS and routes to FE

@@ -117,14 +117,30 @@ jobs:
     if: github.ref == 'refs/heads/main'
     
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Ensure remote directories exist
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HETZNER_HOST }}
+          username: ${{ secrets.HETZNER_USER }}
+          key: ${{ secrets.HETZNER_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            sudo mkdir -p /opt/inatrace/frontend/.ci
+            sudo chown -R $USER:$USER /opt/inatrace/frontend
+
       - name: Sync compose (HTTPS) to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.HETZNER_HOST }}
           username: ${{ secrets.HETZNER_USER }}
           key: ${{ secrets.HETZNER_SSH_KEY }}
-          source: ".ci/docker-compose.https.yml"
+          source: "fe/.ci/docker-compose.https.yml"
           target: "/opt/inatrace/frontend/.ci/"
+          strip_components: 2
+          overwrite: true
 
       - name: Deploy to Hetzner
         uses: appleboy/ssh-action@v1.0.0
@@ -166,6 +182,8 @@ jobs:
 
             # Preflight: evitar conflicto por nombre de contenedor si quedó de corridas previas
             docker ps -a --format '{{.Names}}' | grep -q '^inatrace-fe$' && docker rm -f inatrace-fe || true
+            docker ps -a --format '{{.Names}}' | grep -q '^inatrace-nginx-proxy$' && docker rm -f inatrace-nginx-proxy || true
+            docker ps -a --format '{{.Names}}' | grep -q '^inatrace-nginx-proxy-acme$' && docker rm -f inatrace-nginx-proxy-acme || true
 
             # Asegurar red externa si es requerida por el compose
             docker network create inatrace-backend-network || true
@@ -176,7 +194,7 @@ jobs:
             # Health check with retry
             for i in {1..3}; do
               sleep 10
-              if curl -fsS https://${{ secrets.FRONTEND_DOMAIN }}/ > /dev/null 2>&1; then
+              if curl -fsS https://${{ secrets.FRONTEND_DOMAIN }}/health > /dev/null 2>&1; then
                 echo "Health check passed"
                 break
               elif [ $i -eq 3 ]; then
@@ -190,6 +208,5 @@ jobs:
               fi
             done
             
-            # Cleanup old images and containers
-            docker system prune -f --volumes
+            # Cleanup old images (safe)
             docker image prune -af --filter="until=24h"
