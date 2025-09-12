@@ -13,6 +13,8 @@ services:
       - html:/usr/share/nginx/html
       - certs:/etc/nginx/certs:ro
       - /var/run/docker.sock:/tmp/docker.sock:ro
+    labels:
+      - "com.github.nginx-proxy.nginx=true"
     networks:
       - frontend
     restart: always
@@ -25,6 +27,7 @@ services:
       - nginx-proxy
     environment:
       - DEFAULT_EMAIL=${LETSENCRYPT_EMAIL}
+      - NGINX_PROXY_CONTAINER=inatrace-nginx-proxy
     volumes:
       - certs:/etc/nginx/certs
       - vhost:/etc/nginx/vhost.d
