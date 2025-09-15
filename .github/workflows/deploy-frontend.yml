@@ -53,12 +53,12 @@ jobs:
           cache: 'npm'
           cache-dependency-path: './fe/package-lock.json'
 
-      - name: 📥 Install dependencies
+      - name: Install dependencies
         run: |
           cd fe
           npm ci
 
-      - name: 🔍 Lint code
+      - name: Lint code
         run: |
           cd fe
           npm run lint
