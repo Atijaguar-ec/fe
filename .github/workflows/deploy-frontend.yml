@@ -135,7 +135,6 @@ jobs:
     steps:
       - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
-      # (dev) No connection resolution needed; using DEV_* secrets directly
 
       - name: 📁 Ensure remote directory exists
         uses: appleboy/ssh-action@v1.0.0
@@ -187,166 +186,250 @@ jobs:
               exit 1
             fi
 
-  deploy-test:
-    name: 🧪 Deploy to Test Environments
+  deploy-test-unocace:
+    name: 🧪 Deploy to Unocace Test
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/staging'
-    strategy:
-      matrix:
-        company: [unocace, fortaleza, dufer]
     environment:
-      name: test-${{ matrix.company }}
-      url: https://inatrace-test.${{ matrix.company == 'unocace' && 'unocace.com' || matrix.company == 'fortaleza' && 'fortalezadelvalle.org' || 'empacadoradufer.com' }}
+      name: test-unocace
+      url: https://inatrace-test.unocace.com
     steps:
       - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
 
-      - name: 🔧 Resolve connection vars (test)
-        id: conn
-        shell: bash
-        run: |
-          set -e
-          company="${{ matrix.company }}"
-          if [ "$company" = "unocace" ]; then
-            echo "host=${{ secrets.TEST_UNOCACE_HOST }}" >> $GITHUB_OUTPUT
-            echo "user=${{ secrets.TEST_UNOCACE_USER }}" >> $GITHUB_OUTPUT
-            if [ -n "${{ secrets.TEST_UNOCACE_PORT }}" ]; then
-              echo "port=${{ secrets.TEST_UNOCACE_PORT }}" >> $GITHUB_OUTPUT
-            else
-              echo "port=22" >> $GITHUB_OUTPUT
-            fi
-            echo "key<<EOF" >> $GITHUB_OUTPUT
-            echo "${{ secrets.TEST_UNOCACE_SSH_KEY }}" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          elif [ "$company" = "fortaleza" ]; then
-            echo "host=${{ secrets.TEST_FORTALEZA_HOST }}" >> $GITHUB_OUTPUT
-            echo "user=${{ secrets.TEST_FORTALEZA_USER }}" >> $GITHUB_OUTPUT
-            if [ -n "${{ secrets.TEST_FORTALEZA_PORT }}" ]; then
-              echo "port=${{ secrets.TEST_FORTALEZA_PORT }}" >> $GITHUB_OUTPUT
-            else
-              echo "port=22" >> $GITHUB_OUTPUT
-            fi
-            echo "key<<EOF" >> $GITHUB_OUTPUT
-            echo "${{ secrets.TEST_FORTALEZA_SSH_KEY }}" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          else
-            echo "host=${{ secrets.TEST_DUFER_HOST }}" >> $GITHUB_OUTPUT
-            echo "user=${{ secrets.TEST_DUFER_USER }}" >> $GITHUB_OUTPUT
-            if [ -n "${{ secrets.TEST_DUFER_PORT }}" ]; then
-              echo "port=${{ secrets.TEST_DUFER_PORT }}" >> $GITHUB_OUTPUT
-            else
-              echo "port=22" >> $GITHUB_OUTPUT
-            fi
-            echo "key<<EOF" >> $GITHUB_OUTPUT
-            echo "${{ secrets.TEST_DUFER_SSH_KEY }}" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          fi
-
-      - name: 📁 Ensure remote directory exists (${{ matrix.company }})
+      - name: 📁 Ensure remote directory exists
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ steps.conn.outputs.host }}
-          username: ${{ steps.conn.outputs.user }}
-          key: ${{ steps.conn.outputs.key }}
-          port: ${{ steps.conn.outputs.port }}
+          host: ${{ secrets.TEST_UNOCACE_HOST }}
+          username: ${{ secrets.TEST_UNOCACE_USER }}
+          key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
+          port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           script: |
-            mkdir -p /srv/inatrace/frontend/test/${{ matrix.company }}
+            mkdir -p /srv/inatrace/frontend/test/unocace
 
-      - name: 📤 Upload docker-compose.yml (${{ matrix.company }})
+      - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ steps.conn.outputs.host }}
-          username: ${{ steps.conn.outputs.user }}
-          key: ${{ steps.conn.outputs.key }}
-          port: ${{ steps.conn.outputs.port }}
-          source: "deploy/frontend/test/${{ matrix.company }}/docker-compose.yml"
-          target: "/srv/inatrace/frontend/test/${{ matrix.company }}"
+          host: ${{ secrets.TEST_UNOCACE_HOST }}
+          username: ${{ secrets.TEST_UNOCACE_USER }}
+          key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
+          port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
+          source: "deploy/frontend/test/unocace/docker-compose.yml"
+          target: "/srv/inatrace/frontend/test/unocace"
 
-      - name: 🧪 Deploy to ${{ matrix.company }} Test
+      - name: 🧪 Deploy to Unocace Test
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ steps.conn.outputs.host }}
-          username: ${{ steps.conn.outputs.user }}
-          key: ${{ steps.conn.outputs.key }}
-          port: ${{ steps.conn.outputs.port }}
+          host: ${{ secrets.TEST_UNOCACE_HOST }}
+          username: ${{ secrets.TEST_UNOCACE_USER }}
+          key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
+          port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           script: |
             set -e
-            echo "🧪 Starting deployment to ${{ matrix.company }} Test..."
+            echo "🧪 Starting deployment to Unocace Test..."
 
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-            cd /srv/inatrace/frontend/test/${{ matrix.company }}
+            cd /srv/inatrace/frontend/test/unocace
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export TAG="${{ needs.build.outputs.image-tag }}"
-            export COMPANY="${{ matrix.company }}"
+            export COMPANY="unocace"
 
             # Ensure required networks exist
-            docker network inspect inatrace-frontend-${{ matrix.company }}-network >/dev/null 2>&1 || docker network create inatrace-frontend-${{ matrix.company }}-network
-            docker network inspect inatrace-backend-${{ matrix.company }}-network >/dev/null 2>&1 || docker network create inatrace-backend-${{ matrix.company }}-network
+            docker network inspect inatrace-frontend-unocace-network >/dev/null 2>&1 || docker network create inatrace-frontend-unocace-network
+            docker network inspect inatrace-backend-unocace-network >/dev/null 2>&1 || docker network create inatrace-backend-unocace-network
 
             docker compose pull
             docker compose up -d --remove-orphans
 
             sleep 15
-            HEALTH_URL="https://inatrace-test.${{ matrix.company == 'unocace' && 'unocace.com' || matrix.company == 'fortaleza' && 'fortalezadelvalle.org' || 'empacadoradufer.com' }}/health"
-            if curl -f "$HEALTH_URL"; then
-              echo "✅ Deployment to ${{ matrix.company }} successful!"
+            if curl -f "https://inatrace-test.unocace.com/health"; then
+              echo "✅ Deployment to Unocace successful!"
             else
-              echo "❌ Health check failed for ${{ matrix.company }}"
+              echo "❌ Health check failed for Unocace"
               exit 1
             fi
 
-  deploy-prod:
-    name: 🏭 Deploy to Production
+  deploy-test-fortaleza:
+    name: 🧪 Deploy to Fortaleza Test
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main'
-    strategy:
-      matrix:
-        company: [unocace, fortaleza, dufer]
+    if: github.ref == 'refs/heads/staging'
     environment:
-      name: prod-${{ matrix.company }}
-      url: https://inatrace.${{ matrix.company == 'unocace' && 'unocace.com' || matrix.company == 'fortaleza' && 'fortalezadelvalle.org' || 'empacadoradufer.com' }}
+      name: test-fortaleza
+      url: https://inatrace-test.fortalezadelvalle.org
     steps:
       - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
 
-      - name: 📁 Ensure remote directory exists (${{ matrix.company }})
+      - name: 📁 Ensure remote directory exists
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ steps.conn.outputs.host }}
-          username: ${{ steps.conn.outputs.user }}
-          key: ${{ steps.conn.outputs.key }}
-          port: ${{ steps.conn.outputs.port }}
+          host: ${{ secrets.TEST_FORTALEZA_HOST }}
+          username: ${{ secrets.TEST_FORTALEZA_USER }}
+          key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
+          port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
           script: |
-            mkdir -p /srv/inatrace/frontend/prod/${{ matrix.company }}
+            mkdir -p /srv/inatrace/frontend/test/fortaleza
 
-      - name: 📤 Upload docker-compose.yml (${{ matrix.company }})
+      - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ steps.conn.outputs.host }}
-          username: ${{ steps.conn.outputs.user }}
-          key: ${{ steps.conn.outputs.key }}
-          port: ${{ steps.conn.outputs.port }}
-          source: "deploy/frontend/prod/${{ matrix.company }}/docker-compose.yml"
-          target: "/srv/inatrace/frontend/prod/${{ matrix.company }}"
+          host: ${{ secrets.TEST_FORTALEZA_HOST }}
+          username: ${{ secrets.TEST_FORTALEZA_USER }}
+          key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
+          port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
+          source: "deploy/frontend/test/fortaleza/docker-compose.yml"
+          target: "/srv/inatrace/frontend/test/fortaleza"
 
-      - name: 🏭 Deploy to ${{ matrix.company }} Production
+      - name: 🧪 Deploy to Fortaleza Test
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ steps.conn.outputs.host }}
-          username: ${{ steps.conn.outputs.user }}
-          key: ${{ steps.conn.outputs.key }}
-          port: ${{ steps.conn.outputs.port }}
+          host: ${{ secrets.TEST_FORTALEZA_HOST }}
+          username: ${{ secrets.TEST_FORTALEZA_USER }}
+          key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
+          port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
           script: |
             set -e
-            echo "🏭 Starting deployment to ${{ matrix.company }} Production..."
+            echo "🧪 Starting deployment to Fortaleza Test..."
 
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-            cd /srv/inatrace/frontend/prod/${{ matrix.company }}
+            cd /srv/inatrace/frontend/test/fortaleza
+
+            export IMAGE_NAME="${{ env.IMAGE_NAME }}"
+            export TAG="${{ needs.build.outputs.image-tag }}"
+            export COMPANY="fortaleza"
+
+            # Ensure required networks exist
+            docker network inspect inatrace-frontend-fortaleza-network >/dev/null 2>&1 || docker network create inatrace-frontend-fortaleza-network
+            docker network inspect inatrace-backend-fortaleza-network >/dev/null 2>&1 || docker network create inatrace-backend-fortaleza-network
+
+            docker compose pull
+            docker compose up -d --remove-orphans
+
+            sleep 15
+            if curl -f "https://inatrace-test.fortalezadelvalle.org/health"; then
+              echo "✅ Deployment to Fortaleza successful!"
+            else
+              echo "❌ Health check failed for Fortaleza"
+              exit 1
+            fi
+
+  deploy-test-dufer:
+    name: 🧪 Deploy to Dufer Test
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/staging'
+    environment:
+      name: test-dufer
+      url: https://inatrace-test.empacadoradufer.com
+    steps:
+      - name: 📥 Checkout deployment configs
+        uses: actions/checkout@v4
+
+      - name: 📁 Ensure remote directory exists
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.TEST_DUFER_HOST }}
+          username: ${{ secrets.TEST_DUFER_USER }}
+          key: ${{ secrets.TEST_DUFER_SSH_KEY }}
+          port: ${{ secrets.TEST_DUFER_PORT || '22' }}
+          script: |
+            mkdir -p /srv/inatrace/frontend/test/dufer
+
+      - name: 📤 Upload docker-compose.yml
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.TEST_DUFER_HOST }}
+          username: ${{ secrets.TEST_DUFER_USER }}
+          key: ${{ secrets.TEST_DUFER_SSH_KEY }}
+          port: ${{ secrets.TEST_DUFER_PORT || '22' }}
+          source: "deploy/frontend/test/dufer/docker-compose.yml"
+          target: "/srv/inatrace/frontend/test/dufer"
+
+      - name: 🧪 Deploy to Dufer Test
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.TEST_DUFER_HOST }}
+          username: ${{ secrets.TEST_DUFER_USER }}
+          key: ${{ secrets.TEST_DUFER_SSH_KEY }}
+          port: ${{ secrets.TEST_DUFER_PORT || '22' }}
+          script: |
+            set -e
+            echo "🧪 Starting deployment to Dufer Test..."
+
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+            cd /srv/inatrace/frontend/test/dufer
+
+            export IMAGE_NAME="${{ env.IMAGE_NAME }}"
+            export TAG="${{ needs.build.outputs.image-tag }}"
+            export COMPANY="dufer"
+
+            # Ensure required networks exist
+            docker network inspect inatrace-frontend-dufer-network >/dev/null 2>&1 || docker network create inatrace-frontend-dufer-network
+            docker network inspect inatrace-backend-dufer-network >/dev/null 2>&1 || docker network create inatrace-backend-dufer-network
+
+            docker compose pull
+            docker compose up -d --remove-orphans
+
+            sleep 15
+            if curl -f "https://inatrace-test.empacadoradufer.com/health"; then
+              echo "✅ Deployment to Dufer successful!"
+            else
+              echo "❌ Health check failed for Dufer"
+              exit 1
+            fi
+
+  deploy-prod-unocace:
+    name: 🏭 Deploy to Unocace Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: prod-unocace
+      url: https://inatrace.unocace.com
+    steps:
+      - name: 📥 Checkout deployment configs
+        uses: actions/checkout@v4
+
+      - name: 📁 Ensure remote directory exists
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_UNOCACE_HOST }}
+          username: ${{ secrets.PROD_UNOCACE_USER }}
+          key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
+          port: ${{ secrets.PROD_UNOCACE_PORT || '22' }}
+          script: |
+            mkdir -p /srv/inatrace/frontend/prod/unocace
+
+      - name: 📤 Upload docker-compose.yml
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_UNOCACE_HOST }}
+          username: ${{ secrets.PROD_UNOCACE_USER }}
+          key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
+          port: ${{ secrets.PROD_UNOCACE_PORT || '22' }}
+          source: "deploy/frontend/prod/unocace/docker-compose.yml"
+          target: "/srv/inatrace/frontend/prod/unocace"
+
+      - name: 🏭 Deploy to Unocace Production
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_UNOCACE_HOST }}
+          username: ${{ secrets.PROD_UNOCACE_USER }}
+          key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
+          port: ${{ secrets.PROD_UNOCACE_PORT || '22' }}
+          script: |
+            set -e
+            echo "🏭 Starting deployment to Unocace Production..."
+
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+            cd /srv/inatrace/frontend/prod/unocace
 
             if docker compose ps -q inatrace-frontend; then
               echo "📦 Creating backup..."
@@ -355,22 +438,182 @@ jobs:
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export TAG="${{ needs.build.outputs.image-tag }}"
-            export COMPANY="${{ matrix.company }}"
+            export COMPANY="unocace"
 
             # Ensure required networks exist
-            docker network inspect inatrace-frontend-${{ matrix.company }}-network >/dev/null 2>&1 || docker network create inatrace-frontend-${{ matrix.company }}-network
-            docker network inspect inatrace-backend-${{ matrix.company }}-network >/dev/null 2>&1 || docker network create inatrace-backend-${{ matrix.company }}-network
+            docker network inspect inatrace-frontend-unocace-network >/dev/null 2>&1 || docker network create inatrace-frontend-unocace-network
+            docker network inspect inatrace-backend-unocace-network >/dev/null 2>&1 || docker network create inatrace-backend-unocace-network
 
             docker compose pull
             docker compose up -d --remove-orphans
 
             echo "🔍 Performing health checks..."
-            HEALTH_URL="https://inatrace.${{ matrix.company == 'unocace' && 'unocace.com' || matrix.company == 'fortaleza' && 'fortalezadelvalle.org' || 'empacadoradufer.com' }}/health"
-
             for i in {1..5}; do
               sleep 10
-              if curl -f "$HEALTH_URL"; then
-                echo "✅ Production deployment to ${{ matrix.company }} successful!"
+              if curl -f "https://inatrace.unocace.com/health"; then
+                echo "✅ Production deployment to Unocace successful!"
+                exit 0
+              fi
+              echo "⏳ Health check attempt $i/5 failed, retrying..."
+            done
+
+            echo "❌ Health check failed after 5 attempts"
+            echo "🔄 Rolling back..."
+            docker compose down
+            docker tag ${{ env.IMAGE_NAME }}:backup-$(date +%Y%m%d)* ${{ env.IMAGE_NAME }}:rollback
+            export TAG=rollback
+            docker compose up -d
+            exit 1
+
+  deploy-prod-fortaleza:
+    name: 🏭 Deploy to Fortaleza Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: prod-fortaleza
+      url: https://inatrace.fortalezadelvalle.org
+    steps:
+      - name: 📥 Checkout deployment configs
+        uses: actions/checkout@v4
+
+      - name: 📁 Ensure remote directory exists
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_FORTALEZA_HOST }}
+          username: ${{ secrets.PROD_FORTALEZA_USER }}
+          key: ${{ secrets.PROD_FORTALEZA_SSH_KEY }}
+          port: ${{ secrets.PROD_FORTALEZA_PORT || '22' }}
+          script: |
+            mkdir -p /srv/inatrace/frontend/prod/fortaleza
+
+      - name: 📤 Upload docker-compose.yml
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_FORTALEZA_HOST }}
+          username: ${{ secrets.PROD_FORTALEZA_USER }}
+          key: ${{ secrets.PROD_FORTALEZA_SSH_KEY }}
+          port: ${{ secrets.PROD_FORTALEZA_PORT || '22' }}
+          source: "deploy/frontend/prod/fortaleza/docker-compose.yml"
+          target: "/srv/inatrace/frontend/prod/fortaleza"
+
+      - name: 🏭 Deploy to Fortaleza Production
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_FORTALEZA_HOST }}
+          username: ${{ secrets.PROD_FORTALEZA_USER }}
+          key: ${{ secrets.PROD_FORTALEZA_SSH_KEY }}
+          port: ${{ secrets.PROD_FORTALEZA_PORT || '22' }}
+          script: |
+            set -e
+            echo "🏭 Starting deployment to Fortaleza Production..."
+
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+            cd /srv/inatrace/frontend/prod/fortaleza
+
+            if docker compose ps -q inatrace-frontend; then
+              echo "📦 Creating backup..."
+              docker tag $(docker compose images -q inatrace-frontend) ${{ env.IMAGE_NAME }}:backup-$(date +%Y%m%d-%H%M%S)
+            fi
+
+            export IMAGE_NAME="${{ env.IMAGE_NAME }}"
+            export TAG="${{ needs.build.outputs.image-tag }}"
+            export COMPANY="fortaleza"
+
+            # Ensure required networks exist
+            docker network inspect inatrace-frontend-fortaleza-network >/dev/null 2>&1 || docker network create inatrace-frontend-fortaleza-network
+            docker network inspect inatrace-backend-fortaleza-network >/dev/null 2>&1 || docker network create inatrace-backend-fortaleza-network
+
+            docker compose pull
+            docker compose up -d --remove-orphans
+
+            echo "🔍 Performing health checks..."
+            for i in {1..5}; do
+              sleep 10
+              if curl -f "https://inatrace.fortalezadelvalle.org/health"; then
+                echo "✅ Production deployment to Fortaleza successful!"
+                exit 0
+              fi
+              echo "⏳ Health check attempt $i/5 failed, retrying..."
+            done
+
+            echo "❌ Health check failed after 5 attempts"
+            echo "🔄 Rolling back..."
+            docker compose down
+            docker tag ${{ env.IMAGE_NAME }}:backup-$(date +%Y%m%d)* ${{ env.IMAGE_NAME }}:rollback
+            export TAG=rollback
+            docker compose up -d
+            exit 1
+
+  deploy-prod-dufer:
+    name: 🏭 Deploy to Dufer Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: prod-dufer
+      url: https://inatrace.empacadoradufer.com
+    steps:
+      - name: 📥 Checkout deployment configs
+        uses: actions/checkout@v4
+
+      - name: 📁 Ensure remote directory exists
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_DUFER_HOST }}
+          username: ${{ secrets.PROD_DUFER_USER }}
+          key: ${{ secrets.PROD_DUFER_SSH_KEY }}
+          port: ${{ secrets.PROD_DUFER_PORT || '22' }}
+          script: |
+            mkdir -p /srv/inatrace/frontend/prod/dufer
+
+      - name: 📤 Upload docker-compose.yml
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_DUFER_HOST }}
+          username: ${{ secrets.PROD_DUFER_USER }}
+          key: ${{ secrets.PROD_DUFER_SSH_KEY }}
+          port: ${{ secrets.PROD_DUFER_PORT || '22' }}
+          source: "deploy/frontend/prod/dufer/docker-compose.yml"
+          target: "/srv/inatrace/frontend/prod/dufer"
+
+      - name: 🏭 Deploy to Dufer Production
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_DUFER_HOST }}
+          username: ${{ secrets.PROD_DUFER_USER }}
+          key: ${{ secrets.PROD_DUFER_SSH_KEY }}
+          port: ${{ secrets.PROD_DUFER_PORT || '22' }}
+          script: |
+            set -e
+            echo "🏭 Starting deployment to Dufer Production..."
+
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+            cd /srv/inatrace/frontend/prod/dufer
+
+            if docker compose ps -q inatrace-frontend; then
+              echo "📦 Creating backup..."
+              docker tag $(docker compose images -q inatrace-frontend) ${{ env.IMAGE_NAME }}:backup-$(date +%Y%m%d-%H%M%S)
+            fi
+
+            export IMAGE_NAME="${{ env.IMAGE_NAME }}"
+            export TAG="${{ needs.build.outputs.image-tag }}"
+            export COMPANY="dufer"
+
+            # Ensure required networks exist
+            docker network inspect inatrace-frontend-dufer-network >/dev/null 2>&1 || docker network create inatrace-frontend-dufer-network
+            docker network inspect inatrace-backend-dufer-network >/dev/null 2>&1 || docker network create inatrace-backend-dufer-network
+
+            docker compose pull
+            docker compose up -d --remove-orphans
+
+            echo "🔍 Performing health checks..."
+            for i in {1..5}; do
+              sleep 10
+              if curl -f "https://inatrace.empacadoradufer.com/health"; then
+                echo "✅ Production deployment to Dufer successful!"
                 exit 0
               fi
               echo "⏳ Health check attempt $i/5 failed, retrying..."
@@ -387,18 +630,18 @@ jobs:
   notify:
     name: 📊 Notify Deployment Status
     runs-on: ubuntu-latest
-    needs: [deploy-dev, deploy-test, deploy-prod]
-    if: always() && (needs.deploy-dev.result != 'skipped' || needs.deploy-test.result != 'skipped' || needs.deploy-prod.result != 'skipped')
+    needs: [deploy-dev, deploy-test-unocace, deploy-test-fortaleza, deploy-test-dufer, deploy-prod-unocace, deploy-prod-fortaleza, deploy-prod-dufer]
+    if: always() && (needs.deploy-dev.result != 'skipped' || needs.deploy-test-unocace.result != 'skipped' || needs.deploy-test-fortaleza.result != 'skipped' || needs.deploy-test-dufer.result != 'skipped' || needs.deploy-prod-unocace.result != 'skipped' || needs.deploy-prod-fortaleza.result != 'skipped' || needs.deploy-prod-dufer.result != 'skipped')
     steps:
       - name: 📊 Send notification
         run: |
           if [[ "${{ needs.deploy-dev.result }}" == "success" ]]; then
             echo "✅ Development deployment successful"
           fi
-          if [[ "${{ needs.deploy-test.result }}" == "success" ]]; then
+          if [[ "${{ needs.deploy-test-unocace.result }}" == "success" && "${{ needs.deploy-test-fortaleza.result }}" == "success" && "${{ needs.deploy-test-dufer.result }}" == "success" ]]; then
             echo "✅ Test environments deployment successful"
           fi
-          if [[ "${{ needs.deploy-prod.result }}" == "success" ]]; then
+          if [[ "${{ needs.deploy-prod-unocace.result }}" == "success" && "${{ needs.deploy-prod-fortaleza.result }}" == "success" && "${{ needs.deploy-prod-dufer.result }}" == "success" ]]; then
             echo "✅ Production deployment successful"
           fi
 
