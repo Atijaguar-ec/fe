@@ -25,8 +25,27 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ['Chrome'],
+    // Define a CI-friendly ChromeHeadless launcher
+    customLaunchers: {
+      ChromeHeadlessCI: {
+        base: 'ChromeHeadless',
+        flags: [
+          '--no-sandbox',
+          '--disable-gpu',
+          '--disable-dev-shm-usage',
+          '--disable-software-rasterizer',
+          '--headless',
+          '--remote-debugging-port=9222'
+        ]
+      }
+    },
+    browsers: ['ChromeHeadlessCI'],
+    // Increase timeouts to avoid disconnections in CI
+    browserNoActivityTimeout: 60000,
+    browserDisconnectTimeout: 60000,
+    captureTimeout: 120000,
     singleRun: false,
     restartOnFileChange: true
   });
 };
+
