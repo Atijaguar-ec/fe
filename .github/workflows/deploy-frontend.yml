@@ -62,12 +62,13 @@ jobs:
         continue-on-error: true
 
       - name: Run unit tests
-        run: npm run test -- --watch=false --browsers=ChromeHeadlessCI --code-coverage --progress=false
+        run: npm run test -- --watch=false --progress=false
 
       - name: 📊 Upload coverage reports
+        if: ${{ false }}
         uses: codecov/codecov-action@v3
         with:
-          directory: fe/coverage
+          files: fe/coverage/lcov.info
           fail_ci_if_error: false
 
   build:

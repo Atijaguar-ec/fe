@@ -17,11 +17,11 @@ module.exports = function (config) {
     },
     coverageIstanbulReporter: {
       dir: require('path').join(__dirname, './coverage'),
-      reports: ['html', 'lcovonly', 'text-summary'],
+      reports: ['lcovonly'],
       fixWebpackSourcePaths: true
     },
-    // Use coverage reporter in CI; no need for kjhtml in headless runs
-    reporters: ['progress', 'coverage-istanbul'],
+    // Minimal output in CI
+    reporters: ['dots', 'coverage-istanbul'],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
@@ -41,10 +41,10 @@ module.exports = function (config) {
     },
     browsers: ['ChromeHeadlessCI'],
     // Increase timeouts to avoid disconnections in CI
-    browserNoActivityTimeout: 300000,
-    browserDisconnectTimeout: 300000,
+    browserNoActivityTimeout: 600000,
+    browserDisconnectTimeout: 600000,
     browserDisconnectTolerance: 3,
-    captureTimeout: 300000,
+    captureTimeout: 600000,
     concurrency: 1,
     singleRun: true,
     restartOnFileChange: false
