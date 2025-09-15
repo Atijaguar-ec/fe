@@ -46,32 +46,23 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: Debug
-        run: |
-          ls -la
 
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
+          cache-dependency-path: 'package-lock.json'
 
       - name: Install dependencies
-        run: |
-          cd fe
-          npm ci
+        run: npm ci
 
       - name: Lint code
-        run: |
-          cd fe
-          npm run lint
+        run: npm run lint
         continue-on-error: true
 
-      - name: 🧪 Run unit tests
-        run: |
-          cd fe
-          npm run test -- --watch=false --browsers=ChromeHeadless --code-coverage
+      - name: Run unit tests
+        run: npm run test -- --watch=false --browsers=ChromeHeadless --code-coverage
 
       - name: 📊 Upload coverage reports
         uses: codecov/codecov-action@v3
