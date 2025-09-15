@@ -135,6 +135,7 @@ jobs:
     steps:
       - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
+      # (dev) No connection resolution needed; using DEV_* secrets directly
 
       - name: 📁 Ensure remote directory exists
         uses: appleboy/ssh-action@v1.0.0
@@ -142,7 +143,6 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
-          port: ${{ secrets.DEV_PORT || 22 }}
           script: |
             mkdir -p /srv/inatrace/frontend/dev
 
@@ -152,7 +152,6 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
-          port: ${{ secrets.DEV_PORT || 22 }}
           source: "deploy/frontend/dev/docker-compose.yml"
           target: "/srv/inatrace/frontend/dev"
 
@@ -162,7 +161,6 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
-          port: ${{ secrets.DEV_PORT || 22 }}
           script: |
             set -e
             echo "🚀 Starting deployment to Development..."
@@ -204,33 +202,74 @@ jobs:
       - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
 
+      - name: 🔧 Resolve connection vars (test)
+        id: conn
+        shell: bash
+        run: |
+          set -e
+          company="${{ matrix.company }}"
+          if [ "$company" = "unocace" ]; then
+            echo "host=${{ secrets.TEST_UNOCACE_HOST }}" >> $GITHUB_OUTPUT
+            echo "user=${{ secrets.TEST_UNOCACE_USER }}" >> $GITHUB_OUTPUT
+            if [ -n "${{ secrets.TEST_UNOCACE_PORT }}" ]; then
+              echo "port=${{ secrets.TEST_UNOCACE_PORT }}" >> $GITHUB_OUTPUT
+            else
+              echo "port=22" >> $GITHUB_OUTPUT
+            fi
+            echo "key<<EOF" >> $GITHUB_OUTPUT
+            echo "${{ secrets.TEST_UNOCACE_SSH_KEY }}" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          elif [ "$company" = "fortaleza" ]; then
+            echo "host=${{ secrets.TEST_FORTALEZA_HOST }}" >> $GITHUB_OUTPUT
+            echo "user=${{ secrets.TEST_FORTALEZA_USER }}" >> $GITHUB_OUTPUT
+            if [ -n "${{ secrets.TEST_FORTALEZA_PORT }}" ]; then
+              echo "port=${{ secrets.TEST_FORTALEZA_PORT }}" >> $GITHUB_OUTPUT
+            else
+              echo "port=22" >> $GITHUB_OUTPUT
+            fi
+            echo "key<<EOF" >> $GITHUB_OUTPUT
+            echo "${{ secrets.TEST_FORTALEZA_SSH_KEY }}" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "host=${{ secrets.TEST_DUFER_HOST }}" >> $GITHUB_OUTPUT
+            echo "user=${{ secrets.TEST_DUFER_USER }}" >> $GITHUB_OUTPUT
+            if [ -n "${{ secrets.TEST_DUFER_PORT }}" ]; then
+              echo "port=${{ secrets.TEST_DUFER_PORT }}" >> $GITHUB_OUTPUT
+            else
+              echo "port=22" >> $GITHUB_OUTPUT
+            fi
+            echo "key<<EOF" >> $GITHUB_OUTPUT
+            echo "${{ secrets.TEST_DUFER_SSH_KEY }}" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
       - name: 📁 Ensure remote directory exists (${{ matrix.company }})
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets[format('TEST_{0}_HOST', upper(matrix.company))] }}
-          username: ${{ secrets[format('TEST_{0}_USER', upper(matrix.company))] }}
-          key: ${{ secrets[format('TEST_{0}_SSH_KEY', upper(matrix.company))] }}
-          port: ${{ secrets[format('TEST_{0}_PORT', upper(matrix.company))] || 22 }}
+          host: ${{ steps.conn.outputs.host }}
+          username: ${{ steps.conn.outputs.user }}
+          key: ${{ steps.conn.outputs.key }}
+          port: ${{ steps.conn.outputs.port }}
           script: |
             mkdir -p /srv/inatrace/frontend/test/${{ matrix.company }}
 
       - name: 📤 Upload docker-compose.yml (${{ matrix.company }})
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets[format('TEST_{0}_HOST', upper(matrix.company))] }}
-          username: ${{ secrets[format('TEST_{0}_USER', upper(matrix.company))] }}
-          key: ${{ secrets[format('TEST_{0}_SSH_KEY', upper(matrix.company))] }}
-          port: ${{ secrets[format('TEST_{0}_PORT', upper(matrix.company))] || 22 }}
+          host: ${{ steps.conn.outputs.host }}
+          username: ${{ steps.conn.outputs.user }}
+          key: ${{ steps.conn.outputs.key }}
+          port: ${{ steps.conn.outputs.port }}
           source: "deploy/frontend/test/${{ matrix.company }}/docker-compose.yml"
           target: "/srv/inatrace/frontend/test/${{ matrix.company }}"
 
       - name: 🧪 Deploy to ${{ matrix.company }} Test
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets[format('TEST_{0}_HOST', upper(matrix.company))] }}
-          username: ${{ secrets[format('TEST_{0}_USER', upper(matrix.company))] }}
-          key: ${{ secrets[format('TEST_{0}_SSH_KEY', upper(matrix.company))] }}
-          port: ${{ secrets[format('TEST_{0}_PORT', upper(matrix.company))] || 22 }}
+          host: ${{ steps.conn.outputs.host }}
+          username: ${{ steps.conn.outputs.user }}
+          key: ${{ steps.conn.outputs.key }}
+          port: ${{ steps.conn.outputs.port }}
           script: |
             set -e
             echo "🧪 Starting deployment to ${{ matrix.company }} Test..."
@@ -277,30 +316,30 @@ jobs:
       - name: 📁 Ensure remote directory exists (${{ matrix.company }})
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets[format('PROD_{0}_HOST', upper(matrix.company))] }}
-          username: ${{ secrets[format('PROD_{0}_USER', upper(matrix.company))] }}
-          key: ${{ secrets[format('PROD_{0}_SSH_KEY', upper(matrix.company))] }}
-          port: ${{ secrets[format('PROD_{0}_PORT', upper(matrix.company))] || 22 }}
+          host: ${{ steps.conn.outputs.host }}
+          username: ${{ steps.conn.outputs.user }}
+          key: ${{ steps.conn.outputs.key }}
+          port: ${{ steps.conn.outputs.port }}
           script: |
             mkdir -p /srv/inatrace/frontend/prod/${{ matrix.company }}
 
       - name: 📤 Upload docker-compose.yml (${{ matrix.company }})
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets[format('PROD_{0}_HOST', upper(matrix.company))] }}
-          username: ${{ secrets[format('PROD_{0}_USER', upper(matrix.company))] }}
-          key: ${{ secrets[format('PROD_{0}_SSH_KEY', upper(matrix.company))] }}
-          port: ${{ secrets[format('PROD_{0}_PORT', upper(matrix.company))] || 22 }}
+          host: ${{ steps.conn.outputs.host }}
+          username: ${{ steps.conn.outputs.user }}
+          key: ${{ steps.conn.outputs.key }}
+          port: ${{ steps.conn.outputs.port }}
           source: "deploy/frontend/prod/${{ matrix.company }}/docker-compose.yml"
           target: "/srv/inatrace/frontend/prod/${{ matrix.company }}"
 
       - name: 🏭 Deploy to ${{ matrix.company }} Production
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets[format('PROD_{0}_HOST', upper(matrix.company))] }}
-          username: ${{ secrets[format('PROD_{0}_USER', upper(matrix.company))] }}
-          key: ${{ secrets[format('PROD_{0}_SSH_KEY', upper(matrix.company))] }}
-          port: ${{ secrets[format('PROD_{0}_PORT', upper(matrix.company))] || 22 }}
+          host: ${{ steps.conn.outputs.host }}
+          username: ${{ steps.conn.outputs.user }}
+          key: ${{ steps.conn.outputs.key }}
+          port: ${{ steps.conn.outputs.port }}
           script: |
             set -e
             echo "🏭 Starting deployment to ${{ matrix.company }} Production..."
