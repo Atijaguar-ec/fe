@@ -71,10 +71,8 @@ jobs:
 
       - name: 📊 Upload coverage reports
         uses: codecov/codecov-action@v3
-        # run the action from the fe directory and point to the coverage folder inside it
-        working-directory: fe
         with:
-          directory: coverage
+          directory: fe/coverage
           fail_ci_if_error: false
 
   build:
