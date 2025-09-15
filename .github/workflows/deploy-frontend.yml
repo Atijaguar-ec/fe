@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./fe
+        working-directory: fe
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
