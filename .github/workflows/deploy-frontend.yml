@@ -51,7 +51,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: 'fe/package-lock.json'
+          cache-dependency-path: './fe/package-lock.json'
 
       - name: 📥 Install dependencies
         run: |
@@ -71,8 +71,10 @@ jobs:
 
       - name: 📊 Upload coverage reports
         uses: codecov/codecov-action@v3
+        # run the action from the fe directory and point to the coverage folder inside it
+        working-directory: fe
         with:
-          directory: fe/coverage
+          directory: coverage
           fail_ci_if_error: false
 
   build:
