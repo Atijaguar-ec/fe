@@ -108,11 +108,22 @@ jobs:
         with:
           context: .
           push: false
+          load: true
           tags: ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
             BUILD_OPTIMIZATION=true
+
+      - name: 📦 Save Docker image as tar
+        run: docker save ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }} -o image.tar
+
+      - name: 📤 Upload image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fe-image
+          path: image.tar
+          if-no-files-found: error
 
       - name: 🔒 Sign image with Cosign
         uses: sigstore/cosign-installer@v3
@@ -140,13 +151,46 @@ jobs:
           script: |
             mkdir -p /srv/inatrace/frontend/dev
 
+      - name: 📝 Generate docker-compose.yml
+        run: |
+          cat > docker-compose.yml <<'EOF'
+          version: '3.8'
+          services:
+            inatrace-frontend:
+              image: ${IMAGE_NAME}:${TAG}
+              container_name: inatrace-frontend
+              ports:
+                - "8081:80"
+              networks:
+                - inatrace-frontend-network
+              restart: always
+          networks:
+            inatrace-frontend-network:
+              external: true
+          EOF
+
+      - name: 📥 Download image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: fe-image
+          path: .
+
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
-          source: "deploy/frontend/dev/docker-compose.yml"
+          source: "docker-compose.yml"
+          target: "/srv/inatrace/frontend/dev"
+
+      - name: 📤 Upload image tar
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          source: "image.tar"
           target: "/srv/inatrace/frontend/dev"
 
       - name: 🚀 Deploy to Development Server
@@ -164,11 +208,12 @@ jobs:
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export TAG="${{ needs.build.outputs.image-tag }}"
 
+            docker load -i image.tar
+
             # Ensure required networks exist
             docker network inspect inatrace-frontend-network >/dev/null 2>&1 || docker network create inatrace-frontend-network
             docker network inspect inatrace-backend-network >/dev/null 2>&1 || docker network create inatrace-backend-network
 
-            docker compose pull
             docker compose up -d --remove-orphans
 
             sleep 10
@@ -201,6 +246,30 @@ jobs:
           script: |
             mkdir -p /srv/inatrace/frontend/test/unocace
 
+      - name: 📝 Generate docker-compose.yml (unocace)
+        run: |
+          cat > docker-compose.yml <<'EOF'
+          version: '3.8'
+          services:
+            inatrace-frontend:
+              image: ${IMAGE_NAME}:${TAG}
+              container_name: inatrace-frontend
+              ports:
+                - "8081:80"
+              networks:
+                - inatrace-frontend-unocace-network
+              restart: always
+          networks:
+            inatrace-frontend-unocace-network:
+              external: true
+          EOF
+
+      - name: 📥 Download image artifact (unocace)
+        uses: actions/download-artifact@v4
+        with:
+          name: fe-image
+          path: .
+
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -208,7 +277,17 @@ jobs:
           username: ${{ secrets.TEST_UNOCACE_USER }}
           key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
           port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
-          source: "deploy/frontend/test/unocace/docker-compose.yml"
+          source: "docker-compose.yml"
+          target: "/srv/inatrace/frontend/test/unocace"
+
+      - name: 📤 Upload image tar (unocace)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.TEST_UNOCACE_HOST }}
+          username: ${{ secrets.TEST_UNOCACE_USER }}
+          key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
+          port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
+          source: "image.tar"
           target: "/srv/inatrace/frontend/test/unocace"
 
       - name: 🧪 Deploy to Unocace Test
@@ -228,11 +307,13 @@ jobs:
             export TAG="${{ needs.build.outputs.image-tag }}"
             export COMPANY="unocace"
 
+            docker load -i image.tar
+
             # Ensure required networks exist
             docker network inspect inatrace-frontend-unocace-network >/dev/null 2>&1 || docker network create inatrace-frontend-unocace-network
             docker network inspect inatrace-backend-unocace-network >/dev/null 2>&1 || docker network create inatrace-backend-unocace-network
 
-            docker compose pull
+            # skipped: docker compose pull (image is loaded locally)
             docker compose up -d --remove-orphans
 
             sleep 15
@@ -265,6 +346,30 @@ jobs:
           script: |
             mkdir -p /srv/inatrace/frontend/test/fortaleza
 
+      - name: 📝 Generate docker-compose.yml (fortaleza)
+        run: |
+          cat > docker-compose.yml <<'EOF'
+          version: '3.8'
+          services:
+            inatrace-frontend:
+              image: ${IMAGE_NAME}:${TAG}
+              container_name: inatrace-frontend
+              ports:
+                - "8081:80"
+              networks:
+                - inatrace-frontend-fortaleza-network
+              restart: always
+          networks:
+            inatrace-frontend-fortaleza-network:
+              external: true
+          EOF
+
+      - name: 📥 Download image artifact (fortaleza)
+        uses: actions/download-artifact@v4
+        with:
+          name: fe-image
+          path: .
+
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -272,7 +377,17 @@ jobs:
           username: ${{ secrets.TEST_FORTALEZA_USER }}
           key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
-          source: "deploy/frontend/test/fortaleza/docker-compose.yml"
+          source: "docker-compose.yml"
+          target: "/srv/inatrace/frontend/test/fortaleza"
+
+      - name: 📤 Upload image tar (fortaleza)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.TEST_FORTALEZA_HOST }}
+          username: ${{ secrets.TEST_FORTALEZA_USER }}
+          key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
+          port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
+          source: "image.tar"
           target: "/srv/inatrace/frontend/test/fortaleza"
 
       - name: 🧪 Deploy to Fortaleza Test
@@ -291,6 +406,8 @@ jobs:
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export TAG="${{ needs.build.outputs.image-tag }}"
             export COMPANY="fortaleza"
+
+            docker load -i image.tar
 
             # Ensure required networks exist
             docker network inspect inatrace-frontend-fortaleza-network >/dev/null 2>&1 || docker network create inatrace-frontend-fortaleza-network
@@ -329,6 +446,30 @@ jobs:
           script: |
             mkdir -p /srv/inatrace/frontend/test/dufer
 
+      - name: 📝 Generate docker-compose.yml (dufer)
+        run: |
+          cat > docker-compose.yml <<'EOF'
+          version: '3.8'
+          services:
+            inatrace-frontend:
+              image: ${IMAGE_NAME}:${TAG}
+              container_name: inatrace-frontend
+              ports:
+                - "8081:80"
+              networks:
+                - inatrace-frontend-dufer-network
+              restart: always
+          networks:
+            inatrace-frontend-dufer-network:
+              external: true
+          EOF
+
+      - name: 📥 Download image artifact (dufer)
+        uses: actions/download-artifact@v4
+        with:
+          name: fe-image
+          path: .
+
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -336,7 +477,17 @@ jobs:
           username: ${{ secrets.TEST_DUFER_USER }}
           key: ${{ secrets.TEST_DUFER_SSH_KEY }}
           port: ${{ secrets.TEST_DUFER_PORT || '22' }}
-          source: "deploy/frontend/test/dufer/docker-compose.yml"
+          source: "docker-compose.yml"
+          target: "/srv/inatrace/frontend/test/dufer"
+
+      - name: 📤 Upload image tar (dufer)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.TEST_DUFER_HOST }}
+          username: ${{ secrets.TEST_DUFER_USER }}
+          key: ${{ secrets.TEST_DUFER_SSH_KEY }}
+          port: ${{ secrets.TEST_DUFER_PORT || '22' }}
+          source: "image.tar"
           target: "/srv/inatrace/frontend/test/dufer"
 
       - name: 🧪 Deploy to Dufer Test
@@ -355,6 +506,8 @@ jobs:
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export TAG="${{ needs.build.outputs.image-tag }}"
             export COMPANY="dufer"
+
+            docker load -i image.tar
 
             # Ensure required networks exist
             docker network inspect inatrace-frontend-dufer-network >/dev/null 2>&1 || docker network create inatrace-frontend-dufer-network
@@ -393,6 +546,31 @@ jobs:
           script: |
             mkdir -p /srv/inatrace/frontend/prod/unocace
 
+      - name: 📝 Generate docker-compose.yml (prod unocace)
+        run: |
+          cat > docker-compose.yml <<'EOF'
+          version: '3.8'
+          services:
+            inatrace-frontend:
+              image: ${IMAGE_NAME}:${TAG}
+              container_name: inatrace-frontend
+              pull_policy: never
+              ports:
+                - "8081:80"
+              networks:
+                - inatrace-frontend-unocace-network
+              restart: always
+          networks:
+            inatrace-frontend-unocace-network:
+              external: true
+          EOF
+
+      - name: 📥 Download image artifact (prod unocace)
+        uses: actions/download-artifact@v4
+        with:
+          name: fe-image
+          path: .
+
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -400,7 +578,17 @@ jobs:
           username: ${{ secrets.PROD_UNOCACE_USER }}
           key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
           port: ${{ secrets.PROD_UNOCACE_PORT || '22' }}
-          source: "deploy/frontend/prod/unocace/docker-compose.yml"
+          source: "docker-compose.yml"
+          target: "/srv/inatrace/frontend/prod/unocace"
+
+      - name: 📤 Upload image tar (prod unocace)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_UNOCACE_HOST }}
+          username: ${{ secrets.PROD_UNOCACE_USER }}
+          key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
+          port: ${{ secrets.PROD_UNOCACE_PORT || '22' }}
+          source: "image.tar"
           target: "/srv/inatrace/frontend/prod/unocace"
 
       - name: 🏭 Deploy to Unocace Production
@@ -472,6 +660,31 @@ jobs:
           script: |
             mkdir -p /srv/inatrace/frontend/prod/fortaleza
 
+      - name: 📝 Generate docker-compose.yml (prod fortaleza)
+        run: |
+          cat > docker-compose.yml <<'EOF'
+          version: '3.8'
+          services:
+            inatrace-frontend:
+              image: ${IMAGE_NAME}:${TAG}
+              container_name: inatrace-frontend
+              pull_policy: never
+              ports:
+                - "8081:80"
+              networks:
+                - inatrace-frontend-fortaleza-network
+              restart: always
+          networks:
+            inatrace-frontend-fortaleza-network:
+              external: true
+          EOF
+
+      - name: 📥 Download image artifact (prod fortaleza)
+        uses: actions/download-artifact@v4
+        with:
+          name: fe-image
+          path: .
+
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -479,7 +692,17 @@ jobs:
           username: ${{ secrets.PROD_FORTALEZA_USER }}
           key: ${{ secrets.PROD_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.PROD_FORTALEZA_PORT || '22' }}
-          source: "deploy/frontend/prod/fortaleza/docker-compose.yml"
+          source: "docker-compose.yml"
+          target: "/srv/inatrace/frontend/prod/fortaleza"
+
+      - name: 📤 Upload image tar (prod fortaleza)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_FORTALEZA_HOST }}
+          username: ${{ secrets.PROD_FORTALEZA_USER }}
+          key: ${{ secrets.PROD_FORTALEZA_SSH_KEY }}
+          port: ${{ secrets.PROD_FORTALEZA_PORT || '22' }}
+          source: "image.tar"
           target: "/srv/inatrace/frontend/prod/fortaleza"
 
       - name: 🏭 Deploy to Fortaleza Production
@@ -551,6 +774,31 @@ jobs:
           script: |
             mkdir -p /srv/inatrace/frontend/prod/dufer
 
+      - name: 📝 Generate docker-compose.yml (prod dufer)
+        run: |
+          cat > docker-compose.yml <<'EOF'
+          version: '3.8'
+          services:
+            inatrace-frontend:
+              image: ${IMAGE_NAME}:${TAG}
+              container_name: inatrace-frontend
+              pull_policy: never
+              ports:
+                - "8081:80"
+              networks:
+                - inatrace-frontend-dufer-network
+              restart: always
+          networks:
+            inatrace-frontend-dufer-network:
+              external: true
+          EOF
+
+      - name: 📥 Download image artifact (prod dufer)
+        uses: actions/download-artifact@v4
+        with:
+          name: fe-image
+          path: .
+
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -558,7 +806,17 @@ jobs:
           username: ${{ secrets.PROD_DUFER_USER }}
           key: ${{ secrets.PROD_DUFER_SSH_KEY }}
           port: ${{ secrets.PROD_DUFER_PORT || '22' }}
-          source: "deploy/frontend/prod/dufer/docker-compose.yml"
+          source: "docker-compose.yml"
+          target: "/srv/inatrace/frontend/prod/dufer"
+
+      - name: 📤 Upload image tar (prod dufer)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_DUFER_HOST }}
+          username: ${{ secrets.PROD_DUFER_USER }}
+          key: ${{ secrets.PROD_DUFER_SSH_KEY }}
+          port: ${{ secrets.PROD_DUFER_PORT || '22' }}
+          source: "image.tar"
           target: "/srv/inatrace/frontend/prod/dufer"
 
       - name: 🏭 Deploy to Dufer Production
