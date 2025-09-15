@@ -87,7 +87,7 @@ jobs:
         id: meta
         run: |
           if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
-            VERSION=$(grep -m1 '"version":' fe/package.json | sed -E 's/.*"([0-9.]+)".*/\1/')
+            VERSION=$(grep -m1 '"version":' package.json | sed -E 's/.*"([0-9.]+)".*/\1/')
             TAG="v${VERSION}"
           elif [[ "${GITHUB_REF_NAME}" == "staging" ]]; then
             TAG="test-${GITHUB_SHA::7}"
@@ -106,7 +106,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v5
         with:
-          context: ./fe
+          context: .
           push: false
           tags: ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}
           cache-from: type=gha
