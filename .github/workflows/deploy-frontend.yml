@@ -42,9 +42,6 @@ jobs:
   quality:
     name: 🔍 Code Quality & Tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: fe
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -58,18 +55,21 @@ jobs:
 
       - name: 📥 Install dependencies
         run: npm ci
+        working-directory: fe
 
       - name: 🔍 Lint code
         run: npm run lint
+        working-directory: fe
         continue-on-error: true
 
       - name: 🧪 Run unit tests
         run: npm run test -- --watch=false --browsers=ChromeHeadless --code-coverage
+        working-directory: fe
 
       - name: 📊 Upload coverage reports
         uses: codecov/codecov-action@v3
         with:
-          directory: ./fe/coverage
+          directory: fe/coverage
           fail_ci_if_error: false
 
   build:
