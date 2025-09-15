@@ -62,7 +62,7 @@ jobs:
         continue-on-error: true
 
       - name: Run unit tests
-        run: npx --openssl-legacy-provider ng test --watch=false --browsers=ChromeHeadlessCI --code-coverage --progress=false
+        run: npm run test -- --watch=false --browsers=ChromeHeadlessCI --code-coverage --progress=false
 
       - name: 📊 Upload coverage reports
         uses: codecov/codecov-action@v3
