@@ -35,9 +35,6 @@ on:
         - dufer
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ghcr.io/atijaguar-ec/inatrace-frontend
-  NODE_VERSION: '14'
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/inatrace-frontend
   NODE_VERSION: '14'
 
@@ -139,6 +136,26 @@ jobs:
       - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
 
+      - name: 📁 Ensure remote directory exists
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          port: ${{ secrets.DEV_PORT || 22 }}
+          script: |
+            mkdir -p /srv/inatrace/frontend/dev
+
+      - name: 📤 Upload docker-compose.yml
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          port: ${{ secrets.DEV_PORT || 22 }}
+          source: "deploy/frontend/dev/docker-compose.yml"
+          target: "/srv/inatrace/frontend/dev"
+
       - name: 🚀 Deploy to Development Server
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -152,12 +169,14 @@ jobs:
 
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-            # No login to Docker Hub since images are public
-            # Navigate to deployment directory
-            cd /opt/inatrace/deploy/frontend/dev
+            cd /srv/inatrace/frontend/dev
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export TAG="${{ needs.build.outputs.image-tag }}"
+
+            # Ensure required networks exist
+            docker network inspect inatrace-frontend-network >/dev/null 2>&1 || docker network create inatrace-frontend-network
+            docker network inspect inatrace-backend-network >/dev/null 2>&1 || docker network create inatrace-backend-network
 
             docker compose pull
             docker compose up -d --remove-orphans
@@ -185,6 +204,26 @@ jobs:
       - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
 
+      - name: 📁 Ensure remote directory exists (${{ matrix.company }})
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets[format('TEST_{0}_HOST', upper(matrix.company))] }}
+          username: ${{ secrets[format('TEST_{0}_USER', upper(matrix.company))] }}
+          key: ${{ secrets[format('TEST_{0}_SSH_KEY', upper(matrix.company))] }}
+          port: ${{ secrets[format('TEST_{0}_PORT', upper(matrix.company))] || 22 }}
+          script: |
+            mkdir -p /srv/inatrace/frontend/test/${{ matrix.company }}
+
+      - name: 📤 Upload docker-compose.yml (${{ matrix.company }})
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets[format('TEST_{0}_HOST', upper(matrix.company))] }}
+          username: ${{ secrets[format('TEST_{0}_USER', upper(matrix.company))] }}
+          key: ${{ secrets[format('TEST_{0}_SSH_KEY', upper(matrix.company))] }}
+          port: ${{ secrets[format('TEST_{0}_PORT', upper(matrix.company))] || 22 }}
+          source: "deploy/frontend/test/${{ matrix.company }}/docker-compose.yml"
+          target: "/srv/inatrace/frontend/test/${{ matrix.company }}"
+
       - name: 🧪 Deploy to ${{ matrix.company }} Test
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -203,6 +242,10 @@ jobs:
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export TAG="${{ needs.build.outputs.image-tag }}"
             export COMPANY="${{ matrix.company }}"
+
+            # Ensure required networks exist
+            docker network inspect inatrace-frontend-${{ matrix.company }}-network >/dev/null 2>&1 || docker network create inatrace-frontend-${{ matrix.company }}-network
+            docker network inspect inatrace-backend-${{ matrix.company }}-network >/dev/null 2>&1 || docker network create inatrace-backend-${{ matrix.company }}-network
 
             docker compose pull
             docker compose up -d --remove-orphans
@@ -231,6 +274,26 @@ jobs:
       - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
 
+      - name: 📁 Ensure remote directory exists (${{ matrix.company }})
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets[format('PROD_{0}_HOST', upper(matrix.company))] }}
+          username: ${{ secrets[format('PROD_{0}_USER', upper(matrix.company))] }}
+          key: ${{ secrets[format('PROD_{0}_SSH_KEY', upper(matrix.company))] }}
+          port: ${{ secrets[format('PROD_{0}_PORT', upper(matrix.company))] || 22 }}
+          script: |
+            mkdir -p /srv/inatrace/frontend/prod/${{ matrix.company }}
+
+      - name: 📤 Upload docker-compose.yml (${{ matrix.company }})
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets[format('PROD_{0}_HOST', upper(matrix.company))] }}
+          username: ${{ secrets[format('PROD_{0}_USER', upper(matrix.company))] }}
+          key: ${{ secrets[format('PROD_{0}_SSH_KEY', upper(matrix.company))] }}
+          port: ${{ secrets[format('PROD_{0}_PORT', upper(matrix.company))] || 22 }}
+          source: "deploy/frontend/prod/${{ matrix.company }}/docker-compose.yml"
+          target: "/srv/inatrace/frontend/prod/${{ matrix.company }}"
+
       - name: 🏭 Deploy to ${{ matrix.company }} Production
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -254,6 +317,10 @@ jobs:
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export TAG="${{ needs.build.outputs.image-tag }}"
             export COMPANY="${{ matrix.company }}"
+
+            # Ensure required networks exist
+            docker network inspect inatrace-frontend-${{ matrix.company }}-network >/dev/null 2>&1 || docker network create inatrace-frontend-${{ matrix.company }}-network
+            docker network inspect inatrace-backend-${{ matrix.company }}-network >/dev/null 2>&1 || docker network create inatrace-backend-${{ matrix.company }}-network
 
             docker compose pull
             docker compose up -d --remove-orphans
