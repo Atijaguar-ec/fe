@@ -62,7 +62,7 @@ jobs:
         continue-on-error: true
 
       - name: Run unit tests
-        run: npm run test -- --watch=false --browsers=ChromeHeadless --code-coverage --progress=false --no-sandbox --browserDisconnectTimeout=60000 --browserNoActivityTimeout=60000
+        run: npm run test -- --watch=false --browsers=ChromeHeadlessCI --code-coverage --progress=false
 
       - name: 📊 Upload coverage reports
         uses: codecov/codecov-action@v3
