@@ -41,10 +41,10 @@ module.exports = function (config) {
     },
     browsers: ['ChromeHeadlessCI'],
     // Increase timeouts to avoid disconnections in CI
-    browserNoActivityTimeout: 60000,
-    browserDisconnectTimeout: 60000,
-    captureTimeout: 120000,
-    singleRun: false,
+    browserNoActivityTimeout: 120000,
+    browserDisconnectTimeout: 120000,
+    captureTimeout: 180000,
+    singleRun: true,
     restartOnFileChange: true
   });
 };
