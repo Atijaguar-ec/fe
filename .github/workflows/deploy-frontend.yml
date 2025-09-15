@@ -1,212 +1,299 @@
-name: Deploy Frontend to Hetzner
+name: 🚀 Frontend CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
-      - develop
-      - 'v*'
+    branches: [ develop, staging, main ]
+    paths:
+      - 'fe/**'
+      - 'deploy/frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
   pull_request:
-    branches: [main]
+    branches: [ develop, staging, main ]
+    paths:
+      - 'fe/**'
+      - 'deploy/frontend/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+        - dev
+        - test
+        - prod
+      company:
+        description: 'Target company (for test/prod)'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - unocace
+        - fortaleza
+        - dufer
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}-frontend
+  IMAGE_NAME: ghcr.io/atijaguar-ec/inatrace-frontend
+  NODE_VERSION: '14'
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/inatrace-frontend
+  NODE_VERSION: '14'
 
 jobs:
-  test:
+  quality:
+    name: 🔍 Code Quality & Tests
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./fe
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '14'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: fe/package-lock.json
 
-      - name: Install dependencies
+      - name: 📥 Install dependencies
         run: npm ci
 
-      - name: Run linting
+      - name: 🔍 Lint code
         run: npm run lint
         continue-on-error: true
 
-      - name: Run tests
-        run: npm run test -- --watch=false --browsers=ChromeHeadless
+      - name: 🧪 Run unit tests
+        run: npm run test -- --watch=false --browsers=ChromeHeadless --code-coverage
+
+      - name: 📊 Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./fe/coverage
+          fail_ci_if_error: false
 
   build:
-    needs: test
+    name: 🏗️ Build & Push Docker Image
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+    needs: quality
+    if: github.event_name != 'pull_request'
     outputs:
-      image_name_lc: ${{ steps.set_image_name_lc.outputs.image_name_lc }}
-      image_digest: ${{ steps.build.outputs.digest }}
-
+      image-tag: ${{ steps.meta.outputs.tag }}
+      image-digest: ${{ steps.build.outputs.digest }}
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: Compute lowercase image name
-        id: set_image_name_lc
+      - name: 🏷️ Generate metadata
+        id: meta
         run: |
-          echo "image_name_lc=$(echo '${{ github.repository }}-frontend' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+          if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            VERSION=$(grep -m1 '"version":' fe/package.json | sed -E 's/.*"([0-9.]+)".*/\1/')
+            TAG="v${VERSION}"
+          elif [[ "${GITHUB_REF_NAME}" == "staging" ]]; then
+            TAG="test-${GITHUB_SHA::7}"
+          else
+            TAG="dev-${GITHUB_SHA::7}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "🏷️ Generated tag: $TAG"
 
-      - name: Setup Node.js (for codegen)
-        uses: actions/setup-node@v4
-        with:
-          node-version: '14'
-          cache: 'npm'
-
-      - name: Install dependencies (codegen)
-        run: npm ci
-
-      - name: Generate API client
-        env:
-          SWAGGER_DOCS_HOST: ${{ secrets.BACKEND_API_ORIGIN }}/v3/api-docs
-        run: npm run generate-api
-
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver: docker-container
-          platforms: linux/amd64
-          install: true
-
-      - name: Log in to Container Registry
+      - name: 🔐 Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ steps.set_image_name_lc.outputs.image_name_lc }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
+      - name: 🔧 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Build and push Docker image
+      - name: 🏗️ Build and push Docker image
         id: build
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./Dockerfile
-          builder: ${{ steps.buildx.outputs.name }}
+          context: ./fe
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64
           build-args: |
-            BUILD_OPTIMIZATION=false
+            BUILD_OPTIMIZATION=true
 
-  deploy:
-    needs: build
+      - name: 🔒 Sign image with Cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v2.1.1'
+
+  deploy-dev:
+    name: 🚀 Deploy to Development
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: dev
+      url: http://inatrace.atijaguar.com
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
 
-      - name: Ensure remote directories exist
+      - name: 🚀 Deploy to Development Server
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.HETZNER_HOST }}
-          username: ${{ secrets.HETZNER_USER }}
-          key: ${{ secrets.HETZNER_SSH_KEY }}
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          port: ${{ secrets.DEV_PORT || 22 }}
           script: |
-            set -euo pipefail
-            sudo mkdir -p /opt/inatrace/frontend/.ci
-            sudo chown -R $USER:$USER /opt/inatrace/frontend
+            set -e
+            echo "🚀 Starting deployment to Development..."
 
-      - name: Sync compose (HTTPS) to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.HETZNER_HOST }}
-          username: ${{ secrets.HETZNER_USER }}
-          key: ${{ secrets.HETZNER_SSH_KEY }}
-          source: "fe/.ci/docker-compose.https.yml"
-          target: "/opt/inatrace/frontend/.ci/"
-          strip_components: 2
-          overwrite: true
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: Deploy to Hetzner
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.HETZNER_HOST }}
-          username: ${{ secrets.HETZNER_USER }}
-          key: ${{ secrets.HETZNER_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            # Directorio de despliegue del FE en el servidor
-            cd /opt/inatrace/frontend
-            
-            # Compose variables to match the image built in CI
-            export IMAGE_NAME=${{ env.REGISTRY }}/${{ needs.build.outputs.image_name_lc }}
-            export TAG=latest
+            # No login to Docker Hub since images are public
+            # Navigate to deployment directory
+            cd /opt/inatrace/deploy/frontend/dev
 
-            # Optional: login to GHCR if image is private (requires secrets)
-            if [ -n "${{ secrets.GHCR_USERNAME }}" ] && [ -n "${{ secrets.GHCR_TOKEN }}" ]; then
-              echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin || true
+            export IMAGE_NAME="${{ env.IMAGE_NAME }}"
+            export TAG="${{ needs.build.outputs.image-tag }}"
+
+            docker compose pull
+            docker compose up -d --remove-orphans
+
+            sleep 10
+            if curl -f http://localhost:8081/health; then
+              echo "✅ Deployment successful!"
+            else
+              echo "❌ Health check failed"
+              exit 1
             fi
 
-            # Pull exact image by digest (reproducible) and retag as :latest for docker-compose
-            DIGEST='${{ needs.build.outputs.image_digest }}'
-            echo "Pulling image by digest: ${IMAGE_NAME}@${DIGEST}"
-            docker pull ${IMAGE_NAME}@${DIGEST}
-            docker tag ${IMAGE_NAME}@${DIGEST} ${IMAGE_NAME}:${TAG}
+  deploy-test:
+    name: 🧪 Deploy to Test Environments
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/staging'
+    strategy:
+      matrix:
+        company: [unocace, fortaleza, dufer]
+    environment:
+      name: test-${{ matrix.company }}
+      url: https://inatrace-test.${{ matrix.company == 'unocace' && 'unocace.com' || matrix.company == 'fortaleza' && 'fortalezadelvalle.org' || 'empacadoradufer.com' }}
+    steps:
+      - name: 📥 Checkout deployment configs
+        uses: actions/checkout@v4
 
-            # Compose will use the freshly tagged local image; skip compose pull
-            echo "Using locally tagged image ${IMAGE_NAME}:${TAG}"
+      - name: 🧪 Deploy to ${{ matrix.company }} Test
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets[format('TEST_{0}_HOST', upper(matrix.company))] }}
+          username: ${{ secrets[format('TEST_{0}_USER', upper(matrix.company))] }}
+          key: ${{ secrets[format('TEST_{0}_SSH_KEY', upper(matrix.company))] }}
+          port: ${{ secrets[format('TEST_{0}_PORT', upper(matrix.company))] || 22 }}
+          script: |
+            set -e
+            echo "🧪 Starting deployment to ${{ matrix.company }} Test..."
 
-            # Escribir/actualizar .ci/.env con parámetros del despliegue (multiempresa)
-            mkdir -p .ci
-            cat > .ci/.env << EOF
-            IMAGE_NAME=${IMAGE_NAME}
-            TAG=${TAG}
-            FRONTEND_DOMAIN=${{ secrets.FRONTEND_DOMAIN }}
-            LETSENCRYPT_EMAIL=${{ secrets.LETSENCRYPT_EMAIL }}
-            EOF
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-            # Preflight: evitar conflicto por nombre de contenedor si quedó de corridas previas
-            docker ps -a --format '{{.Names}}' | grep -q '^inatrace-fe$' && docker rm -f inatrace-fe || true
-            docker ps -a --format '{{.Names}}' | grep -q '^inatrace-nginx-proxy$' && docker rm -f inatrace-nginx-proxy || true
-            docker ps -a --format '{{.Names}}' | grep -q '^inatrace-nginx-proxy-acme$' && docker rm -f inatrace-nginx-proxy-acme || true
+            cd /srv/inatrace/frontend/test/${{ matrix.company }}
 
-            # Asegurar red externa si es requerida por el compose
-            docker network create inatrace-backend-network || true
+            export IMAGE_NAME="${{ env.IMAGE_NAME }}"
+            export TAG="${{ needs.build.outputs.image-tag }}"
+            export COMPANY="${{ matrix.company }}"
 
-            # Levantar/recrear solo los servicios necesarios sin bajar otros stacks
-            docker compose --env-file .ci/.env -f .ci/docker-compose.https.yml up -d --force-recreate --remove-orphans
-            
-            # Health check with retry
-            for i in {1..3}; do
+            docker compose pull
+            docker compose up -d --remove-orphans
+
+            sleep 15
+            HEALTH_URL="https://inatrace-test.${{ matrix.company == 'unocace' && 'unocace.com' || matrix.company == 'fortaleza' && 'fortalezadelvalle.org' || 'empacadoradufer.com' }}/health"
+            if curl -f "$HEALTH_URL"; then
+              echo "✅ Deployment to ${{ matrix.company }} successful!"
+            else
+              echo "❌ Health check failed for ${{ matrix.company }}"
+              exit 1
+            fi
+
+  deploy-prod:
+    name: 🏭 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        company: [unocace, fortaleza, dufer]
+    environment:
+      name: prod-${{ matrix.company }}
+      url: https://inatrace.${{ matrix.company == 'unocace' && 'unocace.com' || matrix.company == 'fortaleza' && 'fortalezadelvalle.org' || 'empacadoradufer.com' }}
+    steps:
+      - name: 📥 Checkout deployment configs
+        uses: actions/checkout@v4
+
+      - name: 🏭 Deploy to ${{ matrix.company }} Production
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets[format('PROD_{0}_HOST', upper(matrix.company))] }}
+          username: ${{ secrets[format('PROD_{0}_USER', upper(matrix.company))] }}
+          key: ${{ secrets[format('PROD_{0}_SSH_KEY', upper(matrix.company))] }}
+          port: ${{ secrets[format('PROD_{0}_PORT', upper(matrix.company))] || 22 }}
+          script: |
+            set -e
+            echo "🏭 Starting deployment to ${{ matrix.company }} Production..."
+
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+            cd /srv/inatrace/frontend/prod/${{ matrix.company }}
+
+            if docker compose ps -q inatrace-frontend; then
+              echo "📦 Creating backup..."
+              docker tag $(docker compose images -q inatrace-frontend) ${{ env.IMAGE_NAME }}:backup-$(date +%Y%m%d-%H%M%S)
+            fi
+
+            export IMAGE_NAME="${{ env.IMAGE_NAME }}"
+            export TAG="${{ needs.build.outputs.image-tag }}"
+            export COMPANY="${{ matrix.company }}"
+
+            docker compose pull
+            docker compose up -d --remove-orphans
+
+            echo "🔍 Performing health checks..."
+            HEALTH_URL="https://inatrace.${{ matrix.company == 'unocace' && 'unocace.com' || matrix.company == 'fortaleza' && 'fortalezadelvalle.org' || 'empacadoradufer.com' }}/health"
+
+            for i in {1..5}; do
               sleep 10
-              if curl -fsS https://${{ secrets.FRONTEND_DOMAIN }}/health > /dev/null 2>&1; then
-                echo "Health check passed"
-                break
-              elif [ $i -eq 3 ]; then
-                echo "Health check failed after 3 attempts, rolling back"
-                docker compose --env-file .ci/.env -f .ci/docker-compose.https.yml logs --tail=100 || true
-                # Intento de reinicio simple del FE sin tumbar proxy (usar nombre del servicio del compose)
-                docker compose --env-file .ci/.env -f .ci/docker-compose.https.yml up -d --force-recreate inatrace-frontend
-                exit 1
-              else
-                echo "Health check attempt $i failed, retrying..."
+              if curl -f "$HEALTH_URL"; then
+                echo "✅ Production deployment to ${{ matrix.company }} successful!"
+                exit 0
               fi
+              echo "⏳ Health check attempt $i/5 failed, retrying..."
             done
-            
-            # Cleanup old images (safe)
-            docker image prune -af --filter="until=24h"
+
+            echo "❌ Health check failed after 5 attempts"
+            echo "🔄 Rolling back..."
+            docker compose down
+            docker tag ${{ env.IMAGE_NAME }}:backup-$(date +%Y%m%d)* ${{ env.IMAGE_NAME }}:rollback
+            export TAG=rollback
+            docker compose up -d
+            exit 1
+
+  notify:
+    name: 📊 Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: [deploy-dev, deploy-test, deploy-prod]
+    if: always() && (needs.deploy-dev.result != 'skipped' || needs.deploy-test.result != 'skipped' || needs.deploy-prod.result != 'skipped')
+    steps:
+      - name: 📊 Send notification
+        run: |
+          if [[ "${{ needs.deploy-dev.result }}" == "success" ]]; then
+            echo "✅ Development deployment successful"
+          fi
+          if [[ "${{ needs.deploy-test.result }}" == "success" ]]; then
+            echo "✅ Test environments deployment successful"
+          fi
+          if [[ "${{ needs.deploy-prod.result }}" == "success" ]]; then
+            echo "✅ Production deployment successful"
+          fi
+
+          # Aquí puedes agregar notificaciones a Slack, Teams, etc.
