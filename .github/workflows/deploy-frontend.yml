@@ -98,6 +98,7 @@ jobs:
           echo "🏷️ Generated tag: $TAG"
 
       - name: 🔐 Login to Docker Hub
+        if: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -111,7 +112,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./fe
-          push: true
+          push: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
           tags: ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -127,7 +128,7 @@ jobs:
     name: 🚀 Deploy to Development
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/develop' && secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != ''
     environment:
       name: dev
       url: http://inatrace.atijaguar.com
@@ -189,7 +190,7 @@ jobs:
     name: 🧪 Deploy to Unocace Test
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/staging'
+    if: github.ref == 'refs/heads/staging' && secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != ''
     environment:
       name: test-unocace
       url: https://inatrace-test.unocace.com
@@ -255,7 +256,7 @@ jobs:
     name: 🧪 Deploy to Fortaleza Test
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/staging'
+    if: github.ref == 'refs/heads/staging' && secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != ''
     environment:
       name: test-fortaleza
       url: https://inatrace-test.fortalezadelvalle.org
@@ -321,7 +322,7 @@ jobs:
     name: 🧪 Deploy to Dufer Test
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/staging'
+    if: github.ref == 'refs/heads/staging' && secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != ''
     environment:
       name: test-dufer
       url: https://inatrace-test.empacadoradufer.com
@@ -387,7 +388,7 @@ jobs:
     name: 🏭 Deploy to Unocace Production
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != ''
     environment:
       name: prod-unocace
       url: https://inatrace.unocace.com
@@ -468,7 +469,7 @@ jobs:
     name: 🏭 Deploy to Fortaleza Production
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != ''
     environment:
       name: prod-fortaleza
       url: https://inatrace.fortalezadelvalle.org
@@ -549,7 +550,7 @@ jobs:
     name: 🏭 Deploy to Dufer Production
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != ''
     environment:
       name: prod-dufer
       url: https://inatrace.empacadoradufer.com
