@@ -51,20 +51,23 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
+          cache-dependency-path: 'fe/package-lock.json'
 
       - name: 📥 Install dependencies
-        run: npm ci
-        working-directory: fe
+        run: |
+          cd fe
+          npm ci
 
       - name: 🔍 Lint code
-        run: npm run lint
-        working-directory: fe
+        run: |
+          cd fe
+          npm run lint
         continue-on-error: true
 
       - name: 🧪 Run unit tests
-        run: npm run test -- --watch=false --browsers=ChromeHeadless --code-coverage
-        working-directory: fe
+        run: |
+          cd fe
+          npm run test -- --watch=false --browsers=ChromeHeadless --code-coverage
 
       - name: 📊 Upload coverage reports
         uses: codecov/codecov-action@v3
