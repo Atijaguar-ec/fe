@@ -249,14 +249,14 @@ jobs:
 
       - name: 📤 Upload docker-compose.yml from repo (unocace)
         uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.TEST_UNOCACE_HOST }}
-          username: ${{ secrets.TEST_UNOCACE_USER }}
-          key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
-          password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
-          port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
-          source: "deploy/frontend/test/unocace/docker-compose.yml"
-          target: "/srv/inatrace/frontend/test/unocace"
+        # with:
+        #   host: ${{ secrets.TEST_UNOCACE_HOST }}
+        #   username: ${{ secrets.TEST_UNOCACE_USER }}
+        #   key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
+        #   password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
+        #   port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
+        #   source: "deploy/frontend/test/unocace/docker-compose.yml"
+        #   target: "/srv/inatrace/frontend/test/unocace"
 
       - name: 📥 Download image artifact (unocace)
         uses: actions/download-artifact@v4
