@@ -20,19 +20,19 @@ on:
         default: 'dev'
         type: choice
         options:
-        - dev
-        - test
-        - prod
+          - dev
+          - test
+          - prod
       company:
         description: 'Target company (for test/prod)'
         required: false
         default: 'all'
         type: choice
         options:
-        - all
-        - unocace
-        - fortaleza
-        - dufer
+          - all
+          - unocace
+          - fortaleza
+          - dufer
 
 env:
   IMAGE_NAME: atijaguar-ec/inatrace-frontend
@@ -253,7 +253,7 @@ jobs:
           username: ${{ secrets.TEST_UNOCACE_USER }}
           password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
           script: |
-            mkdir -p /srv/inatrace/frontend/test/unocace
+            mkdir -p /opt/inatrace/deploy/frontend/test/unocace
 
       - name: 📤 Upload docker-compose.yml from repo (unocace)
         uses: appleboy/scp-action@v0.1.7
@@ -262,7 +262,7 @@ jobs:
           username: ${{ secrets.TEST_UNOCACE_USER }}
           password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
           source: "deploy/frontend/test/unocace/docker-compose.yml"
-          target: "/srv/inatrace/frontend/test/unocace"
+          target: "/opt/inatrace/deploy/frontend/test/unocace"
 
       - name: 📥 Download image artifact (unocace)
         uses: actions/download-artifact@v4
@@ -279,7 +279,7 @@ jobs:
           username: ${{ secrets.TEST_UNOCACE_USER }}
           password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
           source: "image.tar"
-          target: "/srv/inatrace/frontend/test/unocace"
+          target: "/opt/inatrace/deploy/frontend/test/unocace"
 
       - name: 🧪 Deploy to Unocace Test
         uses: appleboy/ssh-action@v1.0.0
@@ -291,7 +291,7 @@ jobs:
             set -e
             echo "🧪 Starting deployment to Unocace Test..."
 
-            cd /srv/inatrace/frontend/test/unocace
+            cd /opt/inatrace/deploy/frontend/test/unocace
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export TAG="${{ needs.build.outputs.image-tag }}"
@@ -303,8 +303,8 @@ jobs:
             docker network inspect inatrace-frontend-unocace-network >/dev/null 2>&1 || docker network create inatrace-frontend-unocace-network
             docker network inspect inatrace-backend-unocace-network >/dev/null 2>&1 || docker network create inatrace-backend-unocace-network
 
-            # skipped: docker compose pull (image is loaded locally)
-            docker compose up -d --remove-orphans
+            # skipped: docker-compose pull (image is loaded locally)
+            docker-compose up -d --remove-orphans
 
             sleep 15
             if curl -f "https://inatrace-test.unocace.com/health"; then
