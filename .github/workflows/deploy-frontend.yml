@@ -236,27 +236,33 @@ jobs:
       - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
 
+      - name: ✅ Preflight: validate required secrets (UNOCACE)
+        run: |
+          missing=0
+          [ -z "${{ secrets.TEST_UNOCACE_HOST }}" ] && echo "Missing secret: TEST_UNOCACE_HOST" && missing=1
+          [ -z "${{ secrets.TEST_UNOCACE_USER }}" ] && echo "Missing secret: TEST_UNOCACE_USER" && missing=1
+          [ -z "${{ secrets.TEST_UNOCACE_PASSWORD }}" ] && echo "Missing secret: TEST_UNOCACE_PASSWORD" && missing=1
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+
       - name: 📁 Ensure remote directory exists
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.TEST_UNOCACE_HOST }}
           username: ${{ secrets.TEST_UNOCACE_USER }}
-          key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
           password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
-          port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           script: |
             mkdir -p /srv/inatrace/frontend/test/unocace
 
       - name: 📤 Upload docker-compose.yml from repo (unocace)
         uses: appleboy/scp-action@v0.1.7
-        # with:
-        #   host: ${{ secrets.TEST_UNOCACE_HOST }}
-        #   username: ${{ secrets.TEST_UNOCACE_USER }}
-        #   key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
-        #   password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
-        #   port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
-        #   source: "deploy/frontend/test/unocace/docker-compose.yml"
-        #   target: "/srv/inatrace/frontend/test/unocace"
+        with:
+          host: ${{ secrets.TEST_UNOCACE_HOST }}
+          username: ${{ secrets.TEST_UNOCACE_USER }}
+          password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
+          source: "deploy/frontend/test/unocace/docker-compose.yml"
+          target: "/srv/inatrace/frontend/test/unocace"
 
       - name: 📥 Download image artifact (unocace)
         uses: actions/download-artifact@v4
@@ -271,9 +277,7 @@ jobs:
         with:
           host: ${{ secrets.TEST_UNOCACE_HOST }}
           username: ${{ secrets.TEST_UNOCACE_USER }}
-          key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
           password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
-          port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           source: "image.tar"
           target: "/srv/inatrace/frontend/test/unocace"
 
@@ -282,9 +286,7 @@ jobs:
         with:
           host: ${{ secrets.TEST_UNOCACE_HOST }}
           username: ${{ secrets.TEST_UNOCACE_USER }}
-          key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
           password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
-          port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           script: |
             set -e
             echo "🧪 Starting deployment to Unocace Test..."
