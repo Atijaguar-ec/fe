@@ -206,7 +206,7 @@ jobs:
             cd /srv/inatrace/frontend/dev
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
-            export TAG="${{ needs.build.outputs.image-tag }}"
+            export TAG="${{ needs.build.outputs['image-tag'] }}"
 
             docker load -i image.tar
 
@@ -236,7 +236,7 @@ jobs:
       - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
 
-      - name: ✅ Preflight: validate required secrets (UNOCACE)
+      - name: Preflight - validate required secrets (UNOCACE)
         run: |
           missing=0
           [ -z "${{ secrets.TEST_UNOCACE_HOST }}" ] && echo "Missing secret: TEST_UNOCACE_HOST" && missing=1
@@ -294,7 +294,7 @@ jobs:
             cd /opt/inatrace/deploy/frontend/test/unocace
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
-            export TAG="${{ needs.build.outputs.image-tag }}"
+            export TAG="${{ needs.build.outputs['image-tag'] }}"
             export COMPANY="unocace"
 
             docker load -i image.tar
@@ -394,7 +394,7 @@ jobs:
             cd /srv/inatrace/frontend/test/fortaleza
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
-            export TAG="${{ needs.build.outputs.image-tag }}"
+            export TAG="${{ needs.build.outputs['image-tag'] }}"
             export COMPANY="fortaleza"
 
             docker load -i image.tar
@@ -494,7 +494,7 @@ jobs:
             cd /srv/inatrace/frontend/test/dufer
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
-            export TAG="${{ needs.build.outputs.image-tag }}"
+            export TAG="${{ needs.build.outputs['image-tag'] }}"
             export COMPANY="dufer"
 
             docker load -i image.tar
@@ -600,7 +600,7 @@ jobs:
             fi
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
-            export TAG="${{ needs.build.outputs.image-tag }}"
+            export TAG="${{ needs.build.outputs['image-tag'] }}"
             export COMPANY="unocace"
 
             # Ensure required networks exist
