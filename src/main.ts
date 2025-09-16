@@ -23,6 +23,7 @@ if (languageCode) {
       }).catch(err => console.error('first', err));
     }
   );
+  console.log('languageCode', languageCode);
 } else {
   import('./app/app.module').then(module => {
     platformBrowserDynamic().bootstrapModule(module.AppModule).then();
