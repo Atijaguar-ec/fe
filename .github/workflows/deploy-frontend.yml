@@ -242,27 +242,21 @@ jobs:
           host: ${{ secrets.TEST_UNOCACE_HOST }}
           username: ${{ secrets.TEST_UNOCACE_USER }}
           key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
+          password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
           port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           script: |
             mkdir -p /srv/inatrace/frontend/test/unocace
 
-      - name: 📝 Generate docker-compose.yml (unocace)
-        run: |
-          cat > docker-compose.yml <<'EOF'
-          version: '3.8'
-          services:
-            inatrace-frontend:
-              image: ${IMAGE_NAME}:${TAG}
-              container_name: inatrace-frontend
-              ports:
-                - "8081:80"
-              networks:
-                - inatrace-frontend-unocace-network
-              restart: always
-          networks:
-            inatrace-frontend-unocace-network:
-              external: true
-          EOF
+      - name: 📤 Upload docker-compose.yml from repo (unocace)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.TEST_UNOCACE_HOST }}
+          username: ${{ secrets.TEST_UNOCACE_USER }}
+          key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
+          password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
+          port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
+          source: "deploy/frontend/test/unocace/docker-compose.yml"
+          target: "/srv/inatrace/frontend/test/unocace"
 
       - name: 📥 Download image artifact (unocace)
         uses: actions/download-artifact@v4
@@ -270,15 +264,7 @@ jobs:
           name: fe-image
           path: .
 
-      - name: 📤 Upload docker-compose.yml
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.TEST_UNOCACE_HOST }}
-          username: ${{ secrets.TEST_UNOCACE_USER }}
-          key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
-          port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
-          source: "docker-compose.yml"
-          target: "/srv/inatrace/frontend/test/unocace"
+      
 
       - name: 📤 Upload image tar (unocace)
         uses: appleboy/scp-action@v0.1.7
@@ -286,6 +272,7 @@ jobs:
           host: ${{ secrets.TEST_UNOCACE_HOST }}
           username: ${{ secrets.TEST_UNOCACE_USER }}
           key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
+          password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
           port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           source: "image.tar"
           target: "/srv/inatrace/frontend/test/unocace"
@@ -296,6 +283,7 @@ jobs:
           host: ${{ secrets.TEST_UNOCACE_HOST }}
           username: ${{ secrets.TEST_UNOCACE_USER }}
           key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
+          password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
           port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           script: |
             set -e
@@ -328,7 +316,7 @@ jobs:
     name: 🧪 Deploy to Fortaleza Test
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/staging'
+    if: github.ref == 'refs/heads/staging' && vars.DEPLOY_TEST_FORTALEZA == 'true'
     environment:
       name: test-fortaleza
       url: https://inatrace-test.fortalezadelvalle.org
@@ -428,7 +416,7 @@ jobs:
     name: 🧪 Deploy to Dufer Test
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/staging'
+    if: github.ref == 'refs/heads/staging' && vars.DEPLOY_TEST_DUFER == 'true'
     environment:
       name: test-dufer
       url: https://inatrace-test.empacadoradufer.com
