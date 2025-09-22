@@ -5,15 +5,16 @@ on:
     branches: [ develop, staging, main ]
     paths:
       - 'fe/**'
-      - 'deploy/frontend/**'
+      - '/opt/inatrace/deploy/frontend/**'
       - '.github/workflows/deploy-frontend.yml'
   pull_request:
     branches: [ develop, staging, main ]
     paths:
       - 'fe/**'
-      - 'deploy/frontend/**'
-  workflow_dispatch:
-    inputs:
+      - '/opt/inatrace/deploy/frontend/**'
+  workflow_dispatch:''
+
+ øº   inputs:
       environment:
         description: 'Target environment'
         required: true
@@ -149,25 +150,9 @@ jobs:
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
           script: |
-            mkdir -p /srv/inatrace/frontend/dev
-
-      - name: 📝 Generate docker-compose.yml
-        run: |
-          cat > docker-compose.yml <<'EOF'
-          version: '3.8'
-          services:
-            inatrace-frontend:
-              image: ${IMAGE_NAME}:${TAG}
-              container_name: inatrace-frontend
-              ports:
-                - "8081:80"
-              networks:
-                - inatrace-frontend-network
-              restart: always
-          networks:
-            inatrace-frontend-network:
-              external: true
-          EOF
+            mkdir -p /opt/inatrace/deploy/frontend/dev
+ 
+      # Using docker-compose from deploy/dev/docker-compose.yml
 
       - name: 📥 Download image artifact
         uses: actions/download-artifact@v4
@@ -175,14 +160,28 @@ jobs:
           name: fe-image
           path: .
 
+      - name: 🔎 Verify downloaded artifact (dev)
+        run: |
+          set -e
+          ls -lah .
+          [ -f image.tar ] || { echo "❌ image.tar not found after download-artifact"; exit 1; }
+          echo "✅ image.tar present" 
+
+      - name: Verify local compose path (dev)
+        run: |
+          set -e
+          ls -lah /opt/inatrace/deploy/dev || true
+          test -f /opt/inatrace/deploy/dev/docker-compose.yml || { echo "Missing /opt/inatrace/deploy/dev/docker-compose.yml"; exit 1; }
+
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
-          source: "docker-compose.yml"
-          target: "/srv/inatrace/frontend/dev"
+          source: "/opt/inatrace/deploy/dev/docker-compose.yml"
+          target: "/opt/inatrace/deploy/frontend/dev"  
+          debug: true
 
       - name: 📤 Upload image tar
         uses: appleboy/scp-action@v0.1.7
@@ -191,7 +190,8 @@ jobs:
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
           source: "image.tar"
-          target: "/srv/inatrace/frontend/dev"
+          target: "/opt/inatrace/deploy/frontend/dev"
+          debug: true
 
       - name: 🚀 Deploy to Development Server
         uses: appleboy/ssh-action@v1.0.0
@@ -203,7 +203,7 @@ jobs:
             set -e
             echo "🚀 Starting deployment to Development..."
 
-            cd /srv/inatrace/frontend/dev
+            cd /opt/inatrace/deploy/frontend/dev
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export TAG="${{ needs.build.outputs['image-tag'] }}"
@@ -236,6 +236,20 @@ jobs:
       - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
 
+      - name: ⏳ Wait for Backend health (UNOCACE)
+        run: |
+          set -e
+          echo "Waiting for backend health at https://inatrace-test.unocace.com/api/actuator/health"
+          for i in {1..24}; do
+            if curl -fsS "https://inatrace-test.unocace.com/api/actuator/health" >/dev/null; then
+              echo "✅ Backend is healthy"
+              exit 0
+            fi
+            echo "⏳ Attempt $i/24: backend not healthy yet, retrying in 10s..."
+            sleep 10
+          done
+          echo "❌ Backend health check timed out" && exit 1
+
       - name: Preflight - validate required secrets (UNOCACE)
         run: |
           missing=0
@@ -261,7 +275,7 @@ jobs:
           host: ${{ secrets.TEST_UNOCACE_HOST }}
           username: ${{ secrets.TEST_UNOCACE_USER }}
           password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
-          source: "deploy/frontend/test/unocace/docker-compose.yml"
+          source: "/opt/inatrace/deploy/frontend/test/unocace/docker-compose.yml"
           target: "/opt/inatrace/deploy/frontend/test/unocace"
 
       - name: 📥 Download image artifact (unocace)
@@ -270,7 +284,17 @@ jobs:
           name: fe-image
           path: .
 
-      
+      - name: 🔎 Verify downloaded artifact (unocace)
+        run: |
+          set -e
+          echo "Workspace contents:"
+          ls -lah .
+          if [ ! -f image.tar ]; then
+            echo "❌ image.tar not found after download-artifact"
+            exit 1
+          fi
+          echo "✅ image.tar present"
+          du -h image.tar || true
 
       - name: 📤 Upload image tar (unocace)
         uses: appleboy/scp-action@v0.1.7
@@ -334,7 +358,7 @@ jobs:
           key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
           script: |
-            mkdir -p /srv/inatrace/frontend/test/fortaleza
+            mkdir -p /opt/inatrace/deploy/frontend/test/fortaleza
 
       - name: 📝 Generate docker-compose.yml (fortaleza)
         run: |
@@ -360,6 +384,13 @@ jobs:
           name: fe-image
           path: .
 
+      - name: 🔎 Verify downloaded artifact (fortaleza)
+        run: |
+          set -e
+          ls -lah .
+          [ -f image.tar ] || { echo "❌ image.tar not found after download-artifact"; exit 1; }
+          echo "✅ image.tar present"
+
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -367,8 +398,8 @@ jobs:
           username: ${{ secrets.TEST_FORTALEZA_USER }}
           key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
-          source: "docker-compose.yml"
-          target: "/srv/inatrace/frontend/test/fortaleza"
+          source: "/opt/inatrace/deploy/test/fortaleza/docker-compose.yml"
+          target: "/opt/inatrace/deploy/test/fortaleza"
 
       - name: 📤 Upload image tar (fortaleza)
         uses: appleboy/scp-action@v0.1.7
@@ -378,7 +409,7 @@ jobs:
           key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
           source: "image.tar"
-          target: "/srv/inatrace/frontend/test/fortaleza"
+          target: "/opt/inatrace/deploy/test/fortaleza"
 
       - name: 🧪 Deploy to Fortaleza Test
         uses: appleboy/ssh-action@v1.0.0
@@ -391,7 +422,7 @@ jobs:
             set -e
             echo "🧪 Starting deployment to Fortaleza Test..."
 
-            cd /srv/inatrace/frontend/test/fortaleza
+            cd /opt/inatrace/deploy/test/fortaleza 
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export TAG="${{ needs.build.outputs['image-tag'] }}"
@@ -434,7 +465,7 @@ jobs:
           key: ${{ secrets.TEST_DUFER_SSH_KEY }}
           port: ${{ secrets.TEST_DUFER_PORT || '22' }}
           script: |
-            mkdir -p /srv/inatrace/frontend/test/dufer
+            mkdir -p /opt/inatrace/deploy/test/dufer
 
       - name: 📝 Generate docker-compose.yml (dufer)
         run: |
@@ -460,6 +491,13 @@ jobs:
           name: fe-image
           path: .
 
+      - name: 🔎 Verify downloaded artifact (dufer)
+        run: |
+          set -e
+          ls -lah .
+          [ -f image.tar ] || { echo "❌ image.tar not found after download-artifact"; exit 1; }
+          echo "✅ image.tar present"
+
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -467,8 +505,8 @@ jobs:
           username: ${{ secrets.TEST_DUFER_USER }}
           key: ${{ secrets.TEST_DUFER_SSH_KEY }}
           port: ${{ secrets.TEST_DUFER_PORT || '22' }}
-          source: "docker-compose.yml"
-          target: "/srv/inatrace/frontend/test/dufer"
+          source: "/opt/inatrace/deploy/test/dufer/docker-compose.yml"
+          target: "/opt/inatrace/deploy/test/dufer"
 
       - name: 📤 Upload image tar (dufer)
         uses: appleboy/scp-action@v0.1.7
@@ -478,7 +516,7 @@ jobs:
           key: ${{ secrets.TEST_DUFER_SSH_KEY }}
           port: ${{ secrets.TEST_DUFER_PORT || '22' }}
           source: "image.tar"
-          target: "/srv/inatrace/frontend/test/dufer"
+          target: "/opt/inatrace/deploy/test/dufer"
 
       - name: 🧪 Deploy to Dufer Test
         uses: appleboy/ssh-action@v1.0.0
@@ -491,7 +529,7 @@ jobs:
             set -e
             echo "🧪 Starting deployment to Dufer Test..."
 
-            cd /srv/inatrace/frontend/test/dufer
+            cd /opt/inatrace/deploy/test/dufer
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export TAG="${{ needs.build.outputs['image-tag'] }}"
@@ -534,7 +572,7 @@ jobs:
           key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
           port: ${{ secrets.PROD_UNOCACE_PORT || '22' }}
           script: |
-            mkdir -p /srv/inatrace/frontend/prod/unocace
+            mkdir -p /opt/inatrace/deploy/frontend/prod/unocace
 
       - name: 📝 Generate docker-compose.yml (prod unocace)
         run: |
@@ -561,6 +599,13 @@ jobs:
           name: fe-image
           path: .
 
+      - name: 🔎 Verify downloaded artifact (prod unocace)
+        run: |
+          set -e
+          ls -lah .
+          [ -f image.tar ] || { echo "❌ image.tar not found after download-artifact"; exit 1; }
+          echo "✅ image.tar present"
+
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -569,7 +614,7 @@ jobs:
           key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
           port: ${{ secrets.PROD_UNOCACE_PORT || '22' }}
           source: "docker-compose.yml"
-          target: "/srv/inatrace/frontend/prod/unocace"
+          target: "/opt/inatrace/deploy/frontend/prod/unocace"
 
       - name: 📤 Upload image tar (prod unocace)
         uses: appleboy/scp-action@v0.1.7
@@ -579,7 +624,7 @@ jobs:
           key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
           port: ${{ secrets.PROD_UNOCACE_PORT || '22' }}
           source: "image.tar"
-          target: "/srv/inatrace/frontend/prod/unocace"
+          target: "/opt/inatrace/deploy/frontend/prod/unocace" 
 
       - name: 🏭 Deploy to Unocace Production
         uses: appleboy/ssh-action@v1.0.0
@@ -592,7 +637,7 @@ jobs:
             set -e
             echo "🏭 Starting deployment to Unocace Production..."
 
-            cd /srv/inatrace/frontend/prod/unocace
+            cd /opt/inatrace/deploy/frontend/prod/unocace
 
             if docker compose ps -q inatrace-frontend; then
               echo "📦 Creating backup..."
@@ -648,7 +693,7 @@ jobs:
           key: ${{ secrets.PROD_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.PROD_FORTALEZA_PORT || '22' }}
           script: |
-            mkdir -p /srv/inatrace/frontend/prod/fortaleza
+            mkdir -p /opt/inatrace/deploy/frontend/prod/fortaleza
 
       - name: 📝 Generate docker-compose.yml (prod fortaleza)
         run: |
@@ -675,6 +720,13 @@ jobs:
           name: fe-image
           path: .
 
+      - name: 🔎 Verify downloaded artifact (prod fortaleza)
+        run: |
+          set -e
+          ls -lah .
+          [ -f image.tar ] || { echo "❌ image.tar not found after download-artifact"; exit 1; }
+          echo "✅ image.tar present"
+
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -683,7 +735,7 @@ jobs:
           key: ${{ secrets.PROD_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.PROD_FORTALEZA_PORT || '22' }}
           source: "docker-compose.yml"
-          target: "/srv/inatrace/frontend/prod/fortaleza"
+          target: "/opt/inatrace/deploy/frontend/prod/fortaleza"
 
       - name: 📤 Upload image tar (prod fortaleza)
         uses: appleboy/scp-action@v0.1.7
@@ -693,7 +745,7 @@ jobs:
           key: ${{ secrets.PROD_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.PROD_FORTALEZA_PORT || '22' }}
           source: "image.tar"
-          target: "/srv/inatrace/frontend/prod/fortaleza"
+          target: "/opt/inatrace/deploy/frontend/prod/fortaleza"
 
       - name: 🏭 Deploy to Fortaleza Production
         uses: appleboy/ssh-action@v1.0.0
@@ -706,7 +758,7 @@ jobs:
             set -e
             echo "🏭 Starting deployment to Fortaleza Production..."
 
-            cd /srv/inatrace/frontend/prod/fortaleza
+            cd /opt/inatrace/deploy/frontend/prod/fortaleza
 
             if docker compose ps -q inatrace-frontend; then
               echo "📦 Creating backup..."
@@ -762,7 +814,7 @@ jobs:
           key: ${{ secrets.PROD_DUFER_SSH_KEY }}
           port: ${{ secrets.PROD_DUFER_PORT || '22' }}
           script: |
-            mkdir -p /srv/inatrace/frontend/prod/dufer
+            mkdir -p /opt/inatrace/deploy/frontend/prod/dufer
 
       - name: 📝 Generate docker-compose.yml (prod dufer)
         run: |
@@ -789,6 +841,13 @@ jobs:
           name: fe-image
           path: .
 
+      - name: 🔎 Verify downloaded artifact (prod dufer)
+        run: |
+          set -e
+          ls -lah .
+          [ -f image.tar ] || { echo "❌ image.tar not found after download-artifact"; exit 1; }
+          echo "✅ image.tar present"
+
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -797,7 +856,7 @@ jobs:
           key: ${{ secrets.PROD_DUFER_SSH_KEY }}
           port: ${{ secrets.PROD_DUFER_PORT || '22' }}
           source: "docker-compose.yml"
-          target: "/srv/inatrace/frontend/prod/dufer"
+          target: "/opt/inatrace/deploy/frontend/prod/dufer"
 
       - name: 📤 Upload image tar (prod dufer)
         uses: appleboy/scp-action@v0.1.7
@@ -807,7 +866,7 @@ jobs:
           key: ${{ secrets.PROD_DUFER_SSH_KEY }}
           port: ${{ secrets.PROD_DUFER_PORT || '22' }}
           source: "image.tar"
-          target: "/srv/inatrace/frontend/prod/dufer"
+          target: "/opt/inatrace/deploy/frontend/prod/dufer"
 
       - name: 🏭 Deploy to Dufer Production
         uses: appleboy/ssh-action@v1.0.0
@@ -820,7 +879,7 @@ jobs:
             set -e
             echo "🏭 Starting deployment to Dufer Production..."
 
-            cd /srv/inatrace/frontend/prod/dufer
+            cd /opt/inatrace/deploy/frontend/prod/dufer
 
             if docker compose ps -q inatrace-frontend; then
               echo "📦 Creating backup..."
