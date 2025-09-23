@@ -149,7 +149,7 @@ jobs:
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
           script: |
-            mkdir -p /srv/inatrace/frontend/dev
+            mkdir -p /opt/inatrace/frontend/dev
 
       - name: 📝 Generate docker-compose.yml
         run: |
@@ -182,7 +182,7 @@ jobs:
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
           source: "docker-compose.yml"
-          target: "/srv/inatrace/frontend/dev"
+          target: "/opt/inatrace/frontend/dev"
 
       - name: 📤 Upload image tar
         uses: appleboy/scp-action@v0.1.7
@@ -191,7 +191,7 @@ jobs:
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
           source: "image.tar"
-          target: "/srv/inatrace/frontend/dev"
+          target: "/opt/inatrace/frontend/dev"
 
       - name: 🚀 Deploy to Development Server
         uses: appleboy/ssh-action@v1.0.0
@@ -203,7 +203,7 @@ jobs:
             set -e
             echo "🚀 Starting deployment to Development..."
 
-            cd /srv/inatrace/frontend/dev
+            cd /opt/inatrace/frontend/dev
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export TAG="${{ needs.build.outputs.image-tag }}"
@@ -244,7 +244,7 @@ jobs:
           key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
           port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           script: |
-            mkdir -p /srv/inatrace/frontend/test/unocace
+            mkdir -p /opt/inatrace/frontend/test/unocace
 
       - name: 📝 Generate docker-compose.yml (unocace)
         run: |
@@ -278,7 +278,7 @@ jobs:
           key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
           port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           source: "docker-compose.yml"
-          target: "/srv/inatrace/frontend/test/unocace"
+          target: "/opt/inatrace/frontend/test/unocace"
 
       - name: 📤 Upload image tar (unocace)
         uses: appleboy/scp-action@v0.1.7
@@ -288,7 +288,7 @@ jobs:
           key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
           port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           source: "image.tar"
-          target: "/srv/inatrace/frontend/test/unocace"
+          target: "/opt/inatrace/frontend/test/unocace"
 
       - name: 🧪 Deploy to Unocace Test
         uses: appleboy/ssh-action@v1.0.0
@@ -301,7 +301,7 @@ jobs:
             set -e
             echo "🧪 Starting deployment to Unocace Test..."
 
-            cd /srv/inatrace/frontend/test/unocace
+            cd /opt/inatrace/frontend/test/unocace
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export TAG="${{ needs.build.outputs.image-tag }}"
@@ -344,7 +344,7 @@ jobs:
           key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
           script: |
-            mkdir -p /srv/inatrace/frontend/test/fortaleza
+            mkdir -p /opt/inatrace/frontend/test/fortaleza
 
       - name: 📝 Generate docker-compose.yml (fortaleza)
         run: |
@@ -378,7 +378,7 @@ jobs:
           key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
           source: "docker-compose.yml"
-          target: "/srv/inatrace/frontend/test/fortaleza"
+          target: "/opt/inatrace/frontend/test/fortaleza"
 
       - name: 📤 Upload image tar (fortaleza)
         uses: appleboy/scp-action@v0.1.7
@@ -388,7 +388,7 @@ jobs:
           key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
           source: "image.tar"
-          target: "/srv/inatrace/frontend/test/fortaleza"
+          target: "/opt/inatrace/frontend/test/fortaleza"
 
       - name: 🧪 Deploy to Fortaleza Test
         uses: appleboy/ssh-action@v1.0.0
@@ -401,7 +401,7 @@ jobs:
             set -e
             echo "🧪 Starting deployment to Fortaleza Test..."
 
-            cd /srv/inatrace/frontend/test/fortaleza
+            cd /opt/inatrace/frontend/test/fortaleza
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export TAG="${{ needs.build.outputs.image-tag }}"
@@ -444,7 +444,7 @@ jobs:
           key: ${{ secrets.TEST_DUFER_SSH_KEY }}
           port: ${{ secrets.TEST_DUFER_PORT || '22' }}
           script: |
-            mkdir -p /srv/inatrace/frontend/test/dufer
+            mkdir -p /opt/inatrace/frontend/test/dufer
 
       - name: 📝 Generate docker-compose.yml (dufer)
         run: |
@@ -478,7 +478,7 @@ jobs:
           key: ${{ secrets.TEST_DUFER_SSH_KEY }}
           port: ${{ secrets.TEST_DUFER_PORT || '22' }}
           source: "docker-compose.yml"
-          target: "/srv/inatrace/frontend/test/dufer"
+          target: "/opt/inatrace/frontend/test/dufer"
 
       - name: 📤 Upload image tar (dufer)
         uses: appleboy/scp-action@v0.1.7
@@ -488,7 +488,7 @@ jobs:
           key: ${{ secrets.TEST_DUFER_SSH_KEY }}
           port: ${{ secrets.TEST_DUFER_PORT || '22' }}
           source: "image.tar"
-          target: "/srv/inatrace/frontend/test/dufer"
+          target: "/opt/inatrace/frontend/test/dufer"
 
       - name: 🧪 Deploy to Dufer Test
         uses: appleboy/ssh-action@v1.0.0
@@ -501,7 +501,7 @@ jobs:
             set -e
             echo "🧪 Starting deployment to Dufer Test..."
 
-            cd /srv/inatrace/frontend/test/dufer
+            cd /opt/inatrace/frontend/test/dufer
 
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export TAG="${{ needs.build.outputs.image-tag }}"
@@ -544,7 +544,7 @@ jobs:
           key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
           port: ${{ secrets.PROD_UNOCACE_PORT || '22' }}
           script: |
-            mkdir -p /srv/inatrace/frontend/prod/unocace
+            mkdir -p /opt/inatrace/frontend/prod/unocace
 
       - name: 📝 Generate docker-compose.yml (prod unocace)
         run: |
@@ -579,7 +579,7 @@ jobs:
           key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
           port: ${{ secrets.PROD_UNOCACE_PORT || '22' }}
           source: "docker-compose.yml"
-          target: "/srv/inatrace/frontend/prod/unocace"
+          target: "/opt/inatrace/frontend/prod/unocace"
 
       - name: 📤 Upload image tar (prod unocace)
         uses: appleboy/scp-action@v0.1.7
@@ -589,7 +589,7 @@ jobs:
           key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
           port: ${{ secrets.PROD_UNOCACE_PORT || '22' }}
           source: "image.tar"
-          target: "/srv/inatrace/frontend/prod/unocace"
+          target: "/opt/inatrace/frontend/prod/unocace"
 
       - name: 🏭 Deploy to Unocace Production
         uses: appleboy/ssh-action@v1.0.0
@@ -602,7 +602,7 @@ jobs:
             set -e
             echo "🏭 Starting deployment to Unocace Production..."
 
-            cd /srv/inatrace/frontend/prod/unocace
+            cd /opt/inatrace/frontend/prod/unocace
 
             if docker compose ps -q inatrace-frontend; then
               echo "📦 Creating backup..."
@@ -658,7 +658,7 @@ jobs:
           key: ${{ secrets.PROD_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.PROD_FORTALEZA_PORT || '22' }}
           script: |
-            mkdir -p /srv/inatrace/frontend/prod/fortaleza
+            mkdir -p /opt/inatrace/frontend/prod/fortaleza
 
       - name: 📝 Generate docker-compose.yml (prod fortaleza)
         run: |
@@ -693,7 +693,7 @@ jobs:
           key: ${{ secrets.PROD_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.PROD_FORTALEZA_PORT || '22' }}
           source: "docker-compose.yml"
-          target: "/srv/inatrace/frontend/prod/fortaleza"
+          target: "/opt/inatrace/frontend/prod/fortaleza"
 
       - name: 📤 Upload image tar (prod fortaleza)
         uses: appleboy/scp-action@v0.1.7
@@ -703,7 +703,7 @@ jobs:
           key: ${{ secrets.PROD_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.PROD_FORTALEZA_PORT || '22' }}
           source: "image.tar"
-          target: "/srv/inatrace/frontend/prod/fortaleza"
+          target: "/opt/inatrace/frontend/prod/fortaleza"
 
       - name: 🏭 Deploy to Fortaleza Production
         uses: appleboy/ssh-action@v1.0.0
@@ -716,7 +716,7 @@ jobs:
             set -e
             echo "🏭 Starting deployment to Fortaleza Production..."
 
-            cd /srv/inatrace/frontend/prod/fortaleza
+            cd /opt/inatrace/frontend/prod/fortaleza
 
             if docker compose ps -q inatrace-frontend; then
               echo "📦 Creating backup..."
@@ -772,7 +772,7 @@ jobs:
           key: ${{ secrets.PROD_DUFER_SSH_KEY }}
           port: ${{ secrets.PROD_DUFER_PORT || '22' }}
           script: |
-            mkdir -p /srv/inatrace/frontend/prod/dufer
+            mkdir -p /opt/inatrace/frontend/prod/dufer
 
       - name: 📝 Generate docker-compose.yml (prod dufer)
         run: |
@@ -807,7 +807,7 @@ jobs:
           key: ${{ secrets.PROD_DUFER_SSH_KEY }}
           port: ${{ secrets.PROD_DUFER_PORT || '22' }}
           source: "docker-compose.yml"
-          target: "/srv/inatrace/frontend/prod/dufer"
+          target: "/opt/inatrace/frontend/prod/dufer"
 
       - name: 📤 Upload image tar (prod dufer)
         uses: appleboy/scp-action@v0.1.7
@@ -817,7 +817,7 @@ jobs:
           key: ${{ secrets.PROD_DUFER_SSH_KEY }}
           port: ${{ secrets.PROD_DUFER_PORT || '22' }}
           source: "image.tar"
-          target: "/srv/inatrace/frontend/prod/dufer"
+          target: "/opt/inatrace/frontend/prod/dufer"
 
       - name: 🏭 Deploy to Dufer Production
         uses: appleboy/ssh-action@v1.0.0
@@ -830,7 +830,7 @@ jobs:
             set -e
             echo "🏭 Starting deployment to Dufer Production..."
 
-            cd /srv/inatrace/frontend/prod/dufer
+            cd /opt/inatrace/frontend/prod/dufer
 
             if docker compose ps -q inatrace-frontend; then
               echo "📦 Creating backup..."
