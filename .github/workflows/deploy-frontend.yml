@@ -220,7 +220,7 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
-          source: "fe/nginx.conf"
+          source: "./fe/nginx.conf"
           target: "/opt/inatrace/frontend/dev"
 
       - name: 📤 Upload image tar
@@ -294,7 +294,7 @@ jobs:
             fi
 
             # Use existing nginx.conf from repo and modify backend host
-            cp nginx.conf temp-nginx.conf
+            cp fe/nginx.conf temp-nginx.conf
             sed -i "s/http:\/\/inatrace-backend:8080/http:\/\/$BACKEND_HOST:8080/g" temp-nginx.conf
 
             # Clean up existing frontend containers only
