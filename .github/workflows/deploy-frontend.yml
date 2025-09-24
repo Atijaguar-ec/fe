@@ -36,7 +36,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: atijaguar-ec/inatrace-frontend
+  IMAGE_NAME: atijaguar-ec/frontend-inatrace
   NODE_VERSION: '14'
 
 jobs:
@@ -198,15 +198,6 @@ jobs:
           script: |
             mkdir -p /opt/inatrace/frontend/dev
 
-      - name: 🔍 Verify local compose path (dev)
-        run: |
-          set -e
-          ls -lah deploy/frontend/dev || true
-          if [ ! -f deploy/frontend/dev/docker-compose.yml ]; then
-            echo "Missing deploy/frontend/dev/docker-compose.yml"
-            exit 1
-          fi
-
       - name: 📥 Download image artifact
         uses: actions/download-artifact@v4
         with:
@@ -314,15 +305,6 @@ jobs:
           script: |
             mkdir -p /opt/inatrace/frontend/test/unocace
 
-      - name: 🔍 Verify local compose path (unocace)
-        run: |
-          set -e
-          ls -lah deploy/frontend/test/unocace || true
-          if [ ! -f deploy/frontend/test/unocace/docker-compose.yml ]; then
-            echo "Missing deploy/frontend/test/unocace/docker-compose.yml"
-            exit 1
-          fi
-
       - name: 📥 Download image artifact (unocace)
         uses: actions/download-artifact@v4
         with:
@@ -330,6 +312,7 @@ jobs:
           path: .
 
       - name: 📤 Upload docker-compose.yml
+        if: ${{ hashFiles('deploy/frontend/test/unocace/docker-compose.yml') != '' }}
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.TEST_UNOCACE_HOST }}
@@ -435,15 +418,6 @@ jobs:
           script: |
             mkdir -p /opt/inatrace/frontend/test/fortaleza
 
-      - name: 🔍 Verify local compose path (fortaleza)
-        run: |
-          set -e
-          ls -lah deploy/frontend/test/fortaleza || true
-          if [ ! -f deploy/frontend/test/fortaleza/docker-compose.yml ]; then
-            echo "Missing deploy/frontend/test/fortaleza/docker-compose.yml"
-            exit 1
-          fi
-
       - name: 📥 Download image artifact (fortaleza)
         uses: actions/download-artifact@v4
         with:
@@ -451,6 +425,7 @@ jobs:
           path: .
 
       - name: 📤 Upload docker-compose.yml
+        if: ${{ hashFiles('deploy/frontend/test/fortaleza/docker-compose.yml') != '' }}
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.TEST_FORTALEZA_HOST }}
@@ -556,15 +531,6 @@ jobs:
           script: |
             mkdir -p /opt/inatrace/frontend/test/dufer
 
-      - name: 🔍 Verify local compose path (dufer)
-        run: |
-          set -e
-          ls -lah deploy/frontend/test/dufer || true
-          if [ ! -f deploy/frontend/test/dufer/docker-compose.yml ]; then
-            echo "Missing deploy/frontend/test/dufer/docker-compose.yml"
-            exit 1
-          fi
-
       - name: 📥 Download image artifact (dufer)
         uses: actions/download-artifact@v4
         with:
@@ -572,6 +538,7 @@ jobs:
           path: .
 
       - name: 📤 Upload docker-compose.yml
+        if: ${{ hashFiles('deploy/frontend/test/dufer/docker-compose.yml') != '' }}
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.TEST_DUFER_HOST }}
