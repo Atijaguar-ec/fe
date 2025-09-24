@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  inatrace-fe-dev:
+    image: ${IMAGE_NAME}:${TAG}
+    container_name: inatrace-fe-dev
+    restart: unless-stopped
+    networks:
+      - inatrace-backend-network
+      - inatrace-frontend-network
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    environment:
+      - NODE_ENV=development
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.inatrace-fe-dev.rule=Host(`inatrace.atijaguar.com`) || Host(`5.161.183.137`)"
+      - "traefik.http.routers.inatrace-fe-dev.entrypoints=web"
+      - "traefik.http.services.inatrace-fe-dev.loadbalancer.server.port=80"
+
+networks:
+  inatrace-frontend-network:
+    driver: bridge
+  inatrace-backend-network:
+    external: true
