@@ -321,19 +321,15 @@ jobs:
   notify:
     name: 📊 Notify Deployment Status
     runs-on: ubuntu-latest
-    needs: [deploy-dev, deploy-test-unocace, deploy-test-fortaleza, deploy-test-dufer, deploy-prod-unocace, deploy-prod-fortaleza, deploy-prod-dufer]
-    if: always() && (needs.deploy-dev.result != 'skipped' || needs.deploy-test-unocace.result != 'skipped' || needs.deploy-test-fortaleza.result != 'skipped' || needs.deploy-test-dufer.result != 'skipped' || needs.deploy-prod-unocace.result != 'skipped' || needs.deploy-prod-fortaleza.result != 'skipped' || needs.deploy-prod-dufer.result != 'skipped')
+    needs: [deploy-dev]
+    if: always() && needs.deploy-dev.result != 'skipped'
     steps:
       - name: 📊 Send notification
         run: |
           if [[ "${{ needs.deploy-dev.result }}" == "success" ]]; then
             echo "✅ Development deployment successful"
-          fi
-          if [[ "${{ needs.deploy-test-unocace.result }}" == "success" && "${{ needs.deploy-test-fortaleza.result }}" == "success" && "${{ needs.deploy-test-dufer.result }}" == "success" ]]; then
-            echo "✅ Test environments deployment successful"
-          fi
-          if [[ "${{ needs.deploy-prod-unocace.result }}" == "success" && "${{ needs.deploy-prod-fortaleza.result }}" == "success" && "${{ needs.deploy-prod-dufer.result }}" == "success" ]]; then
-            echo "✅ Production deployment successful"
+          else
+            echo "❌ Development deployment failed"
           fi
 
           # Aquí puedes agregar notificaciones a Slack, Teams, etc.
