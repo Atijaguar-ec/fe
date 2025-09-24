@@ -18,10 +18,10 @@ on:
       environment:
         description: 'Target environment'
         required: true
-        default: 'dev'
+        default: 'develop'
         type: choice
         options:
-        - dev
+        - develop
         - test
         - prod
       company:
@@ -164,13 +164,13 @@ jobs:
         with:
           cosign-release: 'v2.1.1'
 
-  deploy-dev:
+  deploy-develop:
     name: 🚀 Deploy to Development
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/develop'
     environment:
-      name: dev
+      name: develop
       url: http://inatrace.atijaguar.com
     steps:
       - name: 📥 Checkout deployment configs
@@ -270,12 +270,11 @@ jobs:
             # Stop only frontend containers (preserve backend)
             docker stop inatrace-fe-dev 2>/dev/null || true
             docker rm inatrace-fe-dev 2>/dev/null || true
-            # Use compose down WITHOUT --remove-orphans to avoid affecting backend
             docker compose down
 
             echo "🚀 Deploying with Docker Compose..."
             docker compose pull
-            docker compose up -d --remove-orphans
+            docker compose up -d
 
             echo "⏳ Waiting for frontend health endpoint..."
             for i in {1..10}; do
@@ -387,8 +386,8 @@ jobs:
             docker network inspect inatrace-frontend-unocace-network >/dev/null 2>&1 || docker network create inatrace-frontend-unocace-network
             docker network inspect inatrace-backend-unocace-network >/dev/null 2>&1 || docker network create inatrace-backend-unocace-network
 
-            docker compose down --remove-orphans 2>/dev/null || true
-            docker compose up -d --remove-orphans
+            docker compose down 2>/dev/null || true
+            docker compose up -d
 
             echo "⏳ Waiting for Unocace test health endpoint..."
             for i in {1..10}; do
@@ -500,8 +499,8 @@ jobs:
             docker network inspect inatrace-frontend-fortaleza-network >/dev/null 2>&1 || docker network create inatrace-frontend-fortaleza-network
             docker network inspect inatrace-backend-fortaleza-network >/dev/null 2>&1 || docker network create inatrace-backend-fortaleza-network
 
-            docker compose down --remove-orphans 2>/dev/null || true
-            docker compose up -d --remove-orphans
+            docker compose down 2>/dev/null || true
+            docker compose up -d
 
             echo "⏳ Waiting for Fortaleza test health endpoint..."
             for i in {1..10}; do
@@ -613,8 +612,8 @@ jobs:
             docker network inspect inatrace-frontend-dufer-network >/dev/null 2>&1 || docker network create inatrace-frontend-dufer-network
             docker network inspect inatrace-backend-dufer-network >/dev/null 2>&1 || docker network create inatrace-backend-dufer-network
 
-            docker compose down --remove-orphans 2>/dev/null || true
-            docker compose up -d --remove-orphans
+            docker compose down 2>/dev/null || true
+            docker compose up -d
 
             echo "⏳ Waiting for Dufer test health endpoint..."
             for i in {1..10}; do
@@ -735,8 +734,8 @@ jobs:
             docker network inspect inatrace-frontend-unocace-network >/dev/null 2>&1 || docker network create inatrace-frontend-unocace-network
             docker network inspect inatrace-backend-unocace-network >/dev/null 2>&1 || docker network create inatrace-backend-unocace-network
 
-            docker compose down --remove-orphans 2>/dev/null || true
-            docker compose up -d --remove-orphans
+            docker compose down 2>/dev/null || true
+            docker compose up -d
 
             echo "🔍 Performing health checks..."
             for i in {1..10}; do
@@ -857,8 +856,8 @@ jobs:
             docker network inspect inatrace-frontend-fortaleza-network >/dev/null 2>&1 || docker network create inatrace-frontend-fortaleza-network
             docker network inspect inatrace-backend-fortaleza-network >/dev/null 2>&1 || docker network create inatrace-backend-fortaleza-network
 
-            docker compose down --remove-orphans 2>/dev/null || true
-            docker compose up -d --remove-orphans
+            docker compose down 2>/dev/null || true
+            docker compose up -d
 
             echo "🔍 Performing health checks..."
             for i in {1..10}; do
@@ -979,8 +978,8 @@ jobs:
             docker network inspect inatrace-frontend-dufer-network >/dev/null 2>&1 || docker network create inatrace-frontend-dufer-network
             docker network inspect inatrace-backend-dufer-network >/dev/null 2>&1 || docker network create inatrace-backend-dufer-network
 
-            docker compose down --remove-orphans 2>/dev/null || true
-            docker compose up -d --remove-orphans
+            docker compose down 2>/dev/null || true
+            docker compose up -d
 
             echo "🔍 Performing health checks..."
             for i in {1..10}; do
