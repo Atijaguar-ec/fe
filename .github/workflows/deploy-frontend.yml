@@ -189,6 +189,15 @@ jobs:
       - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
 
+      - name: 🔍 Debug: List files
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo "=== Files in current directory ==="
+          ls -la
+          echo "=== Looking for nginx.conf ==="
+          find . -name "nginx.conf" -type f
+
       - name: 📁 Ensure remote directory exists
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -220,7 +229,7 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
-          source: "./fe/nginx.conf"
+          source: "nginx.conf"
           target: "/opt/inatrace/frontend/dev"
 
       - name: 📤 Upload image tar
@@ -294,7 +303,7 @@ jobs:
             fi
 
             # Use existing nginx.conf from repo and modify backend host
-            cp fe/nginx.conf temp-nginx.conf
+            cp nginx.conf temp-nginx.conf
             sed -i "s/http:\/\/inatrace-backend:8080/http:\/\/$BACKEND_HOST:8080/g" temp-nginx.conf
 
             # Clean up existing frontend containers only
