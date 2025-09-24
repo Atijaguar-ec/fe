@@ -266,37 +266,131 @@ jobs:
             docker network inspect inatrace-frontend-network >/dev/null 2>&1 || docker network create inatrace-frontend-network
             docker network inspect inatrace-backend-network >/dev/null 2>&1 || docker network create inatrace-backend-network
 
-            # Debug: Check if backend is running and in which network
-            echo "🔍 Debugging backend connectivity..."
-            docker ps --filter "name=inatrace-be" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-            docker network ls | grep inatrace
-            
-            # Check if backend container exists and get its network
+            # Determine backend host
+            BACKEND_HOST="5.161.183.137"
             BACKEND_CONTAINER=$(docker ps -q --filter "name=inatrace-be-dev" 2>/dev/null || echo "")
             if [ -n "$BACKEND_CONTAINER" ]; then
+              BACKEND_HOST="inatrace-be-dev"
               echo "✅ Backend container found: $BACKEND_CONTAINER"
-              docker inspect $BACKEND_CONTAINER --format '{{range .NetworkSettings.Networks}}{{.NetworkID}} {{end}}'
             else
-              echo "❌ Backend container not found, using IP fallback"
+              echo "❌ Backend container not found, falling back to $BACKEND_HOST"
             fi
 
+            # Generate nginx.conf overriding backend upstream
+            cat <<EOF > temp-nginx.conf
+            user  nginx;
+            worker_processes  1;
+            error_log  /var/log/nginx/error.log warn;
+            pid        /var/run/nginx.pid;
+            events {
+              worker_connections  1024;
+            }
+            http {
+              include       /etc/nginx/mime.types;
+              default_type  application/octet-stream;
+              log_format  main  'remote_addr - remote_user [time_local] "request" '
+                                'status body_bytes_sent "http_referer" '
+                                '"http_user_agent" "http_x_forwarded_for"';
+              access_log  /var/log/nginx/access.log  main;
+              sendfile        on;
+              keepalive_timeout  65;
+              gzip on;
+              gzip_comp_level 5;
+              gzip_min_length 1024;
+              gzip_types text/plain application/json application/javascript text/css application/xml application/octet-stream image/svg+xml;
+              gzip_vary on;
+              server {
+                listen       80;
+                server_name  localhost;
+                root   /app;
+                index  index.html;
+                client_max_body_size 50m;
+
+                location /health {
+                  access_log off;
+                  return 200 "healthy\n";
+                  add_header Content-Type text/plain;
+                }
+
+                location /api/ {
+                  proxy_pass http://$BACKEND_HOST:8080;
+                  proxy_http_version 1.1;
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Real-IP \$remote_addr;
+                  proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto \$http_x_forwarded_proto;
+                  proxy_set_header Upgrade \$http_upgrade;
+                  proxy_set_header Connection "upgrade";
+                  proxy_read_timeout 300s;
+
+                  if (\$request_method = OPTIONS) {
+                    add_header Access-Control-Allow-Origin \$http_origin always;
+                    add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
+                    add_header Access-Control-Allow-Headers "Content-Type, Authorization, *" always;
+                    add_header Access-Control-Allow-Credentials true always;
+                    add_header Access-Control-Max-Age 86400 always;
+                    add_header Content-Length 0;
+                    add_header Content-Type text/plain;
+                    return 204;
+                  }
+
+                  add_header Access-Control-Allow-Origin \$http_origin always;
+                  add_header Access-Control-Allow-Credentials true always;
+                  add_header Vary Origin always;
+                }
+
+                location ~* \.(?:js|css|woff2?|ttf|eot|ico|png|jpg|jpeg|gif|svg)$ {
+                  expires 30d;
+                  add_header Cache-Control "public, max-age=2592000, immutable" always;
+                  try_files \$uri \$uri/ =404;
+                }
+
+                location = /index.html {
+                  add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate" always;
+                  add_header Pragma "no-cache" always;
+                  add_header Expires "0" always;
+                }
+
+                location = /assets/env.js {
+                  add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate" always;
+                  add_header Pragma "no-cache" always;
+                  add_header Expires "0" always;
+                }
+
+                location / {
+                  try_files \$uri \$uri/ /index.html;
+                }
+                error_page   500 502 503 504  /50x.html;
+                location = /50x.html {
+                  root   /usr/share/nginx/html;
+                }
+              }
+            }
+            EOF
+
+            # Clean up existing containers
+            echo "🧹 Cleaning up existing containers..."
+            docker stop inatrace-fe-dev 2>/dev/null || true
+            docker rm inatrace-fe-dev 2>/dev/null || true
             docker compose down --remove-orphans 2>/dev/null || true
-            
-            # Use IP address instead of hostname for immediate fix
-            echo "🔧 Starting frontend with IP-based backend connection..."
+
+            echo "🔧 Starting frontend container..."
             docker run -d \
               --name inatrace-fe-dev \
-              --network inatrace-frontend-network \
               --network inatrace-backend-network \
               -p 8081:80 \
+              -v "$(pwd)/temp-nginx.conf:/etc/nginx/nginx.conf:ro" \
               -e NODE_ENV=development \
-              -e API_BASE_URL=http://5.161.183.137:8080 \
+              -e API_BASE_URL=http://$BACKEND_HOST:8080 \
               --restart unless-stopped \
               --label "traefik.enable=true" \
               --label 'traefik.http.routers.inatrace-fe-dev.rule=Host(`inatrace.atijaguar.com`) || Host(`5.161.183.137`)' \
               --label "traefik.http.routers.inatrace-fe-dev.entrypoints=web" \
               --label "traefik.http.services.inatrace-fe-dev.loadbalancer.server.port=80" \
               ${IMAGE_NAME}:${TAG}
+
+            # Attach to frontend network for Traefik
+            docker network connect inatrace-frontend-network inatrace-fe-dev 2>/dev/null || true
 
             echo "⏳ Waiting for frontend health endpoint..."
             for i in {1..10}; do
