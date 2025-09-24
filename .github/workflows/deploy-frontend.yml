@@ -279,7 +279,7 @@ jobs:
             echo "⏳ Waiting for frontend health endpoint..."
             for i in {1..10}; do
               sleep 10
-              if curl -f http://localhost:8081/health; then
+              if curl -f http://localhost:80/health; then
                 echo "✅ Development frontend deployment successful!"
                 exit 0
               fi
