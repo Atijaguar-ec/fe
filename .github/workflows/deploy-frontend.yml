@@ -55,7 +55,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: 'fe/package-lock.json'
+          cache-dependency-path: 'package-lock.json'
 
       - name: Install dependencies
         run: npm ci
@@ -94,7 +94,7 @@ jobs:
         id: meta
         run: |
           if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
-            VERSION=$(grep -m1 '"version":' fe/package.json | sed -E 's/.*"([0-9.]+)".*/\1/')
+            VERSION=$(grep -m1 '"version":' package.json | sed -E 's/.*"([0-9.]+)".*/\1/')
             TAG="v${VERSION}"
           elif [[ "${GITHUB_REF_NAME}" == "develop" ]]; then
             TAG="develop"
@@ -115,21 +115,17 @@ jobs:
         id: build_paths
         shell: bash
         run: |
-          if [ -f fe/package.json ]; then
-            echo "context=./fe" >> "$GITHUB_OUTPUT"
-            if [ -f fe/Dockerfile ]; then
-              echo "dockerfile=./fe/Dockerfile" >> "$GITHUB_OUTPUT"
-            elif [ -f Dockerfile ]; then
-              echo "dockerfile=./Dockerfile" >> "$GITHUB_OUTPUT"
-            else
-              echo "dockerfile=./fe/Dockerfile" >> "$GITHUB_OUTPUT"
-            fi
-          else
+          if [ -f package.json ]; then
             echo "context=." >> "$GITHUB_OUTPUT"
             if [ -f Dockerfile ]; then
               echo "dockerfile=./Dockerfile" >> "$GITHUB_OUTPUT"
-            elif [ -f fe/Dockerfile ]; then
-              echo "dockerfile=./fe/Dockerfile" >> "$GITHUB_OUTPUT"
+            else
+              echo "dockerfile=./Dockerfile" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "context=.." >> "$GITHUB_OUTPUT"
+            if [ -f ../Dockerfile ]; then
+              echo "dockerfile=../Dockerfile" >> "$GITHUB_OUTPUT"
             else
               echo "dockerfile=./Dockerfile" >> "$GITHUB_OUTPUT"
             fi
@@ -217,7 +213,7 @@ jobs:
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
           fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
-          source: "fe/nginx.conf"
+          source: "nginx.conf"
           target: "/opt/inatrace/frontend/dev"
       - name: 📤 Upload image tar
         uses: appleboy/scp-action@v0.1.7
