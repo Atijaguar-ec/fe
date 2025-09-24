@@ -1,0 +1,36 @@
+# ═══════════════════════════════════════════════════════════════
+# 🚀 INATRACE FRONTEND - DEVELOPMENT ENVIRONMENT
+# ═══════════════════════════════════════════════════════════════
+
+services:
+  inatrace-frontend:
+    image: ${IMAGE_NAME}:${TAG}
+    container_name: inatrace-fe-dev
+    environment:
+      - NODE_ENV=development
+      - API_BASE_URL=http://inatrace-be:8080
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.inatrace-fe-dev.rule=Host(`inatrace.atijaguar.com`) || Host(`5.161.183.137`)")
+      - "traefik.http.routers.inatrace-fe-dev.entrypoints=web"
+      - "traefik.http.services.inatrace-fe-dev.loadbalancer.server.port=80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  frontend:
+    name: inatrace-frontend-network
+    external: true
+  backend:
+    name: inatrace-backend-network
+    external: true
