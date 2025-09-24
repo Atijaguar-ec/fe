@@ -269,8 +269,8 @@ jobs:
             # Stop only frontend containers (preserve backend)
             docker stop inatrace-fe-dev 2>/dev/null || true
             docker rm inatrace-fe-dev 2>/dev/null || true
-            # Use project-specific compose down to avoid affecting backend
-            docker compose down --remove-orphans
+            # Use compose down WITHOUT --remove-orphans to avoid affecting backend
+            docker compose down
 
             echo "🚀 Deploying with Docker Compose..."
             docker compose pull
