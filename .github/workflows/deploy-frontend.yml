@@ -36,7 +36,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: atijaguar-ec/frontend-inatrace
+  IMAGE_NAME: ${{ github.repository }}-inatrace
   NODE_VERSION: '14'
 
 jobs:
@@ -262,6 +262,9 @@ jobs:
             docker network inspect inatrace-backend-network >/dev/null 2>&1 || docker network create inatrace-backend-network
 
             echo "🧹 Cleaning up old services..."
+            # Force stop and remove any container with the name, to prevent conflicts from previous manual runs
+            docker stop inatrace-fe-dev 2>/dev/null || true
+            docker rm inatrace-fe-dev 2>/dev/null || true
             docker compose down --remove-orphans
 
             echo "🚀 Deploying with Docker Compose..."
