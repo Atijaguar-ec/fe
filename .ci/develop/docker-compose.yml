@@ -22,6 +22,8 @@ services:
 
 networks:
   inatrace-frontend-network:
-    driver: bridge
+    name: inatrace-frontend-network
+    external: true
   inatrace-backend-network:
+    name: inatrace-backend-network
     external: true

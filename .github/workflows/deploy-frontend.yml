@@ -12,6 +12,7 @@ on:
     paths:
       - 'src/**'
       - 'deploy/frontend/**'
+      - '.ci/**'
   workflow_dispatch:
     inputs:
       environment:
@@ -192,14 +193,14 @@ jobs:
           path: .
 
       - name: 📤 Upload docker-compose.yml
-        if: ${{ hashFiles('deploy/frontend/dev/docker-compose.yml') != '' }}
+        if: ${{ hashFiles('.ci/develop/docker-compose.yml') != '' }}
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
           fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
-          source: "deploy/frontend/dev/docker-compose.yml"
+          source: ".ci/develop/docker-compose.yml"
           target: "/opt/inatrace/frontend/dev"
 
       - name: 📤 Upload nginx.conf
@@ -279,7 +280,7 @@ jobs:
             echo "⏳ Waiting for frontend health endpoint..."
             for i in {1..10}; do
               sleep 10
-              if curl -f http://localhost:80/health; then
+              if curl -f http://localhost:8081/health; then
                 echo "✅ Development frontend deployment successful!"
                 exit 0
               fi
