@@ -261,13 +261,15 @@ jobs:
 
             docker load -i image.tar
 
-            # Ensure the external backend network exists
+            # Ensure required networks exist (shared with backend)
             docker network inspect inatrace-backend-network >/dev/null 2>&1 || docker network create inatrace-backend-network
+            docker network inspect inatrace-frontend-network >/dev/null 2>&1 || docker network create inatrace-frontend-network
 
-            echo "🧹 Cleaning up old services..."
-            # Force stop and remove any container with the name, to prevent conflicts from previous manual runs
+            echo "🧹 Cleaning up old frontend services..."
+            # Stop only frontend containers (preserve backend)
             docker stop inatrace-fe-dev 2>/dev/null || true
             docker rm inatrace-fe-dev 2>/dev/null || true
+            # Use project-specific compose down to avoid affecting backend
             docker compose down --remove-orphans
 
             echo "🚀 Deploying with Docker Compose..."
