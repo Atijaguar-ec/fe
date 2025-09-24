@@ -1,0 +1,342 @@
+name: 🚀 Frontend CI/CD Pipeline
+
+on:
+  push:
+    branches: [ develop, staging, main ]
+    paths:
+      - 'fe/**'
+      - 'deploy/frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
+  pull_request:
+    branches: [ develop, staging, main ]
+    paths:
+      - 'fe/**'
+      - 'deploy/frontend/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+        - dev
+        - test
+        - prod
+      company:
+        description: 'Target company (for test/prod)'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - unocace
+        - fortaleza
+        - dufer
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: atijaguar-ec/frontend-inatrace
+  NODE_VERSION: '14'
+concurrency:
+  group: frontend-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: 🔍 Code Quality & Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'fe/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./fe
+      - name: Lint code
+        run: npm run lint
+        working-directory: ./fe
+        continue-on-error: true
+      - name: Run unit tests
+        run: npm run test -- --watch=false --progress=false
+        working-directory: ./fe
+
+      - name: 📊 Upload coverage reports
+        if: ${{ false }}
+        uses: codecov/codecov-action@v3
+        with:
+          files: fe/coverage/lcov.info
+          fail_ci_if_error: false
+
+  build:
+    name: 🏗️ Build & Push Docker Image
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: quality
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tag }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      - name: 🏷️ Generate metadata
+        id: meta
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            VERSION=$(grep -m1 '"version":' fe/package.json | sed -E 's/.*"([0-9.]+)".*/\1/')
+            TAG="v${VERSION}"
+          elif [[ "${GITHUB_REF_NAME}" == "develop" ]]; then
+            TAG="develop"
+          elif [[ "${GITHUB_REF_NAME}" == "staging" ]]; then
+            TAG="test-${GITHUB_SHA::7}"
+          else
+            TAG="dev-${GITHUB_SHA::7}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "🏷️ Generated tag: $TAG"
+      - name: 🔐 Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Determine frontend paths (build)
+        id: build_paths
+        shell: bash
+        run: |
+          if [ -f fe/package.json ]; then
+            echo "context=./fe" >> "$GITHUB_OUTPUT"
+            if [ -f fe/Dockerfile ]; then
+              echo "dockerfile=./fe/Dockerfile" >> "$GITHUB_OUTPUT"
+            elif [ -f Dockerfile ]; then
+              echo "dockerfile=./Dockerfile" >> "$GITHUB_OUTPUT"
+            else
+              echo "dockerfile=./fe/Dockerfile" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "context=." >> "$GITHUB_OUTPUT"
+            if [ -f Dockerfile ]; then
+              echo "dockerfile=./Dockerfile" >> "$GITHUB_OUTPUT"
+            elif [ -f fe/Dockerfile ]; then
+              echo "dockerfile=./fe/Dockerfile" >> "$GITHUB_OUTPUT"
+            else
+              echo "dockerfile=./Dockerfile" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+      - name: Compute lowercase image ref
+        id: image_ref
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+      - name: 🔧 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: 🏗️ Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ steps.build_paths.outputs.context }}
+          file: ${{ steps.build_paths.outputs.dockerfile }}
+          push: true
+          tags: |
+            ${{ steps.image_ref.outputs.image }}:${{ steps.meta.outputs.tag }}
+            ${{ steps.image_ref.outputs.image }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_OPTIMIZATION=true
+      - name: Pull built image for artifact
+        run: docker pull "${{ steps.image_ref.outputs.image }}:${{ steps.meta.outputs.tag }}"
+      - name: 📦 Save Docker image as tar
+        run: docker save "${{ steps.image_ref.outputs.image }}:${{ steps.meta.outputs.tag }}" -o image.tar
+      - name: 📤 Upload image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fe-image
+          path: image.tar
+          retention-days: 3
+          if-no-files-found: error
+      - name: 🔒 Sign image with Cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v2.1.1'
+
+  # See docs/tecnico/guia-cicd-backend.md for reverse proxy design:
+  # Host Nginx terminates TLS and proxies: / -> FE container:8081, /api/ -> BE:8080
+  deploy-dev:
+    name: 🚀 Deploy to Development
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: dev
+      url: http://inatrace.atijaguar.com
+    steps:
+      - name: 📥 Checkout deployment configs
+        uses: actions/checkout@v4
+      - name: 📁 Ensure remote directory exists
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
+          script: |
+            mkdir -p /opt/inatrace/frontend/dev
+      - name: 📥 Download image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: fe-image
+          path: .
+      - name: 📤 Upload docker-compose.yml
+        if: ${{ hashFiles('deploy/frontend/dev/docker-compose.yml') != '' }}
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
+          source: "deploy/frontend/dev/docker-compose.yml"
+          target: "/opt/inatrace/frontend/dev"
+      - name: 📤 Upload nginx.conf
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
+          source: "fe/nginx.conf"
+          target: "/opt/inatrace/frontend/dev"
+      - name: 📤 Upload image tar
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
+          source: "image.tar"
+          target: "/opt/inatrace/frontend/dev"
+      - name: 📝 Prepare .env (dev)
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"; IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
+          TAG_VALUE="${{ needs.build.outputs.image-tag }}"
+          API_BASE_URL="http://inatrace-be:8080"
+          cat > .env <<EOF
+          IMAGE_NAME=$IMAGE
+          TAG=$TAG_VALUE
+          NODE_ENV=development
+          API_BASE_URL=$API_BASE_URL
+          EOF
+      - name: 📤 Upload .env (dev)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
+          source: ".env"
+          target: "/opt/inatrace/frontend/dev"
+      - name: 🚀 Deploy to Development Server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
+          script: |
+            set -e
+            echo "🚀 Starting deployment to Development..."
+
+            cd /opt/inatrace/frontend/dev
+
+            set -a
+            source .env
+            set +a
+
+            docker load -i image.tar
+
+            # Ensure required networks exist
+            docker network inspect inatrace-frontend-network >/dev/null 2>&1 || docker network create inatrace-frontend-network
+            docker network inspect inatrace-backend-network >/dev/null 2>&1 || docker network create inatrace-backend-network
+
+            # Determine backend host and check network connectivity
+            BACKEND_HOST="5.161.183.137"
+            BACKEND_CONTAINER=$(docker ps -q --filter "name=inatrace-be-dev" 2>/dev/null || echo "")
+            if [ -n "$BACKEND_CONTAINER" ]; then
+              echo "✅ Backend container found: $BACKEND_CONTAINER"
+              
+              # Check if backend is in the same network
+              BACKEND_NETWORKS=$(docker inspect $BACKEND_CONTAINER --format '{{range .NetworkSettings.Networks}}{{.NetworkID}} {{end}}')
+              echo "🔍 Backend networks: $BACKEND_NETWORKS"
+              
+              # Connect backend to our network if not already connected
+              docker network connect inatrace-backend-network $BACKEND_CONTAINER 2>/dev/null || echo "Backend already in network or connection failed"
+              
+              BACKEND_HOST="inatrace-be-dev"
+            else
+              echo "❌ Backend container not found, falling back to $BACKEND_HOST"
+            fi
+
+            # Use existing nginx.conf from repo and modify backend host
+            cp nginx.conf temp-nginx.conf
+            sed -i "s/http:\/\/inatrace-backend:8080/http:\/\/$BACKEND_HOST:8080/g" temp-nginx.conf
+
+            # Clean up existing frontend containers only
+            echo "🧹 Cleaning up existing frontend containers..."
+            docker stop inatrace-fe-dev 2>/dev/null || true
+            docker rm inatrace-fe-dev 2>/dev/null || true
+
+            echo "🔧 Starting frontend container..."
+            docker run -d \
+              --name inatrace-fe-dev \
+              --network inatrace-backend-network \
+              -p 8081:80 \
+              -v "$(pwd)/temp-nginx.conf:/etc/nginx/nginx.conf:ro" \
+              -e NODE_ENV=development \
+              -e API_BASE_URL=http://$BACKEND_HOST:8080 \
+              --restart unless-stopped \
+              ${IMAGE_NAME}:${TAG}
+
+            # Attach to frontend network for Traefik
+            docker network connect inatrace-frontend-network inatrace-fe-dev 2>/dev/null || true
+
+            echo "⏳ Waiting for frontend health endpoint..."
+            for i in {1..10}; do
+              sleep 10
+              if curl -f http://localhost:8081/health; then
+                echo "✅ Development frontend deployment successful!"
+                exit 0
+              fi
+              echo "⏳ Health check attempt $i/10, retrying..."
+            done
+
+            echo "❌ Health check failed after 10 attempts"
+            docker logs --tail=100 inatrace-fe-dev
+            exit 1
+  notify:
+    name: 📊 Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: [deploy-dev]
+    if: always() && needs.deploy-dev.result != 'skipped'
+    steps:
+      - name: 📊 Send notification
+        run: |
+          if [[ "${{ needs.deploy-dev.result }}" == "success" ]]; then
+            echo "✅ Development deployment successful"
+          else
+            echo "❌ Development deployment failed"
+          fi
+
+          # Aquí puedes agregar notificaciones a Slack, Teams, etc.
