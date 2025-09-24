@@ -114,25 +114,8 @@ jobs:
         id: build_paths
         shell: bash
         run: |
-          if [ -f fe/package.json ]; then
-            echo "context=./fe" >> "$GITHUB_OUTPUT"
-            if [ -f fe/Dockerfile ]; then
-              echo "dockerfile=./fe/Dockerfile" >> "$GITHUB_OUTPUT"
-            elif [ -f Dockerfile ]; then
-              echo "dockerfile=./Dockerfile" >> "$GITHUB_OUTPUT"
-            else
-              echo "dockerfile=./fe/Dockerfile" >> "$GITHUB_OUTPUT"
-            fi
-          else
-            echo "context=." >> "$GITHUB_OUTPUT"
-            if [ -f Dockerfile ]; then
-              echo "dockerfile=./Dockerfile" >> "$GITHUB_OUTPUT"
-            elif [ -f fe/Dockerfile ]; then
-              echo "dockerfile=./fe/Dockerfile" >> "$GITHUB_OUTPUT"
-            else
-              echo "dockerfile=./Dockerfile" >> "$GITHUB_OUTPUT"
-            fi
-          fi
+          echo "context=." >> "$GITHUB_OUTPUT"
+          echo "dockerfile=./Dockerfile" >> "$GITHUB_OUTPUT"
 
       - name: Compute lowercase image ref
         id: image_ref
@@ -216,6 +199,16 @@ jobs:
           source: "deploy/frontend/dev/docker-compose.yml"
           target: "/opt/inatrace/frontend/dev"
 
+      - name: 📤 Upload nginx.conf
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
+          source: "nginx.conf"
+          target: "/opt/inatrace/frontend/dev"
+
       - name: 📤 Upload image tar
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -281,97 +274,9 @@ jobs:
               echo "❌ Backend container not found, falling back to $BACKEND_HOST"
             fi
 
-            # Generate nginx.conf overriding backend upstream
-            cat <<EOF > temp-nginx.conf
-            user  nginx;
-            worker_processes  1;
-            error_log  /var/log/nginx/error.log warn;
-            pid        /var/run/nginx.pid;
-            events {
-              worker_connections  1024;
-            }
-            http {
-              include       /etc/nginx/mime.types;
-              default_type  application/octet-stream;
-              log_format  main  'remote_addr - remote_user [time_local] "request" '
-                                'status body_bytes_sent "http_referer" '
-                                '"http_user_agent" "http_x_forwarded_for"';
-              access_log  /var/log/nginx/access.log  main;
-              sendfile        on;
-              keepalive_timeout  65;
-              gzip on;
-              gzip_comp_level 5;
-              gzip_min_length 1024;
-              gzip_types text/plain application/json application/javascript text/css application/xml application/octet-stream image/svg+xml;
-              gzip_vary on;
-              server {
-                listen       80;
-                server_name  localhost;
-                root   /app;
-                index  index.html;
-                client_max_body_size 50m;
-
-                location /health {
-                  access_log off;
-                  return 200 "healthy\n";
-                  add_header Content-Type text/plain;
-                }
-
-                location /api/ {
-                  proxy_pass http://$BACKEND_HOST:8080;
-                  proxy_http_version 1.1;
-                  proxy_set_header Host \$host;
-                  proxy_set_header X-Real-IP \$remote_addr;
-                  proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-                  proxy_set_header X-Forwarded-Proto \$http_x_forwarded_proto;
-                  proxy_set_header Upgrade \$http_upgrade;
-                  proxy_set_header Connection "upgrade";
-                  proxy_read_timeout 300s;
-
-                  if (\$request_method = OPTIONS) {
-                    add_header Access-Control-Allow-Origin \$http_origin always;
-                    add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
-                    add_header Access-Control-Allow-Headers "Content-Type, Authorization, *" always;
-                    add_header Access-Control-Allow-Credentials true always;
-                    add_header Access-Control-Max-Age 86400 always;
-                    add_header Content-Length 0;
-                    add_header Content-Type text/plain;
-                    return 204;
-                  }
-
-                  add_header Access-Control-Allow-Origin \$http_origin always;
-                  add_header Access-Control-Allow-Credentials true always;
-                  add_header Vary Origin always;
-                }
-
-                location ~* \.(?:js|css|woff2?|ttf|eot|ico|png|jpg|jpeg|gif|svg)$ {
-                  expires 30d;
-                  add_header Cache-Control "public, max-age=2592000, immutable" always;
-                  try_files \$uri \$uri/ =404;
-                }
-
-                location = /index.html {
-                  add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate" always;
-                  add_header Pragma "no-cache" always;
-                  add_header Expires "0" always;
-                }
-
-                location = /assets/env.js {
-                  add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate" always;
-                  add_header Pragma "no-cache" always;
-                  add_header Expires "0" always;
-                }
-
-                location / {
-                  try_files \$uri \$uri/ /index.html;
-                }
-                error_page   500 502 503 504  /50x.html;
-                location = /50x.html {
-                  root   /usr/share/nginx/html;
-                }
-              }
-            }
-            EOF
+            # Use the uploaded nginx.conf and modify the backend host
+            cp nginx.conf temp-nginx.conf
+            sed -i "s|http://inatrace-backend:8080|http://$BACKEND_HOST:8080|g" temp-nginx.conf
 
             # Clean up existing containers
             echo "🧹 Cleaning up existing containers..."
