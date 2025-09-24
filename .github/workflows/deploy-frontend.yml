@@ -198,23 +198,14 @@ jobs:
           script: |
             mkdir -p /opt/inatrace/frontend/dev
 
-      - name: 📝 Generate docker-compose.yml
+      - name: 🔍 Verify local compose path (dev)
         run: |
-          cat > docker-compose.yml <<'EOF'
-          version: '3.8'
-          services:
-            inatrace-frontend:
-              image: ${IMAGE_NAME}:${TAG}
-              container_name: inatrace-frontend
-              ports:
-                - "8081:80"
-              networks:
-                - inatrace-frontend-network
-              restart: always
-          networks:
-            inatrace-frontend-network:
-              external: true
-          EOF
+          set -e
+          ls -lah deploy/frontend/dev || true
+          if [ ! -f deploy/frontend/dev/docker-compose.yml ]; then
+            echo "Missing deploy/frontend/dev/docker-compose.yml"
+            exit 1
+          fi
 
       - name: 📥 Download image artifact
         uses: actions/download-artifact@v4
@@ -223,12 +214,13 @@ jobs:
           path: .
 
       - name: 📤 Upload docker-compose.yml
+        if: ${{ hashFiles('deploy/frontend/dev/docker-compose.yml') != '' }}
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
-          source: "docker-compose.yml"
+          source: "deploy/frontend/dev/docker-compose.yml"
           target: "/opt/inatrace/frontend/dev"
 
       - name: 📤 Upload image tar
@@ -238,6 +230,27 @@ jobs:
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
           source: "image.tar"
+          target: "/opt/inatrace/frontend/dev"
+
+      - name: 📝 Prepare .env (dev)
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"; IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
+          TAG_VALUE="${{ needs.build.outputs.image-tag }}"
+          API_BASE_URL="http://inatrace-be:8080"
+          cat > .env <<EOF
+          IMAGE_NAME=$IMAGE
+          TAG=$TAG_VALUE
+          NODE_ENV=development
+          API_BASE_URL=$API_BASE_URL
+          EOF
+
+      - name: 📤 Upload .env (dev)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          source: ".env"
           target: "/opt/inatrace/frontend/dev"
 
       - name: 🚀 Deploy to Development Server
@@ -252,9 +265,9 @@ jobs:
 
             cd /opt/inatrace/frontend/dev
 
-            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"; IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
-            export IMAGE_NAME="$IMAGE"
-            export TAG="${{ needs.build.outputs.image-tag }}"
+            set -a
+            source .env
+            set +a
 
             docker load -i image.tar
 
@@ -262,15 +275,22 @@ jobs:
             docker network inspect inatrace-frontend-network >/dev/null 2>&1 || docker network create inatrace-frontend-network
             docker network inspect inatrace-backend-network >/dev/null 2>&1 || docker network create inatrace-backend-network
 
+            docker compose down --remove-orphans 2>/dev/null || true
             docker compose up -d --remove-orphans
 
-            sleep 10
-            if curl -f http://localhost:8081/health; then
-              echo "✅ Deployment successful!"
-            else
-              echo "❌ Health check failed"
-              exit 1
-            fi
+            echo "⏳ Waiting for frontend health endpoint..."
+            for i in {1..10}; do
+              sleep 10
+              if curl -f http://localhost:8081/health; then
+                echo "✅ Development frontend deployment successful!"
+                exit 0
+              fi
+              echo "⏳ Health check attempt $i/10, retrying..."
+            done
+
+            echo "❌ Health check failed after 10 attempts"
+            docker compose logs --tail=100
+            exit 1
 
   deploy-test-unocace:
     name: 🧪 Deploy to Unocace Test
@@ -294,23 +314,14 @@ jobs:
           script: |
             mkdir -p /opt/inatrace/frontend/test/unocace
 
-      - name: 📝 Generate docker-compose.yml (unocace)
+      - name: 🔍 Verify local compose path (unocace)
         run: |
-          cat > docker-compose.yml <<'EOF'
-          version: '3.8'
-          services:
-            inatrace-frontend:
-              image: ${IMAGE_NAME}:${TAG}
-              container_name: inatrace-frontend
-              ports:
-                - "8081:80"
-              networks:
-                - inatrace-frontend-unocace-network
-              restart: always
-          networks:
-            inatrace-frontend-unocace-network:
-              external: true
-          EOF
+          set -e
+          ls -lah deploy/frontend/test/unocace || true
+          if [ ! -f deploy/frontend/test/unocace/docker-compose.yml ]; then
+            echo "Missing deploy/frontend/test/unocace/docker-compose.yml"
+            exit 1
+          fi
 
       - name: 📥 Download image artifact (unocace)
         uses: actions/download-artifact@v4
@@ -325,7 +336,7 @@ jobs:
           username: ${{ secrets.TEST_UNOCACE_USER }}
           key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
           port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
-          source: "docker-compose.yml"
+          source: "deploy/frontend/test/unocace/docker-compose.yml"
           target: "/opt/inatrace/frontend/test/unocace"
 
       - name: 📤 Upload image tar (unocace)
@@ -336,6 +347,30 @@ jobs:
           key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
           port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           source: "image.tar"
+          target: "/opt/inatrace/frontend/test/unocace"
+
+      - name: 📝 Prepare .env (unocace)
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"; IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
+          TAG_VALUE="${{ needs.build.outputs.image-tag }}"
+          cat > .env <<EOF
+          IMAGE_NAME=$IMAGE
+          TAG=$TAG_VALUE
+          NODE_ENV=test
+          API_BASE_URL=http://inatrace-be-unocace:8080
+          COMPANY_NAME=UNOCACE
+          COMPANY_THEME=cacao
+          DOMAIN=inatrace-test.unocace.com
+          EOF
+
+      - name: 📤 Upload .env (unocace)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.TEST_UNOCACE_HOST }}
+          username: ${{ secrets.TEST_UNOCACE_USER }}
+          key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
+          port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
+          source: ".env"
           target: "/opt/inatrace/frontend/test/unocace"
 
       - name: 🧪 Deploy to Unocace Test
@@ -351,10 +386,9 @@ jobs:
 
             cd /opt/inatrace/frontend/test/unocace
 
-            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"; IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
-            export IMAGE_NAME="$IMAGE"
-            export TAG="${{ needs.build.outputs.image-tag }}"
-            export COMPANY="unocace"
+            set -a
+            source .env
+            set +a
 
             docker load -i image.tar
 
@@ -362,16 +396,22 @@ jobs:
             docker network inspect inatrace-frontend-unocace-network >/dev/null 2>&1 || docker network create inatrace-frontend-unocace-network
             docker network inspect inatrace-backend-unocace-network >/dev/null 2>&1 || docker network create inatrace-backend-unocace-network
 
-            # skipped: docker compose pull (image is loaded locally)
+            docker compose down --remove-orphans 2>/dev/null || true
             docker compose up -d --remove-orphans
 
-            sleep 15
-            if curl -f "https://inatrace-test.unocace.com/health"; then
-              echo "✅ Deployment to Unocace successful!"
-            else
-              echo "❌ Health check failed for Unocace"
-              exit 1
-            fi
+            echo "⏳ Waiting for Unocace test health endpoint..."
+            for i in {1..10}; do
+              sleep 10
+              if curl -f "https://inatrace-test.unocace.com/health"; then
+                echo "✅ Deployment to Unocace successful!"
+                exit 0
+              fi
+              echo "⏳ Health check attempt $i/10 failed, retrying..."
+            done
+
+            echo "❌ Health check failed for Unocace"
+            docker compose logs --tail=100
+            exit 1
 
   deploy-test-fortaleza:
     name: 🧪 Deploy to Fortaleza Test
@@ -395,23 +435,14 @@ jobs:
           script: |
             mkdir -p /opt/inatrace/frontend/test/fortaleza
 
-      - name: 📝 Generate docker-compose.yml (fortaleza)
+      - name: 🔍 Verify local compose path (fortaleza)
         run: |
-          cat > docker-compose.yml <<'EOF'
-          version: '3.8'
-          services:
-            inatrace-frontend:
-              image: ${IMAGE_NAME}:${TAG}
-              container_name: inatrace-frontend
-              ports:
-                - "8081:80"
-              networks:
-                - inatrace-frontend-fortaleza-network
-              restart: always
-          networks:
-            inatrace-frontend-fortaleza-network:
-              external: true
-          EOF
+          set -e
+          ls -lah deploy/frontend/test/fortaleza || true
+          if [ ! -f deploy/frontend/test/fortaleza/docker-compose.yml ]; then
+            echo "Missing deploy/frontend/test/fortaleza/docker-compose.yml"
+            exit 1
+          fi
 
       - name: 📥 Download image artifact (fortaleza)
         uses: actions/download-artifact@v4
@@ -426,7 +457,7 @@ jobs:
           username: ${{ secrets.TEST_FORTALEZA_USER }}
           key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
-          source: "docker-compose.yml"
+          source: "deploy/frontend/test/fortaleza/docker-compose.yml"
           target: "/opt/inatrace/frontend/test/fortaleza"
 
       - name: 📤 Upload image tar (fortaleza)
@@ -437,6 +468,30 @@ jobs:
           key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
           source: "image.tar"
+          target: "/opt/inatrace/frontend/test/fortaleza"
+
+      - name: 📝 Prepare .env (fortaleza)
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"; IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
+          TAG_VALUE="${{ needs.build.outputs.image-tag }}"
+          cat > .env <<EOF
+          IMAGE_NAME=$IMAGE
+          TAG=$TAG_VALUE
+          NODE_ENV=test
+          API_BASE_URL=http://inatrace-be-fortaleza:8080
+          COMPANY_NAME=Fortaleza del Valle
+          COMPANY_THEME=cacao
+          DOMAIN=inatrace-test.fortalezadelvalle.org
+          EOF
+
+      - name: 📤 Upload .env (fortaleza)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.TEST_FORTALEZA_HOST }}
+          username: ${{ secrets.TEST_FORTALEZA_USER }}
+          key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
+          port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
+          source: ".env"
           target: "/opt/inatrace/frontend/test/fortaleza"
 
       - name: 🧪 Deploy to Fortaleza Test
@@ -452,10 +507,9 @@ jobs:
 
             cd /opt/inatrace/frontend/test/fortaleza
 
-            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"; IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
-            export IMAGE_NAME="$IMAGE"
-            export TAG="${{ needs.build.outputs.image-tag }}"
-            export COMPANY="fortaleza"
+            set -a
+            source .env
+            set +a
 
             docker load -i image.tar
 
@@ -463,16 +517,22 @@ jobs:
             docker network inspect inatrace-frontend-fortaleza-network >/dev/null 2>&1 || docker network create inatrace-frontend-fortaleza-network
             docker network inspect inatrace-backend-fortaleza-network >/dev/null 2>&1 || docker network create inatrace-backend-fortaleza-network
 
-            docker compose pull
+            docker compose down --remove-orphans 2>/dev/null || true
             docker compose up -d --remove-orphans
 
-            sleep 15
-            if curl -f "https://inatrace-test.fortalezadelvalle.org/health"; then
-              echo "✅ Deployment to Fortaleza successful!"
-            else
-              echo "❌ Health check failed for Fortaleza"
-              exit 1
-            fi
+            echo "⏳ Waiting for Fortaleza test health endpoint..."
+            for i in {1..10}; do
+              sleep 10
+              if curl -f "https://inatrace-test.fortalezadelvalle.org/health"; then
+                echo "✅ Deployment to Fortaleza successful!"
+                exit 0
+              fi
+              echo "⏳ Health check attempt $i/10 failed, retrying..."
+            done
+
+            echo "❌ Health check failed for Fortaleza"
+            docker compose logs --tail=100
+            exit 1
 
   deploy-test-dufer:
     name: 🧪 Deploy to Dufer Test
@@ -496,23 +556,14 @@ jobs:
           script: |
             mkdir -p /opt/inatrace/frontend/test/dufer
 
-      - name: 📝 Generate docker-compose.yml (dufer)
+      - name: 🔍 Verify local compose path (dufer)
         run: |
-          cat > docker-compose.yml <<'EOF'
-          version: '3.8'
-          services:
-            inatrace-frontend:
-              image: ${IMAGE_NAME}:${TAG}
-              container_name: inatrace-frontend
-              ports:
-                - "8081:80"
-              networks:
-                - inatrace-frontend-dufer-network
-              restart: always
-          networks:
-            inatrace-frontend-dufer-network:
-              external: true
-          EOF
+          set -e
+          ls -lah deploy/frontend/test/dufer || true
+          if [ ! -f deploy/frontend/test/dufer/docker-compose.yml ]; then
+            echo "Missing deploy/frontend/test/dufer/docker-compose.yml"
+            exit 1
+          fi
 
       - name: 📥 Download image artifact (dufer)
         uses: actions/download-artifact@v4
@@ -527,7 +578,7 @@ jobs:
           username: ${{ secrets.TEST_DUFER_USER }}
           key: ${{ secrets.TEST_DUFER_SSH_KEY }}
           port: ${{ secrets.TEST_DUFER_PORT || '22' }}
-          source: "docker-compose.yml"
+          source: "deploy/frontend/test/dufer/docker-compose.yml"
           target: "/opt/inatrace/frontend/test/dufer"
 
       - name: 📤 Upload image tar (dufer)
@@ -538,6 +589,30 @@ jobs:
           key: ${{ secrets.TEST_DUFER_SSH_KEY }}
           port: ${{ secrets.TEST_DUFER_PORT || '22' }}
           source: "image.tar"
+          target: "/opt/inatrace/frontend/test/dufer"
+
+      - name: 📝 Prepare .env (dufer)
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"; IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
+          TAG_VALUE="${{ needs.build.outputs.image-tag }}"
+          cat > .env <<EOF
+          IMAGE_NAME=$IMAGE
+          TAG=$TAG_VALUE
+          NODE_ENV=test
+          API_BASE_URL=http://inatrace-be-dufer:8080
+          COMPANY_NAME=DUFER
+          COMPANY_THEME=camaronera
+          DOMAIN=inatrace-test.empacadoradufer.com
+          EOF
+
+      - name: 📤 Upload .env (dufer)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.TEST_DUFER_HOST }}
+          username: ${{ secrets.TEST_DUFER_USER }}
+          key: ${{ secrets.TEST_DUFER_SSH_KEY }}
+          port: ${{ secrets.TEST_DUFER_PORT || '22' }}
+          source: ".env"
           target: "/opt/inatrace/frontend/test/dufer"
 
       - name: 🧪 Deploy to Dufer Test
@@ -553,10 +628,9 @@ jobs:
 
             cd /opt/inatrace/frontend/test/dufer
 
-            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"; IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
-            export IMAGE_NAME="$IMAGE"
-            export TAG="${{ needs.build.outputs.image-tag }}"
-            export COMPANY="dufer"
+            set -a
+            source .env
+            set +a
 
             docker load -i image.tar
 
@@ -564,16 +638,22 @@ jobs:
             docker network inspect inatrace-frontend-dufer-network >/dev/null 2>&1 || docker network create inatrace-frontend-dufer-network
             docker network inspect inatrace-backend-dufer-network >/dev/null 2>&1 || docker network create inatrace-backend-dufer-network
 
-            docker compose pull
+            docker compose down --remove-orphans 2>/dev/null || true
             docker compose up -d --remove-orphans
 
-            sleep 15
-            if curl -f "https://inatrace-test.empacadoradufer.com/health"; then
-              echo "✅ Deployment to Dufer successful!"
-            else
-              echo "❌ Health check failed for Dufer"
-              exit 1
-            fi
+            echo "⏳ Waiting for Dufer test health endpoint..."
+            for i in {1..10}; do
+              sleep 10
+              if curl -f "https://inatrace-test.empacadoradufer.com/health"; then
+                echo "✅ Deployment to Dufer successful!"
+                exit 0
+              fi
+              echo "⏳ Health check attempt $i/10 failed, retrying..."
+            done
+
+            echo "❌ Health check failed for Dufer"
+            docker compose logs --tail=100
+            exit 1
 
   deploy-prod-unocace:
     name: 🏭 Deploy to Unocace Production
@@ -597,24 +677,14 @@ jobs:
           script: |
             mkdir -p /opt/inatrace/frontend/prod/unocace
 
-      - name: 📝 Generate docker-compose.yml (prod unocace)
+      - name: 🔍 Verify local compose path (prod unocace)
         run: |
-          cat > docker-compose.yml <<'EOF'
-          version: '3.8'
-          services:
-            inatrace-frontend:
-              image: ${IMAGE_NAME}:${TAG}
-              container_name: inatrace-frontend
-              pull_policy: never
-              ports:
-                - "8081:80"
-              networks:
-                - inatrace-frontend-unocace-network
-              restart: always
-          networks:
-            inatrace-frontend-unocace-network:
-              external: true
-          EOF
+          set -e
+          ls -lah deploy/frontend/prod/unocace || true
+          if [ ! -f deploy/frontend/prod/unocace/docker-compose.yml ]; then
+            echo "Missing deploy/frontend/prod/unocace/docker-compose.yml"
+            exit 1
+          fi
 
       - name: 📥 Download image artifact (prod unocace)
         uses: actions/download-artifact@v4
@@ -623,13 +693,14 @@ jobs:
           path: .
 
       - name: 📤 Upload docker-compose.yml
+        if: ${{ hashFiles('deploy/frontend/prod/unocace/docker-compose.yml') != '' }}
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.PROD_UNOCACE_HOST }}
           username: ${{ secrets.PROD_UNOCACE_USER }}
           key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
           port: ${{ secrets.PROD_UNOCACE_PORT || '22' }}
-          source: "docker-compose.yml"
+          source: "deploy/frontend/prod/unocace/docker-compose.yml"
           target: "/opt/inatrace/frontend/prod/unocace"
 
       - name: 📤 Upload image tar (prod unocace)
@@ -640,6 +711,30 @@ jobs:
           key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
           port: ${{ secrets.PROD_UNOCACE_PORT || '22' }}
           source: "image.tar"
+          target: "/opt/inatrace/frontend/prod/unocace"
+
+      - name: 📝 Prepare .env (prod unocace)
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"; IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
+          TAG_VALUE="${{ needs.build.outputs.image-tag }}"
+          cat > .env <<EOF
+          IMAGE_NAME=$IMAGE
+          TAG=$TAG_VALUE
+          NODE_ENV=production
+          API_BASE_URL=http://inatrace-be-unocace:8080
+          COMPANY_NAME=UNOCACE
+          COMPANY_THEME=cacao
+          DOMAIN=inatrace.unocace.com
+          EOF
+
+      - name: 📤 Upload .env (prod unocace)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_UNOCACE_HOST }}
+          username: ${{ secrets.PROD_UNOCACE_USER }}
+          key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
+          port: ${{ secrets.PROD_UNOCACE_PORT || '22' }}
+          source: ".env"
           target: "/opt/inatrace/frontend/prod/unocace"
 
       - name: 🏭 Deploy to Unocace Production
@@ -655,38 +750,31 @@ jobs:
 
             cd /opt/inatrace/frontend/prod/unocace
 
-            if docker compose ps -q inatrace-frontend; then
-              echo "📦 Creating backup..."
-              docker tag $(docker compose images -q inatrace-frontend) ${{ env.IMAGE_NAME }}:backup-$(date +%Y%m%d-%H%M%S)
-            fi
+            set -a
+            source .env
+            set +a
 
-            export IMAGE_NAME="${{ env.IMAGE_NAME }}"
-            export TAG="${{ needs.build.outputs.image-tag }}"
-            export COMPANY="unocace"
+            docker load -i image.tar
 
             # Ensure required networks exist
             docker network inspect inatrace-frontend-unocace-network >/dev/null 2>&1 || docker network create inatrace-frontend-unocace-network
             docker network inspect inatrace-backend-unocace-network >/dev/null 2>&1 || docker network create inatrace-backend-unocace-network
 
-            docker compose pull
+            docker compose down --remove-orphans 2>/dev/null || true
             docker compose up -d --remove-orphans
 
             echo "🔍 Performing health checks..."
-            for i in {1..5}; do
+            for i in {1..10}; do
               sleep 10
               if curl -f "https://inatrace.unocace.com/health"; then
                 echo "✅ Production deployment to Unocace successful!"
                 exit 0
               fi
-              echo "⏳ Health check attempt $i/5 failed, retrying..."
+              echo "⏳ Health check attempt $i/10 failed, retrying..."
             done
 
-            echo "❌ Health check failed after 5 attempts"
-            echo "🔄 Rolling back..."
-            docker compose down
-            docker tag ${{ env.IMAGE_NAME }}:backup-$(date +%Y%m%d)* ${{ env.IMAGE_NAME }}:rollback
-            export TAG=rollback
-            docker compose up -d
+            echo "❌ Health check failed after 10 attempts"
+            docker compose logs --tail=150
             exit 1
 
   deploy-prod-fortaleza:
@@ -711,24 +799,14 @@ jobs:
           script: |
             mkdir -p /opt/inatrace/frontend/prod/fortaleza
 
-      - name: 📝 Generate docker-compose.yml (prod fortaleza)
+      - name: 🔍 Verify local compose path (prod fortaleza)
         run: |
-          cat > docker-compose.yml <<'EOF'
-          version: '3.8'
-          services:
-            inatrace-frontend:
-              image: ${IMAGE_NAME}:${TAG}
-              container_name: inatrace-frontend
-              pull_policy: never
-              ports:
-                - "8081:80"
-              networks:
-                - inatrace-frontend-fortaleza-network
-              restart: always
-          networks:
-            inatrace-frontend-fortaleza-network:
-              external: true
-          EOF
+          set -e
+          ls -lah deploy/frontend/prod/fortaleza || true
+          if [ ! -f deploy/frontend/prod/fortaleza/docker-compose.yml ]; then
+            echo "Missing deploy/frontend/prod/fortaleza/docker-compose.yml"
+            exit 1
+          fi
 
       - name: 📥 Download image artifact (prod fortaleza)
         uses: actions/download-artifact@v4
@@ -737,13 +815,14 @@ jobs:
           path: .
 
       - name: 📤 Upload docker-compose.yml
+        if: ${{ hashFiles('deploy/frontend/prod/fortaleza/docker-compose.yml') != '' }}
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.PROD_FORTALEZA_HOST }}
           username: ${{ secrets.PROD_FORTALEZA_USER }}
           key: ${{ secrets.PROD_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.PROD_FORTALEZA_PORT || '22' }}
-          source: "docker-compose.yml"
+          source: "deploy/frontend/prod/fortaleza/docker-compose.yml"
           target: "/opt/inatrace/frontend/prod/fortaleza"
 
       - name: 📤 Upload image tar (prod fortaleza)
@@ -754,6 +833,30 @@ jobs:
           key: ${{ secrets.PROD_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.PROD_FORTALEZA_PORT || '22' }}
           source: "image.tar"
+          target: "/opt/inatrace/frontend/prod/fortaleza"
+
+      - name: 📝 Prepare .env (prod fortaleza)
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"; IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
+          TAG_VALUE="${{ needs.build.outputs.image-tag }}"
+          cat > .env <<EOF
+          IMAGE_NAME=$IMAGE
+          TAG=$TAG_VALUE
+          NODE_ENV=production
+          API_BASE_URL=http://inatrace-be-fortaleza:8080
+          COMPANY_NAME=Fortaleza del Valle
+          COMPANY_THEME=cacao
+          DOMAIN=inatrace.fortalezadelvalle.org
+          EOF
+
+      - name: 📤 Upload .env (prod fortaleza)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_FORTALEZA_HOST }}
+          username: ${{ secrets.PROD_FORTALEZA_USER }}
+          key: ${{ secrets.PROD_FORTALEZA_SSH_KEY }}
+          port: ${{ secrets.PROD_FORTALEZA_PORT || '22' }}
+          source: ".env"
           target: "/opt/inatrace/frontend/prod/fortaleza"
 
       - name: 🏭 Deploy to Fortaleza Production
@@ -769,38 +872,31 @@ jobs:
 
             cd /opt/inatrace/frontend/prod/fortaleza
 
-            if docker compose ps -q inatrace-frontend; then
-              echo "📦 Creating backup..."
-              docker tag $(docker compose images -q inatrace-frontend) ${{ env.IMAGE_NAME }}:backup-$(date +%Y%m%d-%H%M%S)
-            fi
+            set -a
+            source .env
+            set +a
 
-            export IMAGE_NAME="${{ env.IMAGE_NAME }}"
-            export TAG="${{ needs.build.outputs.image-tag }}"
-            export COMPANY="fortaleza"
+            docker load -i image.tar
 
             # Ensure required networks exist
             docker network inspect inatrace-frontend-fortaleza-network >/dev/null 2>&1 || docker network create inatrace-frontend-fortaleza-network
             docker network inspect inatrace-backend-fortaleza-network >/dev/null 2>&1 || docker network create inatrace-backend-fortaleza-network
 
-            docker compose pull
+            docker compose down --remove-orphans 2>/dev/null || true
             docker compose up -d --remove-orphans
 
             echo "🔍 Performing health checks..."
-            for i in {1..5}; do
+            for i in {1..10}; do
               sleep 10
               if curl -f "https://inatrace.fortalezadelvalle.org/health"; then
                 echo "✅ Production deployment to Fortaleza successful!"
                 exit 0
               fi
-              echo "⏳ Health check attempt $i/5 failed, retrying..."
+              echo "⏳ Health check attempt $i/10 failed, retrying..."
             done
 
-            echo "❌ Health check failed after 5 attempts"
-            echo "🔄 Rolling back..."
-            docker compose down
-            docker tag ${{ env.IMAGE_NAME }}:backup-$(date +%Y%m%d)* ${{ env.IMAGE_NAME }}:rollback
-            export TAG=rollback
-            docker compose up -d
+            echo "❌ Health check failed after 10 attempts"
+            docker compose logs --tail=150
             exit 1
 
   deploy-prod-dufer:
@@ -825,24 +921,14 @@ jobs:
           script: |
             mkdir -p /opt/inatrace/frontend/prod/dufer
 
-      - name: 📝 Generate docker-compose.yml (prod dufer)
+      - name: 🔍 Verify local compose path (prod dufer)
         run: |
-          cat > docker-compose.yml <<'EOF'
-          version: '3.8'
-          services:
-            inatrace-frontend:
-              image: ${IMAGE_NAME}:${TAG}
-              container_name: inatrace-frontend
-              pull_policy: never
-              ports:
-                - "8081:80"
-              networks:
-                - inatrace-frontend-dufer-network
-              restart: always
-          networks:
-            inatrace-frontend-dufer-network:
-              external: true
-          EOF
+          set -e
+          ls -lah deploy/frontend/prod/dufer || true
+          if [ ! -f deploy/frontend/prod/dufer/docker-compose.yml ]; then
+            echo "Missing deploy/frontend/prod/dufer/docker-compose.yml"
+            exit 1
+          fi
 
       - name: 📥 Download image artifact (prod dufer)
         uses: actions/download-artifact@v4
@@ -851,13 +937,14 @@ jobs:
           path: .
 
       - name: 📤 Upload docker-compose.yml
+        if: ${{ hashFiles('deploy/frontend/prod/dufer/docker-compose.yml') != '' }}
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.PROD_DUFER_HOST }}
           username: ${{ secrets.PROD_DUFER_USER }}
           key: ${{ secrets.PROD_DUFER_SSH_KEY }}
           port: ${{ secrets.PROD_DUFER_PORT || '22' }}
-          source: "docker-compose.yml"
+          source: "deploy/frontend/prod/dufer/docker-compose.yml"
           target: "/opt/inatrace/frontend/prod/dufer"
 
       - name: 📤 Upload image tar (prod dufer)
@@ -868,6 +955,30 @@ jobs:
           key: ${{ secrets.PROD_DUFER_SSH_KEY }}
           port: ${{ secrets.PROD_DUFER_PORT || '22' }}
           source: "image.tar"
+          target: "/opt/inatrace/frontend/prod/dufer"
+
+      - name: 📝 Prepare .env (prod dufer)
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"; IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
+          TAG_VALUE="${{ needs.build.outputs.image-tag }}"
+          cat > .env <<EOF
+          IMAGE_NAME=$IMAGE
+          TAG=$TAG_VALUE
+          NODE_ENV=production
+          API_BASE_URL=http://inatrace-be-dufer:8080
+          COMPANY_NAME=DUFER
+          COMPANY_THEME=camaronera
+          DOMAIN=inatrace.empacadoradufer.com
+          EOF
+
+      - name: 📤 Upload .env (prod dufer)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_DUFER_HOST }}
+          username: ${{ secrets.PROD_DUFER_USER }}
+          key: ${{ secrets.PROD_DUFER_SSH_KEY }}
+          port: ${{ secrets.PROD_DUFER_PORT || '22' }}
+          source: ".env"
           target: "/opt/inatrace/frontend/prod/dufer"
 
       - name: 🏭 Deploy to Dufer Production
@@ -883,38 +994,31 @@ jobs:
 
             cd /opt/inatrace/frontend/prod/dufer
 
-            if docker compose ps -q inatrace-frontend; then
-              echo "📦 Creating backup..."
-              docker tag $(docker compose images -q inatrace-frontend) ${{ env.IMAGE_NAME }}:backup-$(date +%Y%m%d-%H%M%S)
-            fi
+            set -a
+            source .env
+            set +a
 
-            export IMAGE_NAME="${{ env.IMAGE_NAME }}"
-            export TAG="${{ needs.build.outputs.image-tag }}"
-            export COMPANY="dufer"
+            docker load -i image.tar
 
             # Ensure required networks exist
             docker network inspect inatrace-frontend-dufer-network >/dev/null 2>&1 || docker network create inatrace-frontend-dufer-network
             docker network inspect inatrace-backend-dufer-network >/dev/null 2>&1 || docker network create inatrace-backend-dufer-network
 
-            docker compose pull
+            docker compose down --remove-orphans 2>/dev/null || true
             docker compose up -d --remove-orphans
 
             echo "🔍 Performing health checks..."
-            for i in {1..5}; do
+            for i in {1..10}; do
               sleep 10
               if curl -f "https://inatrace.empacadoradufer.com/health"; then
                 echo "✅ Production deployment to Dufer successful!"
                 exit 0
               fi
-              echo "⏳ Health check attempt $i/5 failed, retrying..."
+              echo "⏳ Health check attempt $i/10 failed, retrying..."
             done
 
-            echo "❌ Health check failed after 5 attempts"
-            echo "🔄 Rolling back..."
-            docker compose down
-            docker tag ${{ env.IMAGE_NAME }}:backup-$(date +%Y%m%d)* ${{ env.IMAGE_NAME }}:rollback
-            export TAG=rollback
-            docker compose up -d
+            echo "❌ Health check failed after 10 attempts"
+            docker compose logs --tail=150
             exit 1
 
   notify:
