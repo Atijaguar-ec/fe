@@ -214,6 +214,15 @@ jobs:
           source: "deploy/frontend/dev/docker-compose.yml"
           target: "/opt/inatrace/frontend/dev"
 
+      - name: 📤 Upload nginx.conf
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          source: "nginx.conf"
+          target: "/opt/inatrace/frontend/dev"
+
       - name: 📤 Upload image tar
         uses: appleboy/scp-action@v0.1.7
         with:
