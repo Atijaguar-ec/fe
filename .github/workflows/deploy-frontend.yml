@@ -220,7 +220,7 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
-          source: "nginx.conf"
+          source: "fe/nginx.conf"
           target: "/opt/inatrace/frontend/dev"
 
       - name: 📤 Upload image tar
@@ -275,12 +275,20 @@ jobs:
             docker network inspect inatrace-frontend-network >/dev/null 2>&1 || docker network create inatrace-frontend-network
             docker network inspect inatrace-backend-network >/dev/null 2>&1 || docker network create inatrace-backend-network
 
-            # Determine backend host
+            # Determine backend host and check network connectivity
             BACKEND_HOST="5.161.183.137"
             BACKEND_CONTAINER=$(docker ps -q --filter "name=inatrace-be-dev" 2>/dev/null || echo "")
             if [ -n "$BACKEND_CONTAINER" ]; then
-              BACKEND_HOST="inatrace-be-dev"
               echo "✅ Backend container found: $BACKEND_CONTAINER"
+              
+              # Check if backend is in the same network
+              BACKEND_NETWORKS=$(docker inspect $BACKEND_CONTAINER --format '{{range .NetworkSettings.Networks}}{{.NetworkID}} {{end}}')
+              echo "🔍 Backend networks: $BACKEND_NETWORKS"
+              
+              # Connect backend to our network if not already connected
+              docker network connect inatrace-backend-network $BACKEND_CONTAINER 2>/dev/null || echo "Backend already in network or connection failed"
+              
+              BACKEND_HOST="inatrace-be-dev"
             else
               echo "❌ Backend container not found, falling back to $BACKEND_HOST"
             fi
@@ -289,11 +297,10 @@ jobs:
             cp nginx.conf temp-nginx.conf
             sed -i "s/http:\/\/inatrace-backend:8080/http:\/\/$BACKEND_HOST:8080/g" temp-nginx.conf
 
-            # Clean up existing containers
-            echo "🧹 Cleaning up existing containers..."
+            # Clean up existing frontend containers only
+            echo "🧹 Cleaning up existing frontend containers..."
             docker stop inatrace-fe-dev 2>/dev/null || true
             docker rm inatrace-fe-dev 2>/dev/null || true
-            docker compose down --remove-orphans 2>/dev/null || true
 
             echo "🔧 Starting frontend container..."
             docker run -d \
