@@ -4,13 +4,13 @@ on:
   push:
     branches: [ develop, staging, main ]
     paths:
-      - 'fe/**'
+      - 'src/**'
       - 'deploy/frontend/**'
       - '.github/workflows/deploy-frontend.yml'
   pull_request:
     branches: [ develop, staging, main ]
     paths:
-      - 'fe/**'
+      - 'src/**'
       - 'deploy/frontend/**'
   workflow_dispatch:
     inputs:
