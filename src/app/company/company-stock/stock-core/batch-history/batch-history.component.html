@@ -2,7 +2,7 @@
   <ng-container *ngIf="history$ | async as history">
     <ng-container *ngIf="history.stockOrder as stockOrder">
 
-      <div class="af-form-wrapper">
+      <div class="af-form-wrapper" #pdfContainer>
         <div class="af-form-row">
           <div class="af-form-block--c12">
             <div class="title-page content-element--title d-flex justify-content-between">
