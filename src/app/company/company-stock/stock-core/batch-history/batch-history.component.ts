@@ -176,7 +176,7 @@ export class BatchHistoryComponent implements OnInit, AfterViewInit {
             const imgWidth = pageWidth - 20; // márgenes
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-            let y = 10;
+            const y = 10;
             // multi-page slicing variables
 
             // Si la imagen es más alta que una página, la partimos en múltiples páginas
@@ -211,7 +211,12 @@ export class BatchHistoryComponent implements OnInit, AfterViewInit {
             const safeId = rawId.replace(/[^a-zA-Z0-9\-_]+/g, '_');
             pdf.save(`entrega--${safeId}.pdf`);
           } catch (err) {
-            console.error('Error generating stock order PDF from view:', err);
+            // Mostrar mensaje amigable en lugar de usar console.error (regla tslint no-console)
+            this.globalEventsManager.openMessageModal({
+              type: 'error',
+              message: $localize`:@@orderHistoryView.pdfGeneration.error:Error al generar el PDF de la orden. Por favor, intente nuevamente.`,
+              options: { centered: true }
+            });
           }
         }, 400);
       });

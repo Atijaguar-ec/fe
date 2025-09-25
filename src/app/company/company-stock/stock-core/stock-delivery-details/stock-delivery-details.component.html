@@ -103,6 +103,31 @@
               </div>
             </div>
 
+            <!-- Week Number (for cacao) -->
+            <div class="af-row" *ngIf="isCacaoSelected()">
+              <div class="af-c6">
+                <textinput
+                  [form]="stockOrderForm.get('weekNumber')"
+                  label="N° de Semana"
+                  i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.weekNumber.label"
+                  style="width: 100%"
+                  placeholder="Ingrese el número de semana (1-53)"
+                  i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.weekNumber.placeholder"
+                  [isInvalid]="submitted && stockOrderForm.get('weekNumber').invalid">
+                  <ng-container *ngIf="submitted">
+                    <div *ngIf="stockOrderForm.get('weekNumber').errors as errors" class="sc-invalid-feedback">
+                      <div *ngIf="errors.required" i18n="@@productLabelStockPurchaseOrdersModal.textinput.weekNumber.error.required">
+                        El N° de Semana es obligatorio
+                      </div>
+                      <div *ngIf="errors.min || errors.max" i18n="@@productLabelStockPurchaseOrdersModal.textinput.weekNumber.error.range">
+                        Debe estar entre 1 y 53
+                      </div>
+                    </div>
+                  </ng-container>
+                </textinput>
+              </div>
+            </div>
+
             <div class="af-row">
               <div class="af-c12">
                 <single-choice

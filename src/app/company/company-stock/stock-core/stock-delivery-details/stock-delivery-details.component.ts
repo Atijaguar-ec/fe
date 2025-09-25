@@ -394,6 +394,12 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.setMeasureUnit(this.modelChoice).then();
     }
 
+    // Add Week Number control (for cacao). Required only when cacao selected.
+    if (!this.stockOrderForm.get('weekNumber')) {
+      this.stockOrderForm.addControl('weekNumber', new FormControl(null));
+    }
+    this.updateWeekNumberVisibilityAndValidation();
+
     this.prepareData();
   }
 
@@ -440,6 +446,15 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.stockOrderForm.get('damagedPriceDeduction').clearValidators();
     }
     this.stockOrderForm.updateValueAndValidity();
+
+    // Ensure weekNumber control exists and set value if backend provides it
+    if (!this.stockOrderForm.get('weekNumber')) {
+      this.stockOrderForm.addControl('weekNumber', new FormControl(null));
+    }
+    if ((this.order as any)?.weekNumber != null) {
+      this.stockOrderForm.get('weekNumber').setValue((this.order as any).weekNumber);
+    }
+    this.updateWeekNumberVisibilityAndValidation();
   }
 
   async createOrUpdatePurchaseOrder(close: boolean = true) {
@@ -561,6 +576,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
     this.stockOrderForm.get('semiProduct').markAsDirty();
     this.stockOrderForm.get('semiProduct').updateValueAndValidity();
+
+    // Update week number requirement when semi-product changes
+    this.updateWeekNumberVisibilityAndValidation();
   }
 
   async setMeasureUnit(semiProdId: number) {
@@ -803,6 +821,27 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   private translateName(obj) {
     return this.codebookTranslations.translate(obj, 'name');
+  }
+
+  // Determines if current selected semi-product is Cacao/Cocoa
+  isCacaoSelected(): boolean {
+    if (!this.modelChoice || !this.options) { return false; }
+    const selected = this.options.find(o => String(o.id) === String(this.modelChoice));
+    const name = (selected && (selected as any).name ? (selected as any).name : '').toString().toLowerCase();
+    // Consider multiple spellings
+    return name.includes('cacao') || name.includes('cocoa');
+  }
+
+  // Applies validators to weekNumber based on cacao selection
+  private updateWeekNumberVisibilityAndValidation(): void {
+    const ctrl = this.stockOrderForm?.get('weekNumber');
+    if (!ctrl) { return; }
+    if (this.isCacaoSelected()) {
+      ctrl.setValidators([Validators.required, Validators.min(1), Validators.max(53)]);
+    } else {
+      ctrl.clearValidators();
+    }
+    ctrl.updateValueAndValidity();
   }
 
   get displayPriceDeterminedLater() {
