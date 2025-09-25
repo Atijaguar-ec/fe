@@ -193,6 +193,7 @@ export class PdfGeneratorService {
     const H_QUANTITY = $localize`:@@collectorDetail.sortOptionsPO.quantity.name:Cantidad (kg)`;
     const H_UNIT_PRICE = $localize`:@@pdf.table.unitPrice:Precio unitario`;
     const H_TOTAL = $localize`:@@pdf.table.total:Total`;
+    const H_WEEK_NUMBER = $localize`:@@pdf.table.weekNumber:N° de Semana`;
 
     const HP_DATE = $localize`:@@collectorDetail.sortOptionsPO.date.name:Fecha`;
     const HP_CONCEPT = $localize`:@@productLabelPayments.sortOptions.paymentPurposeType.name:Propósito del pago`;
@@ -473,13 +474,14 @@ export class PdfGeneratorService {
       currentY = addText(T_PURCHASE_ORDERS, margin, currentY, { fontSize: 14, fontStyle: 'bold', lineHeight: 10 });
       currentY = addLine(currentY);
       
-      const deliveryHeaders = [H_DATE, H_PRODUCT, H_QUANTITY, H_UNIT_PRICE, H_TOTAL];
+      const deliveryHeaders = [H_DATE, H_PRODUCT, H_QUANTITY, H_UNIT_PRICE, H_TOTAL, H_WEEK_NUMBER];
       const deliveryRows = data.deliveries.map((delivery: any) => [
         delivery.date ? new Date(delivery.date).toLocaleDateString('es-ES') : '',
         delivery.product?.name || '',
         delivery.quantity || '0',
         delivery.unitPrice ? `$${delivery.unitPrice}` : '$0',
-        delivery.totalAmount ? `$${delivery.totalAmount}` : '$0'
+        delivery.totalAmount ? `$${delivery.totalAmount}` : '$0',
+        delivery.weekNumber ? delivery.weekNumber.toString() : '-'
       ]);
       
       currentY = addTable(deliveryHeaders, deliveryRows, currentY);

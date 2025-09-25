@@ -449,7 +449,8 @@ export class CompanyFarmersListComponent implements OnInit, OnDestroy, AfterView
           quantity: qty,
           unitPrice: unitPrice,
           totalAmount: total,
-          currency: o.currency || 'USD'
+          currency: o.currency || 'USD',
+          weekNumber: (o as any).weekNumber || null
         };
       });
 

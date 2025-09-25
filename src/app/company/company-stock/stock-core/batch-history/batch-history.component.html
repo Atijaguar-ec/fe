@@ -85,6 +85,10 @@
                   <th i18n="@@orderHistoryView.tableCol.comment">Comment</th>
                   <td>{{ stockOrder.comments || '-' }}</td>
                 </tr>
+                <tr *ngIf="stockOrder.weekNumber">
+                  <th i18n="@@orderHistoryView.tableCol.weekNumber">N° de Semana</th>
+                  <td>{{ stockOrder.weekNumber }}</td>
+                </tr>
 
                 </tbody>
               </table>
