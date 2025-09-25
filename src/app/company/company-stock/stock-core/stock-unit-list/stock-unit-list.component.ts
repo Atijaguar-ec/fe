@@ -278,6 +278,12 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
         inactive: true
       },
       {
+        key: 'weekNumber',
+        name: $localize`:@@productLabelPurchaseOrder.sortOptions.weekNumber.name:Week Number`,
+        inactive: true,
+        hide: ['COMPANY_ADMIN', 'SYSTEM_ADMIN'].indexOf(this.pageListingMode) >= 0,
+      },
+      {
         key: 'quantity',
         name: $localize`:@@productLabelPurchaseOrder.sortOptions.quantity.name:Quantity`,
         inactive: true,

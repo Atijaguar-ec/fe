@@ -24,6 +24,7 @@
     "productLabelPurchaseOrder.sortOptions.identifier.name": "Identificador",
     "productLabelPurchaseOrder.sortOptions.farmer.name": "Agricultor",
     "productLabelPurchaseOrder.sortOptions.semiProduct.name": "Semiproducto",
+    "productLabelPurchaseOrder.sortOptions.weekNumber.name": "N° de Semana",
     "productLabelPurchaseOrder.sortOptions.quantity.name": "Cantidad",
     "productLabelPurchaseOrder.sortOptions.quantityAvailable.name": "Cantidad / Disponible (kg)",
     "productLabelPurchaseOrder.sortOptions.payable.name": "A pagar / Saldo",
