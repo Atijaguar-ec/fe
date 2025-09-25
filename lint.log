@@ -1,0 +1,117 @@
+
+> inatrace-fe@0.0.0 lint
+> ng lint
+
+Linting "inatrace-fe"...
+/Users/alvarosanchez/proyectos/giz/fe/src/app/company/company-detail/company-detail-facilities/company-detail-facilities.component.ts:233:24
+WARNING: 233:24  deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/company/company-detail/company-processing-actions/company-detail-processing-actions-list/company-detail-processing-actions-list.component.ts:65:19
+WARNING: 65:19   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+WARNING: 67:11   deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+WARNING: 77:24   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/company/company-farmers/company-farmers-details/company-farmers-details.component.ts:363:11
+WARNING: 363:11  deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+WARNING: 375:11  deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+WARNING: 387:11  deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+WARNING: 400:7   deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/company/company-list/company-list.component.ts:42:19
+WARNING: 42:19   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+WARNING: 44:11   deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+WARNING: 48:11   deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+WARNING: 58:16   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/company/company-orders/placed-orders/add-customer-order/customer-order-item/customer-order-item.component.ts:154:75
+WARNING: 154:75  deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/company/company-stock/stock-all-stock/stock-all-stock-tab/stock-all-stock-tab.component.ts:49:5
+WARNING: 49:5    deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/company/company-stock/stock-deliveries/stock-deliveries-tab/stock-deliveries-tab.component.ts:45:7
+WARNING: 45:7    deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/contents/contents-section.directive.ts:139:35
+WARNING: 139:35  deprecation  combineLatest is deprecated: Pass arguments in a single array instead `combineLatest([a, b, c])`
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/currency-list/currency-list.component.ts:77:33
+WARNING: 77:33   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+WARNING: 100:34  deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/m-product/batch-detail-page/batch-detail-page.component.ts:309:31
+WARNING: 309:31  deprecation  MouseEvent is deprecated: https://developers.google.com/maps/documentation/javascript/releases#2020-12-09
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/m-product/batches-list/batches-list.component.ts:42:19
+WARNING: 42:19   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+WARNING: 44:7    deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+WARNING: 52:14   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/m-product/knowledge-blog/product-label-knowledge-blog/product-label-knowledge-blog.component.ts:80:19
+WARNING: 80:19   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+WARNING: 82:7    deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+WARNING: 92:12   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/m-product/product-label-feedback-page/product-label-feedback-page.component.ts:68:19
+WARNING: 68:19   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+WARNING: 70:7    deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+WARNING: 74:7    deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+WARNING: 83:16   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/m-product/product-label/pathline-map/pathline-map.component.ts:139:41
+WARNING: 139:41  deprecation  MouseEvent is deprecated: https://developers.google.com/maps/documentation/javascript/releases#2020-12-09
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/m-product/product-label/product-label.component.ts:231:14
+WARNING: 231:14  deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+WARNING: 287:13  deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+WARNING: 309:19  deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+WARNING: 965:31  deprecation  MouseEvent is deprecated: https://developers.google.com/maps/documentation/javascript/releases#2020-12-09
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/m-product/product-list/product-list.component.ts:46:19
+WARNING: 46:19   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+WARNING: 48:7    deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+WARNING: 52:7    deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+WARNING: 62:15   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/m-product/product-stakeholders/product-label-stakeholders/product-label-stakeholders.component.ts:93:14
+WARNING: 93:14   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/settings/type-list/type-list.component.ts:65:19
+WARNING: 65:19   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+WARNING: 67:7    deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+WARNING: 75:12   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/shared-services/general-codes.service.ts:50:12
+WARNING: 50:12   deprecation  combineLatest is deprecated: Pass arguments in a single array instead `combineLatest([a, b, c])`
+WARNING: 87:58   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/shared-services/general-sifrant.service.ts:75:16
+WARNING: 75:16   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/shared/closable/closable.component.ts:63:34
+WARNING: 63:34   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/shared/geoaddress-form/geoaddress-form.component.ts:248:31
+WARNING: 248:31  deprecation  MouseEvent is deprecated: https://developers.google.com/maps/documentation/javascript/releases#2020-12-09
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/shared/location-form-new/location-form-new.component.ts:84:31
+WARNING: 84:31   deprecation  MouseEvent is deprecated: https://developers.google.com/maps/documentation/javascript/releases#2020-12-09
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/shared/location-form/location-form.component.ts:251:31
+WARNING: 251:31  deprecation  MouseEvent is deprecated: https://developers.google.com/maps/documentation/javascript/releases#2020-12-09
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/shared/single-choice/single-choice.component.ts:209:41
+WARNING: 209:41  deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+WARNING: 218:21  deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/shared/textinput/textinput.component.ts:479:38
+WARNING: 479:38  deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+WARNING: 627:31  deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+
+/Users/alvarosanchez/proyectos/giz/fe/src/app/user/user-list/user-list.component.ts:44:19
+WARNING: 44:19   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+WARNING: 46:11   deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+WARNING: 50:11   deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+WARNING: 53:11   deprecation  startWith is deprecated: use {@link scheduled} and {@link concatAll} (e.g. `scheduled([[a, b, c], source], scheduler).pipe(concatAll())`)
+WARNING: 63:12   deprecation  combineLatest is deprecated: resultSelector no longer supported, pipe to map instead
+

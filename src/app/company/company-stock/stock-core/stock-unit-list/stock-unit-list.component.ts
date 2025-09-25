@@ -744,7 +744,9 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
    */
   private validateOrganicProductionLimits(orders: ApiStockOrder[]): void {
     this.maxProductionQuantity$.pipe(take(1)).subscribe(maxQuantity => {
-      if (!maxQuantity || maxQuantity <= 0 || !orders) return;
+      if (!maxQuantity || maxQuantity <= 0 || !orders) {
+        return;
+      }
 
       // Calculate total organic production
       const totalOrganicProduction = orders

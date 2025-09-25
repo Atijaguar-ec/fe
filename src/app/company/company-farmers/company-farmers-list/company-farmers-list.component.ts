@@ -447,7 +447,7 @@ export class CompanyFarmersListComponent implements OnInit, OnDestroy, AfterView
           date: o.productionDate || o.deliveryTime || null,
           product: { name: productName },
           quantity: qty,
-          unitPrice: unitPrice,
+          unitPrice,
           totalAmount: total,
           currency: o.currency || 'USD',
           weekNumber: (o as any).weekNumber || null
