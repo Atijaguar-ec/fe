@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
 import { SortOption, SortOrder } from '../../../shared/result-sorter/result-sorter-types';
 import { GlobalEventManagerService } from '../../../core/global-event-manager.service';
@@ -20,6 +21,8 @@ import { ApiCompany } from '../../../../api/model/apiCompany';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { SelfOnboardingService } from '../../../shared-services/self-onboarding.service';
 import { PdfGeneratorService } from '../../../shared-services/pdf-generator.service';
+import { StockOrderControllerService, GetStockOrderListByCompanyId } from '../../../../api/api/stockOrderController.service';
+import { PaymentControllerService, ListPaymentsByCompany } from '../../../../api/api/paymentController.service';
 
 @Component({
   selector: 'app-company-farmers-list',
@@ -177,6 +180,14 @@ export class CompanyFarmersListComponent implements OnInit, OnDestroy, AfterView
   @ViewChild('addFarmerButtonTooltip')
   addFarmerButtonTooltip: NgbTooltip;
 
+  @ViewChild('generatingPdfModal')
+  generatingPdfModal: any;
+
+  // Propiedades para el modal profesional de PDF
+  currentStep = 0;
+  pdfProgress = 0;
+  currentPdfStep = 'Preparando...';
+
   constructor(
       private globalEventsManager: GlobalEventManagerService,
       private companyController: CompanyControllerService,
@@ -186,7 +197,9 @@ export class CompanyFarmersListComponent implements OnInit, OnDestroy, AfterView
       private fileSaverService: FileSaverService,
       private modalService: NgbModalImproved,
       private selfOnboardingService: SelfOnboardingService,
-      private pdfGeneratorService: PdfGeneratorService
+      private pdfGeneratorService: PdfGeneratorService,
+      private stockOrderController: StockOrderControllerService,
+      private paymentController: PaymentControllerService
   ) { }
 
   ngOnInit(): void {
@@ -367,38 +380,166 @@ export class CompanyFarmersListComponent implements OnInit, OnDestroy, AfterView
   }
 
   /**
-   * Genera y descarga un PDF con los detalles del agricultor
+   * Genera y descarga un PDF con los detalles del agricultor - Implementación Profesional UX
    */
   async viewFarmerPdf(farmerId: string, farmerName: string) {
+    // Resetear estado del modal
+    this.resetPdfModalState();
+    
+    // Abrir modal profesional
+    const modalRef = this.modalService.open(this.generatingPdfModal, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      size: 'lg'
+    });
+
     try {
-      // Navegar temporalmente a la página de detalles para capturar el formulario
-      this.router.navigate(['my-farmers', farmerId]).then(async () => {
-        // Esperar un momento para que se cargue la página
-        setTimeout(async () => {
-          try {
-            await this.pdfGeneratorService.generateFarmerPdf(farmerId, farmerName);
-            // Volver a la lista después de generar el PDF
-            this.router.navigate(['my-farmers']);
-          } catch (error) {
-            console.error('Error generating PDF:', error);
-            await this.globalEventsManager.openMessageModal({
-              type: 'error',
-              message: 'Error generating PDF. Please try again.',
-              options: { centered: true }
-            });
-            // Volver a la lista en caso de error
-            this.router.navigate(['my-farmers']);
-          }
-        }, 2000); // Esperar 2 segundos para que cargue completamente
+      // Paso 1: Cargar información del agricultor desde la API
+      this.updatePdfProgress(1, 25, 'Cargando información del agricultor...');
+      const farmerResponse = await this.companyController.getUserCustomer(Number(farmerId)).pipe(take(1)).toPromise();
+      
+      if (!farmerResponse || farmerResponse.status !== 'OK' || !farmerResponse.data) {
+        throw new Error('No se pudo obtener la información del agricultor');
+      }
+
+      const farmerData = farmerResponse.data;
+
+      // Paso 2: Preparar datos para el reporte (cargar entregas y pagos)
+      this.updatePdfProgress(2, 50, 'Preparando datos del reporte...');
+
+      // Cargar entregas (purchase orders) y pagos del agricultor en paralelo
+      const deliveriesParams: GetStockOrderListByCompanyId.PartialParamMap = {
+        companyId: this.organizationId,
+        requestType: 'FETCH',
+        limit: 1000,
+        offset: 0,
+        sortBy: 'productionDate',
+        sort: 'DESC',
+        farmerId: Number(farmerId),
+        isPurchaseOrderOnly: true,
+        orderType: 'PURCHASE_ORDER'
+      };
+
+      const paymentsParams: ListPaymentsByCompany.PartialParamMap = {
+        id: this.organizationId,
+        requestType: 'FETCH',
+        limit: 1000,
+        offset: 0,
+        farmerId: Number(farmerId)
+      };
+
+      const [deliveriesResp, paymentsResp] = await Promise.all([
+        this.stockOrderController.getStockOrderListByCompanyIdByMap(deliveriesParams).pipe(take(1)).toPromise(),
+        this.paymentController.listPaymentsByCompanyByMap(paymentsParams).pipe(take(1)).toPromise()
+      ]);
+
+      const deliveriesItems = deliveriesResp?.data?.items || [];
+      const paymentsItems = paymentsResp?.data?.items || [];
+
+      // Normalizar datos para el generador de PDF
+      const deliveries = deliveriesItems.map(o => {
+        const productName = (o.semiProduct as any)?.name || (o.finalProduct as any)?.name || '';
+        const qty = o.totalQuantity || 0;
+        const unitPrice = o.pricePerUnit || 0;
+        const total = (o as any).cost != null ? (o as any).cost : (unitPrice && qty ? unitPrice * qty : 0);
+        return {
+          date: o.productionDate || o.deliveryTime || null,
+          product: { name: productName },
+          quantity: qty,
+          unitPrice: unitPrice,
+          totalAmount: total,
+          currency: o.currency || 'USD'
+        };
       });
+
+      const payments = paymentsItems.map(p => ({
+        paymentDate: (p as any).formalCreationTime || null,
+        paymentPurposeType: p.paymentPurposeType || 'Payment',
+        paymentType: (p as any).preferredWayOfPayment || p.paymentType || '',
+        amount: p.amount != null ? p.amount : (p as any).totalPaid || 0,
+        paymentStatus: p.paymentStatus || '',
+        currency: p.currency || 'USD'
+      }));
+
+      // Calcular acumulados
+      const totalDeliveriesQty = deliveries.reduce((sum, d) => sum + (Number(d.quantity) || 0), 0);
+      const totalPaymentsAmount = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+      const weightedPriceSum = deliveries.reduce((sum, d) => sum + ((Number(d.unitPrice) || 0) * (Number(d.quantity) || 0)), 0);
+      const avgPrice = totalDeliveriesQty > 0 ? (weightedPriceSum / totalDeliveriesQty) : 0;
+
+      // Adjuntar a farmerData
+      (farmerData as any).deliveries = deliveries;
+      (farmerData as any).payments = payments;
+      (farmerData as any).totalDeliveries = totalDeliveriesQty;
+      (farmerData as any).totalPayments = totalPaymentsAmount;
+      (farmerData as any).totalProduction = totalDeliveriesQty; // como aproximación
+      (farmerData as any).averagePrice = avgPrice;
+
+      // Paso 3: Generar documento PDF
+      this.updatePdfProgress(3, 75, 'Generando documento PDF...');
+      await this.delay(500); // Breve pausa para mostrar progreso
+
+      await this.pdfGeneratorService.generateFarmerPdf(farmerId, farmerName, farmerData);
+
+      // Paso 4: Completado
+      this.updatePdfProgress(4, 100, '¡Reporte generado exitosamente!');
+      await this.delay(1000); // Mostrar éxito brevemente
+
+      modalRef.close();
+
+      // Mostrar notificación de éxito
+      this.globalEventsManager.push({
+        notificationType: 'success',
+        title: 'Reporte Generado',
+        message: `Los datos del agricultor <strong>${farmerName}</strong> se ha descargado correctamente.`
+      });
+
     } catch (error) {
-      console.error('Error navigating to farmer details:', error);
+      console.error('Error generating farmer PDF:', error);
+      modalRef.close();
+      
+      // Mostrar error profesional
       await this.globalEventsManager.openMessageModal({
         type: 'error',
-        message: 'Error accessing farmer details. Please try again.',
+        title: 'Error al Generar Reporte',
+        message: `
+          <div class="text-left">
+            <p>No se pudo generar el reporte del agricultor <strong>${farmerName}</strong>.</p>
+            <p class="mb-2"><strong>Posibles causas:</strong></p>
+            <ul class="mb-2">
+              <li>Problemas de conectividad</li>
+              <li>Mapas no cargados completamente</li>
+              <li>Información incompleta del agricultor</li>
+            </ul>
+            <p class="text-muted"><small>Por favor, intente nuevamente en unos momentos.</small></p>
+          </div>
+        `,
         options: { centered: true }
       });
     }
+  }
+
+  /**
+   * Resetea el estado del modal de PDF
+   */
+  private resetPdfModalState(): void {
+    this.currentStep = 0;
+    this.pdfProgress = 0;
+    this.currentPdfStep = 'Preparando...';
+  }
+
+  /**
+   * Actualiza el progreso del modal de PDF
+   */
+  private updatePdfProgress(step: number, progress: number, message: string): void {
+    this.currentStep = step;
+    this.pdfProgress = progress;
+    this.currentPdfStep = message;
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
 }

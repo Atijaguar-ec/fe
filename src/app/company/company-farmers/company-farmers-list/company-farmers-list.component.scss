@@ -20,3 +20,163 @@
 .spacer {
   height: 1.5rem
 }
+
+/* Estilos profesionales para el modal de PDF */
+.pdf-progress-container {
+  .progress {
+    border-radius: 10px;
+    background-color: #f8f9fa;
+    
+    .progress-bar {
+      border-radius: 10px;
+      transition: width 0.6s ease;
+    }
+  }
+  
+  .pdf-steps {
+    .step-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      color: #6c757d;
+      transition: all 0.3s ease;
+      
+      .step-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+      }
+      
+      &.active {
+        color: #198754;
+        font-weight: 500;
+        
+        .step-icon {
+          background-color: #198754;
+          color: white;
+          animation: pulse 2s infinite;
+        }
+      }
+      
+      &.completed {
+        color: #198754;
+        
+        .step-icon {
+          background-color: #198754;
+          color: white;
+        }
+      }
+    }
+  }
+  
+  .pdf-info {
+    border-left: 4px solid #0dcaf0;
+    background-color: #f8f9fa !important;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(25, 135, 84, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(25, 135, 84, 0);
+  }
+}
+
+/* Estilos específicos para captura de PDF */
+:host ::ng-deep .pdf-capture-mode {
+  .farmer-details-form {
+    .af-form-block--c6 {
+      width: 100% !important;
+      float: none !important;
+      margin: 0 0 20px 0 !important;
+      padding: 15px !important;
+      box-sizing: border-box !important;
+    }
+    
+    .af-form-row {
+      display: block !important;
+      width: 100% !important;
+      margin: 0 !important;
+    }
+    
+    .mapboxgl-map {
+      width: 100% !important;
+      max-width: 700px !important;
+      height: 450px !important;
+      margin: 15px auto !important;
+      border: 2px solid #dee2e6 !important;
+      border-radius: 8px !important;
+    }
+    
+    // Ocultar elementos innecesarios en PDF
+    .mapboxgl-ctrl-bottom-right,
+    .mapboxgl-ctrl-bottom-left,
+    .mapboxgl-ctrl-top-right,
+    .mapboxgl-ctrl-top-left {
+      display: none !important;
+    }
+    
+    // Ocultar título "Editar agricultor" en PDF
+    .title-page,
+    .content-element--title,
+    .af-form-row .title-page {
+      display: none !important;
+    }
+    
+    // Ocultar botones de acción y navegación
+    .bottom-buttons,
+    .af-form-buttons,
+    .btn,
+    button {
+      display: none !important;
+    }
+    
+    // Ocultar breadcrumbs y navegación
+    .breadcrumb,
+    .nav,
+    .navbar {
+      display: none !important;
+    }
+    
+    // Mejorar legibilidad de texto en PDF
+    h1, h2, h3, h4, h5, h6 {
+      color: #212529 !important;
+      margin-bottom: 10px !important;
+    }
+    
+    .form-control, .form-select {
+      border: 1px solid #ced4da !important;
+      background-color: #fff !important;
+      color: #212529 !important;
+    }
+    
+    // Asegurar que las tablas se vean bien
+    table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+      
+      th, td {
+        border: 1px solid #dee2e6 !important;
+        padding: 8px !important;
+        text-align: left !important;
+      }
+      
+      th {
+        background-color: #f8f9fa !important;
+        font-weight: 600 !important;
+      }
+    }
+  }
+}

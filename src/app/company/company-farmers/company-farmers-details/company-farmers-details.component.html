@@ -379,8 +379,8 @@
                     </div>
                 </div>
 
-                <div class="af-form-block--c6">
-                    <div class="af-invisible-temp" style="display: none;"> 
+                <!-- Sección de certificaciones oculta temporalmente -->
+                <div class="af-form-block--c6" style="display: none;">
                     <h2 i18n="@@companyDetail.section.certification">Certification</h2>
                     <div class="af-form-element">
                         <list-editor
@@ -414,8 +414,9 @@
                             </list-editor-errors>
                         </list-editor>
                     </div>
-                    </div>
-                    
+                </div>
+
+                <div class="af-form-block--c6">
                     <h2 i18n="@@collectorDetail.section.productTypes">Product types</h2>
                     <div class="af-form-element">
                         <div class="search-field" *ngIf="company?.valueChains?.length > 0">
