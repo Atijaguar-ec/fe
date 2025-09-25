@@ -20,4 +20,7 @@
     window['env']['beycoAuthURL'] = '';
     window['env']['beycoClientId'] = '';
 
+    // Product Configuration - Variable global para configurar tipo de producto principal
+    window['env']['primaryProductType'] = 'COFFEE'; // COFFEE o CACAO
+
 })(this);

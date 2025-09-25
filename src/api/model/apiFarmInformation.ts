@@ -50,6 +50,10 @@ export interface ApiFarmInformation {
      * Start date of transition to organic
      */
     startTransitionToOrganic?: Date;
+    /**
+     * Maximum production quantity (qq)
+     */
+    maxProductionQuantity?: number;
 }
 
 /**
@@ -83,7 +87,11 @@ export namespace ApiFarmInformation {
         /**
          * Start date of transition to organic
          */
-        startTransitionToOrganic = 'startTransitionToOrganic'
+        startTransitionToOrganic = 'startTransitionToOrganic',
+        /**
+         * Maximum production quantity (qq)
+         */
+        maxProductionQuantity = 'maxProductionQuantity'
     }
 
 
@@ -159,6 +167,17 @@ export namespace ApiFarmInformation {
                     isListContainer: false,
                     complexType: ''
                 },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'maxProductionQuantity',
+                    classname: 'ApiFarmInformation',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
             ],
             validators: {
                 areaUnit: [
@@ -172,6 +191,8 @@ export namespace ApiFarmInformation {
                 areaOrganicCertified: [
                 ],
                 startTransitionToOrganic: [
+                ],
+                maxProductionQuantity: [
                 ],
             }
         }
@@ -196,6 +217,9 @@ export namespace ApiFarmInformation {
   //                   validators: []
   //               },
   //               startTransitionToOrganic: {
+  //                   validators: []
+  //               },
+  //               maxProductionQuantity: {
   //                   validators: []
   //               },
   //     }

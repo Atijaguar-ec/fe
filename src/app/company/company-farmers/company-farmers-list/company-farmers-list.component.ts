@@ -19,6 +19,7 @@ import { NgbModalImproved } from '../../../core/ngb-modal-improved/ngb-modal-imp
 import { ApiCompany } from '../../../../api/model/apiCompany';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { SelfOnboardingService } from '../../../shared-services/self-onboarding.service';
+import { PdfGeneratorService } from '../../../shared-services/pdf-generator.service';
 
 @Component({
   selector: 'app-company-farmers-list',
@@ -184,7 +185,8 @@ export class CompanyFarmersListComponent implements OnInit, OnDestroy, AfterView
       private selUserCompanyService: SelectedUserCompanyService,
       private fileSaverService: FileSaverService,
       private modalService: NgbModalImproved,
-      private selfOnboardingService: SelfOnboardingService
+      private selfOnboardingService: SelfOnboardingService,
+      private pdfGeneratorService: PdfGeneratorService
   ) { }
 
   ngOnInit(): void {
@@ -362,6 +364,41 @@ export class CompanyFarmersListComponent implements OnInit, OnDestroy, AfterView
       geoId: $geoId
     });
     modalRef.result.then();
+  }
+
+  /**
+   * Genera y descarga un PDF con los detalles del agricultor
+   */
+  async viewFarmerPdf(farmerId: string, farmerName: string) {
+    try {
+      // Navegar temporalmente a la página de detalles para capturar el formulario
+      this.router.navigate(['my-farmers', farmerId]).then(async () => {
+        // Esperar un momento para que se cargue la página
+        setTimeout(async () => {
+          try {
+            await this.pdfGeneratorService.generateFarmerPdf(farmerId, farmerName);
+            // Volver a la lista después de generar el PDF
+            this.router.navigate(['my-farmers']);
+          } catch (error) {
+            console.error('Error generating PDF:', error);
+            await this.globalEventsManager.openMessageModal({
+              type: 'error',
+              message: 'Error generating PDF. Please try again.',
+              options: { centered: true }
+            });
+            // Volver a la lista en caso de error
+            this.router.navigate(['my-farmers']);
+          }
+        }, 2000); // Esperar 2 segundos para que cargue completamente
+      });
+    } catch (error) {
+      console.error('Error navigating to farmer details:', error);
+      await this.globalEventsManager.openMessageModal({
+        type: 'error',
+        message: 'Error accessing farmer details. Please try again.',
+        options: { centered: true }
+      });
+    }
   }
 
 }

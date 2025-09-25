@@ -3286,6 +3286,9 @@
     "productLabelStockBulkPayments.textinput.paymentPerKg.placeholder": "Introduce el pago por kg",
     "productLabelStockBulkPayments.textinput.paymentPerKg.error": "Error en el pago por kg",
     "quoteOrdersOnOrganization.input.placehoder": "Introduce un valor",
-    "companyDashboardComponent.graph.values.trunked": "Truncado"
+    "companyDashboardComponent.graph.values.trunked": "Truncado",
+
+    "collectorDetail.textinput.maxProductionQuantity.label": "Cantidad máxima de producción (qq)",
+    "productLabelPurchaseOrder.aggregated.organicBalance": "Saldo Orgánico (qq)"
   }
 }

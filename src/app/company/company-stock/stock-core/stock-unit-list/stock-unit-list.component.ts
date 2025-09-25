@@ -85,6 +85,9 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
   @Input()
   hideCheckbox = false;
 
+  @Input()
+  maxProductionQuantity$ = new BehaviorSubject<number>(0);
+
   @Output()
   countAll = new EventEmitter<number>();
 
@@ -205,6 +208,10 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
       tap((data: ApiPaginatedListApiStockOrder) => {
         if (data) {
           this.aggregatedOrders = this.aggregateOrderItems(data.items);
+          // Validate organic production limits
+          if (data.items) {
+            this.validateOrganicProductionLimits(data.items);
+          }
         }
       }),
       tap(() => this.refreshCBs()),
@@ -729,6 +736,153 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
   continueGuidedTourToProcessing() {
     this.selfOnboardingService.guidedTourNextStep(5);
     this.router.navigate(['my-stock', 'processing']).then();
+  }
+
+  /**
+   * Validates organic production limits and shows alerts
+   * @param orders Current stock orders
+   */
+  private validateOrganicProductionLimits(orders: ApiStockOrder[]): void {
+    this.maxProductionQuantity$.pipe(take(1)).subscribe(maxQuantity => {
+      if (!maxQuantity || maxQuantity <= 0 || !orders) return;
+
+      // Calculate total organic production
+      const totalOrganicProduction = orders
+        .filter(order => order.organic === true)
+        .reduce((total, order) => {
+          const quantity = order.fulfilledQuantity || order.availableQuantity || 0;
+          return total + quantity;
+        }, 0);
+
+      // Check if limit is exceeded
+      if (totalOrganicProduction > maxQuantity) {
+        const excess = totalOrganicProduction - maxQuantity;
+        this.toasterService.error(
+          `⚠️ ALERTA: Producción orgánica excede el límite permitido por ${excess.toFixed(2)} qq. ` +
+          `Límite: ${maxQuantity} qq, Actual: ${totalOrganicProduction.toFixed(2)} qq. ` +
+          `Esto puede indicar producto ilegal.`,
+          'Límite de Producción Orgánica Excedido',
+          { timeOut: 10000, closeButton: true }
+        );
+      } else if (totalOrganicProduction > maxQuantity * 0.8) {
+        // Warning at 80% of limit
+        const remaining = maxQuantity - totalOrganicProduction;
+        this.toasterService.warning(
+          `⚠️ ADVERTENCIA: Producción orgánica cerca del límite. ` +
+          `Restante: ${remaining.toFixed(2)} qq de ${maxQuantity} qq permitidos.`,
+          'Límite de Producción Orgánica',
+          { timeOut: 7000, closeButton: true }
+        );
+      }
+    });
+  }
+
+  /**
+   * Calcula el saldo de producción orgánica para un producto específico
+   * @param aggregatedItem Item agregado de la tabla
+   * @returns Saldo en quintales
+   */
+  private calculateOrganicBalance(aggregatedItem: AggregatedStockItem): { balance: number; maxLimit: number; isOrganic: boolean } {
+    let maxLimit = 0;
+    let isOrganic = false;
+
+    // Obtener el límite máximo
+    this.maxProductionQuantity$.pipe(take(1)).subscribe(limit => {
+      maxLimit = limit || 0;
+    });
+
+    if (!maxLimit || maxLimit <= 0) {
+      return { balance: 0, maxLimit: 0, isOrganic: false };
+    }
+
+    // Calcular producción orgánica total para este producto específico (convertir de libras a quintales)
+    const organicProductionLbs = this.currentData
+      ?.filter(order => 
+        order.organic === true && 
+        (order.semiProduct?.name === aggregatedItem.stockUnitName || 
+         order.finalProduct?.name === aggregatedItem.stockUnitName)
+      )
+      .reduce((total, order) => {
+        const quantity = order.fulfilledQuantity || order.availableQuantity || 0;
+        return total + quantity;
+      }, 0) || 0;
+
+    // Convertir de libras a quintales (1 quintal = 100 libras)
+    const organicProductionQq = organicProductionLbs / 100;
+    const balance = maxLimit - organicProductionQq;
+    isOrganic = organicProductionLbs > 0;
+
+    return { balance, maxLimit, isOrganic };
+  }
+
+  /**
+   * Obtiene el texto del saldo orgánico
+   */
+  getOrganicBalanceText(aggregatedItem: AggregatedStockItem): string {
+    const { balance, maxLimit, isOrganic } = this.calculateOrganicBalance(aggregatedItem);
+    
+    if (!maxLimit) {
+      return 'N/A';
+    }
+
+    if (!isOrganic) {
+      return `${maxLimit.toFixed(2)} qq disponibles`;
+    }
+
+    if (balance >= 0) {
+      return `${balance.toFixed(2)} qq restantes`;
+    } else {
+      return `⚠️ Exceso: ${Math.abs(balance).toFixed(2)} qq`;
+    }
+  }
+
+  /**
+   * Obtiene la clase CSS para el color del saldo
+   */
+  getOrganicBalanceClass(aggregatedItem: AggregatedStockItem): string {
+    const { balance, maxLimit, isOrganic } = this.calculateOrganicBalance(aggregatedItem);
+    
+    if (!maxLimit || !isOrganic) {
+      return 'text-muted';
+    }
+
+    const usedPercentage = ((maxLimit - balance) / maxLimit) * 100;
+
+    if (balance < 0) {
+      return 'text-danger fw-bold'; // Rojo - Exceso
+    } else if (usedPercentage >= 80) {
+      return 'text-warning fw-bold'; // Amarillo - Advertencia (80%+)
+    } else {
+      return 'text-success'; // Verde - Normal
+    }
+  }
+
+  /**
+   * Obtiene el tooltip con información detallada
+   */
+  getOrganicBalanceTooltip(aggregatedItem: AggregatedStockItem): string {
+    const { balance, maxLimit, isOrganic } = this.calculateOrganicBalance(aggregatedItem);
+    
+    if (!maxLimit) {
+      return 'No se ha configurado límite de producción orgánica';
+    }
+
+    if (!isOrganic) {
+      return `Límite configurado: ${maxLimit} qq. No hay producción orgánica registrada para este producto.`;
+    }
+
+    const used = maxLimit - balance;
+    const percentage = (used / maxLimit) * 100;
+
+    if (balance < 0) {
+      return `⚠️ ALERTA: Producción orgánica excede el límite por ${Math.abs(balance).toFixed(2)} qq. ` +
+             `Límite: ${maxLimit} qq, Usado: ${used.toFixed(2)} qq (${percentage.toFixed(1)}%)`;
+    } else if (percentage >= 80) {
+      return `⚠️ ADVERTENCIA: Cerca del límite de producción orgánica. ` +
+             `Usado: ${used.toFixed(2)} qq de ${maxLimit} qq (${percentage.toFixed(1)}%)`;
+    } else {
+      return `Producción orgánica normal. Usado: ${used.toFixed(2)} qq de ${maxLimit} qq (${percentage.toFixed(1)}%)`;
+    }
   }
 
 }

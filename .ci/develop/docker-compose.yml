@@ -12,8 +12,12 @@ services:
       - "8081:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    env_file:
+      - .env
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=${NODE_ENV:-development}
+      - PRIMARY_PRODUCT_TYPE=${PRIMARY_PRODUCT_TYPE:-CACAO}
+      - API_BASE_URL=${API_BASE_URL:-http://5.161.183.137:8080}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.inatrace-fe-dev.rule=Host(`inatrace.atijaguar.com`) || Host(`5.161.183.137`)"

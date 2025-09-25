@@ -104,8 +104,15 @@
                             </td>
                         </ng-container>
 
-                        <td [attr.data-label]="sortOptions[6].name">
+                        <td [attr.data-label]="sortOptions[6].name"> 
                             <span>
+                                <a i18n="@@productLabelStakeholdersCollectors.tableCol.view"
+                                   (click)="viewFarmerPdf(farmer.id, farmer.name + ' ' + farmer.surname)"
+                                   class="company-action"
+                                   [class.enabled-action]="true"
+                                   title="View PDF">
+                                  View
+                                </a>
                                 <a i18n="@@productLabelStakeholdersCollectors.tableCol.edit"
                                    (click)="editFarmer(farmer.id)"
                                    class="company-action"

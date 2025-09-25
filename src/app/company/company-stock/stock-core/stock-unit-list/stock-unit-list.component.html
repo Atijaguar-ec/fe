@@ -132,12 +132,17 @@
       <tr>
         <th i18n="@@productLabelPurchaseOrder.sortOptions.semiProduct.name">Semi-product</th>
         <th i18n="@@productLabelPurchaseOrder.aggregated.totalQuantity">Total quantity</th>
+        <th i18n="@@productLabelPurchaseOrder.aggregated.organicBalance">Organic Balance (qq)</th>
       </tr>
       </thead>
       <tbody>
       <tr *ngFor="let order of aggregatedOrders">
         <td>{{ order.stockUnitName }}:</td>
         <td>{{ order.amount ? (order.amount | number : '1.0-2') : 0 }} {{ order.measureUnit }}</td>
+        <td [ngClass]="getOrganicBalanceClass(order)" 
+            [title]="getOrganicBalanceTooltip(order)">
+          {{ getOrganicBalanceText(order) }}
+        </td>
       </tr>
       </tbody>
     </table>
