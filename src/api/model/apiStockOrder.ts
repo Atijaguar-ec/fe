@@ -192,6 +192,10 @@ export interface ApiStockOrder {
      */
     organic?: boolean;
     /**
+     * Week number for cacao deliveries (1-53)
+     */
+    weekNumber?: number;
+    /**
      * Tare
      */
     tare?: number;
@@ -380,6 +384,10 @@ export namespace ApiStockOrder {
          * Organic
          */
         organic = 'organic',
+        /**
+         * Week number for cacao deliveries (1-53)
+         */
+        weekNumber = 'weekNumber',
         /**
          * Tare
          */
@@ -1002,6 +1010,17 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'weekNumber',
+                    classname: 'ApiStockOrder',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'tare',
                     classname: 'ApiStockOrder',
                     dataType: 'number',
@@ -1210,6 +1229,8 @@ export namespace ApiStockOrder {
                 ],
                 organic: [
                 ],
+                weekNumber: [
+                ],
                 tare: [
                 ],
                 damagedPriceDeduction: [
@@ -1382,6 +1403,9 @@ export namespace ApiStockOrder {
   //                   validators: []
   //               },
   //               organic: {
+  //                   validators: []
+  //               },
+  //               weekNumber: {
   //                   validators: []
   //               },
   //               tare: {
