@@ -486,6 +486,11 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
     const data: ApiStockOrder = _.cloneDeep(this.stockOrderForm.value);
 
+    // Convert weekNumber to number if it exists and is valid
+    if (data.weekNumber != null && String(data.weekNumber).trim() !== '') {
+      data.weekNumber = Number(data.weekNumber);
+    }
+
     // Remove keys that are not set
     Object.keys(data).forEach((key) => (data[key] == null) && delete data[key]);
 
