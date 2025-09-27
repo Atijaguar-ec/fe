@@ -18,6 +18,7 @@ import { ComponentsModule } from '../components/components.module';
 import { ContentsModule } from '../contents/contents.module';
 import { SharedModule } from '../shared/shared.module';
 import { CoreModule } from '../core/core.module';
+import { EnvironmentInfoService } from '../core/environment-info.service';
 import { AuthorisedLayoutComponent } from './authorised/authorised-layout/authorised-layout.component';
 import { AuthorisedSideNavTogglerComponent } from './authorised/authorised-side-nav-toggler/authorised-side-nav-toggler.component';
 import { AuthorisedSideNavComponent } from './authorised/authorised-side-nav/authorised-side-nav.component';
@@ -71,6 +72,7 @@ import { UserBoxComponent } from './user-box/user-box.component';
         DragDropModule,
         NgbTooltipModule
     ],
+  providers: [EnvironmentInfoService],
   exports: [
     AuthorisedLayoutComponent,
     AuthorisedSideNavComponent,

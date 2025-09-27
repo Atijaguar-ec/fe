@@ -6,12 +6,14 @@ import { RouterModule } from '@angular/router';
 import { ProductLabelFrontTopNavComponent } from './product-label-front/product-label-front-top-nav/product-label-front-top-nav.component';
 import { PageContentComponent } from './page-content/page-content.component';
 import { LandingPageFooterComponent } from './landing-page/landing-page-footer/landing-page-footer.component';
+import { SystemLeftPanelComponent } from '../system-left-panel/system-left-panel.component';
 
 @NgModule({
   declarations: [
     ProductLabelFrontTopNavComponent,
     PageContentComponent,
-    LandingPageFooterComponent
+    LandingPageFooterComponent,
+    SystemLeftPanelComponent
   ],
   imports: [
     CommonModule,
@@ -20,7 +22,8 @@ import { LandingPageFooterComponent } from './landing-page/landing-page-footer/l
   exports: [
     ProductLabelFrontTopNavComponent,
     PageContentComponent,
-    LandingPageFooterComponent
+    LandingPageFooterComponent,
+    SystemLeftPanelComponent
   ]
 })
 export class LayoutSharedModule { }

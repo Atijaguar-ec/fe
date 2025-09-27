@@ -40,6 +40,64 @@
   }
 }
 
+.env-context {
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: $gray-900;
+
+  @include media-breakpoint-down(md) {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    padding: 0.25rem 0;
+  }
+
+  &__text {
+    font-weight: 500;
+  }
+
+  &__company {
+    font-weight: 600;
+    max-width: 14rem;
+    @include ellipsis-1-row;
+  }
+
+  &__separator {
+    color: $gray-600;
+    font-weight: 600;
+  }
+}
+
+.env-badge {
+  background-color: $primary;
+  color: $white;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.env-badge.env-dev {
+  background-color: $danger;
+}
+
+.env-badge.env-test {
+  background-color: $warning;
+  color: $gray-900;
+}
+
+.env-badge.env-prod {
+  background-color: $success;
+}
+
+.env-badge.env-generic {
+  background-color: $gray-600;
+}
+
+.product-badge {
+  background-color: rgba($primary, 0.15);
+  color: $primary;
+  font-weight: 600;
+}
 
 .locked {
   color: $gray;
@@ -52,44 +110,7 @@
 
 ul {
   list-style-type: none;
-//   margin: 0;
-//   padding: 0;
-//   overflow: hidden;
-//   font-size: 1.5rem;
-//   @include media-breakpoint-down(md) {
-//     font-size: 1rem;
-//   }
 }
-
-// li {
-//   float: left;
-//   color: $primary;
-// }
-
-// li a {
-//   font-size: 1.5rem;
-//   color: $primary;
-//   font-weight: normal;
-//   @include media-breakpoint-down(md) {
-//     font-size: 1rem;
-//   }
-// }
-
-// .drobtinice {
-//     margin-left: 42px;
-//     @include media-breakpoint-down(md) {
-//       display: none;
-//    }
-// }
-// .drobtinice-separator {
-//    margin-left: 1rem;
-//    margin-right: 1rem;
-//    @include media-breakpoint-down(md) {
-//     margin-left: 0.25rem;
-//     margin-right: 0.25rem;
-//    }
-
-// }
 
 .logo-container{
   display:none;

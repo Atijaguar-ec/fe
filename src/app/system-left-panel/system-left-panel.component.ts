@@ -1,4 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
+import { EnvironmentInfoService } from '../core/environment-info.service';
 
 @Component({
   selector: 'app-system-left-panel',
@@ -13,9 +14,18 @@ export class SystemLeftPanelComponent implements OnInit {
   @Input()
   isAdmin = false;
 
-  constructor() { }
+  environmentBadgeLabel = '';
+  environmentDisplayName = '';
+  environmentBadgeClass = '';
+  productBadgeLabel = '';
+
+  constructor(private environmentInfoService: EnvironmentInfoService) { }
 
   ngOnInit(): void {
+    this.environmentBadgeLabel = this.environmentInfoService.getEnvironmentBadgeLabel();
+    this.environmentDisplayName = this.environmentInfoService.getEnvironmentDisplayName();
+    this.environmentBadgeClass = this.environmentInfoService.getEnvironmentBadgeClass();
+    this.productBadgeLabel = this.environmentInfoService.getProductBadgeLabel();
   }
 
 }

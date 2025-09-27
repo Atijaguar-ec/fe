@@ -1,10 +1,11 @@
 import { Component, Host, OnInit, Input, OnDestroy } from '@angular/core';
 import { Subscription, Observable } from 'rxjs';
-import { TabCommunicationService } from 'src/app/shared/tab-communication.service';
 import { delay } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AuthorisedLayoutComponent } from '../authorised-layout/authorised-layout.component';
 import { Location } from '@angular/common';
+
+import { TabCommunicationService } from '../../../shared/tab-communication.service';
+import { AuthorisedLayoutComponent } from '../authorised-layout/authorised-layout.component';
 
 @Component({
   selector: 'app-authorised-top-nav',
@@ -14,16 +15,16 @@ import { Location } from '@angular/common';
 export class AuthorisedTopNavComponent implements OnInit, OnDestroy {
 
   @Input()
-  returnUrl: string = null;
+  returnUrl: string | null = null;
 
-  subTabs: Subscription;
+  subTabs?: Subscription;
 
   tabs: string[] = [];
   selectedIndex = 0;
   tabs$: Observable<string[]>;
-  drobtinice;
-  productName;
-  drobtiniceTitle;
+  drobtinice: any;
+  productName?: string;
+  drobtiniceTitle?: string;
 
   constructor(
     @Host() public authorizedLayout: AuthorisedLayoutComponent,
@@ -49,7 +50,7 @@ export class AuthorisedTopNavComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
 
     this.tabs$ = this.tabCommunicationService.announceTabTitles$.pipe(delay(0));
-    this.tabCommunicationService.confirmActiveTab$.subscribe(val => {
+    this.subTabs = this.tabCommunicationService.confirmActiveTab$.subscribe(val => {
       this.selectedIndex = val;
     });
 
@@ -109,5 +110,6 @@ export class AuthorisedTopNavComponent implements OnInit, OnDestroy {
   isLockedIndex(tab: number) {
     return this.tabCommunicationService.isLockedIndex(tab);
   }
+
 
 }
