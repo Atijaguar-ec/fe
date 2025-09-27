@@ -107,10 +107,10 @@
                         <td [attr.data-label]="sortOptions[6].name"> 
                             <span>
                                 <a i18n="@@productLabelStakeholdersCollectors.tableCol.view"
-                                   (click)="viewFarmerPdf(farmer.id, farmer.name + ' ' + farmer.surname)"
+                                   (click)="viewFarmerReport(farmer.id)"
                                    class="company-action"
                                    [class.enabled-action]="true"
-                                   title="Ver PDF">
+                                   title="Ver">
                                   Ver
                                 </a>
                                 <a i18n="@@productLabelStakeholdersCollectors.tableCol.edit"

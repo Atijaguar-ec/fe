@@ -1,0 +1,353 @@
+<app-authorised-layout>
+    <div *ngIf="farmer" class="af-layout--authorised">
+        <div class="af-form-wrapper farmer-details-form">
+            <div class="af-form-row">
+                <div class="af-form-block--c12">
+                    <div class="title-page content-element--title">{{ farmerFullName }} - Reporte</div>
+                </div>
+            </div>
+
+            <div class="af-form-row">
+                <div class="af-form-block--c6">
+                    <h2 i18n="@@collectorDetail.section.basicInfo">Información básica</h2>
+                    <div class="af-form-element">
+                        <div class="readonly-field">
+                            <label>Nombre</label>
+                            <div class="readonly-value">{{ farmer.name || '—' }}</div>
+                        </div>
+
+                        <div class="readonly-field">
+                            <label>Apellido</label>
+                            <div class="readonly-value">{{ farmer.surname || '—' }}</div>
+                        </div>
+
+                        <div class="readonly-field">
+                            <label>Género</label>
+                            <div class="readonly-value">{{ farmer.gender || '—' }}</div>
+                        </div>
+
+                        <div class="readonly-field" *ngIf="farmer.id">
+                            <label>ID de usuario</label>
+                            <div class="readonly-value">{{ farmer.id }}</div>
+                        </div>
+
+                        <div class="readonly-field" *ngIf="farmer.farmerCompanyInternalId">
+                            <label>ID interno de la empresa</label>
+                            <div class="readonly-value">{{ farmer.farmerCompanyInternalId }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="af-form-block--c6">
+                    <div class="d-flex justify-content-center align-items-center" style="margin-top: 32px;">
+                        <div class="label-card">
+                            <img src="assets/logo-INATrace/logo-INA.png" class="logo-image" alt="Logo">
+                            <div class="name-sector">{{ farmer.name }} {{ farmer.surname }}</div>
+                            <div class="location-sector">{{ farmer.location?.address?.village }}, {{ farmer.location?.address?.cell }}, {{ farmer.location?.address?.sector }}</div>
+                            <div class="qr-code-container">
+                                <qr-code [value]="qrCodeValue"
+                                         [foreground]="'#007bff'"
+                                         [size]="110"></qr-code>
+                            </div>
+                            <div style="flex: 1 1 0"></div>
+                            <div class="trademark-title">
+                                INATrace™
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-center mt-3">
+                        <button class="btn btn-solid" type="button" (click)="printReport()">
+                            <span>Imprimir Reporte</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="af-form-row">
+                <div class="af-form-block--c6">
+                    <h2 i18n="@@collectorDetail.section.address">Dirección</h2>
+                    <div class="af-form-element">
+                        <div class="readonly-field">
+                            <label>País</label>
+                            <div class="readonly-value">{{ farmer.location?.address?.country || '—' }}</div>
+                        </div>
+
+                        <div class="readonly-field">
+                            <label>Ciudad / Pueblo</label>
+                            <div class="readonly-value">{{ farmer.location?.address?.city || farmer.location?.address?.village || '—' }}</div>
+                        </div>
+
+                        <div class="readonly-field">
+                            <label>Estado / Región</label>
+                            <div class="readonly-value">{{ farmer.location?.address?.state || '—' }}</div>
+                        </div>
+
+                        <div class="readonly-field">
+                            <label>Dirección</label>
+                            <div class="readonly-value">{{ farmer.location?.address?.addressLineOne || '—' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="af-form-block--c6">
+                    <h2 i18n="@@collectorDetail.section.plots">Parcelas</h2>
+                    <div class="af-form-element">
+                        <div *ngIf="farmer.plots && farmer.plots.length > 0; else noPlots">
+                            <app-map
+                              style="width: 100%; height: 300px;"
+                              [mapId]="'map-viewer-report'"
+                              [plots]="farmer.plots"
+                              [farmerId]="farmer.id"
+                              [initialLat]="getInitialLat()"
+                              [initialLng]="getInitialLng()"
+                              [editable]="false">
+                            </app-map>
+                            <div class="mt-3">
+                                <div *ngFor="let plot of farmer.plots" class="plot-summary">
+                                    <strong>{{ plot.plotName }}</strong>
+                                    <span *ngIf="plot.size"> - {{ plot.size }} {{ plot.unit }}</span>
+                                    <span *ngIf="plot.crop?.name"> ({{ plot.crop.name }})</span>
+                                </div>
+                            </div>
+                        </div>
+                        <ng-template #noPlots>
+                            <div class="readonly-value">No hay parcelas registradas</div>
+                        </ng-template>
+                    </div>
+                </div>
+            </div>
+
+            <div class="af-form-row">
+                <div class="af-form-block--c6">
+                    <h2 i18n="@@collectorDetail.section.additionalInfo">Información adicional del usuario</h2>
+                    <div class="af-form-element">
+                        <div class="readonly-field">
+                            <label>Número de teléfono</label>
+                            <div class="readonly-value">{{ farmer.phone || '—' }}</div>
+                        </div>
+
+                        <div class="readonly-field">
+                            <label>Correo electrónico</label>
+                            <div class="readonly-value">{{ farmer.email || '—' }}</div>
+                        </div>
+
+                        <div class="readonly-field">
+                            <label>Teléfono inteligente</label>
+                            <div class="readonly-value">{{ farmer.hasSmartphone ? 'Sí' : 'No' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="af-form-block--c6">
+                    <h2 i18n="@@collectorDetail.section.bankInfo">Información bancaria</h2>
+                    <div class="af-form-element">
+                        <div class="readonly-field">
+                            <label>Nombre del titular de la cuenta</label>
+                            <div class="readonly-value">{{ farmer.bank?.accountHolderName || '—' }}</div>
+                        </div>
+
+                        <div class="readonly-field">
+                            <label>Número de cuenta</label>
+                            <div class="readonly-value">{{ farmer.bank?.accountNumber || '—' }}</div>
+                        </div>
+
+                        <div class="readonly-field">
+                            <label>Nombre del banco</label>
+                            <div class="readonly-value">{{ farmer.bank?.bankName || '—' }}</div>
+                        </div>
+
+                        <div class="readonly-field">
+                            <label>Información adicional</label>
+                            <div class="readonly-value">{{ farmer.bank?.additionalInformation || '—' }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="af-form-row">
+                <div class="af-form-block--c6">
+                    <h2 i18n="@@collectorDetail.section.companies">Empresas</h2>
+                    <div class="af-form-element">
+                        <div *ngIf="farmer.cooperatives && farmer.cooperatives.length > 0; else noCooperatives">
+                            <div *ngFor="let coop of farmer.cooperatives" class="readonly-list-item">
+                                {{ coop.company?.name || '—' }}
+                            </div>
+                        </div>
+                        <ng-template #noCooperatives>
+                            <div class="readonly-value">No hay cooperativas registradas</div>
+                        </ng-template>
+                    </div>
+                </div>
+
+                <div class="af-form-block--c6">
+                    <h2 i18n="@@collectorDetail.section.associations">Asociaciones</h2>
+                    <div class="af-form-element">
+                        <div *ngIf="farmer.associations && farmer.associations.length > 0; else noAssociations">
+                            <div *ngFor="let assoc of farmer.associations" class="readonly-list-item">
+                                {{ assoc.company?.name || '—' }}
+                            </div>
+                        </div>
+                        <ng-template #noAssociations>
+                            <div class="readonly-value">No hay asociaciones registradas</div>
+                        </ng-template>
+                    </div>
+                </div>
+            </div>
+
+            <div class="af-form-row">
+                <div class="af-form-block--c6">
+                    <h2 i18n="@@collectorDetail.section.farmInfo">Información adicional de la finca</h2>
+                    <div class="af-form-element">
+                        <div class="readonly-field">
+                            <label>Unidad de área</label>
+                            <div class="readonly-value">{{ farmer.farm?.areaUnit || '—' }}</div>
+                        </div>
+
+                        <div class="readonly-field">
+                            <label>Área cultivada total</label>
+                            <div class="readonly-value">{{ farmer.farm?.totalCultivatedArea || '—' }} {{ farmer.farm?.areaUnit || '' }}</div>
+                        </div>
+
+                        <div *ngIf="farmer.farm?.farmPlantInformationList && farmer.farm.farmPlantInformationList.length > 0">
+                            <div *ngFor="let plantInfo of farmer.farm.farmPlantInformationList" class="readonly-field">
+                                <label>Área cultivada con {{ plantInfo.productType?.name }}</label>
+                                <div class="readonly-value">{{ plantInfo.plantCultivatedArea || '—' }} {{ farmer.farm?.areaUnit || '' }}</div>
+                                <div *ngIf="plantInfo.numberOfPlants" class="readonly-field">
+                                    <label>Número de plantas de {{ plantInfo.productType?.name }}</label>
+                                    <div class="readonly-value">{{ plantInfo.numberOfPlants }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="readonly-field">
+                            <label>Finca orgánica</label>
+                            <div class="readonly-value">{{ farmer.farm?.organic ? 'Sí' : 'No' }}</div>
+                        </div>
+
+                        <div class="readonly-field">
+                            <label>Área certificada orgánica</label>
+                            <div class="readonly-value">{{ farmer.farm?.areaOrganicCertified || '—' }} {{ farmer.farm?.areaUnit || '' }}</div>
+                        </div>
+
+                        <div class="readonly-field">
+                            <label>Inicio de transición a orgánico</label>
+                            <div class="readonly-value">{{ farmer.farm?.startTransitionToOrganic | date:'mediumDate' }}</div>
+                        </div>
+
+                        <div class="readonly-field" *ngIf="shouldShowField('maxProductionQuantity')">
+                            <label>Cantidad máxima de producción</label>
+                            <div class="readonly-value">{{ getMaxProductionQuantity() || '—' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="af-form-block--c6">
+                    <h2 i18n="@@collectorDetail.section.productTypes">Tipos de productos</h2>
+                    <div class="af-form-element">
+                        <div *ngIf="farmer.productTypes && farmer.productTypes.length > 0; else noProductTypes">
+                            <div *ngFor="let productType of farmer.productTypes" class="readonly-list-item">
+                                {{ productType.name }}
+                            </div>
+                        </div>
+                        <ng-template #noProductTypes>
+                            <div class="readonly-value">No hay tipos de productos registrados</div>
+                        </ng-template>
+                    </div>
+                </div>
+            </div>
+
+            <div class="af-form-row">
+                <div class="af-form-block--c12">
+                    <div class="af-bottom-buttons">
+                        <button class="btn btn-outlined" type="button" (click)="goBack()"><span>Volver</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="af-form-row">
+                <div class="af-form-block--c12">
+                    <h2 i18n="@@collectorDetail.section.purchaseOrders">Órdenes de compra</h2>
+                    <div class="report-summary">
+                        <div>
+                            <span class="summary-label">Cantidad total entregada</span>
+                            <span class="summary-value">{{ totalDeliveriesQuantity | number:'1.0-2' }}</span>
+                        </div>
+                        <div>
+                            <span class="summary-label">Precio promedio</span>
+                            <span class="summary-value">{{ averagePrice | currency:company?.currency?.code:'symbol':'1.0-2' }}</span>
+                        </div>
+                    </div>
+
+                    <div *ngIf="deliveries.length > 0; else noDeliveries">
+                        <div class="table-responsive">
+                            <table class="table table-striped report-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Producto</th>
+                                        <th class="text-right">Cantidad</th>
+                                        <th class="text-right">Precio unitario</th>
+                                        <th class="text-right">Total</th>
+                                        <th class="text-center">Semana</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let delivery of deliveries">
+                                        <td>{{ delivery.date | date:'mediumDate' }}</td>
+                                        <td>{{ delivery.productName }}</td>
+                                        <td class="text-right">{{ delivery.quantity | number:'1.0-2' }}</td>
+                                        <td class="text-right">{{ delivery.unitPrice | currency:delivery.currency:'symbol':'1.0-2' }}</td>
+                                        <td class="text-right">{{ delivery.totalAmount | currency:delivery.currency:'symbol':'1.0-2' }}</td>
+                                        <td class="text-center">{{ delivery.weekNumber || '—' }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <ng-template #noDeliveries>
+                        <div class="readonly-value">No hay entregas registradas</div>
+                    </ng-template>
+                </div>
+            </div>
+
+            <div class="af-form-row mb-5">
+                <div class="af-form-block--c12">
+                    <h2 i18n="@@collectorDetail.section.payments">Pagos</h2>
+                    <div class="report-summary">
+                        <div>
+                            <span class="summary-label">Monto total pagado</span>
+                            <span class="summary-value">{{ totalPaymentsAmount | currency:company?.currency?.code:'symbol':'1.0-2' }}</span>
+                        </div>
+                    </div>
+                    <div *ngIf="payments.length > 0; else noPayments">
+                        <div class="table-responsive">
+                            <table class="table table-striped report-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Propósito</th>
+                                        <th>Tipo</th>
+                                        <th class="text-right">Monto</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let payment of payments">
+                                        <td>{{ payment.date | date:'mediumDate' }}</td>
+                                        <td>{{ payment.purpose }}</td>
+                                        <td>{{ payment.type || '—' }}</td>
+                                        <td class="text-right">{{ payment.amount | currency:payment.currency:'symbol':'1.0-2' }}</td>
+                                        <td>{{ payment.status || '—' }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <ng-template #noPayments>
+                        <div class="readonly-value">No hay pagos registrados</div>
+                    </ng-template>
+                </div>
+            </div>
+        </div>
+    </div>
+</app-authorised-layout>

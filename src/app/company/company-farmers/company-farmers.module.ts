@@ -7,6 +7,7 @@ import { CompanyFarmersRoutingModule } from './company-farmers-routing.module';
 import { SharedModule } from '../../shared/shared.module';
 import { NgbPaginationModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { CompanyFarmersDetailsComponent } from './company-farmers-details/company-farmers-details.component';
+import { CompanyFarmersReportComponent } from './company-farmers-report/company-farmers-report.component';
 import { QRCodeModule } from 'angular2-qrcode';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { ProductStakeholdersModule } from '../../m-product/product-stakeholders/product-stakeholders.module';
@@ -20,7 +21,7 @@ import {
 
 
 @NgModule({
-  declarations: [CompanyFarmersListComponent, CompanyFarmersDetailsComponent, CompanyFarmersImportComponent, OpenPlotDetailsExternallyModalComponent],
+  declarations: [CompanyFarmersListComponent, CompanyFarmersDetailsComponent, CompanyFarmersImportComponent, OpenPlotDetailsExternallyModalComponent, CompanyFarmersReportComponent],
     imports: [
         CommonModule,
         LayoutModule,
