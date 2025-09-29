@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { faCut, faFemale, faLeaf, faQrcode, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faCut, faLeaf, faQrcode, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FormArray, FormControl } from '@angular/forms';
 import { ApiFacility } from '../../../../../../api/model/apiFacility';
 import { CompanyFacilitiesForStockUnitProductService } from '../../../../../shared-services/company-facilities-for-stock-unit-product.service';
@@ -35,20 +35,16 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
   readonly faQrcode = faQrcode;
   readonly faCut = faCut;
   readonly faLeaf = faLeaf;
-  readonly faFemale = faFemale;
-
   selectedInputFacility: ApiFacility = null;
 
   // Input stock orders filter controls
   dateFromFilterControl = new FormControl(null);
   dateToFilterControl = new FormControl(null);
   internalLotNameSearchControl = new FormControl(null);
-  womenOnlyFilterControl = new FormControl(null);
   organicOnlyFilterControl = new FormControl(null);
 
   // Input stock orders properties and controls
   organicOnlyInputStockOrders = false;
-  womenOnlyInputStockOrders = false;
   cbSelectAllControl = new FormControl(false);
 
   // Input stock orders properties and controls
@@ -112,20 +108,12 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
     return this.selectedProcAction ? this.selectedProcAction.type : null;
   }
 
-  get womenOnlyStatusValue() {
-    if (this.womenOnlyFilterControl.value != null) {
-      if (this.womenOnlyFilterControl.value) { return $localize`:@@productLabelStockProcessingOrderDetail.womensOnlyStatus.womenCoffee:Women coffee`; }
-      else { return $localize`:@@productLabelStockProcessingOrderDetail.womensOnlyStatus.nonWomenCoffee:Non-women coffee`; }
-    }
-    return null;
-  }
-
   get organicOnlyStatusValue() {
     if (this.organicOnlyFilterControl.value != null) {
       if (this.organicOnlyFilterControl.value) {
-        return $localize`:@@productLabelStockProcessingOrderDetail.organicOnlyStatus.organicCoffee:Organic coffee`;
+        return $localize`:@@productLabelStockProcessingOrderDetail.organicOnlyStatus.organicProduct:Organic`; 
       } else {
-        return $localize`:@@productLabelStockProcessingOrderDetail.organicOnlyStatus.nonOrganicCoffee:Non-organic coffee`;
+        return $localize`:@@productLabelStockProcessingOrderDetail.organicOnlyStatus.nonOrganicProduct:Non-organic`;
       }
     }
   }
@@ -167,17 +155,6 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  async setWomenOnlyStatus(status: boolean) {
-    if (!this.leftSideEnabled) {
-      return;
-    }
-
-    this.womenOnlyFilterControl.setValue(status);
-    if (this.selectedInputFacility) {
-      this.dateSearch().then();
-    }
-  }
-
   async setOrganicOnlyStatus(organicOnly: boolean) {
     if (!this.leftSideEnabled) {
       return;
@@ -204,7 +181,6 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
       facilityId: this.selectedInputFacility.id,
       semiProductId: this.selectedProcAction.inputSemiProduct?.id,
       finalProductId: this.selectedProcAction.inputFinalProduct?.id,
-      isWomenShare: this.womenOnlyFilterControl.value,
       organicOnly: this.organicOnlyFilterControl.value,
       internalLotName: this.internalLotNameSearchControl.value
     };
@@ -488,21 +464,14 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
   private setOrganicAndWomenOnly() {
 
     let countOrganic = 0;
-    let countWomenShare = 0;
-
     const allSelected = this.selectedInputStockOrders.length;
     for (const item of this.selectedInputStockOrders) {
       if (item.organic) {
         countOrganic++;
       }
-
-      if (item.womenShare) {
-        countWomenShare++;
-      }
     }
 
     this.organicOnlyInputStockOrders = countOrganic === allSelected && allSelected > 0;
-    this.womenOnlyInputStockOrders = countWomenShare === allSelected && allSelected > 0;
   }
 
   private clipInputQuantity() {
@@ -544,7 +513,6 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
     this.dateToFilterControl.setValue(null);
     this.internalLotNameSearchControl.setValue(null, { emitEvent: false });
 
-    this.womenOnlyFilterControl.setValue(null);
     this.organicOnlyFilterControl.setValue(null);
 
     this.availableInputStockOrders = [];
@@ -552,7 +520,6 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
     this.cbSelectAllControl.setValue(false);
 
     this.organicOnlyInputStockOrders = false;
-    this.womenOnlyInputStockOrders = false;
 
     this.totalInputQuantityControl.reset();
     this.remainingQuantityControl.reset();

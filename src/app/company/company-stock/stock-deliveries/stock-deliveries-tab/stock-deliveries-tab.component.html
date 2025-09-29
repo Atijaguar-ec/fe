@@ -104,13 +104,6 @@
               </div>
             </div>
 
-            <div *ngIf="filterWomenOnly.value != null" class="d-flex filter-text" style="margin-left: 1rem"> {{ womenOnlyStatusValue }}
-              <div (click)="setWomenOnly(null)" style="margin-left: 0.5rem;">
-                <fa-icon class="cursor-pointer" [icon]="faTimes" size="xs">
-                </fa-icon>
-              </div>
-            </div>
-
             <button ngbDropdownToggle class="btn btn-filter" style="margin-left: 1rem;">
               <div class="button-icon">
                 <span class="button-icon-shape button-icon-shape--filter"></span>
@@ -127,9 +120,6 @@
               <button ngbDropdownItem (click)="setWayOfPayment('CHEQUE')" i18n="@@preferredWayOfPayment.cheque">Cheque</button>
               <button ngbDropdownItem (click)="setWayOfPayment('OFFSETTING')" i18n="@@preferredWayOfPayment.offsetting">Offsetting</button>
               <button ngbDropdownItem (click)="setWayOfPayment('UNKNOWN')" i18n="@@productLabelStock.filter.wayOfPayment.unknown">Unknown</button>
-              <div class="line"></div>
-              <button ngbDropdownItem (click)="setWomenOnly(true)" i18n="@@productLabelStock.filter.womensOnly.yes">Womens only coffee</button>
-              <button ngbDropdownItem (click)="setWomenOnly(false)" i18n="@@productLabelStock.filter.womensOnly.no">Non-womens only coffee</button>
             </div>
 
             <app-search-textinput
@@ -196,7 +186,6 @@
           [clickAddPaymentsPing$]="clickAddPaymentsPing$"
           [companyId]="companyId"
           [wayOfPaymentPing$]="wayOfPaymentPing$"
-          [womenOnlyPing$]="womenOnlyPing$"
           [deliveryDatesPing$]="deliveryDatesPing$"
           [semiProductId$]="$any(semiProductId$)"
           [searchFarmerNameSurnamePing$]="searchFarmerNameSurnamePing$">

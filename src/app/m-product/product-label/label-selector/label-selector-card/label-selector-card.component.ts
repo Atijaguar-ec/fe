@@ -54,11 +54,30 @@ export class LabelSelectorCardComponent implements OnInit {
   }
 
   async setQRCode() {
-    if (this.label) {
-      const res = await this.productController.getProductLabelContent(this.label.id).pipe(take(1)).toPromise();
-      if (res && res.status === 'OK' && res.data) {
-        this.qrCodeLink = `${environment.appBaseUrl}/${res.data.settings.language.toLowerCase()}/${environment.qrCodeBasePath}/${this.label.uuid}`;
+    if (this.label && (this.label as any).uuid) {
+      try {
+        // Try to get language from API
+        const res = await this.productController.getProductLabelContent((this.label as any).id).pipe(take(1)).toPromise();
+        let language = 'es'; // Default to Spanish
+        
+        if (res && res.status === 'OK' && res.data && res.data.settings?.language) {
+          const apiLang = res.data.settings.language.toLowerCase();
+          // Only allow ES or EN
+          language = (apiLang === 'en' || apiLang === 'es') ? apiLang : 'es';
+        }
+        
+        const baseUrl = environment.appBaseUrl || window.location.origin;
+        this.qrCodeLink = `${baseUrl}/${language}/${environment.qrCodeBasePath}/${(this.label as any).uuid}`;
+        console.debug('[LabelSelectorCard] QR code generated:', this.qrCodeLink, 'Language:', language);
+      } catch (e) {
+        // Fallback to Spanish if API fails
+        const baseUrl = environment.appBaseUrl || window.location.origin;
+        this.qrCodeLink = `${baseUrl}/es/${environment.qrCodeBasePath}/${(this.label as any).uuid}`;
+        console.debug('[LabelSelectorCard] QR code fallback to Spanish:', this.qrCodeLink);
       }
+    } else {
+      this.qrCodeLink = '';
+      console.debug('[LabelSelectorCard] No label UUID available');
     }
   }
 

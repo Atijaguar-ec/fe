@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { StockOrderType } from '../../../../../shared/types';
 import { ActivatedRoute } from '@angular/router';
@@ -26,6 +26,7 @@ import { SemiProductControllerService } from '../../../../../api/api/semiProduct
 import { ApiResponseApiCompanyGet } from '../../../../../api/model/apiResponseApiCompanyGet';
 import StatusEnum = ApiResponseApiCompanyGet.StatusEnum;
 import { SelectedUserCompanyService } from '../../../../core/selected-user-company.service';
+import { PdfGeneratorService } from '../../../../shared-services/pdf-generator.service';
 import { ApiUserGet } from '../../../../../api/model/apiUserGet';
 import { Subscription } from 'rxjs';
 import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
@@ -41,6 +42,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   update = true;
 
+  @ViewChild('deliveryDetailsContainer') deliveryDetailsContainer: ElementRef<HTMLElement>;
+
   stockOrderForm: FormGroup;
   order: ApiStockOrder;
   orderTypeForm = new FormControl(null);
@@ -49,6 +52,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   userLastChanged = null;
 
   submitted = false;
+
+  showPrintButton = false;
 
   codebookPreferredWayOfPayment: EnumSifrant;
 
@@ -68,8 +73,6 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   measureUnit = '-';
   selectedCurrency = '-';
 
-  searchWomenCoffeeForm = new FormControl(null, Validators.required);
-  codebookWomenCoffee = EnumSifrant.fromObject(this.womenCoffeeList);
   codebookOrganic = EnumSifrant.fromObject(this.yesNo);
 
   netWeightForm = new FormControl(null);
@@ -98,7 +101,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     private semiProductControllerService: SemiProductControllerService,
     private codebookTranslations: CodebookTranslations,
     private authService: AuthService,
-    private selUserCompanyService: SelectedUserCompanyService
+    private selUserCompanyService: SelectedUserCompanyService,
+    private pdfGeneratorService: PdfGeneratorService
   ) { }
 
   // Additional proof item factory methods (used when creating ListEditorManger)
@@ -214,13 +218,6 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   get additionalProofsForm(): FormArray {
     return this.stockOrderForm.get('activityProofs') as FormArray;
-  }
-
-  private get womenCoffeeList() {
-    const obj = {};
-    obj['YES'] = $localize`:@@productLabelStockPurchaseOrdersModal.womensCoffeeList.yes:Yes`;
-    obj['NO'] = $localize`:@@productLabelStockPurchaseOrdersModal.womensCoffeeList.no:No`;
-    return obj;
   }
 
   get yesNo() {
@@ -356,6 +353,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.codebookUsers = EnumSifrant.fromObject(obj);
     }
 
+    this.showPrintButton = this.showPrintButton || this.update;
   }
 
   private initializeListManager() {
@@ -382,6 +380,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
 
     this.stockOrderForm.get('orderType').setValue(this.orderType);
+    this.stockOrderForm.get('womenShare')?.setValue(false);
     this.setDate();
 
     // Set current logged-in user as employee
@@ -425,8 +424,6 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
 
     this.employeeForm.setValue(this.order.creatorId.toString());
-    this.searchWomenCoffeeForm.setValue(this.order.womenShare ? 'YES' : 'NO');
-
     // TODO: set documents and payments if purchase order
 
     if (this.order.updatedBy && this.order.updatedBy.id) {
@@ -470,8 +467,6 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.stockOrderForm.get('creatorId').setValue(this.employeeForm.value);
 
     // Set women share field
-    this.stockOrderForm.get('womenShare').setValue(this.searchWomenCoffeeForm.value === 'YES');
-
     // Validate forms
     if (this.cannotUpdatePO()) {
       this.updatePOInProgress = false;
@@ -500,6 +495,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       const res = await this.stockOrderControllerService.createOrUpdateStockOrder(data).pipe(take(1)).toPromise();
 
       if (res && res.status === 'OK') {
+        this.showPrintButton = true;
         if (close) {
           this.dismiss();
         }
@@ -521,7 +517,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   private cannotUpdatePO() {
     this.prepareData();
     return (this.stockOrderForm.invalid || this.searchFarmers.invalid ||
-      this.employeeForm.invalid || !this.modelChoice || this.searchWomenCoffeeForm.invalid ||
+      this.employeeForm.invalid || !this.modelChoice ||
       this.tareInvalidCheck || this.damagedPriceDeductionInvalidCheck);
   }
 
@@ -659,14 +655,6 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     return this.facility && !this.facility.displayOrganic;
   }
   
-  get showWomensOnly() {
-    return this.facility && this.facility.displayWomenOnly || this.searchWomenCoffeeForm.value;
-  }
-
-  get readonlyWomensOnly() {
-    return this.facility && !this.facility.displayWomenOnly;
-  }
-
   get showTare() {
     return false;
   }
@@ -745,13 +733,6 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
             [Validators.required] : []
     );
     this.stockOrderForm.get('damagedWeightDeduction').updateValueAndValidity();
-    this.searchWomenCoffeeForm.setValidators(
-        this.orderType === 'PURCHASE_ORDER' &&
-        this.facility &&
-        this.facility.displayWomenOnly ?
-            [Validators.required] : []
-    );
-    this.searchWomenCoffeeForm.updateValueAndValidity();
   }
 
   get tareInvalidCheck() {
@@ -770,6 +751,28 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     const damagedWeightDeduction = Number(this.stockOrderForm.get('damagedWeightDeduction').value).valueOf();
     const totalQuantity = Number(this.stockOrderForm.get('totalQuantity').value).valueOf();
     return damagedWeightDeduction && totalQuantity && (damagedWeightDeduction > totalQuantity);
+  }
+
+  async printDeliveryPdf() {
+    if (!this.deliveryDetailsContainer?.nativeElement) {
+      return;
+    }
+
+    this.globalEventsManager.showLoading(true);
+    try {
+      const identifier = this.stockOrderForm?.get('identifier')?.value || 'stock-order';
+      const filename = `orden-${identifier}.pdf`;
+      await this.pdfGeneratorService.generatePdfFromElement(this.deliveryDetailsContainer.nativeElement, filename);
+    } catch (error) {
+      this.globalEventsManager.push({
+        action: 'error',
+        notificationType: 'error',
+        title: $localize`:@@stockDeliveryDetails.printPdf.errorTitle:Error`,
+        message: $localize`:@@stockDeliveryDetails.printPdf.errorMessage:No se pudo generar el PDF. Intente nuevamente.`
+      });
+    } finally {
+      this.globalEventsManager.showLoading(false);
+    }
   }
 
   private setQuantities() {
