@@ -2,9 +2,12 @@ var fs = require('fs');
 var converter = require('api-spec-converter');
 var child_process = require('child_process');
 var fetch = require("node-fetch");
+require('dotenv').config();
 
 // Allow overriding from environment for CI/CD or different environments
-var swagger_docs_host = process.env.SWAGGER_DOCS_HOST || 'http://5.161.183.137:8080/v3/api-docs'
+var swagger_docs_host = process.env.SWAGGER_DOCS_HOST
+
+//192.168.100.250:8080/v3/api-docs
 
 function afterBuild(code) {
     if (code === 0) {

@@ -1,6 +1,6 @@
 {
     "/api": {
-        "target": "http://5.161.183.137:8080",
+        "target": "http://192.168.100.250:8080",
         "secure": false,
         "logLevel": "debug",
         "pathRewrite": {

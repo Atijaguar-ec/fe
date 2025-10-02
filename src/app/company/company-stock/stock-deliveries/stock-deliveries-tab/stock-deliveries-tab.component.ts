@@ -18,27 +18,28 @@ import { StockOrderControllerService } from '../../../../../api/api/stockOrderCo
 import { SelfOnboardingService } from '../../../../shared-services/self-onboarding.service';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 
+declare const $localize: any;
+
 @Component({
   selector: 'app-stock-deliveries-tab',
   templateUrl: './stock-deliveries-tab.component.html',
   styleUrls: ['./stock-deliveries-tab.component.scss']
 })
 export class StockDeliveriesTabComponent extends StockCoreTabComponent implements OnInit, OnDestroy, AfterViewInit {
-
   rootTab = 0;
 
   showedPurchaseOrders = 0;
   allPurchaseOrders = 0;
 
   searchFarmerNameAndSurname = new FormControl(null);
-  searchFarmerNameSurnamePing$ = new BehaviorSubject<string>(null);
+  searchFarmerNameSurnamePing$ = new BehaviorSubject<string | null>(null);
 
   reloadPurchaseOrdersPing$ = new BehaviorSubject<boolean>(false);
 
   semiProductFrom = new FormControl(null);
-  facilitySemiProducts: FacilitySemiProductsCodebookService = null;
+  facilitySemiProducts: FacilitySemiProductsCodebookService | null = null;
 
-  semiProductId$: Observable<number> = this.semiProductFrom.valueChanges.pipe(
+  semiProductId$: Observable<number | null> = this.semiProductFrom.valueChanges.pipe(
       startWith(null),
       map(semiProduct => {
         if (semiProduct) { return semiProduct.id; }
