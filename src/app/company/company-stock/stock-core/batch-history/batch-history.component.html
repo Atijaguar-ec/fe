@@ -31,6 +31,10 @@
                   <th i18n="@@orderHistoryView.tableCol.identifier">Identifier</th>
                   <td>{{ stockOrder.identifier }}</td>
                 </tr>
+                <tr *ngIf="stockOrder.weekNumber != null">
+                  <th i18n="@@orderHistoryView.tableCol.weekNumber">N° de Semana</th>
+                  <td>{{ stockOrder.weekNumber }}</td>
+                </tr>
                 <tr>
                   <th i18n="@@orderHistoryView.tableCol.facilityName">Facility</th>
                   <td>{{ stockOrder.facility?.name }} ({{ stockOrder.facility?.company?.name }})</td>

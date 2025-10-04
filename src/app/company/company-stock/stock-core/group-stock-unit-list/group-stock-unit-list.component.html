@@ -22,13 +22,16 @@
                     <ng-container *ngIf="order.finalProductName">{{ order.finalProductName }}</ng-container>
                 </td>
                 <td [attr.data-label]="sortOptions[6].name">
+                    {{ order.weekNumber != null ? ('Semana ' + order.weekNumber) : '-' }}
+                </td>
+                <td [attr.data-label]="sortOptions[7].name">
                     {{ order.totalQuantity ? (order.totalQuantity | number : '1.0-2') : 0 }} / {{ order.fulfilledQuantity ? (order.fulfilledQuantity | number : '1.0-2') : 0 }} / {{ order.availableQuantity ? (order.availableQuantity | number : '1.0-2') : 0 }}
                 </td>
-                <td [attr.data-label]="sortOptions[7].name">{{ order.unitLabel }}</td>
-                <td [attr.data-label]="sortOptions[8].name">{{ formatDate(order.deliveryTime) }}</td>
-                <td [attr.data-label]="sortOptions[9].name">{{ order.updateTimestamp | date: 'yyyy-MM-dd hh:mm' }}</td>
-                <td [attr.data-label]="sortOptions[10].name">{{ order.available | formatAvailability }}</td>
-                <td [attr.data-label]="sortOptions[11].name">
+                <td [attr.data-label]="sortOptions[8].name">{{ order.unitLabel }}</td>
+                <td [attr.data-label]="sortOptions[9].name">{{ formatDate(order.deliveryTime) }}</td>
+                <td [attr.data-label]="sortOptions[10].name">{{ order.updateTimestamp | date: 'yyyy-MM-dd hh:mm' }}</td>
+                <td [attr.data-label]="sortOptions[11].name">{{ order.available | formatAvailability }}</td>
+                <td [attr.data-label]="sortOptions[12].name">
                     <span *ngIf="order.noOfSacs <= 1">
                       <a i18n="@@productLabelPurchaseOrder.tableCol.edit"
                          (click)="edit(order)"

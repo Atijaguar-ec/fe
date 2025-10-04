@@ -733,13 +733,13 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       case ApiProcessingAction.TypeEnum.PROCESSING:
       case ApiProcessingAction.TypeEnum.GENERATEQRCODE:
 
-        this.currentInputStockUnit = procAction.inputSemiProduct;
+        this.currentInputStockUnit = procAction.inputSemiProduct ?? null;
         this.outputSemiProductsCodebook = new StaticSemiProductsService(procAction.outputSemiProducts);
         break;
 
       case ApiProcessingAction.TypeEnum.FINALPROCESSING:
 
-        this.currentInputStockUnit = procAction.inputSemiProduct;
+        this.currentInputStockUnit = procAction.inputSemiProduct ?? null;
         this.currentOutputFinalProduct = procAction.outputFinalProduct;
         this.outputFinalProductNameControl
             .setValue(this.currentOutputFinalProduct ? `${this.currentOutputFinalProduct.name} (${this.currentOutputFinalProduct.product.name})` : null);
@@ -751,14 +751,14 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
         // Is it a final product only involvement
         if (procAction.finalProductAction) {
 
-          this.currentInputStockUnit = procAction.inputFinalProduct;
-          this.currentOutputFinalProduct = procAction.outputFinalProduct;
+          this.currentInputStockUnit = procAction.inputFinalProduct ?? null;
+          this.currentOutputFinalProduct = procAction.outputFinalProduct ?? null;
           this.outputFinalProductNameControl
               .setValue(this.currentOutputFinalProduct ? `${this.currentOutputFinalProduct.name} (${this.currentOutputFinalProduct.product.name})` : null);
 
         } else {
 
-          this.currentInputStockUnit = procAction.inputSemiProduct;
+          this.currentInputStockUnit = procAction.inputSemiProduct ?? null;
           this.outputSemiProductsCodebook = new StaticSemiProductsService(procAction.outputSemiProducts);
         }
     }
