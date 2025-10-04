@@ -99,6 +99,10 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
   @Output()
   calcRemainingQuantity = new EventEmitter<void>();
 
+  // Notify parent when the selection of input stock orders changes
+  @Output()
+  selectedInputsChanged = new EventEmitter<ApiStockOrderSelectable[]>();
+
   constructor(
     private stockOrderController: StockOrderControllerService,
     private modalService: NgbModalImproved
@@ -329,6 +333,7 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
 
     this.calcInputQuantity(true);
     this.setOrganicAndWomenOnly();
+    this.emitSelectedInputsChangedWithWeekNumbers();
   }
 
   cbSelectClick(stockOrder: ApiStockOrderSelectable, index: number) {
@@ -459,6 +464,7 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
 
     this.calcInputQuantity(true);
     this.setOrganicAndWomenOnly();
+    this.emitSelectedInputsChangedWithWeekNumbers();
   }
 
   private setOrganicAndWomenOnly() {
@@ -472,6 +478,39 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
     }
 
     this.organicOnlyInputStockOrders = countOrganic === allSelected && allSelected > 0;
+  }
+
+  private async emitSelectedInputsChangedWithWeekNumbers() {
+    const fetches: Promise<any>[] = [];
+    for (const so of this.selectedInputStockOrders) {
+      const id = (so as any)?.id;
+      if (id && so.weekNumber == null) {
+        const p = this.stockOrderController.getStockOrder(id, true)
+          .pipe(take(1))
+          .toPromise()
+          .then(res => {
+            if (res && res.status === 'OK' && res.data) {
+              if (res.data.weekNumber != null) {
+                so.weekNumber = res.data.weekNumber;
+              } else {
+                const txs = (res.data as any)?.processingOrder?.inputTransactions as any[] | undefined;
+                if (txs && txs.length) {
+                  for (const tx of txs) {
+                    const wn = tx?.sourceStockOrder?.weekNumber;
+                    if (wn != null) { so.weekNumber = wn; break; }
+                  }
+                }
+              }
+            }
+          })
+          .catch(() => {});
+        fetches.push(p);
+      }
+    }
+    if (fetches.length) {
+      await Promise.all(fetches);
+    }
+    this.selectedInputsChanged.emit(this.selectedInputStockOrders);
   }
 
   private clipInputQuantity() {
@@ -614,6 +653,7 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
         semiProduct: selectedStockOrder.semiProduct,
         finalProduct: selectedStockOrder.finalProduct,
         internalLotNumber: `${sourceStockOrder.internalLotNumber}/${index + 1 + 0}`,
+        weekNumber: selectedStockOrder.weekNumber ?? sourceStockOrder.weekNumber,
         creatorId: this.processingUserId,
         productionDate: selectedStockOrder.productionDate ? selectedStockOrder.productionDate : (dateISOString(new Date()) as any),
         orderType: OrderTypeEnum.TRANSFERORDER,

@@ -32,6 +32,9 @@ export const ApiStockOrderValidationScheme = {
     },
     internalLotNumber: {
       validators: [Validators.required]
+    },
+    weekNumber: {
+      validators: [Validators.min(1), Validators.max(53)]
     }
   }
 } as SimpleValidationScheme<ApiStockOrder>;

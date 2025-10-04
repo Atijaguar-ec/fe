@@ -31,6 +31,7 @@ import { ApiProcessingOrder } from '../../../../../api/model/apiProcessingOrder'
 import { ApiProcessingOrderValidationScheme, ApiStockOrderValidationScheme } from './validation';
 import { StaticSemiProductsService } from './static-semi-products.service';
 import { StockProcessingOrderDetailsHelper } from './stock-processing-order-details.helper';
+import { ApiStockOrderSelectable } from './stock-processing-order-details.model';
 import TypeEnum = ApiProcessingAction.TypeEnum;
 import OrderTypeEnum = ApiStockOrder.OrderTypeEnum;
 import { uuidv4 } from 'src/shared/utils';
@@ -311,6 +312,55 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
+  // Prefill and lock lot info on outputs based on selected input stock orders
+  onSelectedInputsChanged(selected: ApiStockOrderSelectable[]) {
+    if (this.editing) { return; }
+
+    // Enable editing when no inputs selected
+    if (!selected || selected.length === 0) {
+      this.targetStockOrdersArray.controls.forEach(group => {
+        const iln = group.get('internalLotNumber');
+        if (iln && iln.disabled) { iln.enable({ emitEvent: false }); }
+        const wn = group.get('weekNumber');
+        if (wn && wn.disabled) { wn.enable({ emitEvent: false }); }
+      });
+      return;
+    }
+
+    const ref = selected[0];
+    const sameLot = selected.every(s => s.internalLotNumber === ref.internalLotNumber);
+    const sameWeek = selected.every(s => s.weekNumber === ref.weekNumber);
+
+    // If inputs share same internal lot number, use it; otherwise let user type
+    if (sameLot && ref.internalLotNumber) {
+      this.targetStockOrdersArray.controls.forEach(group => {
+        const iln = group.get('internalLotNumber');
+        if (iln) {
+          iln.setValue(ref.internalLotNumber, { emitEvent: false });
+          iln.disable({ emitEvent: false });
+        }
+      });
+    } else {
+      // Different lot numbers selected – keep field editable
+      this.targetStockOrdersArray.controls.forEach(group => {
+        const iln = group.get('internalLotNumber');
+        if (iln && iln.disabled) { iln.enable({ emitEvent: false }); }
+      });
+    }
+
+    // If inputs share the same week number and it exists, use it and lock the field; otherwise keep editable
+    this.targetStockOrdersArray.controls.forEach(group => {
+      const wn = group.get('weekNumber');
+      if (!wn) { return; }
+      if (sameWeek && ref.weekNumber != null) {
+        wn.setValue(ref.weekNumber, { emitEvent: false });
+        wn.disable({ emitEvent: false });
+      } else if (wn.disabled) {
+        wn.enable({ emitEvent: false });
+      }
+    });
+  }
+
   processingActionSelected(event: ApiProcessingAction): void {
     // Execute the update in separate cycle
     setTimeout(() => this.processingActionUpdated(event));
@@ -345,6 +395,10 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       setTimeout(() => {
         if (!this.editing) {
           this.output.addNewOutput();
+          // If user already selected inputs before output was created, prefill lot/week now
+          if (this.input?.selectedInputStockOrders?.length) {
+            this.onSelectedInputsChanged(this.input.selectedInputStockOrders);
+          }
         }
       });
 
@@ -935,6 +989,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       const newStockOrder = {...repackedSacUnit};
       newStockOrder.creatorId = sourceStockOrder.creatorId;
       newStockOrder.internalLotNumber = sourceStockOrder.internalLotNumber;
+      newStockOrder.weekNumber = sourceStockOrder.weekNumber;
       newStockOrder.facility = sourceStockOrder.facility;
       newStockOrder.semiProduct = sourceStockOrder.semiProduct;
       newStockOrder.finalProduct = sourceStockOrder.finalProduct;
@@ -968,6 +1023,15 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
 
       // Set specific properties
       tso.requiredEvidenceFieldValues = StockProcessingOrderDetailsHelper.prepareRequiredEvidenceFieldValues(tso['requiredProcEvidenceFieldGroup'], this.selectedProcAction);
+
+      // Ensure weekNumber is set when all selected inputs share the same value
+      if (tso.weekNumber == null && this.input?.selectedInputStockOrders?.length) {
+        const ref = this.input.selectedInputStockOrders[0]?.weekNumber;
+        const same = this.input.selectedInputStockOrders.every(s => s.weekNumber === ref);
+        if (same && ref != null) {
+          tso.weekNumber = ref;
+        }
+      }
 
       // Delete null and not need properties
       delete tso['requiredProcEvidenceFieldGroup'];
