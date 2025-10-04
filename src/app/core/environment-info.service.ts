@@ -23,7 +23,7 @@ export class EnvironmentInfoService {
   }
 
   get primaryProductType(): string {
-    return this.env.PRIMARY_PRODUCT_TYPE || this.env.primaryProductType || 'COFFEE';
+    return this.env.PRIMARY_PRODUCT_TYPE || 'COCOA';
   }
 
   get productType(): string {
@@ -100,14 +100,21 @@ export class EnvironmentInfoService {
     const normalized = this.normalizeProductType(this.primaryProductType);
     switch (normalized) {
       case 'coffee':
-        return 'café ecuatoriano';
-      case 'cacao':
-        return 'cacao ecuatoriano';
+        return 'Café';
+      case 'cocoa':
+        return 'Cacao';
       case 'shrimp':
-        return 'camarón ecuatoriano';
+        return 'Camarón';
       default:
         return this.capitalize(normalized || 'producto');
     }
+  }
+
+  /**
+   * Check if the current product type matches a specific type
+   */
+  isProductType(type: 'coffee' | 'cocoa' | 'shrimp'): boolean {
+    return this.normalizeProductType(this.primaryProductType) === type;
   }
 
   private normalizeEnvironment(value: string): string {
@@ -115,17 +122,7 @@ export class EnvironmentInfoService {
   }
 
   private normalizeProductType(value: string): string {
-    const normalized = (value || '').trim().toLowerCase();
-    switch (normalized) {
-      case 'coffee':
-        return 'cafe';
-      case 'cacao':
-        return 'cacao';
-      case 'shrimp':
-        return 'camaron';
-      default:
-        return normalized;
-    }
+    return (value || '').trim().toLowerCase();
   }
 
   private capitalize(value: string): string {

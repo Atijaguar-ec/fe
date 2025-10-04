@@ -5,7 +5,7 @@
     // Environment variables
     // NOTA: En CI este archivo se puede regenerar desde env.template.js usando envsubst.
     // Estos valores sirven como fallback seguro en producción cuando no hay variables inyectadas.
-    window['env']['environmentName'] = 'production';
+    window['env']['environmentName'] = 'development';
     window['env']['appBaseUrl'] = '';  // Rutas relativas para pasar por Nginx (location /api/)
     window['env']['qrCodeBasePath'] = 'q-cd'; // Endpoint público para QR (PublicController)
     window['env']['relativeFileUploadUrl'] = '/api/common/document'; // Subida de archivos (CommonController)
@@ -20,7 +20,7 @@
     window['env']['beycoAuthURL'] = '';
     window['env']['beycoClientId'] = '';
 
-    // Product Configuration - Variable global para configurar tipo de producto principal
-    window['env']['primaryProductType'] = 'COFFEE'; // COFFEE o CACAO
+    // Product Configuration
+    window['env']['PRIMARY_PRODUCT_TYPE'] = 'COCOA'; // COFFEE, COCOA, or SHRIMP
 
 })(this);

@@ -14,14 +14,17 @@ export class ProductFieldVisibilityService {
   // Configuración simple: campos ocultos por tipo de producto
   private readonly hiddenFieldsByProductType = {
     COFFEE: [
+      'weekNumber',
       'fermentationDays',
       'dryingMethod'
     ],
-    CACAO: [
+    COCOA: [
       'numberOfPlants',
-      'processingMethod'
+      'processingMethod',
+      'Colector'
     ],
     SHRIMP: [
+      'weekNumber',
       'numberOfPlants',
       'processingMethod',
       'fermentationDays',
@@ -84,7 +87,7 @@ export class ProductFieldVisibilityService {
    * Obtiene el tipo de producto desde variables de entorno
    */
   private getSystemProductTypeFromEnv(): string {
-    const envProductType = (window as any)?.env?.primaryProductType || 'CACAO';
+    const envProductType = (window as any)?.env?.PRIMARY_PRODUCT_TYPE || 'COCOA';
     return envProductType.toUpperCase();
   }
 

@@ -37,11 +37,11 @@ on:
       product_type:
         description: 'Product type configuration'
         required: false
-        default: 'CACAO'
+        default: 'COCOA'
         type: choice
         options:
         - COFFEE
-        - CACAO
+        - COCOA
         - SHRIMP
 
 env:
@@ -49,7 +49,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}-inatrace
   NODE_VERSION: '14'
   SWAGGER_DOCS_HOST: https://inatrace.atijaguar.com/api/v3/api-docs
-  PRIMARY_PRODUCT_TYPE: ${{ github.event.inputs.product_type || 'COFFEE' }}
+  PRIMARY_PRODUCT_TYPE: ${{ github.event.inputs.product_type || 'COCOA' }}
 
 jobs:
   quality:

@@ -30,6 +30,7 @@ import { PdfGeneratorService } from '../../../../shared-services/pdf-generator.s
 import { ApiUserGet } from '../../../../../api/model/apiUserGet';
 import { Subscription } from 'rxjs';
 import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
+import { EnvironmentInfoService } from '../../../../core/environment-info.service';
 
 @Component({
   selector: 'app-stock-delivery-details',
@@ -90,6 +91,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   additionalProofsListManager = null;
 
   private userProfileSubs: Subscription;
+  
 
   constructor(
     private route: ActivatedRoute,
@@ -102,7 +104,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     private codebookTranslations: CodebookTranslations,
     private authService: AuthService,
     private selUserCompanyService: SelectedUserCompanyService,
-    private pdfGeneratorService: PdfGeneratorService
+    private pdfGeneratorService: PdfGeneratorService,
+    private envInfo: EnvironmentInfoService,
   ) { }
 
   // Additional proof item factory methods (used when creating ListEditorManger)
@@ -758,11 +761,22 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const element = this.deliveryDetailsContainer.nativeElement;
+    console.log('=== PDF CAPTURE DEBUG ===');
+    console.log('Element:', element);
+    console.log('Element tagName:', element.tagName);
+    console.log('Element classes:', element.className);
+    console.log('Element scrollHeight:', element.scrollHeight);
+    console.log('Element offsetHeight:', element.offsetHeight);
+    console.log('Element clientHeight:', element.clientHeight);
+    console.log('Element children count:', element.children.length);
+    console.log('========================');
+
     this.globalEventsManager.showLoading(true);
     try {
       const identifier = this.stockOrderForm?.get('identifier')?.value || 'stock-order';
-      const filename = `orden-${identifier}.pdf`;
-      await this.pdfGeneratorService.generatePdfFromElement(this.deliveryDetailsContainer.nativeElement, filename);
+      const filename = `orden-entrega-${identifier}.pdf`;
+      await this.pdfGeneratorService.generatePdfFromElement(element, filename);
     } catch (error) {
       this.globalEventsManager.push({
         action: 'error',
@@ -830,26 +844,32 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   private translateName(obj) {
     return this.codebookTranslations.translate(obj, 'name');
   }
-
-  // Determines if current selected semi-product is Cacao/Cocoa
-  isCacaoSelected(): boolean {
-    if (!this.modelChoice || !this.options) { return false; }
-    const selected = this.options.find(o => String(o.id) === String(this.modelChoice));
-    const name = (selected && (selected as any).name ? (selected as any).name : '').toString().toLowerCase();
-    // Consider multiple spellings
-    return name.includes('cacao') || name.includes('cocoa');
+  isCocoa(): boolean {
+    return this.envInfo.isProductType('cocoa');
+    
   }
+  // Determines if current selected semi-product is Cacao/Cocoa
+  // isCacaoSelected(): boolean {
+  //   if (!this.modelChoice || !this.options) { return false; }
+  //   const selected = this.options.find(o => String(o.id) === String(this.modelChoice));
+  //   const name = (selected && (selected as any).name ? (selected as any).name : '').toString().toLowerCase();
+  //   // Consider multiple spellings
+  //   return name.includes('cacao') || name.includes('cocoa');
+  // }
 
   // Applies validators to weekNumber based on cacao selection
   private updateWeekNumberVisibilityAndValidation(): void {
     const ctrl = this.stockOrderForm?.get('weekNumber');
-    if (!ctrl) { return; }
-    if (this.isCacaoSelected()) {
-      ctrl.setValidators([Validators.required, Validators.min(1), Validators.max(53)]);
-    } else {
-      ctrl.clearValidators();
-    }
-    ctrl.updateValueAndValidity();
+    // if (!ctrl) { return; }
+    // if (this.isCacaoSelected()) {
+    //   ctrl.setValidators([Validators.required, Validators.min(1), Validators.max(53)]);
+    // } else {
+    //   ctrl.clearValidators();
+    // }
+   // ctrl.updateValueAndValidity();
+  }
+  isCacaoSelected() {
+    throw new Error('Method not implemented.');
   }
 
   get displayPriceDeterminedLater() {

@@ -1,5 +1,5 @@
 <app-authorised-layout>
-  <div #deliveryDetailsContainer *ngIf="companyProfile != null && stockOrderForm" class="af-layout--authorised">
+  <div *ngIf="companyProfile != null && stockOrderForm" class="af-layout--authorised">
 
     <ng-container *ngIf="!orderType">
       <div class="af-form-wrapper">
@@ -13,17 +13,24 @@
       </div>
     </ng-container>
 
-    <div class="af-form-wrapper" *ngIf="orderType">
+    <div #deliveryDetailsContainer class="af-form-wrapper" *ngIf="orderType">
 
       <div class="af-form-row">
-        <div class="af-form-block--c12 d-flex justify-content-between">
+        <div class="af-form-block--c12 d-flex justify-content-between align-items-center">
           <div class="title-page content-element--title">
             {{ title }}<span style="margin-left: 1rem;">{{ stockOrderForm.get('identifier').value }}</span>
           </div>
-          <app-last-seen-tag *ngIf="this.update"
-                             [dateFormat]="stockOrderForm.get('updateTimestamp').value"
-                             [identifier]="userLastChanged">
-          </app-last-seen-tag>
+          <div class="d-flex align-items-center">
+            <app-last-seen-tag *ngIf="this.update"
+                               class="mr-3"
+                               [dateFormat]="stockOrderForm.get('updateTimestamp').value"
+                               [identifier]="userLastChanged">
+            </app-last-seen-tag>
+            <button class="btn btn-print" type="button" (click)="printDeliveryPdf()">
+              <i class="fa fa-print mr-1" aria-hidden="true"></i>
+              <span>Imprimir PDF</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -104,14 +111,14 @@
             </div>
 
             <!-- Week Number (for cacao) -->
-            <div class="af-row" *ngIf="isCacaoSelected()">
+            <div class="af-row" *ngIf="isCocoa()">
               <div class="af-c6">
                 <textinput
                   [form]="stockOrderForm.get('weekNumber')"
                   label="N° de Semana"
                   i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.weekNumber.label"
                   style="width: 100%"
-                  placeholder="Ingrese el número de semana (1-53)"
+                  placeholder="Ingrese el número de semana"
                   i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.weekNumber.placeholder"
                   [isInvalid]="submitted && stockOrderForm.get('weekNumber').invalid">
                   <ng-container *ngIf="submitted">
@@ -460,9 +467,7 @@
             <button class="btn btn-outlined mr-2" data-dismiss="modal" type="button" (click)="dismiss()"><span>Cancel</span></button>
             <button class="btn mr-2" type="button" (click)="!this.updatePOInProgress && createOrUpdatePurchaseOrder(!this.update)"><span>Save</span></button>
             <button *ngIf="this.update" class="btn" type="button" (click)="!this.updatePOInProgress && createOrUpdatePurchaseOrder()"><span>Save & Close</span></button>
-            <button class="btn btn-secondary ml-auto" type="button" (click)="printDeliveryPdf()">
-              <span>Print PDF</span>
-            </button>
+          
           </div>
 
         </div>

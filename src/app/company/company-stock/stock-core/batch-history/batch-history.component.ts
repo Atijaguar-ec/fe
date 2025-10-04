@@ -235,6 +235,73 @@ export class BatchHistoryComponent implements OnInit, AfterViewInit {
     this.router.navigate(['stock-order', order.id, 'view'], { relativeTo: this.route.parent }).then();
   }
 
+  downloadPdf() {
+    this.route.queryParamMap.pipe(take(1)).subscribe(async () => {
+      this.history$.pipe(take(1)).subscribe(async (history) => {
+        setTimeout(async () => {
+          try {
+            const html2canvas = (await import('html2canvas')).default;
+            const { jsPDF } = await import('jspdf');
+
+            const element = this.pdfContainer?.nativeElement;
+            if (!element) { return; }
+
+            const canvas = await html2canvas(element, {
+              scale: 2,
+              useCORS: true,
+              backgroundColor: '#ffffff',
+              windowWidth: element.scrollWidth,
+            });
+
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+
+            const imgWidth = pageWidth - 20;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            const y = 10;
+
+            const pageCanvas = document.createElement('canvas');
+            const pageCtx = pageCanvas.getContext('2d');
+            if (!pageCtx) { return; }
+            const pxPerMm = canvas.width / imgWidth;
+            const pageHeightPx = (pageHeight - 20) * pxPerMm;
+            let renderedHeightPx = 0;
+
+            while (renderedHeightPx < canvas.height) {
+              pageCanvas.width = canvas.width;
+              pageCanvas.height = Math.min(pageHeightPx, canvas.height - renderedHeightPx);
+              pageCtx.drawImage(canvas, 0, renderedHeightPx, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height);
+
+              const pageImgData = pageCanvas.toDataURL('image/png');
+              const pageImgHeightMm = pageCanvas.height / pxPerMm;
+
+              if (renderedHeightPx === 0) {
+                pdf.addImage(pageImgData, 'PNG', 10, y, imgWidth, pageImgHeightMm);
+              } else {
+                pdf.addPage();
+                pdf.addImage(pageImgData, 'PNG', 10, 10, imgWidth, pageImgHeightMm);
+              }
+
+              renderedHeightPx += pageCanvas.height;
+            }
+
+            const so = (history && (history as any).stockOrder) as ApiStockOrder;
+            const rawId = so?.identifier || so?.internalLotNumber || (so?.id != null ? so.id.toString() : 'sin-id');
+            const safeId = rawId.replace(/[^a-zA-Z0-9\-_]+/g, '_');
+            pdf.save(`entrega--${safeId}.pdf`);
+          } catch (err) {
+            this.globalEventsManager.openMessageModal({
+              type: 'error',
+              message: $localize`:@@orderHistoryView.pdfGeneration.error:Error al generar el PDF de la orden. Por favor, intente nuevamente.`,
+              options: { centered: true }
+            });
+          }
+        }, 400);
+      });
+    });
+  }
+
   goToOrderView(order: ApiStockOrder) {
     this.router.navigate(['stock-order', order.id, 'view'], { relativeTo: this.route.parent }).then();
   }

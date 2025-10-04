@@ -1,21 +1,19 @@
 <app-authorised-layout>
   <ng-container *ngIf="history$ | async as history">
     <ng-container *ngIf="history.stockOrder as stockOrder">
-
       <div class="af-form-wrapper" #pdfContainer>
         <div class="af-form-row">
           <div class="af-form-block--c12">
             <div class="title-page content-element--title d-flex justify-content-between">
               <div i18n="@@orderHistoryView.title.batchHistory">Batch history</div>
-              <button class="btn btn-solid round btn-table-new content-element--btn" (click)="edit(stockOrder)" i18n="@@orderHistoryView.button.edit">
-                <span>Edit</span>
-              </button>
+              <div class="actions">
+                <button class="btn btn-primary mr-2" type="button" (click)="edit()" i18n="@@batchHistory.editButton">Editar</button>
+                <button class="btn btn-secondary" type="button" (click)="downloadPdf()" i18n="@@batchHistory.downloadPdfButton">Imprimir PDF</button>
+              </div>
             </div>
           </div>
         </div>
-
         <div class="af-form-row">
-
           <div class="af-form-block--c6">
             <div>
               <h2 i18n="@@orderHistoryView.formTitle.basicInformation">Basic information</h2>
@@ -23,7 +21,7 @@
             <div class="af-form-element">
 
               <table class="af-table af-table--200 table-striped">
-                <tbody>
+                <tbody> 
 
                 <tr *ngIf="!stockOrder.purchaseOrder">
                   <th i18n="@@orderHistoryView.tableCol.internalLotNumber">Internal lot name</th>

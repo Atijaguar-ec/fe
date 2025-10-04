@@ -15,27 +15,63 @@ export class PdfGeneratorService {
    * @param filename - Nombre del archivo PDF
    */
   async generatePdfFromElement(element: HTMLElement, filename: string = 'document.pdf'): Promise<void> {
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    const originalWindowScroll = {
+      x: window.pageXOffset || document.documentElement.scrollLeft || 0,
+      y: window.pageYOffset || document.documentElement.scrollTop || 0
+    };
+    const originalElementScroll = {
+      top: element.scrollTop,
+      left: element.scrollLeft
+    };
+
+    // Force element to be fully visible
+    document.body.style.overflow = 'visible';
+    document.documentElement.style.overflow = 'visible';
+    element.style.overflow = 'visible';
+    element.style.height = 'auto';
+    window.scrollTo(0, 0);
+    element.scrollTop = 0;
+    element.scrollLeft = 0;
+
+    // Wait for layout to settle
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     document.body.classList.add('pdf-capture-mode');
     try {
-      // Configurar html2canvas para mejor calidad y captura de mapas
+      // Get actual rendered dimensions and viewport offsets
+      const rect = element.getBoundingClientRect();
+      const actualHeight = element.scrollHeight || rect.height;
+      const actualWidth = element.scrollWidth || rect.width;
+
+      console.log('Capturing element with dimensions:', { actualHeight, actualWidth });
+      console.log('Element bounding rect:', rect);
+
+      // Configurar html2canvas para mejor calidad y captura completa
       const canvas = await html2canvas(element, {
-        scale: 2, // Mayor resolución
+        scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        logging: false,
-        height: element.scrollHeight,
-        width: element.scrollWidth,
-        // Configuraciones específicas para mapas
+        logging: true,
+        height: actualHeight,
+        width: actualWidth,
+        scrollX: -rect.left,
+        scrollY: -rect.top,
+        windowWidth: rect.width,
+        windowHeight: rect.height,
         foreignObjectRendering: true,
-        imageTimeout: 15000, // Tiempo extra para cargar imágenes de mapas
-        removeContainer: true,
-        // Capturar elementos canvas (mapas)
-        ignoreElements: (element) => {
-          // No ignorar elementos canvas (mapas)
-          return false;
+        imageTimeout: 15000,
+        removeContainer: false,
+        ignoreElements: (el) => {
+          // Ignore fixed/sticky elements that might interfere
+          const style = window.getComputedStyle(el);
+          return style.position === 'fixed' && !el.closest('#deliveryDetailsContainer');
         }
       });
+
+      console.log('Canvas created with dimensions:', { width: canvas.width, height: canvas.height });
 
       const imgData = canvas.toDataURL('image/png', 1.0); // Máxima calidad
       
@@ -43,27 +79,35 @@ export class PdfGeneratorService {
       const margin = 15; // Margen de 15mm en todos los lados
       const pageWidth = 210; // A4 width in mm
       const pageHeight = 297; // A4 height in mm
-      const contentWidth = pageWidth - (margin * 2); // Ancho disponible para contenido
-      const contentHeight = pageHeight - (margin * 2); // Alto disponible para contenido
-      
+      const contentWidth = pageWidth - margin * 2; // Ancho disponible para contenido
+      const contentHeight = pageHeight - margin * 2; // Alto disponible para contenido
+
+      // Escala la captura al ancho disponible y calcula la altura resultante
       const imgWidth = contentWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
+      const offsetX = margin;
+      const offsetY = margin;
+
+      console.log('PDF dimensions:', { imgWidth, imgHeight, contentHeight });
 
       // Crear PDF
       const pdf = new jsPDF('p', 'mm', 'a4');
-      let position = 0;
+      let heightLeft = imgHeight;
+      let position = offsetY;
 
       // Agregar primera página con márgenes
-      pdf.addImage(imgData, 'PNG', margin, margin + position, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'PNG', offsetX, position, imgWidth, imgHeight);
       heightLeft -= contentHeight;
 
+      console.log('First page added, heightLeft:', heightLeft);
+
       // Agregar páginas adicionales si es necesario
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight + offsetY;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', margin, margin + position, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'PNG', offsetX, position, imgWidth, imgHeight);
         heightLeft -= contentHeight;
+        console.log('Added page, position:', position, 'heightLeft:', heightLeft);
       }
 
       // Descargar el PDF
@@ -72,6 +116,14 @@ export class PdfGeneratorService {
       console.error('Error generating PDF:', error);
       throw error;
     } finally {
+      // Restore original styles
+      element.style.overflow = '';
+      element.style.height = '';
+      window.scrollTo(originalWindowScroll.x, originalWindowScroll.y);
+      element.scrollTop = originalElementScroll.top;
+      element.scrollLeft = originalElementScroll.left;
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
       document.body.classList.remove('pdf-capture-mode');
     }
   }

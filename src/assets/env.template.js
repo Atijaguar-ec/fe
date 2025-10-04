@@ -38,8 +38,7 @@ window.env = {
   THEME_SECONDARY_COLOR: '${THEME_SECONDARY_COLOR:-#4CAF50}',
   
   // Product Configuration
-  PRIMARY_PRODUCT_TYPE: '${PRIMARY_PRODUCT_TYPE:-COFFEE}',
-  PRODUCT_TYPE: '${PRODUCT_TYPE:-MIXED}',
+  PRIMARY_PRODUCT_TYPE: '${PRIMARY_PRODUCT_TYPE:-COCOA}',
 
   // Legacy compatibility - mapped to new structure
   environmentName: '${NODE_ENV:-production}',
@@ -54,5 +53,5 @@ window.env = {
   mapboxAccessToken: '${MAPBOX_ACCESS_TOKEN:-pk.eyJ1IjoiYWx2YXJvZ2VvdmFuaSIsImEiOiJjbWN5bDFkbG0wcGt4Mm5xNngydnZ0cTUxIn0.e15Wl5VmuU4S2QIiO5242A}',
   beycoAuthURL: '${BEYCO_AUTH_URL:-}',
   beycoClientId: '${BEYCO_CLIENT_ID:-}',
-  primaryProductType: '${PRIMARY_PRODUCT_TYPE:-COFFEE}'
+  primaryProductType: '${PRIMARY_PRODUCT_TYPE:-COCOA}'
 };

@@ -412,7 +412,7 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
 
   history(item: ApiStockOrder) {
     this.router.navigate(['all-stock', 'stock-order', item.id, 'view'],
-      { relativeTo: this.route.parent.parent, queryParams: { returnUrl: this.router.routerState.snapshot.url, downloadPdf: 1 }}).then();
+      { relativeTo: this.route.parent.parent, queryParams: { returnUrl: this.router.routerState.snapshot.url, downloadPdf: 0 }}).then();
   }
 
   payment(order: ApiStockOrder) {

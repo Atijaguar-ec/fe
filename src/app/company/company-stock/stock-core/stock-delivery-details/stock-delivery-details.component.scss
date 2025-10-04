@@ -1,0 +1,33 @@
+@import "src/_variables";
+
+.btn-print {
+  background-color: #e7ecff;
+  color: #25265e;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  font-size: 14px;
+  line-height: 16px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: none;
+
+  i {
+    color: inherit;
+    font-size: 1rem;
+  }
+
+  &:hover,
+  &:focus {
+    background-color: lighten(#e7ecff, 4%);
+    color: #25265e;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  &:active {
+    background-color: darken(#e7ecff, 4%);
+    color: #25265e;
+  }
+}
