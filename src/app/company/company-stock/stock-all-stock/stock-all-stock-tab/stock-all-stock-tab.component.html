@@ -148,6 +148,13 @@
                     class="btn ml-2"
                     type="button"
             ><span i18n="@@productLabelStock.beyco.button.export">Export to Beyco</span></button>
+
+            <button
+                    *ngIf="showGroupView"
+                    (click)="exportGroupedStockToExcel()"
+                    class="btn ml-2"
+                    type="button"
+            ><span i18n="@@productLabelStock.button.exportExcel">Export to Excel</span></button>
           </div>
         </div>
       </div>

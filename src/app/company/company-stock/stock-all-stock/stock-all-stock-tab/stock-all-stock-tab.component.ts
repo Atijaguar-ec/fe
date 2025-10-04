@@ -14,6 +14,7 @@ import { BeycoTokenService } from '../../../../shared-services/beyco-token.servi
 import { SelectedUserCompanyService } from '../../../../core/selected-user-company.service';
 import { SelfOnboardingService } from '../../../../shared-services/self-onboarding.service';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { GroupStockUnitListComponent } from '../../stock-core/group-stock-unit-list/group-stock-unit-list.component';
 
 @Component({
   selector: 'app-stock-all-stock-tab',
@@ -58,6 +59,9 @@ export class StockAllStockTabComponent extends StockCoreTabComponent implements 
 
   @ViewChild('allStockSelectFacilityTooltip')
   allStockSelectFacilityTooltip: NgbTooltip;
+
+  @ViewChild(GroupStockUnitListComponent)
+  groupStockUnitListComponent: GroupStockUnitListComponent;
 
   constructor(
     protected router: Router,
@@ -180,6 +184,12 @@ export class StockAllStockTabComponent extends StockCoreTabComponent implements 
   openUserHome() {
     this.selfOnboardingService.guidedTourNextStep('success');
     this.router.navigate(['/home']).then();
+  }
+
+  exportGroupedStockToExcel() {
+    if (this.groupStockUnitListComponent) {
+      this.groupStockUnitListComponent.exportAllToExcel();
+    }
   }
 
 }
