@@ -319,6 +319,59 @@ export class GroupStockOrderControllerService {
     }
 
 
+    /**
+     * Export grouped stock orders to Excel for a company (last year)
+     * 
+     * @param companyId Company ID
+     * @param language 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public exportGroupedStockOrdersExcelByCompany(companyId: number, language?: 'EN' | 'ES', observe?: 'body', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<Blob>;
+    public exportGroupedStockOrdersExcelByCompany(companyId: number, language?: 'EN' | 'ES', observe?: 'response', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpResponse<Blob>>;
+    public exportGroupedStockOrdersExcelByCompany(companyId: number, language?: 'EN' | 'ES', observe?: 'events', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpEvent<Blob>>;
+    public exportGroupedStockOrdersExcelByCompany(companyId: number, language?: 'EN' | 'ES', observe: any = 'body', reportProgress: boolean = false, additionalHeaders?: Array<Array<string>>): Observable<any> {
+        if (companyId === null || companyId === undefined) {
+            throw new Error('Required parameter companyId was null or undefined when calling exportGroupedStockOrdersExcelByCompany.');
+        }
+
+        let headers = this.defaultHeaders;
+        if (language !== undefined && language !== null) {
+            headers = headers.set('language', String(language));
+        }
+
+        let httpHeaderAccepts: string[] = [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ];
+        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+        const consumes: string[] = [];
+
+        if (additionalHeaders) {
+            for (let pair of additionalHeaders) {
+                headers = headers.set(pair[0], pair[1]);
+            }
+        }
+
+        const handle = this.httpClient.get(`${this.configuration.basePath}/api/chain/group-stock-order/export/company/${encodeURIComponent(String(companyId))}`,
+            {
+                responseType: 'blob',
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+        if (typeof this.configuration.errorHandler === 'function') {
+            return handle.pipe(catchError(err => this.configuration.errorHandler(err, 'exportGroupedStockOrdersExcelByCompany')));
+        }
+        return handle;
+    }
+
+
   /**
    * Get a paginated list of grouped stock orders. by map.
    * 
