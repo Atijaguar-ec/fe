@@ -600,10 +600,10 @@ export class GroupStockUnitListComponent implements OnInit, OnDestroy {
   async exportAllToExcel(): Promise<void> {
     const facilityId = this.facilityId$.value;
     
-    if (!facilityId) {
-      this.toastService.warning($localize`:@@groupStockUnitList.export.noFacility:Please select a facility before exporting`);
-      return;
-    }
+    // if (!facilityId) {
+    //   this.toastService.warning($localize`:@@groupStockUnitList.export.noFacility:Please select a facility before exporting`);
+    //   return;
+    // }
 
     this.globalEventsManager.showLoading(true);
     try {

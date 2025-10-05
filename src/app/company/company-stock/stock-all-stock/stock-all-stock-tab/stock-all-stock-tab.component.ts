@@ -106,14 +106,18 @@ export class StockAllStockTabComponent extends StockCoreTabComponent implements 
         this.selfOnboardingService.guidedTourStep$.subscribe(step => {
 
           setTimeout(() => {
-            this.allStockTitleTooltip.close();
-            this.allStockSelectFacilityTooltip.close();
+            if (this.allStockTitleTooltip) {
+              this.allStockTitleTooltip.close();
+            }
+            if (this.allStockSelectFacilityTooltip) {
+              this.allStockSelectFacilityTooltip.close();
+            }
           }, 50);
 
           if (step === 10) {
-            setTimeout(() => this.allStockTitleTooltip.open(), 50);
+            setTimeout(() => this.allStockTitleTooltip && this.allStockTitleTooltip.open(), 50);
           } else if (step === 11) {
-            setTimeout(() => this.allStockSelectFacilityTooltip.open(), 50);
+            setTimeout(() => this.allStockSelectFacilityTooltip && this.allStockSelectFacilityTooltip.open(), 50);
           }
         })
     );

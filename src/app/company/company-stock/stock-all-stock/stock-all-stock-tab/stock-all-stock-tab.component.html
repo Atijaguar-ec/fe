@@ -5,6 +5,8 @@
   <div class="main" *ngIf="companyId != null && isAuthRoleToSeeMyStock">
     <div class="main-inside-top content-element">
 
+      
+
       <div class="d-flex justify-content-between content-element--row1">
         <div class="title-page content-element--title"
              i18n="@@productLabelStock.title.allStockOrders"
@@ -19,6 +21,14 @@
             <span i18n="@@productLabelStock.beyco.button.login">Login to Beyco</span>
           </button>
         </div>
+
+
+        <button
+      (click)="exportGroupedStockToExcel()"
+      class="btn ml-2"
+      type="button"
+><span i18n="@@productLabelStock.button.exportExcel">Exportar to Excel</span></button>
+
         <div *ngIf="isAuthRoleToExportToBeyco && isBeycoAuthorized">
           <button class="btn" type="button" (click)="logoutFromBeyco()">
             <span i18n="@@productLabelStock.beyco.button.logout">Logout from Beyco</span>
@@ -149,12 +159,7 @@
                     type="button"
             ><span i18n="@@productLabelStock.beyco.button.export">Export to Beyco</span></button>
 
-            <button
-                    *ngIf="showGroupView"
-                    (click)="exportGroupedStockToExcel()"
-                    class="btn ml-2"
-                    type="button"
-            ><span i18n="@@productLabelStock.button.exportExcel">Export to Excel</span></button>
+          
           </div>
         </div>
       </div>
