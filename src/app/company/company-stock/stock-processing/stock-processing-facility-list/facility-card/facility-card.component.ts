@@ -109,13 +109,11 @@ export class FacilityCardComponent implements OnInit {
   }
 
   private getFacilityOrder(): number {
-    const code = this.facility?.facilityType?.code || '';
-    if (!code) {
+    const order = this.facility?.facilityType?.order || 0;
+    if (!order) {
       return 0;
     }
-    // Derive a deterministic order (1..20) from the code
-    const sum = Array.from(code).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-    return (sum % 20) + 1;
+    return order;
   }
 
   facilityTypeColor() {

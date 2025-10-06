@@ -24,6 +24,7 @@
     "productLabelPurchaseOrder.sortOptions.identifier.name": "Identificador",
     "productLabelPurchaseOrder.sortOptions.farmer.name": "Agricultor",
     "productLabelPurchaseOrder.sortOptions.semiProduct.name": "Semiproducto",
+    "productLabelPurchaseOrder.sortOptions.weekNumber.name": "N° de Semana",
     "productLabelPurchaseOrder.sortOptions.quantity.name": "Cantidad",
     "productLabelPurchaseOrder.sortOptions.quantityAvailable.name": "Cantidad / Disponible (kg)",
     "productLabelPurchaseOrder.sortOptions.payable.name": "A pagar / Saldo",
@@ -1066,6 +1067,11 @@
     "productLabelStockPurchaseOrdersModal.button.collector.qrCode": "{$START_TAG_SPAN}Código QR{$CLOSE_TAG_SPAN}",
     "productLabelStockPurchaseOrdersModal.textinput.facilityName.label": "Nombre del área",
     "productLabelStockPurchaseOrdersModal.textinput.facilityName.placeholder": "Introduzca el nombre del área",
+    "productLabelStockPurchaseOrdersModal.textinput.weekNumber.label": "N° de Semana",
+    "productLabelStockPurchaseOrdersModal.textinput.weekNumber.placeholder": "Ingrese el número de semana (1-53)",
+    "productLabelStockPurchaseOrdersModal.textinput.weekNumber.error.required": "El N° de Semana es obligatorio",
+    "productLabelStockPurchaseOrdersModal.textinput.weekNumber.error.range": "Debe estar entre 1 y 53",
+    "pdf.table.weekNumber": "N° de Semana",
     "6646645616027710454": "Empleado de la empresa",
     "productLabelStockPurchaseOrdersModal.section.purchaseDetails": "Detalles de la entrega",
     "productLabelStockPurchaseOrdersModal.singleChoice.semiProduct.placeholder": "Seleccione semiproducto",
@@ -2383,6 +2389,7 @@
     "orderHistoryView.history.requiredOnQuoteOneOfMissing": "{$START_TAG_DIV}G1 {$CLOSE_TAG_DIV} faltan todos los documentos requeridos en el pedido del grupo G1",
     "orderHistoryView.button.edit": "{$START_TAG_SPAN}Editar{$CLOSE_TAG_SPAN}",
     "orderHistoryView.tableCol.comment": "Comentario",
+    "orderHistoryView.tableCol.weekNumber": "N° de Semana",
     "orderHistoryView.tableCol.triggerOrders": "Activar los pedidos de este pedido",
     "orderHistoryView.tableCol.triggeredOrders": "Pedidos activados",
     "frontPage.feedback.checkbox-input.gdprConsent.error": "Se requiere consentimiento de GDPR",
@@ -3286,6 +3293,9 @@
     "productLabelStockBulkPayments.textinput.paymentPerKg.placeholder": "Introduce el pago por kg",
     "productLabelStockBulkPayments.textinput.paymentPerKg.error": "Error en el pago por kg",
     "quoteOrdersOnOrganization.input.placehoder": "Introduce un valor",
-    "companyDashboardComponent.graph.values.trunked": "Truncado"
+    "companyDashboardComponent.graph.values.trunked": "Truncado",
+
+    "collectorDetail.textinput.maxProductionQuantity.label": "Cantidad máxima de producción (qq)",
+    "productLabelPurchaseOrder.aggregated.organicBalance": "Saldo Orgánico (qq)"
   }
 }

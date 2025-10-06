@@ -38,6 +38,7 @@ import { FileSaverService } from 'ngx-filesaver';
 import { HttpClient } from '@angular/common/http';
 import { SelfOnboardingService } from '../../../shared-services/self-onboarding.service';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { ProductFieldVisibilityService } from '../../../shared-services/product-field-visibility.service';
 
 @Component({
   selector: 'app-company-farmers-details',
@@ -63,6 +64,9 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
   openBalanceOnly = false;
   deliveries = [];
   payments = [];
+
+  // BehaviorSubject para pasar maxProductionQuantity a app-stock-unit-list
+  maxProductionQuantityPing$ = new BehaviorSubject<number>(0);
 
   producersListManager;
   codebookAssoc: EnumSifrant;
@@ -180,7 +184,8 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
       private fileSaverService: FileSaverService,
       private httpClient: HttpClient,
       private selfOnboardingService: SelfOnboardingService,
-      private router: Router
+      private router: Router,
+      private fieldVisibilityService: ProductFieldVisibilityService
   ) { }
 
   static ApiUserCustomerCooperativeCreateEmptyObject(): ApiUserCustomerCooperative {
@@ -405,6 +410,12 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
   newFarmer() {
 
     this.farmerForm = generateFormFromMetadata(ApiUserCustomer.formMetadata(), this.emptyFarmer(), ApiUserCustomerValidationScheme);
+    
+    // Agregar campo temporal maxProductionQuantity hasta que se agregue al backend
+    const farmGroup = this.farmerForm.get('farm') as FormGroup;
+    if (farmGroup && !farmGroup.get('maxProductionQuantity')) {
+      farmGroup.addControl('maxProductionQuantity', new FormControl(null));
+    }
 
     // in case of 1 product (auto selection), also add empty fields in form
     if (this.productTypes?.length > 0) {
@@ -425,13 +436,43 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
           }
         })
     );
+
+    this.setupMaxProductionQuantityListener();
   }
 
   editFarmer() {
     this.prepareEdit();
     this.farmerForm = generateFormFromMetadata(ApiUserCustomer.formMetadata(), this.farmer, ApiUserCustomerValidationScheme);
+    
+    // Agregar campo temporal maxProductionQuantity hasta que se agregue al backend
+    const farmGroup = this.farmerForm.get('farm') as FormGroup;
+    if (farmGroup && !farmGroup.get('maxProductionQuantity')) {
+      farmGroup.addControl('maxProductionQuantity', new FormControl((this.farmer?.farm as any)?.maxProductionQuantity || null));
+    }
 
     this.prefillFarmPlantInformation();
+    this.setupMaxProductionQuantityListener();
+  }
+
+  /**
+   * Configura el listener para cambios en maxProductionQuantity
+   */
+  private setupMaxProductionQuantityListener(): void {
+    const maxProductionQuantityControl = this.farmerForm.get('farm.maxProductionQuantity');
+    if (maxProductionQuantityControl) {
+      // Emitir valor inicial (convertir null/undefined a 0)
+      const initialValue = maxProductionQuantityControl.value || 0;
+      this.maxProductionQuantityPing$.next(initialValue);
+      
+      // Escuchar cambios
+      this.subscriptions.push(
+        maxProductionQuantityControl.valueChanges.subscribe(value => {
+          // Convertir null/undefined a 0
+          const safeValue = value || 0;
+          this.maxProductionQuantityPing$.next(safeValue);
+        })
+      );
+    }
   }
 
   async geoJSONSelectedToUpload($event: Event) {
@@ -745,6 +786,20 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
     const productType = selectedControl.get('productType')?.value;
     const productTypeName = (productType) ? `(${productType.name})` : '';
     return message + ` ${productTypeName}`;
+  }
+
+  /**
+   * Determina si un campo específico debe ser visible para un tipo de producto
+   * Usa el servicio global de configuración de campos
+   * @param fieldName Nombre del campo (ej: 'numberOfPlants')
+   * @param index Índice del producto en el array
+   * @returns true si el campo debe ser visible
+   */
+  shouldShowFieldForProductType(fieldName: string, index: number): boolean {
+    const selectedControl = (this.farmerForm.get('farm.farmPlantInformationList') as FormArray).controls[index];
+    const productType = selectedControl.get('productType')?.value;
+    
+    return this.fieldVisibilityService.shouldShowField(fieldName, productType);
   }
 
   selectedIdsChanged(event, type?) {

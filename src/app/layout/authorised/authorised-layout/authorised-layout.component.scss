@@ -58,3 +58,27 @@ $wrapper-inner-height2x: 160px;
   height: 80px;
 }
 
+.info-badges-container {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 1050; // Asegura que esté por encima de otros elementos
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.3em 0.6em;
+  }
+
+  .badge-separator {
+    color: $gray-500;
+    font-weight: bold;
+  }
+}
+

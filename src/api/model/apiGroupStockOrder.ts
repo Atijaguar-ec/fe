@@ -81,6 +81,10 @@ export interface ApiGroupStockOrder {
      * Delivery time
      */
     deliveryTime?: string;
+    /**
+     * Week number for cacao deliveries (1-53)
+     */
+    weekNumber?: number;
     available?: boolean;
 }
 
@@ -148,6 +152,10 @@ export namespace ApiGroupStockOrder {
          * Delivery time
          */
         deliveryTime = 'deliveryTime',
+        /**
+         * Week number for cacao deliveries (1-53)
+         */
+        weekNumber = 'weekNumber',
         available = 'available'
     }
 
@@ -326,6 +334,17 @@ export namespace ApiGroupStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'weekNumber',
+                    classname: 'ApiGroupStockOrder',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'available',
                     classname: 'ApiGroupStockOrder',
                     dataType: 'boolean',
@@ -362,6 +381,8 @@ export namespace ApiGroupStockOrder {
                 unitLabel: [
                 ],
                 deliveryTime: [
+                ],
+                weekNumber: [
                 ],
                 available: [
                 ],
@@ -412,6 +433,9 @@ export namespace ApiGroupStockOrder {
   //                   validators: []
   //               },
   //               deliveryTime: {
+  //                   validators: []
+  //               },
+  //               weekNumber: {
   //                   validators: []
   //               },
   //               available: {

@@ -100,7 +100,7 @@
                 <textinput
                         [form]="$any(tsoGroup.get('internalLotNumber'))"
                         label="Internal lot name"
-                        style="width: 100%"
+                        style="width: 100%" 
                         placeholder="Enter internal lot name"
                         i18n-label="@@productLabelStockProcessingOrderDetail.textinput.internalLotNumber.label"
                         i18n-placeholder="@@productLabelStockProcessingOrderDetail.textinput.internalLotNumber.placeholder"
@@ -109,6 +109,31 @@
                         <div *ngIf="tsoGroup.get('internalLotNumber').errors as errors" class="sc-invalid-feedback">
                             <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.internalLotNumber.textinput.error">
                                 Internal lot name is required
+                            </div>
+                        </div>
+                    </ng-container>
+                </textinput>
+            </div>
+        </div>
+
+        <!-- WEEK NUMBER (1-53) -->
+        <div class="af-row">
+            <div class="af-c3">
+                <textinput
+                        [form]="$any(tsoGroup.get('weekNumber'))"
+                        type="number"
+                        min="1"
+                        max="53"
+                        label="N° de Semana"
+                        style="width: 100%"
+                        placeholder="Ingrese el número de semana"
+                        i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.weekNumber.label"
+                        i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.weekNumber.placeholder"
+                        [isInvalid]="submitted && tsoGroup.get('weekNumber').invalid">
+                    <ng-container *ngIf="submitted">
+                        <div *ngIf="tsoGroup.get('weekNumber').errors as errors" class="sc-invalid-feedback">
+                            <div *ngIf="errors.min || errors.max" i18n="@@productLabelStockPurchaseOrdersModal.textinput.weekNumber.error.range">
+                                El N° de Semana debe estar entre 1 y 53
                             </div>
                         </div>
                     </ng-container>

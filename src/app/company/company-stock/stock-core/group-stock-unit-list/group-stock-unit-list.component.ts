@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable, of, Subscription } from 'rxjs';
 import { DeliveryDates } from '../stock-core-tab/stock-core-tab.component';
 import { SortOption } from '../../../../shared/result-sorter/result-sorter-types';
@@ -79,16 +79,18 @@ export class GroupStockUnitListComponent implements OnInit, OnDestroy {
 
   orders$: Observable<ApiPaginatedListApiGroupStockOrder>;
   aggregatedOrders: AggregatedStockItem[];
+  private weekNumberCache = new Map<number, number>();
 
   constructor(
-      private router: Router,
-      private route: ActivatedRoute,
-      private globalEventsManager: GlobalEventManagerService,
-      private fileSaverService: FileSaverService,
-      private toastService: ToastrService,
-      private stockOrderControllerService: StockOrderControllerService,
-      private groupStockOrderControllerService: GroupStockOrderControllerService,
-      private processingOrderController: ProcessingOrderControllerService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private globalEventsManager: GlobalEventManagerService,
+    private fileSaverService: FileSaverService,
+    private toastService: ToastrService,
+    private stockOrderControllerService: StockOrderControllerService,
+    private groupStockOrderControllerService: GroupStockOrderControllerService,
+    private processingOrderController: ProcessingOrderControllerService,
+    private cdr: ChangeDetectorRef,
   ) { }
 
   ngOnInit(): void {
@@ -144,20 +146,20 @@ export class GroupStockUnitListComponent implements OnInit, OnDestroy {
             semiProductId
           };
         }),
-        tap(() => this.globalEventsManager.showLoading(true)),
         switchMap(params => {
           return this.loadStockOrders(params);
         }),
         map(response => {
 
-          if (response && response.data) {
-            this.currentData = response.data.items;
-            this.setCounts(response.data.count);
-            return response.data;
-          } else {
-            return null;
-          }
-        }),
+        if (response && response.data) {
+          this.currentData = response.data.items;
+          this.populateWeekNumbers(this.currentData).then();
+          this.setCounts(response.data.count);
+          return response.data;
+        } else {
+          return null;
+        }
+      }),
         tap((data: ApiPaginatedListApiStockOrder) => {
           if (data) {
             this.aggregatedOrders = this.aggregateOrderItems(data.items);
@@ -166,6 +168,45 @@ export class GroupStockUnitListComponent implements OnInit, OnDestroy {
         tap(() => this.refreshCBs()),
         tap(() => this.globalEventsManager.showLoading(false))
     );
+  }
+
+  private async populateWeekNumbers(orders: ApiGroupStockOrder[]) {
+    if (!orders?.length) { return; }
+
+    const tasks: Promise<void>[] = [];
+    for (const order of orders) {
+      if (order == null) { continue; }
+      const primaryId = order.groupedIds && order.groupedIds.length ? order.groupedIds[0] : undefined;
+      if (primaryId == null) { continue; }
+      if (order['weekNumber'] != null) { continue; }
+
+      const cached = this.weekNumberCache.get(primaryId);
+      if (cached != null) {
+        order['weekNumber'] = cached;
+        continue;
+      }
+
+      const loader = this.stockOrderControllerService.getStockOrder(primaryId, true)
+        .pipe(take(1))
+        .toPromise()
+        .then(res => {
+          if (res && res.status === StatusEnum.OK && res.data) {
+            const wn = res.data.weekNumber != null ? res.data.weekNumber : res.data.processingOrder?.targetStockOrders?.[0]?.weekNumber;
+            if (wn != null) {
+              this.weekNumberCache.set(primaryId, wn);
+              order['weekNumber'] = wn;
+            }
+          }
+        })
+        .catch(() => {});
+
+      tasks.push(loader);
+    }
+
+    if (tasks.length) {
+      await Promise.all(tasks);
+      this.cdr.detectChanges();
+    }
   }
 
   ngOnDestroy(): void {
@@ -206,6 +247,11 @@ export class GroupStockUnitListComponent implements OnInit, OnDestroy {
         key: 'semiProduct',
         name: $localize`:@@productLabelPurchaseOrder.sortOptions.semiProduct.name:Semi-product`,
         inactive: true
+      },
+      {
+        key: 'weekNumber',
+        name: $localize`:@@productLabelPurchaseOrder.sortOptions.weekNumber.name:Week Number`,
+        inactive: true,
       },
       {
         key: 'quantity',
@@ -548,6 +594,34 @@ export class GroupStockUnitListComponent implements OnInit, OnDestroy {
     } else {
       this.toastService.info($localize`:@@orderList.export.geojson.noDataAvailable:There is no Geo data available for this order`);
       return;
+    }
+  }
+
+  async exportAllToExcel(): Promise<void> {
+    const facilityId = this.facilityId$.value;
+    
+    // if (!facilityId) {
+    //   this.toastService.warning($localize`:@@groupStockUnitList.export.noFacility:Please select a facility before exporting`);
+    //   return;
+    // }
+
+    this.globalEventsManager.showLoading(true);
+    try {
+      const res = await this.groupStockOrderControllerService.exportGroupedStockOrdersExcel(facilityId)
+        .pipe(take(1))
+        .toPromise();
+
+      if (res && res.size > 0) {
+        this.fileSaverService.save(res, 'grouped-stock-orders.xlsx');
+        this.toastService.success($localize`:@@groupStockUnitList.export.success:Excel file exported successfully`);
+      } else {
+        this.toastService.info($localize`:@@groupStockUnitList.export.noData:No data available to export`);
+      }
+    } catch (error) {
+      this.toastService.error($localize`:@@groupStockUnitList.export.error:Error exporting data. Please try again.`);
+      console.error('Export error:', error);
+    } finally {
+      this.globalEventsManager.showLoading(false);
     }
   }
 

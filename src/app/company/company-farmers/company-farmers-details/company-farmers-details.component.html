@@ -1,6 +1,6 @@
 <app-authorised-layout>
     <div *ngIf="farmerForm" class="af-layout--authorised">
-        <div class="af-form-wrapper">
+        <div class="af-form-wrapper farmer-details-form">
             <div class="af-form-row"
                  [ngbTooltip]="newFarmerTitleTooltipTemplate"
                  [autoClose]="false"
@@ -336,6 +336,7 @@
                                 </textinput>
 
                                 <textinput
+                                        *ngIf="shouldShowFieldForProductType('numberOfPlants', i)"
                                         [form]="$any(farmPlantInfo.get('numberOfPlants'))"
                                         style="width: 100%"
                                         [label]="appendProductType(areaTranslations.numberOfPlantsLabel, i)"
@@ -367,10 +368,19 @@
                                 style="width: 100%"
                                 i18n-label="@@collectorDetail.textinput.startTransitionToOrganic.label">
                         </app-datepicker>
+
+                        <textinput
+                            *ngIf="fieldVisibilityService.shouldShowField('maxProductionQuantity')"
+                            [form]="$any(farmerForm.get('farm.maxProductionQuantity'))"
+                            style="width: 100%"
+                            label="Max production quantity"
+                            i18n-label="@@collectorDetail.textinput.maxProductionQuantity.label">
+                        </textinput>
                     </div>
                 </div>
 
-                <div class="af-form-block--c6">
+                <!-- Sección de certificaciones oculta temporalmente -->
+                <div class="af-form-block--c6" style="display: none;">
                     <h2 i18n="@@companyDetail.section.certification">Certification</h2>
                     <div class="af-form-element">
                         <list-editor
@@ -404,7 +414,9 @@
                             </list-editor-errors>
                         </list-editor>
                     </div>
+                </div>
 
+                <div class="af-form-block--c6">
                     <h2 i18n="@@collectorDetail.section.productTypes">Product types</h2>
                     <div class="af-form-element">
                         <div class="search-field" *ngIf="company?.valueChains?.length > 0">
@@ -459,7 +471,8 @@
                           [selectedOrders]="selectedOrders"
                           (selectedIdsChanged)="selectedIdsChanged($event, 'PURCHASE')"
                           [companyId]="companyId"
-                          [farmerIdPing$]="farmerIdPing$">
+                          [farmerIdPing$]="farmerIdPing$"
+                          [maxProductionQuantity$]="maxProductionQuantityPing$">
                         </app-stock-unit-list>
                     </ng-container>
                 </div>

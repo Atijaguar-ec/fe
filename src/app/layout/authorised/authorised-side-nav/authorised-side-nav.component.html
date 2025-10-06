@@ -11,7 +11,7 @@
         <li>
             <div class="left-border-active"
                  routerLinkActive="active"
-                 [ngClass]="{'active': myOrdersActive.isActive || myFarmersActive.isActive || myCollectorsActive.isActive || myCustomersActive.isActive || companyDashboardActive.isActive }">
+                 [ngClass]="{'active': myOrdersActive?.isActive || myFarmersActive?.isActive || myCollectorsActive?.isActive || myCustomersActive?.isActive || companyDashboardActive?.isActive }">
                 <button class="btn-icon-sidebar"
                         [disabled]="isConfirmedOnly"
                         [ngbTooltip]="companyButtonTooltipTemplate"
@@ -102,6 +102,11 @@
       <button routerLink="/currencies" routerLinkActive #currenciesActive="routerLinkActive" style="display: none"></button>
 
     </ul>
+
+    <div class="auth-side-badges">
+      <span class="auth-side-badge">{{ environmentBadgeLabel }}</span>
+      <span class="auth-side-badge">{{ productBadgeLabel }}</span>
+    </div>
   </nav>
 
 </div>

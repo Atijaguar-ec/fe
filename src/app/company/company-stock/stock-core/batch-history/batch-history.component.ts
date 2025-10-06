@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { ActivatedRoute, Router, ParamMap } from '@angular/router';
 import { GlobalEventManagerService } from '../../../../core/global-event-manager.service';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { map, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { map, shareReplay, switchMap, tap, take } from 'rxjs/operators';
 import { ApiTransaction } from '../../../../../api/model/apiTransaction';
 import { ApiStockOrder } from '../../../../../api/model/apiStockOrder';
 import { StockOrderControllerService } from '../../../../../api/api/stockOrderController.service';
@@ -27,7 +27,7 @@ interface GroupedStockOrders {
   templateUrl: './batch-history.component.html',
   styleUrls: ['./batch-history.component.scss']
 })
-export class BatchHistoryComponent implements OnInit {
+export class BatchHistoryComponent implements OnInit, AfterViewInit {
 
   qrCodeSize = 150;
 
@@ -142,6 +142,87 @@ export class BatchHistoryComponent implements OnInit {
   ngOnInit() {
   }
 
+  @ViewChild('pdfContainer') pdfContainer: ElementRef<HTMLDivElement>;
+
+  async ngAfterViewInit() {
+    // Si viene con query param downloadPdf=1, esperamos a que history$ emita y capturamos la vista
+    this.route.queryParamMap.pipe(take(1)).subscribe(async (params: ParamMap) => {
+      const shouldDownload = params.get('downloadPdf') === '1';
+      if (!shouldDownload) { return; }
+
+      // Esperar a que el observable de historia emita y el DOM esté dibujado
+      this.history$.pipe(take(1)).subscribe(async (history) => {
+        // Pequeño delay para asegurar render final (gráficos/qr)
+        setTimeout(async () => {
+          try {
+            const html2canvas = (await import('html2canvas')).default;
+            const { jsPDF } = await import('jspdf');
+
+            const element = this.pdfContainer?.nativeElement;
+            if (!element) { return; }
+
+            const canvas = await html2canvas(element, {
+              scale: 2,
+              useCORS: true,
+              backgroundColor: '#ffffff',
+              windowWidth: element.scrollWidth,
+            });
+
+            // Crear PDF A4 ajustando la imagen a ancho de página manteniendo proporción
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+
+            const imgWidth = pageWidth - 20; // márgenes
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            const y = 10;
+            // multi-page slicing variables
+
+            // Si la imagen es más alta que una página, la partimos en múltiples páginas
+            const pageCanvas = document.createElement('canvas');
+            const pageCtx = pageCanvas.getContext('2d');
+            if (!pageCtx) { return; }
+            const pxPerMm = canvas.width / (imgWidth);
+            const pageHeightPx = (pageHeight - 20) * pxPerMm; // altura utilizable en px
+            let renderedHeightPx = 0;
+
+            while (renderedHeightPx < canvas.height) {
+              pageCanvas.width = canvas.width;
+              pageCanvas.height = Math.min(pageHeightPx, canvas.height - renderedHeightPx);
+              pageCtx.drawImage(canvas, 0, renderedHeightPx, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height);
+
+              const pageImgData = pageCanvas.toDataURL('image/png');
+              const pageImgHeightMm = (pageCanvas.height / pxPerMm);
+
+              if (renderedHeightPx === 0) {
+                pdf.addImage(pageImgData, 'PNG', 10, y, imgWidth, pageImgHeightMm);
+              } else {
+                pdf.addPage();
+                pdf.addImage(pageImgData, 'PNG', 10, 10, imgWidth, pageImgHeightMm);
+              }
+
+              renderedHeightPx += pageCanvas.height;
+            }
+
+            // Determinar nombre de archivo: entrega--<identifier|internalLotNumber|id>.pdf
+            const so = (history && (history as any).stockOrder) as ApiStockOrder;
+            const rawId = so?.identifier || so?.internalLotNumber || (so?.id != null ? so.id.toString() : 'sin-id');
+            const safeId = rawId.replace(/[^a-zA-Z0-9\-_]+/g, '_');
+            pdf.save(`entrega--${safeId}.pdf`);
+          } catch (err) {
+            // Mostrar mensaje amigable en lugar de usar console.error (regla tslint no-console)
+            this.globalEventsManager.openMessageModal({
+              type: 'error',
+              message: $localize`:@@orderHistoryView.pdfGeneration.error:Error al generar el PDF de la orden. Por favor, intente nuevamente.`,
+              options: { centered: true }
+            });
+          }
+        }, 400);
+      });
+    });
+  }
+
   goToInput(tx: ApiTransaction) {
     this.router.navigate(['stock-order', tx.sourceStockOrder.id, 'view'], { relativeTo: this.route.parent }).then();
   }
@@ -152,6 +233,73 @@ export class BatchHistoryComponent implements OnInit {
 
   goToSibling(order: ApiStockOrder) {
     this.router.navigate(['stock-order', order.id, 'view'], { relativeTo: this.route.parent }).then();
+  }
+
+  downloadPdf() {
+    this.route.queryParamMap.pipe(take(1)).subscribe(async () => {
+      this.history$.pipe(take(1)).subscribe(async (history) => {
+        setTimeout(async () => {
+          try {
+            const html2canvas = (await import('html2canvas')).default;
+            const { jsPDF } = await import('jspdf');
+
+            const element = this.pdfContainer?.nativeElement;
+            if (!element) { return; }
+
+            const canvas = await html2canvas(element, {
+              scale: 2,
+              useCORS: true,
+              backgroundColor: '#ffffff',
+              windowWidth: element.scrollWidth,
+            });
+
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+
+            const imgWidth = pageWidth - 20;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            const y = 10;
+
+            const pageCanvas = document.createElement('canvas');
+            const pageCtx = pageCanvas.getContext('2d');
+            if (!pageCtx) { return; }
+            const pxPerMm = canvas.width / imgWidth;
+            const pageHeightPx = (pageHeight - 20) * pxPerMm;
+            let renderedHeightPx = 0;
+
+            while (renderedHeightPx < canvas.height) {
+              pageCanvas.width = canvas.width;
+              pageCanvas.height = Math.min(pageHeightPx, canvas.height - renderedHeightPx);
+              pageCtx.drawImage(canvas, 0, renderedHeightPx, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height);
+
+              const pageImgData = pageCanvas.toDataURL('image/png');
+              const pageImgHeightMm = pageCanvas.height / pxPerMm;
+
+              if (renderedHeightPx === 0) {
+                pdf.addImage(pageImgData, 'PNG', 10, y, imgWidth, pageImgHeightMm);
+              } else {
+                pdf.addPage();
+                pdf.addImage(pageImgData, 'PNG', 10, 10, imgWidth, pageImgHeightMm);
+              }
+
+              renderedHeightPx += pageCanvas.height;
+            }
+
+            const so = (history && (history as any).stockOrder) as ApiStockOrder;
+            const rawId = so?.identifier || so?.internalLotNumber || (so?.id != null ? so.id.toString() : 'sin-id');
+            const safeId = rawId.replace(/[^a-zA-Z0-9\-_]+/g, '_');
+            pdf.save(`entrega--${safeId}.pdf`);
+          } catch (err) {
+            this.globalEventsManager.openMessageModal({
+              type: 'error',
+              message: $localize`:@@orderHistoryView.pdfGeneration.error:Error al generar el PDF de la orden. Por favor, intente nuevamente.`,
+              options: { centered: true }
+            });
+          }
+        }, 400);
+      });
+    });
   }
 
   goToOrderView(order: ApiStockOrder) {

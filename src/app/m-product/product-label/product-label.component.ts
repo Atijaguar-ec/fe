@@ -213,8 +213,10 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
   currentLabel: ApiProductLabel = null;
 
   showLabelInfoLink = false;
+  isSystemAdmin = false;
 
   action = this.route.snapshot.data.action;
+  
 
   availableMedia: ApiProductLabelCompanyDocument[];
   mediaForm = new FormGroup({});
@@ -253,10 +255,11 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
     }),
     tap(() => { this.globalEventsManager.showLoading(false); }),
     tap((data: ApiProduct) => {
-
+      console.log('PRODUCT DATA LOADED:', !!data);
       const product = data;
 
       this.productForm = generateFormFromMetadata(ApiProduct.formMetadata(), product, ApiProductValidationScheme);
+      console.log('PRODUCT FORM CREATED:', !!this.productForm);
 
       const pricingTransparencyForm = generateFormFromMetadata(pricingTransparencyFormMetadata(), product.settings.pricingTransparency, pricingTransparencyValidationScheme);
       (this.productForm.get('settings') as FormGroup).setControl('pricingTransparency', pricingTransparencyForm);
@@ -298,7 +301,7 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
     map(resp => {
       return resp.data;
     }),
-    // tap(val => console.log("LAB:", val)),
+    tap(val => console.log('LABELS LOADED:', val, 'LENGTH:', val?.length)),
     shareReplay(1)
   );
 
@@ -549,26 +552,33 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
         .pipe(
           switchMap(up => {
             if (up) {
-              this.showLabelInfoLink = 'SYSTEM_ADMIN' === up.role;
+              this.showLabelInfoLink = 'SYSTEM_ADMIN' === (up as any).role;
+              this.isSystemAdmin = 'SYSTEM_ADMIN' === (up as any).role;
               return this.selUserCompanyService.selectedCompanyProfile$;
             }
           })
         )
         .subscribe(cp => {
-
+          console.log('COMPANY PROFILE CHANGED:', cp?.id);
           this.companyId = cp?.id;
           this.initializeLabelsHelperLink().then();
 
           if (this.mode === 'update') {
             this.unsubscribeList.add(
-              this.product$.subscribe(() => { }),
+              this.product$.subscribe(product => { 
+                console.log('PRODUCT SUBSCRIPTION TRIGGERED:', !!product);
+              }),
             );
             this.unsubscribeList.add(
               this.currentLabel$.subscribe(label => {
                 this.currentLabel = label;
               })
             );
-            this.reload();
+            // Reload after company is set
+            setTimeout(() => {
+              console.log('CALLING RELOAD...');
+              this.reload();
+            }, 100);
           } else {
             this.newProduct().then(() => {
 
@@ -588,6 +598,14 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
   }
 
   ngAfterViewInit() {   // ViewChildren for templates works only after ngAfterViewInit
+    console.log('ACTION VALUE:', this.action);
+    console.log('ROUTE DATA:', this.route.snapshot.data);
+    console.log('CURRENT URL:', this.router.url);
+    console.log('COMPANY ID:', this.companyId);
+    console.log('PRODUCT FORM:', !!this.productForm);
+    console.log('CAN EDIT:', this.canEdit());
+    console.log('IS OWNER:', this.isOwner);
+    console.log('IS SYSTEM ADMIN:', this.isSystemAdmin);
     setTimeout(() => {
       this.generateDefaultElements();
       this.initialized$.next(true);
@@ -607,6 +625,7 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
   }
 
   reloadLabels() {
+    console.log('RELOADING LABELS for product ID:', this.pId);
     this.labelsReload$.next(true);
   }
 
@@ -1650,7 +1669,8 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
   }
 
   canEdit() {
-    return this.isOwner;
+    // Allow editing if user is owner OR system admin
+    return this.isOwner || this.isSystemAdmin;
   }
 
   public get journeyMarkersCtrl(): FormArray {

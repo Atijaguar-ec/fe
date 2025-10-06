@@ -1,0 +1,256 @@
+@import "src/_variables";
+
+// Estilos para campos de solo lectura
+.readonly-field {
+  margin-bottom: 1rem;
+}
+
+.readonly-field label {
+  display: block;
+  font-weight: 600;
+  color: #4a4a4a;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.readonly-value {
+  color: #1d2939;
+  font-size: 0.875rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.readonly-list-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e9ecef;
+  color: #1d2939;
+  font-size: 0.875rem;
+}
+
+.readonly-list-item:last-child {
+  border-bottom: none;
+}
+
+// Estilos para el QR y la tarjeta de identificación
+.label-card {
+  position: relative;
+  padding: 0.25rem;
+  border: 1px solid $primary;
+  border-radius: 4px;
+  background-color: white;
+  margin-right: 0.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 330px;
+  min-width: 230px;
+  max-width: 230px;
+}
+
+.qr-code-container {
+  margin-top: 1.75rem;
+  border: 1px solid $gray;
+  border-radius: 1px;
+}
+
+.logo-image {
+  padding-top: 0.5rem;
+  width: 3rem;
+}
+
+.name-sector {
+  font-size: 1rem;
+  font-weight: 700;
+  padding-top: 1.5rem;
+}
+
+.location-sector {
+  padding-top: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.trademark-title {
+  font-size: 0.5rem;
+  color: $secondary;
+}
+
+// Estilos para resumen de plots
+.plot-summary {
+  padding: 0.5rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.plot-summary:last-child {
+  margin-bottom: 0;
+}
+
+.report-main {
+  padding: 24px;
+  min-height: 100vh;
+  background: #f4f6f9;
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.report-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.report-company {
+  font-size: 16px;
+  color: #6c757d;
+  margin-bottom: 4px;
+}
+
+.report-id {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.report-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 12px 32px rgba(15, 35, 90, 0.08);
+  margin-bottom: 24px;
+}
+
+.report-card h2 {
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+.report-field {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.report-field .label {
+  font-weight: 600;
+  color: #4a4a4a;
+}
+
+.report-field .value {
+  color: #1d2939;
+  text-align: right;
+}
+
+.report-list {
+  padding-left: 16px;
+  margin: 0;
+}
+
+.report-summary {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.report-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-label {
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.summary-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1d2939;
+}
+
+.report-table {
+  margin-bottom: 0;
+}
+
+.report-empty {
+  color: #6c757d;
+  font-style: italic;
+  margin: 0;
+}
+
+.report-state {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 32px;
+  text-align: center;
+  box-shadow: 0 12px 32px rgba(15, 35, 90, 0.08);
+}
+
+.report-state.report-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #1d2939;
+}
+
+.report-state.report-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #c53030;
+}
+
+.report-state.report-error i {
+  font-size: 32px;
+}
+
+.table-responsive {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  .report-main {
+    padding: 0;
+    background: #ffffff;
+  }
+
+  .report-card {
+    box-shadow: none;
+    border: 1px solid #e0e0e0;
+  }
+
+  .label-card {
+    border: 1px solid #000;
+  }
+
+  .readonly-field {
+    page-break-inside: avoid;
+  }
+}

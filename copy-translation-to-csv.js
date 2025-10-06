@@ -5,9 +5,11 @@ const fs = require('fs');
 const readline = require('readline');
 
 const enLocaleFile = './src/assets/locale/en.json';
+const esLocaleFile = './src/assets/locale/es.json';
 const deLocaleFile = './src/assets/locale/de.json';
 const rwLocaleFile = './src/assets/locale/rw.json';
 var enJSON = JSON.parse(fs.readFileSync(enLocaleFile));
+var esJSON = JSON.parse(fs.readFileSync(esLocaleFile));
 var deJSON = JSON.parse(fs.readFileSync(deLocaleFile));
 var rwJSON = JSON.parse(fs.readFileSync(rwLocaleFile));
 const csvFile = './src/assets/locale/translations-Table.txt'; //copy from google sheets to semicolon separated file and remove header

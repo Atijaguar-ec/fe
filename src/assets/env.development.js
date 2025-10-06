@@ -4,7 +4,7 @@
 
     // Environment variables for DEVELOPMENT
     window['env']['environmentName'] = 'development';
-    window['env']['appBaseUrl'] = 'http://5.161.183.137:8080';  // Apuntar directamente al backend en desarrollo
+    window['env']['appBaseUrl'] = '';  // Apuntar directamente al backend en desarrollo
     window['env']['qrCodeBasePath'] = 'q-cd'; // Endpoint público para QR (ver PublicController)
     window['env']['relativeFileUploadUrl'] = '/api/common/document'; // Endpoint para subir archivos (CommonController)
     window['env']['relativeFileUploadUrlManualType'] = '/api/common/document?type=MANUAL'; // Upload manual (ajustar si aplica)
@@ -17,5 +17,8 @@
     // Environment variables for Beyco integration
     window['env']['beycoAuthURL'] = '';
     window['env']['beycoClientId'] = '';
+    
+    // Product Configuration
+    window['env']['PRIMARY_PRODUCT_TYPE'] = 'COCOA'; // COFFEE, COCOA, or SHRIMP
 
 })(this);

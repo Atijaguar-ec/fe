@@ -298,6 +298,52 @@ Accede a la aplicación desde tu navegador en `http://TU_IP_O_DOMINIO`.
 
 Consulta la guía `/docs/tecnico/guia-cicd-frontend.md` para pasos detallados de integración, recomendaciones de seguridad, HTTPS y despliegue automatizado.
 
+## CI/CD Frontend (GitHub Actions)
+
+Este repositorio incluye un workflow profesional en `fe/.github/workflows/deploy-frontend.yml` que:
+
+- Construye y publica imagen Docker en GHCR con etiquetas por rama (`develop`, `main`, `staging`).
+- Firma imágenes con Cosign.
+- Sube `image.tar` como artefacto con retención corta.
+- Despliega a un servidor remoto mediante `appleboy/ssh-action`/`scp-action`.
+- Usa Nginx del host como reverse proxy:
+  - `/` → contenedor FE (puerto 8081)
+  - `/api/` → backend (puerto 8080)
+
+### Secrets requeridos
+
+- `DEV_HOST`: IP o hostname del servidor destino
+- `DEV_USER`: usuario SSH (ej. `root`)
+- `DEV_SSH_KEY`: clave privada SSH (formato PEM)
+- `DEV_SSH_FINGERPRINT`: huella ED25519 del servidor para validar identidad y evitar prompts
+
+### Consideraciones de redes Docker
+
+- El contenedor FE se conecta a `inatrace-backend-network` para resolver el backend por hostname (`inatrace-be-dev`).
+- Si el contenedor backend ya existe pero no está en esa red, el workflow intenta conectarlo automáticamente.
+
+### Limpieza segura
+
+- El workflow detiene y elimina únicamente el contenedor `inatrace-fe-dev`.
+- No usa `docker compose down --remove-orphans` para no afectar otros servicios (backend, DB, etc.).
+
+### Problemas comunes (troubleshooting CI/CD)
+
+- `tar: empty archive` en `scp-action`:
+  - Verifica que la ruta de `nginx.conf` sea correcta (se sube `fe/nginx.conf`).
+  - Asegúrate de que `actions/checkout` esté presente y no se haya cambiado el `working-directory`.
+
+- `host not found in upstream "inatrace-be-dev"` en Nginx del contenedor FE:
+  - Asegura que backend esté corriendo y conectado a `inatrace-backend-network`.
+  - El workflow intenta `docker network connect` al backend si es necesario.
+  - Como fallback, se usa la IP del servidor (p. ej. `5.161.183.137`).
+
+- Backend "se borra" durante despliegue del frontend:
+  - Evitado: no se invoca `docker compose down --remove-orphans` en el FE.
+
+- Prompt SSH `Are you sure you want to continue connecting`:
+  - Configura el secret `DEV_SSH_FINGERPRINT` con la huella del servidor (ED25519) para validación no interactiva.
+
 ## Notas técnicas AS-IS
 
 ### i18n: scripts y flujo

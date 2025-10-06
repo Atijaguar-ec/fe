@@ -2,6 +2,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { CompanyFarmersListComponent } from './company-farmers-list/company-farmers-list.component';
 import { NgModule } from '@angular/core';
 import { CompanyFarmersDetailsComponent } from './company-farmers-details/company-farmers-details.component';
+import { CompanyFarmersReportComponent } from './company-farmers-report/company-farmers-report.component';
 import { CompanyFarmersImportComponent } from './company-farmers-import/company-farmers-import.component';
 
 const routes: Routes = [
@@ -30,6 +31,18 @@ const routes: Routes = [
             action: 'update',
             drobtinice: {
                 title: 'Edit farmer',
+                route: 'my-farmers'
+            }
+        }
+    },
+    {
+        path: 'report/:id',
+        component: CompanyFarmersReportComponent,
+        pathMatch: 'full',
+        data: {
+            action: 'report',
+            drobtinice: {
+                title: 'Farmer report',
                 route: 'my-farmers'
             }
         }

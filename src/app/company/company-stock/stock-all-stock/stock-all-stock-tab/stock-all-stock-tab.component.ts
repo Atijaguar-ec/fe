@@ -14,6 +14,9 @@ import { BeycoTokenService } from '../../../../shared-services/beyco-token.servi
 import { SelectedUserCompanyService } from '../../../../core/selected-user-company.service';
 import { SelfOnboardingService } from '../../../../shared-services/self-onboarding.service';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { GroupStockOrderControllerService } from '../../../../../api/api/groupStockOrderController.service';
+import { FileSaverService } from 'ngx-filesaver';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-stock-all-stock-tab',
@@ -69,7 +72,10 @@ export class StockAllStockTabComponent extends StockCoreTabComponent implements 
     private codebookTranslations: CodebookTranslations,
     private beycoTokenService: BeycoTokenService,
     protected selUserCompanyService: SelectedUserCompanyService,
-    protected selfOnboardingService: SelfOnboardingService
+    protected selfOnboardingService: SelfOnboardingService,
+    private groupStockOrderControllerService: GroupStockOrderControllerService,
+    private fileSaverService: FileSaverService,
+    private toastService: ToastrService
   ) {
     super(router, route, globalEventManager, facilityControllerService, authService, companyController, selUserCompanyService);
   }
@@ -102,14 +108,18 @@ export class StockAllStockTabComponent extends StockCoreTabComponent implements 
         this.selfOnboardingService.guidedTourStep$.subscribe(step => {
 
           setTimeout(() => {
-            this.allStockTitleTooltip.close();
-            this.allStockSelectFacilityTooltip.close();
+            if (this.allStockTitleTooltip) {
+              this.allStockTitleTooltip.close();
+            }
+            if (this.allStockSelectFacilityTooltip) {
+              this.allStockSelectFacilityTooltip.close();
+            }
           }, 50);
 
           if (step === 10) {
-            setTimeout(() => this.allStockTitleTooltip.open(), 50);
+            setTimeout(() => this.allStockTitleTooltip && this.allStockTitleTooltip.open(), 50);
           } else if (step === 11) {
-            setTimeout(() => this.allStockSelectFacilityTooltip.open(), 50);
+            setTimeout(() => this.allStockSelectFacilityTooltip && this.allStockSelectFacilityTooltip.open(), 50);
           }
         })
     );
@@ -180,6 +190,34 @@ export class StockAllStockTabComponent extends StockCoreTabComponent implements 
   openUserHome() {
     this.selfOnboardingService.guidedTourNextStep('success');
     this.router.navigate(['/home']).then();
+  }
+
+  async exportGroupedStockToExcel(): Promise<void> {
+    if (!this.companyId) {
+      this.toastService.warning($localize`:@@groupStockUnitList.export.noFacility:Please select a facility before exporting`);
+      return;
+    }
+
+    this.globalEventManager.showLoading(true);
+
+    try {
+      const result = await this.groupStockOrderControllerService
+        .exportGroupedStockOrdersExcelByCompany(this.companyId)
+        .pipe(take(1))
+        .toPromise();
+
+      if (result && result.size > 0) {
+        this.fileSaverService.save(result, 'grouped-stock-orders.xlsx');
+        this.toastService.success($localize`:@@groupStockUnitList.export.success:Excel file exported successfully`);
+      } else {
+        this.toastService.info($localize`:@@groupStockUnitList.export.noData:No data available to export`);
+      }
+    } catch (error) {
+      console.error('Company export error', error);
+      this.toastService.error($localize`:@@groupStockUnitList.export.error:Error exporting data. Please try again.`);
+    } finally {
+      this.globalEventManager.showLoading(false);
+    }
   }
 
 }

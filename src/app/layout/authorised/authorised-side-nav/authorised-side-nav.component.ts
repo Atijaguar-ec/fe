@@ -6,6 +6,7 @@ import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { SelfOnboardingService } from '../../../shared-services/self-onboarding.service';
 import { Router } from '@angular/router';
 import { take } from 'rxjs/operators';
+import { EnvironmentInfoService } from 'src/app/core/environment-info.service';
 
 @Component({
   selector: 'app-authorised-side-nav',
@@ -17,12 +18,15 @@ export class AuthorisedSideNavComponent implements OnInit, OnDestroy, AfterViewI
   model = 1;
   isAdmin = false;
   isConfirmedOnly = false;
+  environmentBadgeLabel = '';
+  productBadgeLabel = '';
 
   constructor(
     private authService: AuthService,
     private aboutAppInfoService: AboutAppInfoService,
     private selfOnboardingService: SelfOnboardingService,
     private router: Router,
+    private environmentInfoService: EnvironmentInfoService,
   ) { }
 
   user = null;
@@ -35,6 +39,9 @@ export class AuthorisedSideNavComponent implements OnInit, OnDestroy, AfterViewI
   companyButtonTooltip: NgbTooltip;
 
   ngOnInit() {
+    this.environmentBadgeLabel = this.environmentInfoService.getEnvironmentBadgeLabel();
+    this.productBadgeLabel = this.environmentInfoService.getProductBadgeLabel();
+
     this.sub = this.authService.userProfile$.subscribe(user => {
       this.user = user;
       this.isAdmin = user.role === 'SYSTEM_ADMIN' || user.role === 'REGIONAL_ADMIN';

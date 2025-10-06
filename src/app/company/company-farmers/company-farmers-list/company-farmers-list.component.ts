@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
 import { SortOption, SortOrder } from '../../../shared/result-sorter/result-sorter-types';
 import { GlobalEventManagerService } from '../../../core/global-event-manager.service';
@@ -19,6 +20,8 @@ import { NgbModalImproved } from '../../../core/ngb-modal-improved/ngb-modal-imp
 import { ApiCompany } from '../../../../api/model/apiCompany';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { SelfOnboardingService } from '../../../shared-services/self-onboarding.service';
+import { StockOrderControllerService, GetStockOrderListByCompanyId } from '../../../../api/api/stockOrderController.service';
+import { PaymentControllerService, ListPaymentsByCompany } from '../../../../api/api/paymentController.service';
 
 @Component({
   selector: 'app-company-farmers-list',
@@ -176,6 +179,14 @@ export class CompanyFarmersListComponent implements OnInit, OnDestroy, AfterView
   @ViewChild('addFarmerButtonTooltip')
   addFarmerButtonTooltip: NgbTooltip;
 
+  @ViewChild('generatingPdfModal')
+  generatingPdfModal: any;
+
+  // Propiedades para el modal profesional de PDF
+  currentStep = 0;
+  pdfProgress = 0;
+  currentPdfStep = 'Preparando...';
+
   constructor(
       private globalEventsManager: GlobalEventManagerService,
       private companyController: CompanyControllerService,
@@ -184,7 +195,9 @@ export class CompanyFarmersListComponent implements OnInit, OnDestroy, AfterView
       private selUserCompanyService: SelectedUserCompanyService,
       private fileSaverService: FileSaverService,
       private modalService: NgbModalImproved,
-      private selfOnboardingService: SelfOnboardingService
+      private selfOnboardingService: SelfOnboardingService,
+      private stockOrderController: StockOrderControllerService,
+      private paymentController: PaymentControllerService
   ) { }
 
   ngOnInit(): void {
@@ -362,6 +375,35 @@ export class CompanyFarmersListComponent implements OnInit, OnDestroy, AfterView
       geoId: $geoId
     });
     modalRef.result.then();
+  }
+
+  /**
+   * Genera y descarga un PDF con los detalles del agricultor - Implementación Profesional UX
+   */
+  viewFarmerReport(farmerId: string): void {
+    this.router.navigate(['my-farmers', 'report', farmerId]).then();
+  }
+
+  /**
+   * Resetea el estado del modal de PDF
+   */
+  private resetPdfModalState(): void {
+    this.currentStep = 0;
+    this.pdfProgress = 0;
+    this.currentPdfStep = 'Preparando...';
+  }
+
+  /**
+   * Actualiza el progreso del modal de PDF
+   */
+  private updatePdfProgress(step: number, progress: number, message: string): void {
+    this.currentStep = step;
+    this.pdfProgress = progress;
+    this.currentPdfStep = message;
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
 }

@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  inatrace-fe-dev:
+    image: ${IMAGE_NAME}:${TAG}
+    container_name: inatrace-fe-dev
+    restart: unless-stopped
+    networks:
+      - inatrace-backend-network
+      - inatrace-frontend-network
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PRIMARY_PRODUCT_TYPE=${PRIMARY_PRODUCT_TYPE:-CACAO}
+      - APP_BASE_URL=${APP_BASE_URL:-}
+      - QR_CODE_BASE_PATH=${QR_CODE_BASE_PATH:-q-cd}
+      - RELATIVE_FILE_UPLOAD_URL=${RELATIVE_FILE_UPLOAD_URL:-/api/common/document}
+      - RELATIVE_FILE_UPLOAD_URL_MANUAL_TYPE=${RELATIVE_FILE_UPLOAD_URL_MANUAL_TYPE:-/api/common/document?type=}
+      - RELATIVE_IMAGE_UPLOAD_URL=${RELATIVE_IMAGE_UPLOAD_URL:-/api/common/image}
+      - RELATIVE_IMAGE_UPLOAD_URL_ALL_SIZES=${RELATIVE_IMAGE_UPLOAD_URL_ALL_SIZES:-/api/common/image}
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-AIzaSyAP1JuiYWi0A_Zf8BK0YIfl4nCKoxHnPHU}
+      - MAPBOX_ACCESS_TOKEN=${MAPBOX_ACCESS_TOKEN:-pk.eyJ1IjoiYWx2YXJvZ2VvdmFuaSIsImEiOiJjbWN5bDFkbG0wcGt4Mm5xNngydnZ0cTUxIn0.e15Wl5VmuU4S2QIiO5242A}
+      - TOKEN_FOR_PUBLIC_LOG_ROUTE=${TOKEN_FOR_PUBLIC_LOG_ROUTE:-}
+      - BEYCO_AUTH_URL=${BEYCO_AUTH_URL:-}
+      - BEYCO_CLIENT_ID=${BEYCO_CLIENT_ID:-}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.inatrace-fe-dev.rule=Host(`inatrace.atijaguar.com`) || Host(`5.161.183.137`)"
+      - "traefik.http.routers.inatrace-fe-dev.entrypoints=web"
+      - "traefik.http.services.inatrace-fe-dev.loadbalancer.server.port=80"
+
+networks:
+  inatrace-frontend-network:
+    name: inatrace-frontend-network
+    external: true
+  inatrace-backend-network:
+    name: inatrace-backend-network
+    external: true
