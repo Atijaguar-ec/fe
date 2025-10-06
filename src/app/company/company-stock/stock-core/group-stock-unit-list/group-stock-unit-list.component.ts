@@ -82,14 +82,14 @@ export class GroupStockUnitListComponent implements OnInit, OnDestroy {
   private weekNumberCache = new Map<number, number>();
 
   constructor(
-      private router: Router,
-      private route: ActivatedRoute,
-      private globalEventsManager: GlobalEventManagerService,
-      private fileSaverService: FileSaverService,
-      private toastService: ToastrService,
-      private stockOrderControllerService: StockOrderControllerService,
-      private groupStockOrderControllerService: GroupStockOrderControllerService,
-      private processingOrderController: ProcessingOrderControllerService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private globalEventsManager: GlobalEventManagerService,
+    private fileSaverService: FileSaverService,
+    private toastService: ToastrService,
+    private stockOrderControllerService: StockOrderControllerService,
+    private groupStockOrderControllerService: GroupStockOrderControllerService,
+    private processingOrderController: ProcessingOrderControllerService,
     private cdr: ChangeDetectorRef,
   ) { }
 

@@ -21,20 +21,26 @@ import {
 
 
 @NgModule({
-  declarations: [CompanyFarmersListComponent, CompanyFarmersDetailsComponent, CompanyFarmersImportComponent, OpenPlotDetailsExternallyModalComponent, CompanyFarmersReportComponent],
-    imports: [
-        CommonModule,
-        LayoutModule,
-        CompanyCommonModule,
-        CompanyFarmersRoutingModule,
-        SharedModule,
-        NgbPaginationModule,
-        QRCodeModule,
-        DragDropModule,
-        ProductStakeholdersModule,
-        FontAwesomeModule,
-        ReactiveFormsModule,
-        NgbTooltipModule
-    ]
+  declarations: [
+    CompanyFarmersListComponent,
+    CompanyFarmersDetailsComponent,
+    CompanyFarmersImportComponent,
+    OpenPlotDetailsExternallyModalComponent,
+    CompanyFarmersReportComponent
+  ],
+  imports: [
+    CommonModule,
+    LayoutModule,
+    CompanyCommonModule,
+    CompanyFarmersRoutingModule,
+    SharedModule,
+    NgbPaginationModule,
+    QRCodeModule,
+    DragDropModule,
+    ProductStakeholdersModule,
+    FontAwesomeModule,
+    ReactiveFormsModule,
+    NgbTooltipModule
+  ]
 })
 export class CompanyFarmersModule { }

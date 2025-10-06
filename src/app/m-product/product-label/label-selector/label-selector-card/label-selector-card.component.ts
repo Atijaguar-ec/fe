@@ -68,16 +68,13 @@ export class LabelSelectorCardComponent implements OnInit {
         
         const baseUrl = environment.appBaseUrl || window.location.origin;
         this.qrCodeLink = `${baseUrl}/${language}/${environment.qrCodeBasePath}/${(this.label as any).uuid}`;
-        console.debug('[LabelSelectorCard] QR code generated:', this.qrCodeLink, 'Language:', language);
       } catch (e) {
         // Fallback to Spanish if API fails
         const baseUrl = environment.appBaseUrl || window.location.origin;
         this.qrCodeLink = `${baseUrl}/es/${environment.qrCodeBasePath}/${(this.label as any).uuid}`;
-        console.debug('[LabelSelectorCard] QR code fallback to Spanish:', this.qrCodeLink);
       }
     } else {
       this.qrCodeLink = '';
-      console.debug('[LabelSelectorCard] No label UUID available');
     }
   }
 

@@ -301,7 +301,7 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
     map(resp => {
       return resp.data;
     }),
-    tap(val => console.log("LABELS LOADED:", val, "LENGTH:", val?.length)),
+    tap(val => console.log('LABELS LOADED:', val, 'LENGTH:', val?.length)),
     shareReplay(1)
   );
 
