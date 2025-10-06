@@ -463,7 +463,7 @@ jobs:
           script: |
             mkdir -p /opt/inatrace/frontend/test/fortaleza
 
-      - name: 📥 Download image artifact (fortaleza)
+      - name: 📥 Download image artifact (fortevialeza)
         uses: actions/download-artifact@v4
         with:
           name: fe-image
