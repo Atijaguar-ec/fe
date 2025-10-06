@@ -607,8 +607,18 @@ export class GroupStockUnitListComponent implements OnInit, OnDestroy {
 
     this.globalEventsManager.showLoading(true);
     try {
-      const res = await this.groupStockOrderControllerService
-        .exportGroupedStockOrdersExcelByMap({ facilityId })
+      const exportService: any = this.groupStockOrderControllerService as any;
+      let request$;
+
+      if (typeof exportService.exportGroupedStockOrdersExcel === 'function') {
+        request$ = exportService.exportGroupedStockOrdersExcel(facilityId);
+      } else if (typeof exportService.exportGroupedStockOrdersExcelByMap === 'function') {
+        request$ = exportService.exportGroupedStockOrdersExcelByMap({ facilityId });
+      } else {
+        throw new Error('Export endpoint not available');
+      }
+
+      const res = await request$
         .pipe(take(1))
         .toPromise();
 
