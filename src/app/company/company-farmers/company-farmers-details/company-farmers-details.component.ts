@@ -438,6 +438,7 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
     );
 
     this.setupMaxProductionQuantityListener();
+    this.setupOrganicFieldDependencies();
   }
 
   editFarmer() {
@@ -452,6 +453,7 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
 
     this.prefillFarmPlantInformation();
     this.setupMaxProductionQuantityListener();
+    this.setupOrganicFieldDependencies();
   }
 
   /**
@@ -473,6 +475,52 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
         })
       );
     }
+  }
+
+  private setupOrganicFieldDependencies(): void {
+    const organicControl = this.farmerForm.get('farm.organic') as FormControl;
+    if (!organicControl) {
+      return;
+    }
+
+    const dependentControls: FormControl[] = [];
+
+    const areaOrganicCertifiedControl = this.farmerForm.get('farm.areaOrganicCertified') as FormControl;
+    if (areaOrganicCertifiedControl) {
+      dependentControls.push(areaOrganicCertifiedControl);
+    }
+
+    const startTransitionControl = this.farmerForm.get('farm.startTransitionToOrganic') as FormControl;
+    if (startTransitionControl) {
+      dependentControls.push(startTransitionControl);
+    }
+
+    const maxProductionControl = this.farmerForm.get('farm.maxProductionQuantity') as FormControl;
+    if (maxProductionControl && this.fieldVisibilityService.shouldShowField('maxProductionQuantity')) {
+      dependentControls.push(maxProductionControl);
+    }
+
+    const toggleDependentControls = (isOrganic: boolean) => {
+      dependentControls.forEach(control => {
+        if (isOrganic) {
+          control.enable({ emitEvent: false });
+          control.setValidators([Validators.required]);
+        } else {
+          control.reset(null, { emitEvent: false });
+          control.clearValidators();
+          control.disable({ emitEvent: false });
+        }
+        control.updateValueAndValidity({ emitEvent: false });
+      });
+    };
+
+    toggleDependentControls(!!organicControl.value);
+
+    this.subscriptions.push(
+      organicControl.valueChanges.subscribe((value: boolean) => {
+        toggleDependentControls(!!value);
+      })
+    );
   }
 
   async geoJSONSelectedToUpload($event: Event) {

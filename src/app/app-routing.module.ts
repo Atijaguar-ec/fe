@@ -332,11 +332,6 @@ const routes: Routes = [
       drobtinice: null
     }
   },
-  ///////////////////////
-  ///////////////////////
-  ///////////////////////
-  ///////////////////////
-  ///////////////////////
   {
     path: 'product-labels',
     canActivate: [ActivatedUserGuardService],
