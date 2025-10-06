@@ -765,22 +765,15 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
       // Check if limit is exceeded
       if (totalOrganicProduction > maxQuantity) {
         const excess = totalOrganicProduction - maxQuantity;
-        this.toasterService.error(
-          `⚠️ ALERTA: Producción orgánica excede el límite permitido por ${excess.toFixed(2)} qq. ` +
-          `Límite: ${maxQuantity} qq, Actual: ${totalOrganicProduction.toFixed(2)} qq. ` +
-          `Esto puede indicar producto ilegal.`,
-          'Límite de Producción Orgánica Excedido',
-          { timeOut: 10000, closeButton: true }
-        );
+        const exceededMessage = $localize`:@@stockUnitList.organicLimitExceeded:⚠️ ALERTA: La producción orgánica excede el límite permitido por ${excess.toFixed(2)}:excessAmount: qq. Límite: ${maxQuantity}:maxQuantity: qq, Actual: ${totalOrganicProduction.toFixed(2)}:currentAmount: qq. Límite de Producción Orgánica Excedido.`;
+        const organicLimitTitle = $localize`:@@stockUnitList.organicLimitTitle:Límite de Producción Orgánica`;
+        this.toasterService.error(exceededMessage, organicLimitTitle, { timeOut: 10000, closeButton: true });
       } else if (totalOrganicProduction > maxQuantity * 0.8) {
         // Warning at 80% of limit
         const remaining = maxQuantity - totalOrganicProduction;
-        this.toasterService.warning(
-          `⚠️ ADVERTENCIA: Producción orgánica cerca del límite. ` +
-          `Restante: ${remaining.toFixed(2)} qq de ${maxQuantity} qq permitidos.`,
-          'Límite de Producción Orgánica',
-          { timeOut: 7000, closeButton: true }
-        );
+        const nearLimitMessage = $localize`:@@stockUnitList.organicLimitWarning:⚠️ ADVERTENCIA: La producción orgánica está cerca del límite. Restante: ${remaining.toFixed(2)}:remainingAmount: qq de ${maxQuantity}:maxQuantity: qq permitidos.`;
+        const organicLimitTitle = $localize`:@@stockUnitList.organicLimitTitle:Límite de Producción Orgánica`;
+        this.toasterService.warning(nearLimitMessage, organicLimitTitle, { timeOut: 7000, closeButton: true });
       }
     });
   }

@@ -35,7 +35,7 @@
         <td *ngIf="!sortOptions[10].hide" [attr.data-label]="sortOptions[10].name"><span>{{ order.updateTimestamp | date: 'yyyy-MM-dd hh:mm' }}</span></td>
         <td [attr.data-label]="sortOptions[11].name">
             <span>
-              <a i18n="@@productLabelPurchaseOrder.tableCol.edit"
+              <a i18n="@@productLabelPurchaseOrder.tableCol.edit.quote"
                  (click)="edit(order)"
                  class="company-action"
                  [class.enabled-action]="true">
