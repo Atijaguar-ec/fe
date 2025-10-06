@@ -456,10 +456,10 @@ jobs:
       - name: 📁 Ensure remote directory exists
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.TEST_FORTALEZA_HOST }}
-          username: ${{ secrets.TEST_FORTALEZA_USER }}
-          key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
-          port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
+          host: ${{ secrets.TEST_ESPAM_HOST }}
+          username: ${{ secrets.TEST_ESPAM_USER }}
+          key: ${{ secrets.TEST_ESPAM_SSH_KEY }}
+          port: 22
           script: |
             mkdir -p /opt/inatrace/frontend/test/fortaleza
 
