@@ -607,7 +607,8 @@ export class GroupStockUnitListComponent implements OnInit, OnDestroy {
 
     this.globalEventsManager.showLoading(true);
     try {
-      const res = await this.groupStockOrderControllerService.exportGroupedStockOrdersExcel(facilityId)
+      const res = await this.groupStockOrderControllerService
+        .exportGroupedStockOrdersExcelByMap({ facilityId })
         .pipe(take(1))
         .toPromise();
 
