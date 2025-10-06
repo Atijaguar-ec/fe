@@ -54,6 +54,10 @@ export interface ApiGroupStockOrder {
      */
     orderType?: ApiGroupStockOrder.OrderTypeEnum;
     /**
+     * Facility (area) name
+     */
+    facilityName?: string;
+    /**
      * Semi product name
      */
     semiProductName?: string;
@@ -124,6 +128,10 @@ export namespace ApiGroupStockOrder {
          * Order type
          */
         orderType = 'orderType',
+        /**
+         * Facility (area) name
+         */
+        facilityName = 'facilityName',
         /**
          * Semi product name
          */
@@ -257,6 +265,17 @@ export namespace ApiGroupStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'facilityName',
+                    classname: 'ApiGroupStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'semiProductName',
                     classname: 'ApiGroupStockOrder',
                     dataType: 'string',
@@ -368,6 +387,8 @@ export namespace ApiGroupStockOrder {
                 ],
                 orderType: [
                 ],
+                facilityName: [
+                ],
                 semiProductName: [
                 ],
                 finalProductName: [
@@ -412,6 +433,9 @@ export namespace ApiGroupStockOrder {
   //                   validators: []
   //               },
   //               orderType: {
+  //                   validators: []
+  //               },
+  //               facilityName: {
   //                   validators: []
   //               },
   //               semiProductName: {

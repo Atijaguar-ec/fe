@@ -35,37 +35,37 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 
 /**
- * Namespace for exportGroupedStockOrdersExcel.
+ * Namespace for exportGroupedStockOrdersExcelByCompany.
  */
-export namespace ExportGroupedStockOrdersExcel {
+export namespace ExportGroupedStockOrdersExcelByCompany {
     /**
-     * Parameter map for exportGroupedStockOrdersExcel.
+     * Parameter map for exportGroupedStockOrdersExcelByCompany.
      */
     export interface PartialParamMap {
       /**
-       * Facility ID
+       * Company ID
        */
-      facilityId: number;
-      language?: 'EN'  | 'ES';
+      companyId: number;
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
-     * Enumeration of all parameters for exportGroupedStockOrdersExcel.
+     * Enumeration of all parameters for exportGroupedStockOrdersExcelByCompany.
      */
     export enum Parameters {
       /**
-       * Facility ID
+       * Company ID
        */
-      facilityId = 'facilityId',
+      companyId = 'companyId',
       language = 'language'
     }
 
     /**
-     * A map of tuples with error name and `ValidatorFn` for each parameter of exportGroupedStockOrdersExcel
+     * A map of tuples with error name and `ValidatorFn` for each parameter of exportGroupedStockOrdersExcelByCompany
      * that does not have an own model.
      */
-    export const ParamValidators: {[K in keyof ExportGroupedStockOrdersExcel.PartialParamMap]?: [string, ValidatorFn][]} = {
-      facilityId: [
+    export const ParamValidators: {[K in keyof ExportGroupedStockOrdersExcelByCompany.PartialParamMap]?: [string, ValidatorFn][]} = {
+      companyId: [
               ['required', Validators.required],
       ],
       language: [
@@ -117,7 +117,7 @@ export namespace GetGroupedStockOrderList {
        * Semi-product ID
        */
       semiProductId?: number;
-      language?: 'EN'  | 'ES';
+      language?: 'EN' | 'DE' | 'RW' | 'ES';
     }
 
     /**
@@ -232,30 +232,30 @@ export class GroupStockOrderControllerService {
 
 
   /**
-   * Export grouped stock orders to Excel for a facility (last year) by map.
+   * Export grouped stock orders to Excel for a company (last year) by map.
    * 
    * @param map parameters map to set partial amount of parameters easily
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    */
-  public exportGroupedStockOrdersExcelByMap(
-    map: ExportGroupedStockOrdersExcel.PartialParamMap,
+  public exportGroupedStockOrdersExcelByCompanyByMap(
+    map: ExportGroupedStockOrdersExcelByCompany.PartialParamMap,
     observe?: 'body',
     reportProgress?: boolean): Observable<Blob>;
-  public exportGroupedStockOrdersExcelByMap(
-    map: ExportGroupedStockOrdersExcel.PartialParamMap,
+  public exportGroupedStockOrdersExcelByCompanyByMap(
+    map: ExportGroupedStockOrdersExcelByCompany.PartialParamMap,
     observe?: 'response',
     reportProgress?: boolean): Observable<HttpResponse<Blob>>;
-  public exportGroupedStockOrdersExcelByMap(
-    map: ExportGroupedStockOrdersExcel.PartialParamMap,
+  public exportGroupedStockOrdersExcelByCompanyByMap(
+    map: ExportGroupedStockOrdersExcelByCompany.PartialParamMap,
     observe?: 'events',
     reportProgress?: boolean): Observable<HttpEvent<Blob>>;
-  public exportGroupedStockOrdersExcelByMap(
-    map: ExportGroupedStockOrdersExcel.PartialParamMap,
+  public exportGroupedStockOrdersExcelByCompanyByMap(
+    map: ExportGroupedStockOrdersExcelByCompany.PartialParamMap,
     observe: any = 'body',
     reportProgress: boolean = false): Observable<any> {
-    return this.exportGroupedStockOrdersExcel(
-      map.facilityId,
+    return this.exportGroupedStockOrdersExcelByCompany(
+      map.companyId,
       map.language,
       observe,
       reportProgress
@@ -264,19 +264,19 @@ export class GroupStockOrderControllerService {
 
 
     /**
-     * Export grouped stock orders to Excel for a facility (last year)
+     * Export grouped stock orders to Excel for a company (last year)
      * 
-     * @param facilityId Facility ID
+     * @param companyId Company ID
      * @param language 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public exportGroupedStockOrdersExcel(facilityId: number, language?: 'EN' | 'ES', observe?: 'body', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<Blob>;
-    public exportGroupedStockOrdersExcel(facilityId: number, language?: 'EN' | 'ES', observe?: 'response', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpResponse<Blob>>;
-    public exportGroupedStockOrdersExcel(facilityId: number, language?: 'EN' | 'ES', observe?: 'events', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpEvent<Blob>>;
-    public exportGroupedStockOrdersExcel(facilityId: number, language?: 'EN' | 'ES', observe: any = 'body', reportProgress: boolean = false, additionalHeaders?: Array<Array<string>>): Observable<any> {
-        if (facilityId === null || facilityId === undefined) {
-            throw new Error('Required parameter facilityId was null or undefined when calling exportGroupedStockOrdersExcel.');
+    public exportGroupedStockOrdersExcelByCompany(companyId: number, language?: 'EN' | 'DE' | 'RW' | 'ES', observe?: 'body', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<Blob>;
+    public exportGroupedStockOrdersExcelByCompany(companyId: number, language?: 'EN' | 'DE' | 'RW' | 'ES', observe?: 'response', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpResponse<Blob>>;
+    public exportGroupedStockOrdersExcelByCompany(companyId: number, language?: 'EN' | 'DE' | 'RW' | 'ES', observe?: 'events', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpEvent<Blob>>;
+    public exportGroupedStockOrdersExcelByCompany(companyId: number, language?: 'EN' | 'DE' | 'RW' | 'ES', observe: any = 'body', reportProgress: boolean = false, additionalHeaders?: Array<Array<string>>): Observable<any> {
+        if (companyId === null || companyId === undefined) {
+            throw new Error('Required parameter companyId was null or undefined when calling exportGroupedStockOrdersExcelByCompany.');
         }
 
         let headers = this.defaultHeaders;
@@ -303,7 +303,7 @@ export class GroupStockOrderControllerService {
                 }
             }
 
-        const handle = this.httpClient.get(`${this.configuration.basePath}/api/chain/group-stock-order/export/facility/${encodeURIComponent(String(facilityId))}`,
+        const handle = this.httpClient.get(`${this.configuration.basePath}/api/chain/group-stock-order/export/company/${encodeURIComponent(String(companyId))}`,
             {
                 responseType: "blob",
                 withCredentials: this.configuration.withCredentials,
@@ -313,60 +313,7 @@ export class GroupStockOrderControllerService {
             }
         );
         if(typeof this.configuration.errorHandler === 'function') {
-          return handle.pipe(catchError(err => this.configuration.errorHandler(err, 'exportGroupedStockOrdersExcel')));
-        }
-        return handle;
-    }
-
-
-    /**
-     * Export grouped stock orders to Excel for a company (last year)
-     * 
-     * @param companyId Company ID
-     * @param language 
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public exportGroupedStockOrdersExcelByCompany(companyId: number, language?: 'EN' | 'ES', observe?: 'body', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<Blob>;
-    public exportGroupedStockOrdersExcelByCompany(companyId: number, language?: 'EN' | 'ES', observe?: 'response', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpResponse<Blob>>;
-    public exportGroupedStockOrdersExcelByCompany(companyId: number, language?: 'EN' | 'ES', observe?: 'events', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpEvent<Blob>>;
-    public exportGroupedStockOrdersExcelByCompany(companyId: number, language?: 'EN' | 'ES', observe: any = 'body', reportProgress: boolean = false, additionalHeaders?: Array<Array<string>>): Observable<any> {
-        if (companyId === null || companyId === undefined) {
-            throw new Error('Required parameter companyId was null or undefined when calling exportGroupedStockOrdersExcelByCompany.');
-        }
-
-        let headers = this.defaultHeaders;
-        if (language !== undefined && language !== null) {
-            headers = headers.set('language', String(language));
-        }
-
-        let httpHeaderAccepts: string[] = [
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        ];
-        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
-        if (httpHeaderAcceptSelected !== undefined) {
-            headers = headers.set('Accept', httpHeaderAcceptSelected);
-        }
-
-        const consumes: string[] = [];
-
-        if (additionalHeaders) {
-            for (let pair of additionalHeaders) {
-                headers = headers.set(pair[0], pair[1]);
-            }
-        }
-
-        const handle = this.httpClient.get(`${this.configuration.basePath}/api/chain/group-stock-order/export/company/${encodeURIComponent(String(companyId))}`,
-            {
-                responseType: 'blob',
-                withCredentials: this.configuration.withCredentials,
-                headers: headers,
-                observe: observe,
-                reportProgress: reportProgress
-            }
-        );
-        if (typeof this.configuration.errorHandler === 'function') {
-            return handle.pipe(catchError(err => this.configuration.errorHandler(err, 'exportGroupedStockOrdersExcelByCompany')));
+          return handle.pipe(catchError(err => this.configuration.errorHandler(err, 'exportGroupedStockOrdersExcelByCompany')));
         }
         return handle;
     }
@@ -428,10 +375,10 @@ export class GroupStockOrderControllerService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getGroupedStockOrderList(facilityId: number, requestType?: 'COUNT' | 'FETCH', limit?: number, offset?: number, sortBy?: string, sort?: 'ASC' | 'DESC', availableOnly?: boolean, isPurchaseOrderOnly?: boolean, semiProductId?: number, language?: 'EN' | 'ES', observe?: 'body', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<ApiPaginatedResponseApiGroupStockOrder>;
-    public getGroupedStockOrderList(facilityId: number, requestType?: 'COUNT' | 'FETCH', limit?: number, offset?: number, sortBy?: string, sort?: 'ASC' | 'DESC', availableOnly?: boolean, isPurchaseOrderOnly?: boolean, semiProductId?: number, language?: 'EN' | 'ES', observe?: 'response', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpResponse<ApiPaginatedResponseApiGroupStockOrder>>;
-    public getGroupedStockOrderList(facilityId: number, requestType?: 'COUNT' | 'FETCH', limit?: number, offset?: number, sortBy?: string, sort?: 'ASC' | 'DESC', availableOnly?: boolean, isPurchaseOrderOnly?: boolean, semiProductId?: number, language?: 'EN' | 'ES', observe?: 'events', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpEvent<ApiPaginatedResponseApiGroupStockOrder>>;
-    public getGroupedStockOrderList(facilityId: number, requestType?: 'COUNT' | 'FETCH', limit?: number, offset?: number, sortBy?: string, sort?: 'ASC' | 'DESC', availableOnly?: boolean, isPurchaseOrderOnly?: boolean, semiProductId?: number, language?: 'EN' | 'ES', observe: any = 'body', reportProgress: boolean = false, additionalHeaders?: Array<Array<string>>): Observable<any> {
+    public getGroupedStockOrderList(facilityId: number, requestType?: 'COUNT' | 'FETCH', limit?: number, offset?: number, sortBy?: string, sort?: 'ASC' | 'DESC', availableOnly?: boolean, isPurchaseOrderOnly?: boolean, semiProductId?: number, language?: 'EN' | 'DE' | 'RW' | 'ES', observe?: 'body', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<ApiPaginatedResponseApiGroupStockOrder>;
+    public getGroupedStockOrderList(facilityId: number, requestType?: 'COUNT' | 'FETCH', limit?: number, offset?: number, sortBy?: string, sort?: 'ASC' | 'DESC', availableOnly?: boolean, isPurchaseOrderOnly?: boolean, semiProductId?: number, language?: 'EN' | 'DE' | 'RW' | 'ES', observe?: 'response', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpResponse<ApiPaginatedResponseApiGroupStockOrder>>;
+    public getGroupedStockOrderList(facilityId: number, requestType?: 'COUNT' | 'FETCH', limit?: number, offset?: number, sortBy?: string, sort?: 'ASC' | 'DESC', availableOnly?: boolean, isPurchaseOrderOnly?: boolean, semiProductId?: number, language?: 'EN' | 'DE' | 'RW' | 'ES', observe?: 'events', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpEvent<ApiPaginatedResponseApiGroupStockOrder>>;
+    public getGroupedStockOrderList(facilityId: number, requestType?: 'COUNT' | 'FETCH', limit?: number, offset?: number, sortBy?: string, sort?: 'ASC' | 'DESC', availableOnly?: boolean, isPurchaseOrderOnly?: boolean, semiProductId?: number, language?: 'EN' | 'DE' | 'RW' | 'ES', observe: any = 'body', reportProgress: boolean = false, additionalHeaders?: Array<Array<string>>): Observable<any> {
         if (facilityId === null || facilityId === undefined) {
             throw new Error('Required parameter facilityId was null or undefined when calling getGroupedStockOrderList.');
         }
