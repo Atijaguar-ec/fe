@@ -419,7 +419,7 @@ jobs:
             echo "⏳ Waiting for Unocace test health endpoint..."
             for i in {1..10}; do
               sleep 10
-              if curl -f "https://inatrace-test.unocace.com/health"; then
+              if curl -f "http://localhost:8081/health"; then
                 echo "✅ Deployment to Unocace successful!"
                 exit 0
               fi
@@ -496,7 +496,7 @@ jobs:
           TRAEFIK_ROUTER_RULE=Host(`testinatrace.espam.edu.ec`)
           TRAEFIK_ENTRYPOINTS=websecure
           TRAEFIK_CERT_RESOLVER=letsencrypt
-          HEALTHCHECK_URL=http://localhost/health
+          HEALTHCHECK_URL=http://localhost:8081/health
           NGINX_CONF_PATH=./nginx.conf
           EOF
 
@@ -538,7 +538,7 @@ jobs:
             echo "⏳ Waiting for Fortaleza test health endpoint..."
             for i in {1..10}; do
               sleep 10
-              if curl -f "https://testinatrace.espam.edu.ec/health"; then
+              if curl -f "http://localhost:8081/health"; then
                 echo "✅ Deployment to Fortaleza successful!"
                 exit 0
               fi
@@ -581,6 +581,7 @@ jobs:
           port: ${{ secrets.TEST_DUFER_PORT || '22' }}
           source: "ci/docker-compose.yml"
           target: "/opt/inatrace/frontend/test/dufer"
+          strip_components: 1
 
       - name: 📤 Upload nginx.conf (dufer)
         uses: appleboy/scp-action@v0.1.7
@@ -613,7 +614,7 @@ jobs:
           TRAEFIK_ROUTER_RULE=Host(`inatrace-test.empacadoradufer.com`)
           TRAEFIK_ENTRYPOINTS=websecure
           TRAEFIK_CERT_RESOLVER=letsencrypt
-          HEALTHCHECK_URL=http://localhost/health
+          HEALTHCHECK_URL=http://localhost:8081/health
           NGINX_CONF_PATH=./nginx.conf
           EOF
 
@@ -655,7 +656,7 @@ jobs:
             echo "⏳ Waiting for Dufer test health endpoint..."
             for i in {1..10}; do
               sleep 10
-              if curl -f "https://inatrace-test.empacadoradufer.com/health"; then
+              if curl -f "http://localhost:8081/health"; then
                 echo "✅ Deployment to Dufer successful!"
                 exit 0
               fi
