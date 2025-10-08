@@ -312,7 +312,7 @@ jobs:
 
   deploy-test-unocace:
     name: 🧪 Deploy to Unocace Test
-    runs-on: [self-hosted, cedia]
+    runs-on: [ubuntu-latest]
     needs: build
     if: github.ref == 'refs/heads/staging'
     environment:
