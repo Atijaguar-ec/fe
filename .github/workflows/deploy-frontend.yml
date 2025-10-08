@@ -376,7 +376,7 @@ jobs:
           TRAEFIK_ROUTER_RULE=Host(`inatrace-test.unocace.com`)
           TRAEFIK_ENTRYPOINTS=websecure
           TRAEFIK_CERT_RESOLVER=letsencrypt
-          HEALTHCHECK_URL=http://localhost/health
+          HEALTHCHECK_URL=http://localhost:8081/health
           NGINX_CONF_PATH=./nginx.conf
           EOF
 
@@ -413,7 +413,7 @@ jobs:
 
             docker compose down 2>/dev/null || true
             docker compose pull
-            docker compose up -d --remove-orphans
+            docker compose up -d
 
             echo "⏳ Waiting for Unocace test health endpoint..."
             for i in {1..10}; do
