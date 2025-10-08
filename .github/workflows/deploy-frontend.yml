@@ -317,7 +317,7 @@ jobs:
     if: github.ref == 'refs/heads/staging'
     environment:
       name: test-unocace
-      url: https://inatrace-test.unocace.com
+      url: http://inatrace-test.unocace.com
     steps:
       - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
@@ -402,11 +402,11 @@ jobs:
 
             cd /opt/inatrace/frontend/test/unocace
 
-            set -a
-            source .env
-            set +a
-
             # Ensure required networks exist
+            FRONTEND_NETWORK=$(grep '^FRONTEND_NETWORK=' .env | cut -d '=' -f2-)
+            FRONTEND_NETWORK=${FRONTEND_NETWORK:-inatrace-frontend-unocace-network}
+            BACKEND_NETWORK=$(grep '^BACKEND_NETWORK=' .env | cut -d '=' -f2-)
+            BACKEND_NETWORK=${BACKEND_NETWORK:-inatrace-backend-unocace-network}
             docker network inspect "$FRONTEND_NETWORK" >/dev/null 2>&1 || docker network create "$FRONTEND_NETWORK"
             docker network inspect "$BACKEND_NETWORK" >/dev/null 2>&1 || docker network create "$BACKEND_NETWORK"
 
@@ -520,11 +520,11 @@ jobs:
 
             cd /opt/inatrace/frontend/test/fortaleza
 
-            set -a
-            source .env
-            set +a
-
             # Ensure required networks exist
+            FRONTEND_NETWORK=$(grep '^FRONTEND_NETWORK=' .env | cut -d '=' -f2-)
+            FRONTEND_NETWORK=${FRONTEND_NETWORK:-inatrace-frontend-fortaleza-network}
+            BACKEND_NETWORK=$(grep '^BACKEND_NETWORK=' .env | cut -d '=' -f2-)
+            BACKEND_NETWORK=${BACKEND_NETWORK:-inatrace-backend-fortaleza-network}
             docker network inspect "$FRONTEND_NETWORK" >/dev/null 2>&1 || docker network create "$FRONTEND_NETWORK"
             docker network inspect "$BACKEND_NETWORK" >/dev/null 2>&1 || docker network create "$BACKEND_NETWORK"
 
@@ -638,11 +638,11 @@ jobs:
 
             cd /opt/inatrace/frontend/test/dufer
 
-            set -a
-            source .env
-            set +a
-
             # Ensure required networks exist
+            FRONTEND_NETWORK=$(grep '^FRONTEND_NETWORK=' .env | cut -d '=' -f2-)
+            FRONTEND_NETWORK=${FRONTEND_NETWORK:-inatrace-frontend-dufer-network}
+            BACKEND_NETWORK=$(grep '^BACKEND_NETWORK=' .env | cut -d '=' -f2-)
+            BACKEND_NETWORK=${BACKEND_NETWORK:-inatrace-backend-dufer-network}
             docker network inspect "$FRONTEND_NETWORK" >/dev/null 2>&1 || docker network create "$FRONTEND_NETWORK"
             docker network inspect "$BACKEND_NETWORK" >/dev/null 2>&1 || docker network create "$BACKEND_NETWORK"
 
