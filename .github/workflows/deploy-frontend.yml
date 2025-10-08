@@ -318,7 +318,7 @@ jobs:
     if: github.ref == 'refs/heads/staging'
     environment:
       name: test-unocace
-      url: http://inatrace-test.unocace.com
+      url: https://inatrace-test.unocace.com
     steps:
       - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
@@ -533,7 +533,7 @@ jobs:
 
             docker compose down 2>/dev/null || true
             docker compose pull
-            docker compose up -d --remove-orphans
+            docker compose up -d
 
             echo "⏳ Waiting for Fortaleza test health endpoint..."
             for i in {1..10}; do
