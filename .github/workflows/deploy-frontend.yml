@@ -342,6 +342,7 @@ jobs:
           port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           source: "ci/docker-compose.yml"
           target: "/opt/inatrace/frontend/test/unocace"
+          strip_components: 1
 
       - name: 📤 Upload nginx.conf (unocace)
         uses: appleboy/scp-action@v0.1.7
@@ -352,6 +353,7 @@ jobs:
           port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           source: "nginx.conf"
           target: "/opt/inatrace/frontend/test/unocace"
+          
 
       - name: 📝 Prepare .env (unocace)
         run: |
@@ -361,7 +363,6 @@ jobs:
           IMAGE_NAME=$IMAGE
           TAG=$TAG_VALUE
           NODE_ENV=test
-          API_BASE_URL=http://inatrace-be-unocace:8080
           COMPANY_NAME=UNOCACE
           COMPANY_THEME=cacao
           DOMAIN=inatrace-test.unocace.com
@@ -460,6 +461,7 @@ jobs:
           port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
           source: "ci/docker-compose.yml"
           target: "/opt/inatrace/frontend/test/fortaleza"
+          strip_components: 1
 
       - name: 📤 Upload nginx.conf (fortaleza)
         uses: appleboy/scp-action@v0.1.7
