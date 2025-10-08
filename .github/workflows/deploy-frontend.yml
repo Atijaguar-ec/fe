@@ -5,13 +5,11 @@ on:
     branches: [ develop, staging, main ]
     paths:
       - 'src/**'
-      - 'deploy/frontend/**'
       - '.github/workflows/deploy-frontend.yml'
   pull_request:
     branches: [ develop, staging, main ]
     paths:
       - 'src/**'
-      - 'deploy/frontend/**'
       - '.ci/**'
   workflow_dispatch:
     inputs:
@@ -184,19 +182,6 @@ jobs:
           build-args: |
             BUILD_OPTIMIZATION=true
 
-      - name: Pull built image for artifact
-        run: docker pull "${{ steps.image_ref.outputs.image }}:${{ steps.meta.outputs.tag }}"
-
-      - name: 📦 Save Docker image as tar
-        run: docker save "${{ steps.image_ref.outputs.image }}:${{ steps.meta.outputs.tag }}" -o image.tar
-
-      - name: 📤 Upload image artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: fe-image
-          path: image.tar
-          if-no-files-found: error
-
       - name: 🔒 Sign image with Cosign
         uses: sigstore/cosign-installer@v3
         with:
@@ -224,21 +209,15 @@ jobs:
           script: |
             mkdir -p /opt/inatrace/frontend/dev
 
-      - name: 📥 Download image artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: fe-image
-          path: .
-
       - name: 📤 Upload docker-compose.yml
-        if: ${{ hashFiles('.ci/develop/docker-compose.yml') != '' }}
+        if: ${{ hashFiles('ci/docker-compose.yml') != '' }}
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USER }}
           key: ${{ secrets.DEV_SSH_KEY }}
           fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
-          source: ".ci/develop/docker-compose.yml"
+          source: "ci/docker-compose.yml"
           target: "/opt/inatrace/frontend/dev"
 
       - name: 📤 Upload nginx.conf
@@ -251,16 +230,6 @@ jobs:
           source: "nginx.conf"
           target: "/opt/inatrace/frontend/dev"
 
-      - name: 📤 Upload image tar
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.DEV_HOST }}
-          username: ${{ secrets.DEV_USER }}
-          key: ${{ secrets.DEV_SSH_KEY }}
-          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
-          source: "image.tar"
-          target: "/opt/inatrace/frontend/dev"
-
       - name: 📝 Prepare .env (dev)
         run: |
           IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"; IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
@@ -269,6 +238,21 @@ jobs:
           IMAGE_NAME=$IMAGE
           TAG=$TAG_VALUE
           NODE_ENV=development
+          PRIMARY_PRODUCT_TYPE=${{ env.PRIMARY_PRODUCT_TYPE }}
+          CONTAINER_NAME=inatrace-fe-dev
+          HOST_HTTP_PORT=8081
+          FRONTEND_NETWORK=inatrace-frontend-network
+          BACKEND_NETWORK=inatrace-backend-network
+          DOMAIN=inatrace.atijaguar.com
+          COMPANY_NAME=INATrace
+          COMPANY_THEME=cacao
+          TRAEFIK_ENABLE=true
+          TRAEFIK_ROUTER_NAME=inatrace-fe-dev
+          TRAEFIK_ROUTER_RULE=Host(`inatrace.atijaguar.com`) || Host(`5.161.183.137`)
+          TRAEFIK_ENTRYPOINTS=web
+          TRAEFIK_CERT_RESOLVER=
+          HEALTHCHECK_URL=http://localhost/health
+          NGINX_CONF_PATH=./nginx.conf
           EOF
 
       - name: 📤 Upload .env (dev)
@@ -298,8 +282,6 @@ jobs:
             source .env
             set +a
 
-            docker load -i image.tar
-
             # Ensure required networks exist (shared with backend)
             docker network inspect inatrace-backend-network >/dev/null 2>&1 || docker network create inatrace-backend-network
             docker network inspect inatrace-frontend-network >/dev/null 2>&1 || docker network create inatrace-frontend-network
@@ -312,7 +294,7 @@ jobs:
 
             echo "🚀 Deploying with Docker Compose..."
             docker compose pull
-            docker compose up -d
+            docker compose up -d --remove-orphans
 
             echo "⏳ Waiting for frontend health endpoint..."
             for i in {1..10}; do
@@ -330,7 +312,7 @@ jobs:
 
   deploy-test-unocace:
     name: 🧪 Deploy to Unocace Test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, cedia]
     needs: build
     if: github.ref == 'refs/heads/staging'
     environment:
@@ -345,36 +327,30 @@ jobs:
         with:
           host: ${{ secrets.TEST_UNOCACE_HOST }}
           username: ${{ secrets.TEST_UNOCACE_USER }}
-          key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
+          password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
           port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           script: |
             mkdir -p /opt/inatrace/frontend/test/unocace
 
-      - name: 📥 Download image artifact (unocace)
-        uses: actions/download-artifact@v4
-        with:
-          name: fe-image
-          path: .
-
       - name: 📤 Upload docker-compose.yml
-        if: ${{ hashFiles('deploy/frontend/test/unocace/docker-compose.yml') != '' }}
+        if: ${{ hashFiles('ci/docker-compose.yml') != '' }}
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.TEST_UNOCACE_HOST }}
           username: ${{ secrets.TEST_UNOCACE_USER }}
-          key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
+          password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
           port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
-          source: "deploy/frontend/test/unocace/docker-compose.yml"
+          source: "ci/docker-compose.yml"
           target: "/opt/inatrace/frontend/test/unocace"
 
-      - name: 📤 Upload image tar (unocace)
+      - name: 📤 Upload nginx.conf (unocace)
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.TEST_UNOCACE_HOST }}
           username: ${{ secrets.TEST_UNOCACE_USER }}
-          key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
+          password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
           port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
-          source: "image.tar"
+          source: "nginx.conf"
           target: "/opt/inatrace/frontend/test/unocace"
 
       - name: 📝 Prepare .env (unocace)
@@ -389,6 +365,18 @@ jobs:
           COMPANY_NAME=UNOCACE
           COMPANY_THEME=cacao
           DOMAIN=inatrace-test.unocace.com
+          PRIMARY_PRODUCT_TYPE=${{ env.PRIMARY_PRODUCT_TYPE }}
+          CONTAINER_NAME=inatrace-fe-test-unocace
+          HOST_HTTP_PORT=8081
+          FRONTEND_NETWORK=inatrace-frontend-unocace-network
+          BACKEND_NETWORK=inatrace-backend-unocace-network
+          TRAEFIK_ENABLE=true
+          TRAEFIK_ROUTER_NAME=inatrace-fe-test-unocace
+          TRAEFIK_ROUTER_RULE=Host(`inatrace-test.unocace.com`)
+          TRAEFIK_ENTRYPOINTS=websecure
+          TRAEFIK_CERT_RESOLVER=letsencrypt
+          HEALTHCHECK_URL=http://localhost/health
+          NGINX_CONF_PATH=./nginx.conf
           EOF
 
       - name: 📤 Upload .env (unocace)
@@ -396,7 +384,7 @@ jobs:
         with:
           host: ${{ secrets.TEST_UNOCACE_HOST }}
           username: ${{ secrets.TEST_UNOCACE_USER }}
-          key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
+          password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
           port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           source: ".env"
           target: "/opt/inatrace/frontend/test/unocace"
@@ -406,7 +394,7 @@ jobs:
         with:
           host: ${{ secrets.TEST_UNOCACE_HOST }}
           username: ${{ secrets.TEST_UNOCACE_USER }}
-          key: ${{ secrets.TEST_UNOCACE_SSH_KEY }}
+          password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
           port: ${{ secrets.TEST_UNOCACE_PORT || '22' }}
           script: |
             set -e
@@ -418,14 +406,13 @@ jobs:
             source .env
             set +a
 
-            docker load -i image.tar
-
             # Ensure required networks exist
-            docker network inspect inatrace-frontend-unocace-network >/dev/null 2>&1 || docker network create inatrace-frontend-unocace-network
-            docker network inspect inatrace-backend-unocace-network >/dev/null 2>&1 || docker network create inatrace-backend-unocace-network
+            docker network inspect "$FRONTEND_NETWORK" >/dev/null 2>&1 || docker network create "$FRONTEND_NETWORK"
+            docker network inspect "$BACKEND_NETWORK" >/dev/null 2>&1 || docker network create "$BACKEND_NETWORK"
 
             docker compose down 2>/dev/null || true
-            docker compose up -d
+            docker compose pull
+            docker compose up -d --remove-orphans
 
             echo "⏳ Waiting for Unocace test health endpoint..."
             for i in {1..10}; do
@@ -443,7 +430,7 @@ jobs:
 
   deploy-test-fortaleza:
     name: 🧪 Deploy to Fortaleza Test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, cedia]
     needs: build
     if: github.ref == 'refs/heads/staging'
     environment:
@@ -463,31 +450,25 @@ jobs:
           script: |
             mkdir -p /opt/inatrace/frontend/test/fortaleza
 
-      - name: 📥 Download image artifact (fortevialeza)
-        uses: actions/download-artifact@v4
-        with:
-          name: fe-image
-          path: .
-
       - name: 📤 Upload docker-compose.yml
-        if: ${{ hashFiles('deploy/frontend/test/fortaleza/docker-compose.yml') != '' }}
+        if: ${{ hashFiles('ci/docker-compose.yml') != '' }}
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.TEST_FORTALEZA_HOST }}
           username: ${{ secrets.TEST_FORTALEZA_USER }}
           key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
-          source: "deploy/frontend/test/fortaleza/docker-compose.yml"
+          source: "ci/docker-compose.yml"
           target: "/opt/inatrace/frontend/test/fortaleza"
 
-      - name: 📤 Upload image tar (fortaleza)
+      - name: 📤 Upload nginx.conf (fortaleza)
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.TEST_FORTALEZA_HOST }}
           username: ${{ secrets.TEST_FORTALEZA_USER }}
           key: ${{ secrets.TEST_FORTALEZA_SSH_KEY }}
           port: ${{ secrets.TEST_FORTALEZA_PORT || '22' }}
-          source: "image.tar"
+          source: "nginx.conf"
           target: "/opt/inatrace/frontend/test/fortaleza"
 
       - name: 📝 Prepare .env (fortaleza)
@@ -502,6 +483,18 @@ jobs:
           COMPANY_NAME=Fortaleza del Valle
           COMPANY_THEME=cacao
           DOMAIN=testinatrace.espam.edu.ec
+          PRIMARY_PRODUCT_TYPE=${{ env.PRIMARY_PRODUCT_TYPE }}
+          CONTAINER_NAME=inatrace-fe-test-fortaleza
+          HOST_HTTP_PORT=8081
+          FRONTEND_NETWORK=inatrace-frontend-fortaleza-network
+          BACKEND_NETWORK=inatrace-backend-fortaleza-network
+          TRAEFIK_ENABLE=true
+          TRAEFIK_ROUTER_NAME=inatrace-fe-test-fortaleza
+          TRAEFIK_ROUTER_RULE=Host(`testinatrace.espam.edu.ec`)
+          TRAEFIK_ENTRYPOINTS=websecure
+          TRAEFIK_CERT_RESOLVER=letsencrypt
+          HEALTHCHECK_URL=http://localhost/health
+          NGINX_CONF_PATH=./nginx.conf
           EOF
 
       - name: 📤 Upload .env (fortaleza)
@@ -531,14 +524,13 @@ jobs:
             source .env
             set +a
 
-            docker load -i image.tar
-
             # Ensure required networks exist
-            docker network inspect inatrace-frontend-fortaleza-network >/dev/null 2>&1 || docker network create inatrace-frontend-fortaleza-network
-            docker network inspect inatrace-backend-fortaleza-network >/dev/null 2>&1 || docker network create inatrace-backend-fortaleza-network
+            docker network inspect "$FRONTEND_NETWORK" >/dev/null 2>&1 || docker network create "$FRONTEND_NETWORK"
+            docker network inspect "$BACKEND_NETWORK" >/dev/null 2>&1 || docker network create "$BACKEND_NETWORK"
 
             docker compose down 2>/dev/null || true
-            docker compose up -d
+            docker compose pull
+            docker compose up -d --remove-orphans
 
             echo "⏳ Waiting for Fortaleza test health endpoint..."
             for i in {1..10}; do
@@ -556,7 +548,7 @@ jobs:
 
   deploy-test-dufer:
     name: 🧪 Deploy to Dufer Test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, cedia]
     needs: build
     if: github.ref == 'refs/heads/staging'
     environment:
@@ -576,31 +568,25 @@ jobs:
           script: |
             mkdir -p /opt/inatrace/frontend/test/dufer
 
-      - name: 📥 Download image artifact (dufer)
-        uses: actions/download-artifact@v4
-        with:
-          name: fe-image
-          path: .
-
       - name: 📤 Upload docker-compose.yml
-        if: ${{ hashFiles('deploy/frontend/test/dufer/docker-compose.yml') != '' }}
+        if: ${{ hashFiles('ci/docker-compose.yml') != '' }}
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.TEST_DUFER_HOST }}
           username: ${{ secrets.TEST_DUFER_USER }}
           key: ${{ secrets.TEST_DUFER_SSH_KEY }}
           port: ${{ secrets.TEST_DUFER_PORT || '22' }}
-          source: "deploy/frontend/test/dufer/docker-compose.yml"
+          source: "ci/docker-compose.yml"
           target: "/opt/inatrace/frontend/test/dufer"
 
-      - name: 📤 Upload image tar (dufer)
+      - name: 📤 Upload nginx.conf (dufer)
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.TEST_DUFER_HOST }}
           username: ${{ secrets.TEST_DUFER_USER }}
           key: ${{ secrets.TEST_DUFER_SSH_KEY }}
           port: ${{ secrets.TEST_DUFER_PORT || '22' }}
-          source: "image.tar"
+          source: "nginx.conf"
           target: "/opt/inatrace/frontend/test/dufer"
 
       - name: 📝 Prepare .env (dufer)
@@ -615,6 +601,18 @@ jobs:
           COMPANY_NAME=DUFER
           COMPANY_THEME=camaronera
           DOMAIN=inatrace-test.empacadoradufer.com
+          PRIMARY_PRODUCT_TYPE=${{ env.PRIMARY_PRODUCT_TYPE }}
+          CONTAINER_NAME=inatrace-fe-test-dufer
+          HOST_HTTP_PORT=8081
+          FRONTEND_NETWORK=inatrace-frontend-dufer-network
+          BACKEND_NETWORK=inatrace-backend-dufer-network
+          TRAEFIK_ENABLE=true
+          TRAEFIK_ROUTER_NAME=inatrace-fe-test-dufer
+          TRAEFIK_ROUTER_RULE=Host(`inatrace-test.empacadoradufer.com`)
+          TRAEFIK_ENTRYPOINTS=websecure
+          TRAEFIK_CERT_RESOLVER=letsencrypt
+          HEALTHCHECK_URL=http://localhost/health
+          NGINX_CONF_PATH=./nginx.conf
           EOF
 
       - name: 📤 Upload .env (dufer)
@@ -644,14 +642,13 @@ jobs:
             source .env
             set +a
 
-            docker load -i image.tar
-
             # Ensure required networks exist
-            docker network inspect inatrace-frontend-dufer-network >/dev/null 2>&1 || docker network create inatrace-frontend-dufer-network
-            docker network inspect inatrace-backend-dufer-network >/dev/null 2>&1 || docker network create inatrace-backend-dufer-network
+            docker network inspect "$FRONTEND_NETWORK" >/dev/null 2>&1 || docker network create "$FRONTEND_NETWORK"
+            docker network inspect "$BACKEND_NETWORK" >/dev/null 2>&1 || docker network create "$BACKEND_NETWORK"
 
             docker compose down 2>/dev/null || true
-            docker compose up -d
+            docker compose pull
+            docker compose up -d --remove-orphans
 
             echo "⏳ Waiting for Dufer test health endpoint..."
             for i in {1..10}; do
