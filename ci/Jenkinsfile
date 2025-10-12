@@ -429,48 +429,57 @@ exit 1
               """
             }
           } else if (params.BRANCH == 'staging') {
-            sh """
-              set -e
+            withCredentials([
+              file(credentialsId: 'fortaleza-frontend-env-staging', variable: 'ENVFILE')
+            ]) {
+              sh """
+                set -e
 
-              echo "🔗 Verificando red Docker local..."
-              docker network inspect inatrace-frontend-network >/dev/null 2>&1 || \
-                docker network create inatrace-frontend-network
+                echo "🔗 Verificando red Docker local..."
+                docker network inspect inatrace-frontend-network >/dev/null 2>&1 || \
+                  docker network create inatrace-frontend-network
+                docker network inspect inatrace-backend-network >/dev/null 2>&1 || \
+                  docker network create inatrace-backend-network
 
-              echo "📥 Descargando última imagen..."
-              docker compose -f ci/docker-compose.yml pull || true
+                echo "📝 Preparando archivo .env para docker compose..."
+                cp "\$ENVFILE" ci/.env
 
-              echo "🔄 Desplegando servicios localmente..."
-              docker compose -f ci/docker-compose.yml up -d --remove-orphans --force-recreate
+                echo "📥 Descargando última imagen..."
+                docker compose -f ci/docker-compose.yml pull || true
 
-              echo "📊 Estado inicial de contenedores:"
-              docker compose -f ci/docker-compose.yml ps
+                echo "🔄 Desplegando servicios localmente..."
+                docker compose -f ci/docker-compose.yml up -d --remove-orphans --force-recreate
 
-              echo "⏳ Esperando healthcheck local..."
-              RETRY_COUNT=0
-              MAX_RETRIES=${env.HEALTH_MAX_RETRIES}
-              SLEEP_TIME=${env.HEALTH_SLEEP}
-              HEALTH_URL=${deploy.healthLocal}
+                echo "📊 Estado inicial de contenedores:"
+                docker compose -f ci/docker-compose.yml ps
 
-              while [ \$RETRY_COUNT -lt \$MAX_RETRIES ]; do
-                RETRY_COUNT=\$((RETRY_COUNT + 1))
-                if curl -fsS --max-time 5 "\$HEALTH_URL" >/dev/null 2>&1; then
-                  echo "✅ Frontend local saludable en intento \$RETRY_COUNT"
-                  docker compose -f ci/docker-compose.yml ps
-                  exit 0
-                fi
-                echo "⏳ Intento \$RETRY_COUNT/\$MAX_RETRIES - Esperando \$SLEEP_TIME s..."
-                sleep "\$SLEEP_TIME"
-              done
+                echo "⏳ Esperando healthcheck local..."
+                RETRY_COUNT=0
+                MAX_RETRIES=${env.HEALTH_MAX_RETRIES}
+                SLEEP_TIME=${env.HEALTH_SLEEP}
+                HEALTH_URL=${deploy.healthLocal}
 
-              echo "❌ Healthcheck local falló tras \$MAX_RETRIES intentos" >&2
-              docker compose -f ci/docker-compose.yml logs --tail=100
-              exit 1
-            """
+                while [ \$RETRY_COUNT -lt \$MAX_RETRIES ]; do
+                  RETRY_COUNT=\$((RETRY_COUNT + 1))
+                  if curl -fsS --max-time 5 "\$HEALTH_URL" >/dev/null 2>&1; then
+                    echo "✅ Frontend local saludable en intento \$RETRY_COUNT"
+                    docker compose -f ci/docker-compose.yml ps
+                    exit 0
+                  fi
+                  echo "⏳ Intento \$RETRY_COUNT/\$MAX_RETRIES - Esperando \$SLEEP_TIME s..."
+                  sleep "\$SLEEP_TIME"
+                done
+
+                echo "❌ Healthcheck local falló tras \$MAX_RETRIES intentos" >&2
+                docker compose -f ci/docker-compose.yml logs --tail=100
+                exit 1
+              """
+            }
           } else {
             echo "⚠️ Rama ${params.BRANCH} sin despliegue configurado (solo 'main' y 'staging')."
           }
 
-          sh 'rm -f ci/.env.deploy ci/remote-deploy.sh'
+          sh 'rm -f ci/.env.deploy ci/.env ci/remote-deploy.sh'
         }
       }
     }
