@@ -283,7 +283,7 @@ docker network inspect \"$FRONTEND_NETWORK\" >/dev/null 2>&1 || docker network c
 docker network inspect \"$BACKEND_NETWORK\" >/dev/null 2>&1 || docker network create \"$BACKEND_NETWORK\"
 
 $COMPOSE_CMD pull
-$COMPOSE_CMD up -d --remove-orphans --force-recreate
+$COMPOSE_CMD up -d --force-recreate
 
 echo \"⏳ Esperando healthcheck ($HEALTH_URL)...\"
 retry=0
