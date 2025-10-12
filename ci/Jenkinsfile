@@ -348,44 +348,44 @@ NGINX_CONF_PATH=./nginx.conf
           def remoteScript = """#!/bin/bash
 set -euo pipefail
 
-REMOTE_DIR=\"${deploy.targetDir}\"
-FRONTEND_NETWORK=\"${deploy.frontendNetwork}\"
-BACKEND_NETWORK=\"${deploy.backendNetwork}\"
-HEALTH_URL=\"${deploy.healthLocal}\"
-MAX_RETRIES=${env.HEALTH_MAX_RETRIES}
-SLEEP_TIME=${env.HEALTH_SLEEP}
+REMOTE_DIR="\${deploy.targetDir}"
+FRONTEND_NETWORK="\${deploy.frontendNetwork}"
+BACKEND_NETWORK="\${deploy.backendNetwork}"
+HEALTH_URL="\${deploy.healthLocal}"
+MAX_RETRIES=\${env.HEALTH_MAX_RETRIES}
+SLEEP_TIME=\${env.HEALTH_SLEEP}
 
 if command -v docker compose >/dev/null 2>&1; then
-  COMPOSE_CMD=\"docker compose\"
+  COMPOSE_CMD="docker compose"
 elif command -v docker-compose >/dev/null 2>&1; then
-  COMPOSE_CMD=\"docker-compose\"
+  COMPOSE_CMD="docker-compose"
 else
-  echo \"❌ Docker Compose no está instalado\" >&2
+  echo "❌ Docker Compose no está instalado" >&2
   exit 1
 fi
 
-cd \"$REMOTE_DIR\"
+cd "\$REMOTE_DIR"
 
-docker network inspect \"$FRONTEND_NETWORK\" >/dev/null 2>&1 || docker network create \"$FRONTEND_NETWORK\"
-docker network inspect \"$BACKEND_NETWORK\" >/dev/null 2>&1 || docker network create \"$BACKEND_NETWORK\"
+docker network inspect "\$FRONTEND_NETWORK" >/dev/null 2>&1 || docker network create "\$FRONTEND_NETWORK"
+docker network inspect "\$BACKEND_NETWORK" >/dev/null 2>&1 || docker network create "\$BACKEND_NETWORK"
 
 \$COMPOSE_CMD pull
 \$COMPOSE_CMD up -d --force-recreate
 
-echo \"⏳ Esperando healthcheck (\$HEALTH_URL)...\"
+echo "⏳ Esperando healthcheck (\$HEALTH_URL)..."
 retry=0
-while [ \"\$retry\" -lt \"\$MAX_RETRIES\" ]; do
+while [ "\$retry" -lt "\$MAX_RETRIES" ]; do
   retry=\$((retry + 1))
-  if curl -fsS --max-time 5 \"\$HEALTH_URL\" >/dev/null 2>&1; then
-    echo \"✅ Frontend saludable en intento \$retry\"
+  if curl -fsS --max-time 5 "\$HEALTH_URL" >/dev/null 2>&1; then
+    echo "✅ Frontend saludable en intento \$retry"
     \$COMPOSE_CMD ps
     exit 0
   fi
-  echo \"⏳ Intento \$retry/\$MAX_RETRIES - Esperando \$SLEEP_TIME s...\"
-  sleep \"\$SLEEP_TIME\"
+  echo "⏳ Intento \$retry/\$MAX_RETRIES - Esperando \$SLEEP_TIME s..."
+  sleep "\$SLEEP_TIME"
 done
 
-echo \"❌ Healthcheck falló tras \$MAX_RETRIES intentos\" >&2
+echo "❌ Healthcheck falló tras \$MAX_RETRIES intentos" >&2
 \$COMPOSE_CMD logs --tail=100
 exit 1
 """
