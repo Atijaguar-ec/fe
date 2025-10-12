@@ -391,41 +391,83 @@ exit 1
 """
           writeFile file: "${env.WORKSPACE}/ci/remote-deploy.sh", text: remoteScript
 
-          withCredentials([
-            sshUserPrivateKey(
-              credentialsId: 'usuario-prod-ssh',
-              keyFileVariable: 'SSH_KEY_FILE',
-              usernameVariable: 'SSH_USERNAME',
-              passphraseVariable: 'SSH_PASSPHRASE'
-            )
-          ]) {
+          if (params.BRANCH == 'main') {
+            withCredentials([
+              sshUserPrivateKey(
+                credentialsId: 'usuario-prod-ssh',
+                keyFileVariable: 'SSH_KEY_FILE',
+                usernameVariable: 'SSH_USERNAME',
+                passphraseVariable: 'SSH_PASSPHRASE'
+              )
+            ]) {
+              sh """
+                set -e
+                SSH_TARGET="${params.SSH_USER}@${params.SSH_HOST}"
+                SSH_PORT="${params.SSH_PORT}"
+                REMOTE_DIR="${deploy.targetDir}"
+                SSH_KEY_PATH="\$SSH_KEY_FILE"
+
+                chmod 600 "\$SSH_KEY_PATH" || true
+
+                echo "📁 Creando directorio remoto si no existe..."
+                ssh -i "\$SSH_KEY_PATH" -p "\$SSH_PORT" -o StrictHostKeyChecking=no "\$SSH_TARGET" "mkdir -p \$REMOTE_DIR"
+
+                echo "📤 Copiando docker-compose.yml"
+                scp -i "\$SSH_KEY_PATH" -P "\$SSH_PORT" -o StrictHostKeyChecking=no "${env.WORKSPACE}/ci/docker-compose.yml" "\$SSH_TARGET:\$REMOTE_DIR/docker-compose.yml"
+
+                echo "📤 Copiando nginx.conf"
+                scp -i "\$SSH_KEY_PATH" -P "\$SSH_PORT" -o StrictHostKeyChecking=no "${env.WORKSPACE}/nginx.conf" "\$SSH_TARGET:\$REMOTE_DIR/nginx.conf"
+
+                echo "📤 Copiando archivo .env"
+                scp -i "\$SSH_KEY_PATH" -P "\$SSH_PORT" -o StrictHostKeyChecking=no "${env.WORKSPACE}/ci/.env.deploy" "\$SSH_TARGET:\$REMOTE_DIR/.env"
+
+                echo "📤 Copiando script de despliegue"
+                scp -i "\$SSH_KEY_PATH" -P "\$SSH_PORT" -o StrictHostKeyChecking=no "${env.WORKSPACE}/ci/remote-deploy.sh" "\$SSH_TARGET:\$REMOTE_DIR/remote-deploy.sh"
+
+                echo "🚀 Ejecutando despliegue en servidor remoto..."
+                ssh -i "\$SSH_KEY_PATH" -p "\$SSH_PORT" -o StrictHostKeyChecking=no "\$SSH_TARGET" "chmod +x \$REMOTE_DIR/remote-deploy.sh && \$REMOTE_DIR/remote-deploy.sh"
+              """
+            }
+          } else if (params.BRANCH == 'staging') {
             sh """
               set -e
-              SSH_TARGET="${params.SSH_USER}@${params.SSH_HOST}"
-              SSH_PORT="${params.SSH_PORT}"
-              REMOTE_DIR="${deploy.targetDir}"
-              SSH_KEY_PATH="\$SSH_KEY_FILE"
 
-              chmod 600 "\$SSH_KEY_PATH" || true
+              echo "🔗 Verificando red Docker local..."
+              docker network inspect inatrace-frontend-network >/dev/null 2>&1 || \
+                docker network create inatrace-frontend-network
 
-              echo "📁 Creando directorio remoto si no existe..."
-              ssh -i "\$SSH_KEY_PATH" -p "\$SSH_PORT" -o StrictHostKeyChecking=no "\$SSH_TARGET" "mkdir -p \$REMOTE_DIR"
+              echo "📥 Descargando última imagen..."
+              docker compose -f ci/docker-compose.yml pull || true
 
-              echo "📤 Copiando docker-compose.yml"
-              scp -i "\$SSH_KEY_PATH" -P "\$SSH_PORT" -o StrictHostKeyChecking=no "${env.WORKSPACE}/ci/docker-compose.yml" "\$SSH_TARGET:\$REMOTE_DIR/docker-compose.yml"
+              echo "🔄 Desplegando servicios localmente..."
+              docker compose -f ci/docker-compose.yml up -d --remove-orphans --force-recreate
 
-              echo "📤 Copiando nginx.conf"
-              scp -i "\$SSH_KEY_PATH" -P "\$SSH_PORT" -o StrictHostKeyChecking=no "${env.WORKSPACE}/nginx.conf" "\$SSH_TARGET:\$REMOTE_DIR/nginx.conf"
+              echo "📊 Estado inicial de contenedores:"
+              docker compose -f ci/docker-compose.yml ps
 
-              echo "📤 Copiando archivo .env"
-              scp -i "\$SSH_KEY_PATH" -P "\$SSH_PORT" -o StrictHostKeyChecking=no "${env.WORKSPACE}/ci/.env.deploy" "\$SSH_TARGET:\$REMOTE_DIR/.env"
+              echo "⏳ Esperando healthcheck local..."
+              RETRY_COUNT=0
+              MAX_RETRIES=${env.HEALTH_MAX_RETRIES}
+              SLEEP_TIME=${env.HEALTH_SLEEP}
+              HEALTH_URL=${deploy.healthLocal}
 
-              echo "📤 Copiando script de despliegue"
-              scp -i "\$SSH_KEY_PATH" -P "\$SSH_PORT" -o StrictHostKeyChecking=no "${env.WORKSPACE}/ci/remote-deploy.sh" "\$SSH_TARGET:\$REMOTE_DIR/remote-deploy.sh"
+              while [ \$RETRY_COUNT -lt \$MAX_RETRIES ]; do
+                RETRY_COUNT=\$((RETRY_COUNT + 1))
+                if curl -fsS --max-time 5 "\$HEALTH_URL" >/dev/null 2>&1; then
+                  echo "✅ Frontend local saludable en intento \$RETRY_COUNT"
+                  docker compose -f ci/docker-compose.yml ps
+                  exit 0
+                fi
+                echo "⏳ Intento \$RETRY_COUNT/\$MAX_RETRIES - Esperando \$SLEEP_TIME s..."
+                sleep "\$SLEEP_TIME"
+              done
 
-              echo "🚀 Ejecutando despliegue en servidor remoto..."
-              ssh -i "\$SSH_KEY_PATH" -p "\$SSH_PORT" -o StrictHostKeyChecking=no "\$SSH_TARGET" "chmod +x \$REMOTE_DIR/remote-deploy.sh && \$REMOTE_DIR/remote-deploy.sh"
+              echo "❌ Healthcheck local falló tras \$MAX_RETRIES intentos" >&2
+              docker compose -f ci/docker-compose.yml logs --tail=100
+              exit 1
             """
+          } else {
+            echo "⚠️ Rama ${params.BRANCH} sin despliegue configurado (solo 'main' y 'staging')."
           }
 
           sh 'rm -f ci/.env.deploy ci/remote-deploy.sh'
