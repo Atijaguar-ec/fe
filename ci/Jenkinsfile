@@ -105,8 +105,21 @@ pipeline {
           }
 
           try {
-            sshagent(credentials: ['usuario-prod-ssh']) {
-              sh(label: 'Validar usuario-prod-ssh', script: 'true')
+            withCredentials([
+              sshUserPrivateKey(
+                credentialsId: 'usuario-prod-ssh',
+                keyFileVariable: 'SSH_KEY_FILE',
+                usernameVariable: 'SSH_USERNAME',
+                passphraseVariable: 'SSH_PASSPHRASE'
+              )
+            ]) {
+              sh(label: 'Validar usuario-prod-ssh', script: '''
+                set -e
+                if [ ! -f "$SSH_KEY_FILE" ]; then
+                  echo "❌ Clave SSH no disponible"
+                  exit 1
+                fi
+              ''')
             }
           } catch (Exception sshError) {
             missing << 'usuario-prod-ssh'
