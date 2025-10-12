@@ -171,12 +171,12 @@ pipeline {
               echo "🔐 Autenticando en GHCR..."
               echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 
-              BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+              BUILD_DATE=\$(date -u +"%Y-%m-%dT%H:%M:%SZ")
               docker build \
-                --build-arg BUILD_DATE=$BUILD_DATE \
+                --build-arg BUILD_DATE=\$BUILD_DATE \
                 --build-arg VCS_REF=${env.GIT_SHORT_SHA} \
                 --build-arg VERSION=${env.DEPLOY_TAG} \
-                --label org.opencontainers.image.created=$BUILD_DATE \
+                --label org.opencontainers.image.created=\$BUILD_DATE \
                 --label org.opencontainers.image.revision=${env.GIT_SHORT_SHA} \
                 --label org.opencontainers.image.version=${env.DEPLOY_TAG} \
                 --label org.opencontainers.image.source=https://github.com/${env.REPO_FULL_NAME} \
