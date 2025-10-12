@@ -145,7 +145,7 @@ pipeline {
       steps {
         cleanWs()
         script {
-          def repoUrl = 'https://github.com/Atijaguar-ec/frontend.git'
+          def repoUrl = 'https://github.com/Atijaguar-ec/fe.git'
           def branchRef = params.BRANCH ?: 'staging'
 
           if (env.GIT_AUTH_MODE == 'usernamePassword') {
@@ -165,7 +165,7 @@ pipeline {
               sh(label: 'Manual git clone con PAT', script: """
 set -eu
 
-git clone --origin origin --branch ${branchRef} https://${env.GIT_AUTH_USER}:\${GIT_TOKEN}@github.com/Atijaguar-ec/frontend.git .
+git clone --origin origin --branch ${branchRef} https://${env.GIT_AUTH_USER}:\${GIT_TOKEN}@github.com/Atijaguar-ec/fe.git .
 git remote set-url origin ${repoUrl}
 git fetch --tags --prune origin
               """)
