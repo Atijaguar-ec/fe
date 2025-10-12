@@ -399,22 +399,22 @@ exit 1
               REMOTE_DIR="${deploy.targetDir}"
 
               echo "📁 Creando directorio remoto si no existe..."
-              ssh -p "$SSH_PORT" "$SSH_TARGET" "mkdir -p $REMOTE_DIR"
+              ssh -p "\$SSH_PORT" "\$SSH_TARGET" "mkdir -p \$REMOTE_DIR"
 
               echo "📤 Copiando docker-compose.yml"
-              scp -P "$SSH_PORT" "${env.WORKSPACE}/ci/docker-compose.yml" "$SSH_TARGET:$REMOTE_DIR/docker-compose.yml"
+              scp -P "\$SSH_PORT" "${env.WORKSPACE}/ci/docker-compose.yml" "\$SSH_TARGET:\$REMOTE_DIR/docker-compose.yml"
 
               echo "📤 Copiando nginx.conf"
-              scp -P "$SSH_PORT" "${env.WORKSPACE}/nginx.conf" "$SSH_TARGET:$REMOTE_DIR/nginx.conf"
+              scp -P "\$SSH_PORT" "${env.WORKSPACE}/nginx.conf" "\$SSH_TARGET:\$REMOTE_DIR/nginx.conf"
 
               echo "📤 Copiando archivo .env"
-              scp -P "$SSH_PORT" "${env.WORKSPACE}/ci/.env.deploy" "$SSH_TARGET:$REMOTE_DIR/.env"
+              scp -P "\$SSH_PORT" "${env.WORKSPACE}/ci/.env.deploy" "\$SSH_TARGET:\$REMOTE_DIR/.env"
 
               echo "📤 Copiando script de despliegue"
-              scp -P "$SSH_PORT" "${env.WORKSPACE}/ci/remote-deploy.sh" "$SSH_TARGET:$REMOTE_DIR/remote-deploy.sh"
+              scp -P "\$SSH_PORT" "${env.WORKSPACE}/ci/remote-deploy.sh" "\$SSH_TARGET:\$REMOTE_DIR/remote-deploy.sh"
 
               echo "🚀 Ejecutando despliegue en servidor remoto..."
-              ssh -p "$SSH_PORT" "$SSH_TARGET" "chmod +x $REMOTE_DIR/remote-deploy.sh && $REMOTE_DIR/remote-deploy.sh"
+              ssh -p "\$SSH_PORT" "\$SSH_TARGET" "chmod +x \$REMOTE_DIR/remote-deploy.sh && \$REMOTE_DIR/remote-deploy.sh"
             """
           }
 
