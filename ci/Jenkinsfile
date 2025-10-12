@@ -230,7 +230,7 @@ git fetch --tags --prune origin
               -w /workspace \
               node:${NODE_VERSION}-alpine sh -c '
                 set -e
-                apk add --no-cache chromium nss
+                apk add --no-cache git chromium nss openssh
                 npm config set cache /tmp/npm-cache --global
                 npm ci
                 npm run lint
