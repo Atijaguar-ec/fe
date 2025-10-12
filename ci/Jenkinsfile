@@ -162,14 +162,17 @@ pipeline {
             ])
           } else {
             withCredentials([string(credentialsId: 'github-pat', variable: 'GIT_TOKEN')]) {
-              sh(script: """
-#!/bin/bash
+              sh(
+                script: """
 set -euo pipefail
 
 git clone --origin origin --branch ${branchRef} https://${env.GIT_AUTH_USER}:\${GIT_TOKEN}@github.com/Atijaguar-ec/frontend.git .
 git remote set-url origin ${repoUrl}
 git fetch --tags --prune origin
-              """, label: 'Manual git clone con PAT')
+                """,
+                shell: '/bin/bash',
+                label: 'Manual git clone con PAT'
+              )
             }
           }
         }
