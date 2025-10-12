@@ -444,6 +444,9 @@ exit 1
                 echo "📝 Preparando archivo .env para docker compose..."
                 cp "\$ENVFILE" ci/.env
 
+                echo "🧾 Copiando nginx.conf para despliegue local..."
+                cp "${env.WORKSPACE}/nginx.conf" ci/nginx.conf
+
                 echo "📥 Descargando última imagen..."
                 docker compose -f ci/docker-compose.yml pull || true
 
@@ -479,7 +482,7 @@ exit 1
             echo "⚠️ Rama ${params.BRANCH} sin despliegue configurado (solo 'main' y 'staging')."
           }
 
-          sh 'rm -f ci/.env.deploy ci/.env ci/remote-deploy.sh'
+          sh 'rm -f ci/.env.deploy ci/.env ci/nginx.conf ci/remote-deploy.sh'
         }
       }
     }
