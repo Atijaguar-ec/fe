@@ -391,30 +391,40 @@ exit 1
 """
           writeFile file: "${env.WORKSPACE}/ci/remote-deploy.sh", text: remoteScript
 
-          sshagent(['usuario-prod-ssh']) {
+          withCredentials([
+            sshUserPrivateKey(
+              credentialsId: 'usuario-prod-ssh',
+              keyFileVariable: 'SSH_KEY_FILE',
+              usernameVariable: 'SSH_USERNAME',
+              passphraseVariable: 'SSH_PASSPHRASE'
+            )
+          ]) {
             sh """
               set -e
               SSH_TARGET="${params.SSH_USER}@${params.SSH_HOST}"
               SSH_PORT="${params.SSH_PORT}"
               REMOTE_DIR="${deploy.targetDir}"
+              SSH_KEY_PATH="\$SSH_KEY_FILE"
+
+              chmod 600 "\$SSH_KEY_PATH" || true
 
               echo "📁 Creando directorio remoto si no existe..."
-              ssh -p "\$SSH_PORT" "\$SSH_TARGET" "mkdir -p \$REMOTE_DIR"
+              ssh -i "\$SSH_KEY_PATH" -p "\$SSH_PORT" -o StrictHostKeyChecking=no "\$SSH_TARGET" "mkdir -p \$REMOTE_DIR"
 
               echo "📤 Copiando docker-compose.yml"
-              scp -P "\$SSH_PORT" "${env.WORKSPACE}/ci/docker-compose.yml" "\$SSH_TARGET:\$REMOTE_DIR/docker-compose.yml"
+              scp -i "\$SSH_KEY_PATH" -P "\$SSH_PORT" -o StrictHostKeyChecking=no "${env.WORKSPACE}/ci/docker-compose.yml" "\$SSH_TARGET:\$REMOTE_DIR/docker-compose.yml"
 
               echo "📤 Copiando nginx.conf"
-              scp -P "\$SSH_PORT" "${env.WORKSPACE}/nginx.conf" "\$SSH_TARGET:\$REMOTE_DIR/nginx.conf"
+              scp -i "\$SSH_KEY_PATH" -P "\$SSH_PORT" -o StrictHostKeyChecking=no "${env.WORKSPACE}/nginx.conf" "\$SSH_TARGET:\$REMOTE_DIR/nginx.conf"
 
               echo "📤 Copiando archivo .env"
-              scp -P "\$SSH_PORT" "${env.WORKSPACE}/ci/.env.deploy" "\$SSH_TARGET:\$REMOTE_DIR/.env"
+              scp -i "\$SSH_KEY_PATH" -P "\$SSH_PORT" -o StrictHostKeyChecking=no "${env.WORKSPACE}/ci/.env.deploy" "\$SSH_TARGET:\$REMOTE_DIR/.env"
 
               echo "📤 Copiando script de despliegue"
-              scp -P "\$SSH_PORT" "${env.WORKSPACE}/ci/remote-deploy.sh" "\$SSH_TARGET:\$REMOTE_DIR/remote-deploy.sh"
+              scp -i "\$SSH_KEY_PATH" -P "\$SSH_PORT" -o StrictHostKeyChecking=no "${env.WORKSPACE}/ci/remote-deploy.sh" "\$SSH_TARGET:\$REMOTE_DIR/remote-deploy.sh"
 
               echo "🚀 Ejecutando despliegue en servidor remoto..."
-              ssh -p "\$SSH_PORT" "\$SSH_TARGET" "chmod +x \$REMOTE_DIR/remote-deploy.sh && \$REMOTE_DIR/remote-deploy.sh"
+              ssh -i "\$SSH_KEY_PATH" -p "\$SSH_PORT" -o StrictHostKeyChecking=no "\$SSH_TARGET" "chmod +x \$REMOTE_DIR/remote-deploy.sh && \$REMOTE_DIR/remote-deploy.sh"
             """
           }
 
