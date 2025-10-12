@@ -71,20 +71,93 @@ pipeline {
   }
 
   stages {
+    stage('🔐 Preflight credenciales') {
+      steps {
+        script {
+          def missing = []
+          def gitAuthMode = ''
+          def gitAuthUser = ''
+
+          try {
+            withCredentials([usernamePassword(credentialsId: 'github-pat', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+              gitAuthMode = 'usernamePassword'
+              gitAuthUser = GIT_USER
+            }
+          } catch (Exception primaryError) {
+            try {
+              withCredentials([string(credentialsId: 'github-pat', variable: 'GIT_TOKEN')]) {
+                gitAuthMode = 'tokenOnly'
+                gitAuthUser = 'oauth2'
+              }
+            } catch (Exception secondaryError) {
+              missing << 'github-pat'
+              echo "⚠️ No se pudo cargar 'github-pat' como username/password (${primaryError.class.simpleName}) ni como secret text (${secondaryError.class.simpleName})."
+            }
+          }
+
+          try {
+            withCredentials([usernamePassword(credentialsId: 'ghcr-credentials', usernameVariable: 'DUMMY_USER', passwordVariable: 'DUMMY_TOKEN')]) {
+              // Credencial válida
+            }
+          } catch (Exception ghcrError) {
+            missing << 'ghcr-credentials'
+            echo "⚠️ Credencial 'ghcr-credentials' inválida: ${ghcrError.class.simpleName}"
+          }
+
+          try {
+            sshagent(credentials: ['usuario-prod-ssh']) {
+              sh(label: 'Validar usuario-prod-ssh', script: 'true')
+            }
+          } catch (Exception sshError) {
+            missing << 'usuario-prod-ssh'
+            echo "⚠️ Credencial 'usuario-prod-ssh' inválida: ${sshError.class.simpleName}"
+          }
+
+          if (!gitAuthMode) {
+            missing << 'github-pat'
+          }
+
+          if (missing) {
+            error("❌ Credenciales faltantes o inválidas: ${missing.unique().join(', ')}")
+          }
+
+          env.GIT_AUTH_MODE = gitAuthMode
+          env.GIT_AUTH_USER = gitAuthUser ?: 'oauth2'
+          echo "✅ Credenciales verificadas. Modo Git: ${gitAuthMode}"
+        }
+      }
+    }
+
     stage('📥 Checkout') {
       steps {
         cleanWs()
-        checkout([
-          $class: 'GitSCM',
-          branches: [[name: "*/${params.BRANCH}"]],
-          userRemoteConfigs: [[
-            url: 'https://github.com/Atijaguar-ec/frontend.git',
-            credentialsId: 'github-pat'
-          ]],
-          extensions: [
-            [$class: 'CloneOption', shallow: false, depth: 0, noTags: false]
-          ]
-        ])
+        script {
+          def repoUrl = 'https://github.com/Atijaguar-ec/frontend.git'
+          def branchRef = params.BRANCH ?: 'staging'
+
+          if (env.GIT_AUTH_MODE == 'usernamePassword') {
+            checkout([
+              $class: 'GitSCM',
+              branches: [[name: "*/${branchRef}" ]],
+              userRemoteConfigs: [[
+                url: repoUrl,
+                credentialsId: 'github-pat'
+              ]],
+              extensions: [
+                [$class: 'CloneOption', shallow: false, depth: 0, noTags: false]
+              ]
+            ])
+          } else {
+            withCredentials([string(credentialsId: 'github-pat', variable: 'GIT_TOKEN')]) {
+              sh """
+                set -euo pipefail
+                git clone --origin origin --branch ${branchRef} https://${env.GIT_AUTH_USER}:\${GIT_TOKEN}@github.com/Atijaguar-ec/frontend.git .
+                git remote set-url origin ${repoUrl}
+                git fetch --tags --prune origin
+              """
+            }
+          }
+        }
       }
     }
 
