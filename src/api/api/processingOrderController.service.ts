@@ -148,7 +148,7 @@ export namespace GetProcessingOrder {
 })
 export class ProcessingOrderControllerService {
 
-    protected basePath = 'http://5.161.183.137:8080';
+    protected basePath = 'http://192.168.100.53:8080';
     public defaultHeaders = new HttpHeaders();
     public configuration = new Configuration();
 
