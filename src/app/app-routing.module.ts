@@ -64,11 +64,11 @@ const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: '/',
+    redirectTo: 'login',
     pathMatch: 'full'
   },
   {
-    path: '',
+    path: 'landing',
     component: LandingPageLayoutComponent,
     children: [
       { path: '', component: LandingPageComponent, pathMatch: 'full' },
