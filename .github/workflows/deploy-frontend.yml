@@ -20,6 +20,7 @@ on:
         type: choice
         options:
         - develop
+        - develop-shrimp
         - test
         - prod
       company:
@@ -309,6 +310,130 @@ jobs:
 
             echo "❌ Health check failed after 10 attempts"
             docker logs --tail=100 inatrace-fe-dev
+            exit 1
+
+  deploy-dev-shrimp:
+    name: 🦐 Deploy to Development Shrimp
+    runs-on: [ubuntu-latest]
+    needs: build
+    if: github.ref == 'refs/heads/develop' || github.event.inputs.environment == 'develop-shrimp'
+    environment:
+      name: develop-shrimp
+      url: http://camaron.atijaguar.com
+    steps:
+      - name: 📥 Checkout deployment configs
+        uses: actions/checkout@v4
+
+      - name: 📁 Ensure remote directory exists
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
+          script: |
+            mkdir -p /opt/inatrace/frontend/dev-shrimp
+
+      - name: 📤 Upload docker-compose.yml
+        if: ${{ hashFiles('ci/docker-compose.yml') != '' }}
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
+          source: "ci/docker-compose.yml"
+          target: "/opt/inatrace/frontend/dev-shrimp"
+          strip_components: 1
+
+      - name: 📤 Upload nginx.conf
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
+          source: "nginx.conf"
+          target: "/opt/inatrace/frontend/dev-shrimp"
+
+      - name: 📝 Prepare .env (dev-shrimp)
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"; IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
+          TAG_VALUE="${{ needs.build.outputs.image-tag }}"
+          cat > .env <<EOF
+          IMAGE_NAME=$IMAGE
+          TAG=$TAG_VALUE
+          NODE_ENV=development
+          PRIMARY_PRODUCT_TYPE=SHRIMP
+          CONTAINER_NAME=inatrace-fe-dev-shrimp
+          HOST_HTTP_PORT=8082
+          FRONTEND_NETWORK=inatrace-frontend-network
+          BACKEND_NETWORK=inatrace-backend-network
+          DOMAIN=camaron.atijaguar.com
+          COMPANY_NAME=INATrace Camarón
+          COMPANY_THEME=camaron
+          TRAEFIK_ENABLE=true
+          TRAEFIK_ROUTER_NAME=inatrace-fe-dev-shrimp
+          TRAEFIK_ROUTER_RULE='Host(\`camaron.atijaguar.com\`)'
+          TRAEFIK_ENTRYPOINTS=web
+          TRAEFIK_CERT_RESOLVER=
+          HEALTHCHECK_URL=http://localhost:8082/health
+          NGINX_CONF_PATH=./nginx.conf
+          EOF
+
+      - name: 📤 Upload .env (dev-shrimp)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
+          source: ".env"
+          target: "/opt/inatrace/frontend/dev-shrimp"
+
+      - name: 🚀 Deploy to Development Shrimp Server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
+          script: |
+            set -e
+            echo "🦐 Starting deployment to Development Shrimp ${{ github.event_name }}"
+
+            cd /opt/inatrace/frontend/dev-shrimp
+
+            set -a
+            source .env
+            set +a
+
+            # Ensure required networks exist (shared with backend)
+            docker network inspect inatrace-backend-network >/dev/null 2>&1 || docker network create inatrace-backend-network
+            docker network inspect inatrace-frontend-network >/dev/null 2>&1 || docker network create inatrace-frontend-network
+
+            echo "🧹 Cleaning up old shrimp frontend services..."
+            # Stop only shrimp frontend container (preserve other services)
+            docker stop inatrace-fe-dev-shrimp 2>/dev/null || true
+            docker rm inatrace-fe-dev-shrimp 2>/dev/null || true
+            docker compose down
+
+            echo "🚀 Deploying Shrimp frontend with Docker Compose..."
+            docker compose pull
+            docker compose up -d
+
+            echo "⏳ Waiting for shrimp frontend health endpoint..."
+            for i in {1..10}; do
+              sleep 10
+              if curl -f http://localhost:8082/health; then
+                echo "✅ Development Shrimp frontend deployment successful!"
+                exit 0
+              fi
+              echo "⏳ Health check attempt $i/10, retrying..."
+            done
+
+            echo "❌ Health check failed after 10 attempts"
+            docker logs --tail=100 inatrace-fe-dev-shrimp
             exit 1
 
   deploy-test-unocace:
