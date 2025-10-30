@@ -249,7 +249,7 @@ jobs:
           COMPANY_THEME=cacao
           TRAEFIK_ENABLE=true
           TRAEFIK_ROUTER_NAME=inatrace-fe-dev
-          TRAEFIK_ROUTER_RULE=Host(`inatrace.atijaguar.com`) || Host(`5.161.183.137`)
+          TRAEFIK_ROUTER_RULE="Host(\`inatrace.atijaguar.com\`) || Host(\`5.161.183.137\`)"
           TRAEFIK_ENTRYPOINTS=web
           TRAEFIK_CERT_RESOLVER=
           HEALTHCHECK_URL=http://localhost:8081/health
