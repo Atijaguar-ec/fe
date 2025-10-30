@@ -114,7 +114,7 @@ jobs:
             TAG="dev-${GITHUB_SHA::7}"
           fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "🏷️ Generated frontend tag: $TAG | ${GITHUB_REF_NAME}"
+          echo "🏷️ Generated frontend  tag: $TAG | ${GITHUB_REF_NAME}"
 
       - name: 🔐 Login to GHCR
         uses: docker/login-action@v3
