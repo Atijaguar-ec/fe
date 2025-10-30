@@ -161,6 +161,11 @@
                                 Display "Damaged weight deduction"
                             </checkbox-input-rich-label>
                         </checkbox-input>
+                        <checkbox-input [form]="form.get('displayMoisturePercentage')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.moisturePercentage.label">
+                                Display "Moisture percentage deduction"
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
                         <checkbox-input [form]="form.get('displayPriceDeterminedLater')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.priceDeterminedLater.label">
                                 Display "Price determined later"

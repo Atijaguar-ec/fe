@@ -52,6 +52,7 @@ export class CompanyDetailFacilityAddWizardComponent implements OnInit {
   ableToDocumentTare = new FormControl(false);
   priceDeductionDamage = new FormControl(false);
   weightDeductionDamage = new FormControl(false);
+  moisturePercentageDeduction = new FormControl(false);
   priceDeterminedLater = new FormControl(false);
   isPublic = new FormControl(false);
 
@@ -238,6 +239,7 @@ export class CompanyDetailFacilityAddWizardComponent implements OnInit {
       displayOrganic: this.mayContainOrganic.value,
       displayPriceDeductionDamage: this.priceDeductionDamage.value,
       displayWeightDeductionDamage: this.weightDeductionDamage.value,
+      displayMoisturePercentage: this.moisturePercentageDeduction.value,
       displayPriceDeterminedLater: this.priceDeterminedLater.value,
       displayTare: this.ableToDocumentTare.value,
       displayWomenOnly: this.mayContainWomenOnly.value

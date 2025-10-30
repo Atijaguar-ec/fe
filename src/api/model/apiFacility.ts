@@ -65,6 +65,10 @@ export interface ApiFacility {
      */
     displayWeightDeductionDamage?: boolean;
     /**
+     * Enable form control 'Moisture percentage'
+     */
+    displayMoisturePercentage?: boolean;
+    /**
      * Enable form control 'Tare'
      */
     displayTare?: boolean;
@@ -138,6 +142,10 @@ export namespace ApiFacility {
          * Enable form control 'Weight deduction damage'
          */
         displayWeightDeductionDamage = 'displayWeightDeductionDamage',
+        /**
+         * Enable form control 'Moisture percentage'
+         */
+        displayMoisturePercentage = 'displayMoisturePercentage',
         /**
          * Enable form control 'Tare'
          */
@@ -260,6 +268,17 @@ export namespace ApiFacility {
                     isEnum: false,
                     required: false,
                     name: 'displayWeightDeductionDamage',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'displayMoisturePercentage',
                     classname: 'ApiFacility',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -412,6 +431,8 @@ export namespace ApiFacility {
                 ],
                 displayWeightDeductionDamage: [
                 ],
+                displayMoisturePercentage: [
+                ],
                 displayTare: [
                 ],
                 displayWomenOnly: [
@@ -463,6 +484,9 @@ export namespace ApiFacility {
   //                   validators: []
   //               },
   //               displayWeightDeductionDamage: {
+  //                   validators: []
+  //               },
+  //               displayMoisturePercentage: {
   //                   validators: []
   //               },
   //               displayTare: {

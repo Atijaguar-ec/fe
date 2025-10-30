@@ -275,7 +275,7 @@ jobs:
           fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
           script: |
             set -e
-            echo "🚀 Starting deployment to Development... ${{ github.event_name }}"
+            echo "🚀 Starting deployment to Development ${{ github.event_name }}"
 
             cd /opt/inatrace/frontend/dev
 

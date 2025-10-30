@@ -469,8 +469,78 @@ export namespace ApiGroupStockOrder {
                 organicCertification: [
                 ],
                 available: [
-                ]
+                ],
             }
-        };
+        }
     }
+
+  // export const ApiGroupStockOrderValidationScheme = {
+  //     validators: [],
+  //     fields: {
+  //               id: {
+  //                   validators: []
+  //               },
+  //               groupedIds: {
+  //                   validators: []
+  //               },
+  //               productionDate: {
+  //                   validators: []
+  //               },
+  //               updateTimestamp: {
+  //                   validators: []
+  //               },
+  //               internalLotNumber: {
+  //                   validators: []
+  //               },
+  //               noOfSacs: {
+  //                   validators: []
+  //               },
+  //               orderType: {
+  //                   validators: []
+  //               },
+  //               facilityName: {
+  //                   validators: []
+  //               },
+  //               semiProductName: {
+  //                   validators: []
+  //               },
+  //               finalProductName: {
+  //                   validators: []
+  //               },
+  //               totalQuantity: {
+  //                   validators: []
+  //               },
+  //               fulfilledQuantity: {
+  //                   validators: []
+  //               },
+  //               availableQuantity: {
+  //                   validators: []
+  //               },
+  //               unitLabel: {
+  //                   validators: []
+  //               },
+  //               deliveryTime: {
+  //                   validators: []
+  //               },
+  //               weekNumber: {
+  //                   validators: []
+  //               },
+  //               parcelLot: {
+  //                   validators: []
+  //               },
+  //               variety: {
+  //                   validators: []
+  //               },
+  //               organicCertification: {
+  //                   validators: []
+  //               },
+  //               available: {
+  //                   validators: []
+  //               },
+  //     }
+  // } as SimpleValidationScheme<ApiGroupStockOrder>;
+
+
 }
+
+

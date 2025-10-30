@@ -220,6 +220,14 @@ export interface ApiStockOrder {
      */
     damagedWeightDeduction?: number;
     /**
+     * Moisture percentage applied (0-100)
+     */
+    moisturePercentage?: number;
+    /**
+     * Calculated weight deduction due to moisture
+     */
+    moistureWeightDeduction?: number;
+    /**
      * Generated UUID tag for this stock order QR code
      */
     qrCodeTag?: string;
@@ -232,8 +240,8 @@ export interface ApiStockOrder {
      * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
      */
     repackedOriginStockOrderId?: string;
-    openOrder?: boolean;
     purchaseOrder?: boolean;
+    openOrder?: boolean;
     available?: boolean;
 }
 
@@ -425,6 +433,14 @@ export namespace ApiStockOrder {
          */
         damagedWeightDeduction = 'damagedWeightDeduction',
         /**
+         * Moisture percentage applied (0-100)
+         */
+        moisturePercentage = 'moisturePercentage',
+        /**
+         * Calculated weight deduction due to moisture
+         */
+        moistureWeightDeduction = 'moistureWeightDeduction',
+        /**
          * Generated UUID tag for this stock order QR code
          */
         qrCodeTag = 'qrCodeTag',
@@ -437,8 +453,8 @@ export namespace ApiStockOrder {
          * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
          */
         repackedOriginStockOrderId = 'repackedOriginStockOrderId',
-        openOrder = 'openOrder',
         purchaseOrder = 'purchaseOrder',
+        openOrder = 'openOrder',
         available = 'available'
     }
 
@@ -1111,6 +1127,28 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'moisturePercentage',
+                    classname: 'ApiStockOrder',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'moistureWeightDeduction',
+                    classname: 'ApiStockOrder',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'qrCodeTag',
                     classname: 'ApiStockOrder',
                     dataType: 'string',
@@ -1157,7 +1195,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'openOrder',
+                    name: 'purchaseOrder',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1168,7 +1206,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'purchaseOrder',
+                    name: 'openOrder',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1300,6 +1338,10 @@ export namespace ApiStockOrder {
                 ],
                 damagedWeightDeduction: [
                 ],
+                moisturePercentage: [
+                ],
+                moistureWeightDeduction: [
+                ],
                 qrCodeTag: [
                 ],
                 qrCodeTagFinalProduct: [
@@ -1308,9 +1350,9 @@ export namespace ApiStockOrder {
                 ],
                 repackedOriginStockOrderId: [
                 ],
-                openOrder: [
-                ],
                 purchaseOrder: [
+                ],
+                openOrder: [
                 ],
                 available: [
                 ],
@@ -1489,6 +1531,12 @@ export namespace ApiStockOrder {
   //               damagedWeightDeduction: {
   //                   validators: []
   //               },
+  //               moisturePercentage: {
+  //                   validators: []
+  //               },
+  //               moistureWeightDeduction: {
+  //                   validators: []
+  //               },
   //               qrCodeTag: {
   //                   validators: []
   //               },
@@ -1501,10 +1549,10 @@ export namespace ApiStockOrder {
   //               repackedOriginStockOrderId: {
   //                   validators: []
   //               },
-  //               openOrder: {
+  //               purchaseOrder: {
   //                   validators: []
   //               },
-  //               purchaseOrder: {
+  //               openOrder: {
   //                   validators: []
   //               },
   //               available: {
