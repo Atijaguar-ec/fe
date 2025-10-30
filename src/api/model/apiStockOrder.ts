@@ -196,6 +196,18 @@ export interface ApiStockOrder {
      */
     weekNumber?: number;
     /**
+     * Parcel lot for cacao deliveries
+     */
+    parcelLot?: string;
+    /**
+     * Variety for cacao deliveries
+     */
+    variety?: string;
+    /**
+     * Organic certification details
+     */
+    organicCertification?: string;
+    /**
      * Tare
      */
     tare?: number;
@@ -388,6 +400,18 @@ export namespace ApiStockOrder {
          * Week number for cacao deliveries (1-53)
          */
         weekNumber = 'weekNumber',
+        /**
+         * Parcel lot for cacao deliveries
+         */
+        parcelLot = 'parcelLot',
+        /**
+         * Variety for cacao deliveries
+         */
+        variety = 'variety',
+        /**
+         * Organic certification details
+         */
+        organicCertification = 'organicCertification',
         /**
          * Tare
          */
@@ -1021,6 +1045,39 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'parcelLot',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'variety',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'organicCertification',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'tare',
                     classname: 'ApiStockOrder',
                     dataType: 'number',
@@ -1230,6 +1287,12 @@ export namespace ApiStockOrder {
                 organic: [
                 ],
                 weekNumber: [
+                ],
+                parcelLot: [
+                ],
+                variety: [
+                ],
+                organicCertification: [
                 ],
                 tare: [
                 ],

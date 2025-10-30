@@ -135,6 +135,30 @@
               </div>
             </div>
 
+            <!-- Parcel Lot (for cacao) -->
+            <div class="af-row" *ngIf="isCocoa()">
+              <div class="af-c6">
+                <textinput
+                  [form]="stockOrderForm.get('parcelLot')"
+                  label="Lote (Parcela)"
+                  i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.parcelLot.label"
+                  style="width: 100%"
+                  placeholder="Ingrese el lote de la parcela"
+                  i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.parcelLot.placeholder">
+                </textinput>
+              </div>
+              <div class="af-c6">
+                <textinput
+                  [form]="stockOrderForm.get('variety')"
+                  label="Variedad"
+                  i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.variety.label"
+                  style="width: 100%"
+                  placeholder="Ingrese la variedad"
+                  i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.variety.placeholder">
+                </textinput>
+              </div>
+            </div>
+
             <div class="af-row">
               <div class="af-c12">
                 <single-choice
@@ -418,6 +442,20 @@
                     </div>
                   </ng-container>
                 </single-choice>
+              </div>
+            </div>
+
+            <!-- Organic Certification -->
+            <div class="af-row" *ngIf="showOrganic && stockOrderForm.get('organic').value === 'true'">
+              <div class="af-c12">
+                <textinput
+                  [form]="stockOrderForm.get('organicCertification')"
+                  label="Certificación Orgánica"
+                  i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.organicCertification.label"
+                  style="width: 100%"
+                  placeholder="Ingrese detalles de la certificación"
+                  i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.organicCertification.placeholder">
+                </textinput>
               </div>
             </div>
 

@@ -400,6 +400,18 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if (!this.stockOrderForm.get('weekNumber')) {
       this.stockOrderForm.addControl('weekNumber', new FormControl(null));
     }
+    // Add Parcel Lot control (for cacao)
+    if (!this.stockOrderForm.get('parcelLot')) {
+      this.stockOrderForm.addControl('parcelLot', new FormControl(null));
+    }
+    // Add Variety control (for cacao)
+    if (!this.stockOrderForm.get('variety')) {
+      this.stockOrderForm.addControl('variety', new FormControl(null));
+    }
+    // Add Organic Certification control
+    if (!this.stockOrderForm.get('organicCertification')) {
+      this.stockOrderForm.addControl('organicCertification', new FormControl(null));
+    }
     this.updateWeekNumberVisibilityAndValidation();
 
     this.prepareData();
@@ -453,6 +465,27 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
     if ((this.order as any)?.weekNumber != null) {
       this.stockOrderForm.get('weekNumber').setValue((this.order as any).weekNumber);
+    }
+    // Ensure parcelLot control exists and set value if backend provides it
+    if (!this.stockOrderForm.get('parcelLot')) {
+      this.stockOrderForm.addControl('parcelLot', new FormControl(null));
+    }
+    if ((this.order as any)?.parcelLot != null) {
+      this.stockOrderForm.get('parcelLot').setValue((this.order as any).parcelLot);
+    }
+    // Ensure variety control exists and set value if backend provides it
+    if (!this.stockOrderForm.get('variety')) {
+      this.stockOrderForm.addControl('variety', new FormControl(null));
+    }
+    if ((this.order as any)?.variety != null) {
+      this.stockOrderForm.get('variety').setValue((this.order as any).variety);
+    }
+    // Ensure organicCertification control exists and set value if backend provides it
+    if (!this.stockOrderForm.get('organicCertification')) {
+      this.stockOrderForm.addControl('organicCertification', new FormControl(null));
+    }
+    if ((this.order as any)?.organicCertification != null) {
+      this.stockOrderForm.get('organicCertification').setValue((this.order as any).organicCertification);
     }
     this.updateWeekNumberVisibilityAndValidation();
   }
