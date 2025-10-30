@@ -289,6 +289,9 @@
                                         <th class="text-right">Precio unitario</th>
                                         <th class="text-right">Total</th>
                                         <th class="text-center">Semana</th>
+                                        <th class="text-center">Lote</th>
+                                        <th class="text-center">Variedad</th>
+                                        <th class="text-center">Cert. Orgánica</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -299,6 +302,9 @@
                                         <td class="text-right">{{ delivery.unitPrice | currency:delivery.currency:'symbol':'1.0-2' }}</td>
                                         <td class="text-right">{{ delivery.totalAmount | currency:delivery.currency:'symbol':'1.0-2' }}</td>
                                         <td class="text-center">{{ delivery.weekNumber || '—' }}</td>
+                                        <td class="text-center">{{ delivery.parcelLot || '—' }}</td>
+                                        <td class="text-center">{{ delivery.variety || '—' }}</td>
+                                        <td class="text-center">{{ delivery.organicCertification || '—' }}</td>
                                     </tr>
                                 </tbody>
                             </table>

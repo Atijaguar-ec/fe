@@ -89,6 +89,18 @@ export interface ApiGroupStockOrder {
      * Week number for cacao deliveries (1-53)
      */
     weekNumber?: number;
+    /**
+     * Parcel lot for cacao deliveries
+     */
+    parcelLot?: string;
+    /**
+     * Variety for cacao deliveries
+     */
+    variety?: string;
+    /**
+     * Organic certification details
+     */
+    organicCertification?: string;
     available?: boolean;
 }
 
@@ -164,6 +176,18 @@ export namespace ApiGroupStockOrder {
          * Week number for cacao deliveries (1-53)
          */
         weekNumber = 'weekNumber',
+        /**
+         * Parcel lot for cacao deliveries
+         */
+        parcelLot = 'parcelLot',
+        /**
+         * Variety for cacao deliveries
+         */
+        variety = 'variety',
+        /**
+         * Organic certification details
+         */
+        organicCertification = 'organicCertification',
         available = 'available'
     }
 
@@ -364,6 +388,39 @@ export namespace ApiGroupStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'parcelLot',
+                    classname: 'ApiGroupStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'variety',
+                    classname: 'ApiGroupStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'organicCertification',
+                    classname: 'ApiGroupStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'available',
                     classname: 'ApiGroupStockOrder',
                     dataType: 'boolean',
@@ -405,70 +462,15 @@ export namespace ApiGroupStockOrder {
                 ],
                 weekNumber: [
                 ],
-                available: [
+                parcelLot: [
                 ],
+                variety: [
+                ],
+                organicCertification: [
+                ],
+                available: [
+                ]
             }
-        }
+        };
     }
-
-  // export const ApiGroupStockOrderValidationScheme = {
-  //     validators: [],
-  //     fields: {
-  //               id: {
-  //                   validators: []
-  //               },
-  //               groupedIds: {
-  //                   validators: []
-  //               },
-  //               productionDate: {
-  //                   validators: []
-  //               },
-  //               updateTimestamp: {
-  //                   validators: []
-  //               },
-  //               internalLotNumber: {
-  //                   validators: []
-  //               },
-  //               noOfSacs: {
-  //                   validators: []
-  //               },
-  //               orderType: {
-  //                   validators: []
-  //               },
-  //               facilityName: {
-  //                   validators: []
-  //               },
-  //               semiProductName: {
-  //                   validators: []
-  //               },
-  //               finalProductName: {
-  //                   validators: []
-  //               },
-  //               totalQuantity: {
-  //                   validators: []
-  //               },
-  //               fulfilledQuantity: {
-  //                   validators: []
-  //               },
-  //               availableQuantity: {
-  //                   validators: []
-  //               },
-  //               unitLabel: {
-  //                   validators: []
-  //               },
-  //               deliveryTime: {
-  //                   validators: []
-  //               },
-  //               weekNumber: {
-  //                   validators: []
-  //               },
-  //               available: {
-  //                   validators: []
-  //               },
-  //     }
-  // } as SimpleValidationScheme<ApiGroupStockOrder>;
-
-
 }
-
-

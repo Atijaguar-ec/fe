@@ -232,9 +232,9 @@ export interface ApiStockOrder {
      * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
      */
     repackedOriginStockOrderId?: string;
-    available?: boolean;
-    purchaseOrder?: boolean;
     openOrder?: boolean;
+    purchaseOrder?: boolean;
+    available?: boolean;
 }
 
 /**
@@ -437,9 +437,9 @@ export namespace ApiStockOrder {
          * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
          */
         repackedOriginStockOrderId = 'repackedOriginStockOrderId',
-        available = 'available',
+        openOrder = 'openOrder',
         purchaseOrder = 'purchaseOrder',
-        openOrder = 'openOrder'
+        available = 'available'
     }
 
     /**
@@ -1157,7 +1157,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'available',
+                    name: 'openOrder',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1179,7 +1179,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'openOrder',
+                    name: 'available',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1308,11 +1308,11 @@ export namespace ApiStockOrder {
                 ],
                 repackedOriginStockOrderId: [
                 ],
-                available: [
+                openOrder: [
                 ],
                 purchaseOrder: [
                 ],
-                openOrder: [
+                available: [
                 ],
             }
         }
@@ -1471,6 +1471,15 @@ export namespace ApiStockOrder {
   //               weekNumber: {
   //                   validators: []
   //               },
+  //               parcelLot: {
+  //                   validators: []
+  //               },
+  //               variety: {
+  //                   validators: []
+  //               },
+  //               organicCertification: {
+  //                   validators: []
+  //               },
   //               tare: {
   //                   validators: []
   //               },
@@ -1492,13 +1501,13 @@ export namespace ApiStockOrder {
   //               repackedOriginStockOrderId: {
   //                   validators: []
   //               },
-  //               available: {
+  //               openOrder: {
   //                   validators: []
   //               },
   //               purchaseOrder: {
   //                   validators: []
   //               },
-  //               openOrder: {
+  //               available: {
   //                   validators: []
   //               },
   //     }

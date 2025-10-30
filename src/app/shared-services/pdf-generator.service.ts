@@ -526,14 +526,21 @@ export class PdfGeneratorService {
       currentY = addText(T_PURCHASE_ORDERS, margin, currentY, { fontSize: 14, fontStyle: 'bold', lineHeight: 10 });
       currentY = addLine(currentY);
       
-      const deliveryHeaders = [H_DATE, H_PRODUCT, H_QUANTITY, H_UNIT_PRICE, H_TOTAL, H_WEEK_NUMBER];
+      const H_PARCEL_LOT = $localize`:@@pdf.table.parcelLot:Lote (Parcela)`;
+      const H_VARIETY = $localize`:@@pdf.table.variety:Variedad`;
+      const H_ORGANIC_CERT = $localize`:@@pdf.table.organicCertification:Certificación Orgánica`;
+      
+      const deliveryHeaders = [H_DATE, H_PRODUCT, H_QUANTITY, H_UNIT_PRICE, H_TOTAL, H_WEEK_NUMBER, H_PARCEL_LOT, H_VARIETY, H_ORGANIC_CERT];
       const deliveryRows = data.deliveries.map((delivery: any) => [
         delivery.date ? new Date(delivery.date).toLocaleDateString('es-ES') : '',
         delivery.product?.name || '',
         delivery.quantity || '0',
         delivery.unitPrice ? `$${delivery.unitPrice}` : '$0',
         delivery.totalAmount ? `$${delivery.totalAmount}` : '$0',
-        delivery.weekNumber ? delivery.weekNumber.toString() : '-'
+        delivery.weekNumber ? delivery.weekNumber.toString() : '-',
+        delivery.parcelLot || '-',
+        delivery.variety || '-',
+        delivery.organicCertification || '-'
       ]);
       
       currentY = addTable(deliveryHeaders, deliveryRows, currentY);

@@ -35,6 +35,18 @@
                   <th i18n="@@orderHistoryView.tableCol.weekNumber">N° de Semana</th>
                   <td>{{ stockOrder.weekNumber }}</td>
                 </tr>
+                <tr *ngIf="stockOrder.parcelLot">
+                  <th i18n="@@orderHistoryView.tableCol.parcelLot">Parcel lot</th>
+                  <td>{{ stockOrder.parcelLot }}</td>
+                </tr>
+                <tr *ngIf="stockOrder.variety">
+                  <th i18n="@@orderHistoryView.tableCol.variety">Variety</th>
+                  <td>{{ stockOrder.variety }}</td>
+                </tr>
+                <tr *ngIf="stockOrder.organicCertification">
+                  <th i18n="@@orderHistoryView.tableCol.organicCertification">Organic certification</th>
+                  <td>{{ stockOrder.organicCertification }}</td>
+                </tr>
                 <tr>
                   <th i18n="@@orderHistoryView.tableCol.facilityName">Facility</th>
                   <td>{{ stockOrder.facility?.name }} ({{ stockOrder.facility?.company?.name }})</td>

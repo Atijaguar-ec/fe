@@ -40,7 +40,10 @@
             </ng-container>
           </td>
           <td *ngIf="!sortOptions[6].hide" [attr.data-label]="sortOptions[6].name">
-            {{ order.weekNumber != null ? ('Semana ' + order.weekNumber) : '-' }}
+            <div>{{ order.weekNumber != null ? ('Semana ' + order.weekNumber) : '-' }}</div>
+            <div *ngIf="order.parcelLot" class="text-muted">Lote (Parcela): {{ order.parcelLot }}</div>
+            <div *ngIf="order.variety" class="text-muted">Variedad: {{ order.variety }}</div>
+            <div *ngIf="order.organicCertification" class="text-muted">Certificación Orgánica: {{ order.organicCertification }}</div>
           </td>
           <td *ngIf="!sortOptions[7].hide" [attr.data-label]="sortOptions[7].name">{{ order.totalQuantity | number : '1.0-2' }} {{ order.measureUnitType.label }}</td>
           <td *ngIf="!sortOptions[8].hide" [attr.data-label]="sortOptions[8].name">
