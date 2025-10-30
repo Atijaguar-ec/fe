@@ -246,7 +246,7 @@ jobs:
           FRONTEND_NETWORK=inatrace-frontend-network
           BACKEND_NETWORK=inatrace-backend-network
           DOMAIN=inatrace.atijaguar.com
-          COMPANY_NAME=INATrace
+          COMPANY_NAME="INATrace"
           COMPANY_THEME=cacao
           TRAEFIK_ENABLE=true
           TRAEFIK_ROUTER_NAME=inatrace-fe-dev
@@ -370,7 +370,7 @@ jobs:
           FRONTEND_NETWORK=inatrace-frontend-network
           BACKEND_NETWORK=inatrace-backend-network
           DOMAIN=camaron.atijaguar.com
-          COMPANY_NAME=INATrace Camarón
+          COMPANY_NAME="INATrace Camarón"
           COMPANY_THEME=camaron
           TRAEFIK_ENABLE=true
           TRAEFIK_ROUTER_NAME=inatrace-fe-dev-shrimp
