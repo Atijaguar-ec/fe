@@ -120,11 +120,15 @@
                   style="width: 100%"
                   placeholder="Ingrese el número de semana"
                   i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.weekNumber.placeholder"
-                  [isInvalid]="submitted && stockOrderForm.get('weekNumber').invalid">
+                  [isInvalid]="submitted && stockOrderForm.get('weekNumber').invalid"
+                  type="number">
                   <ng-container *ngIf="submitted">
                     <div *ngIf="stockOrderForm.get('weekNumber').errors as errors" class="sc-invalid-feedback">
                       <div *ngIf="errors.required" i18n="@@productLabelStockPurchaseOrdersModal.textinput.weekNumber.error.required">
                         El N° de Semana es obligatorio
+                      </div>
+                      <div *ngIf="errors.pattern" i18n="@@productLabelStockPurchaseOrdersModal.textinput.weekNumber.error.pattern">
+                        Solo números permitidos
                       </div>
                       <div *ngIf="errors.min || errors.max" i18n="@@productLabelStockPurchaseOrdersModal.textinput.weekNumber.error.range">
                         Debe estar entre 1 y 53
@@ -144,18 +148,26 @@
                   i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.parcelLot.label"
                   style="width: 100%"
                   placeholder="Ingrese el lote de la parcela"
-                  i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.parcelLot.placeholder">
+                  i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.parcelLot.placeholder"
+                  [isInvalid]="submitted && stockOrderForm.get('parcelLot').invalid"
+                  type="number">
+                  <ng-container *ngIf="submitted">
+                    <div *ngIf="stockOrderForm.get('parcelLot').errors as errors" class="sc-invalid-feedback">
+                      <div *ngIf="errors.pattern" i18n="@@productLabelStockPurchaseOrdersModal.textinput.parcelLot.error.pattern">
+                        Solo números permitidos
+                      </div>
+                    </div>
+                  </ng-container>
                 </textinput>
               </div>
               <div class="af-c6">
-                <textinput
-                  [form]="stockOrderForm.get('variety')"
+                <single-choice
+                  [formControlInput]="$any(stockOrderForm.get('variety'))"
+                  [codebookService]="varietyOptions"
                   label="Variedad"
-                  i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.variety.label"
-                  style="width: 100%"
-                  placeholder="Ingrese la variedad"
-                  i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.variety.placeholder">
-                </textinput>
+                  i18n-label="@@productLabelStockPurchaseOrdersModal.singleChoice.variety.label"
+                  style="width: 100%">
+                </single-choice>
               </div>
             </div>
 
@@ -484,14 +496,13 @@
             <!-- Organic Certification -->
             <div class="af-row" *ngIf="showOrganic && stockOrderForm.get('organic').value === 'true'">
               <div class="af-c12">
-                <textinput
-                  [form]="stockOrderForm.get('organicCertification')"
-                  label="Certificación Orgánica"
-                  i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.organicCertification.label"
-                  style="width: 100%"
-                  placeholder="Ingrese detalles de la certificación"
-                  i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.organicCertification.placeholder">
-                </textinput>
+                <single-choice
+                  [formControlInput]="$any(stockOrderForm.get('organicCertification'))"
+                  [codebookService]="certificationTypeOptions"
+                  label="Tipo de certificación"
+                  i18n-label="@@productLabelStockPurchaseOrdersModal.singleChoice.organicsCertificationType.label"
+                  style="width: 100%">
+                </single-choice>
               </div>
             </div>
 

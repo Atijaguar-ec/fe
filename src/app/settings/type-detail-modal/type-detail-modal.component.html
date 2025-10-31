@@ -207,7 +207,126 @@
         </ng-container>
       </ng-container>
 
-      <ng-container *ngIf="this.type !== 'semi-products' && this.type !== 'product-types'">
+      <ng-container *ngIf="this.type === 'certification-types'">
+        <textinput
+          hideAsterisk="true"
+          [form]="$any(form.get('code'))"
+          label="Código"
+          style="width: 100%"
+          placeholder="Ingresa el código"
+          i18n-label="@@certificationTypeDetail.textinput.code.label"
+          i18n-placeholder="@@certificationTypeDetail.textinput.code.placeholder"
+          [isInvalid]="submitted && form.get('code').invalid"
+          [readOnly]="this.update">
+          <ng-container *ngIf="submitted">
+            <div *ngIf="form.get('code').errors as errors" class="sc-invalid-feedback">
+              <div *ngIf="errors.wrongInput" i18n="@@certificationTypeDetail.textinput.code.error">
+                El código debe contener solo mayúsculas, números o guiones bajos
+              </div>
+              <div *ngIf="errors.required" i18n="@@certificationTypeDetail.textinput.code.errorRequired">
+                El código es obligatorio
+              </div>
+            </div>
+          </ng-container>
+        </textinput>
+
+        <textinput
+          hideAsterisk="true"
+          [form]="$any(form.get('label'))"
+          label="Etiqueta"
+          style="width: 100%"
+          placeholder="Ingresa la etiqueta"
+          i18n-label="@@certificationTypeDetail.textinput.label.label"
+          i18n-placeholder="@@certificationTypeDetail.textinput.label.placeholder"
+          [isInvalid]="submitted && form.get('label').invalid">
+          <ng-container *ngIf="submitted">
+            <div *ngIf="form.get('label').errors as errors" class="sc-invalid-feedback">
+              <div *ngIf="errors.required" i18n="@@certificationTypeDetail.textinput.label.error">
+                La etiqueta es obligatoria
+              </div>
+            </div>
+          </ng-container>
+        </textinput>
+
+        <single-choice
+          label="Categoría"
+          i18n-label="@@certificationTypeDetail.singleChoice.category.label"
+          [formControlInput]="$any(form.get('category'))"
+          [codebookService]="codebookCertificationCategoryType"
+          [isInvalidChoice]="submitted && form.get('category').invalid">
+          <ng-container *ngIf="submitted">
+            <div *ngIf="form.get('category').errors as errors" class="sc-invalid-feedback">
+              <div *ngIf="errors.required" i18n="@@certificationTypeDetail.singleChoice.category.error">
+                La categoría es obligatoria
+              </div>
+            </div>
+          </ng-container>
+        </single-choice>
+
+        <single-choice
+          label="Estado"
+          i18n-label="@@certificationTypeDetail.singleChoice.status.label"
+          [formControlInput]="$any(form.get('status'))"
+          [codebookService]="codebookCertificationStatusType"
+          [isInvalidChoice]="submitted && form.get('status').invalid">
+          <ng-container *ngIf="submitted">
+            <div *ngIf="form.get('status').errors as errors" class="sc-invalid-feedback">
+              <div *ngIf="errors.required" i18n="@@certificationTypeDetail.singleChoice.status.error">
+                El estado es obligatorio
+              </div>
+            </div>
+          </ng-container>
+        </single-choice>
+
+        <div class="spacer-title-section"></div>
+
+        <small i18n="@@certificationTypeDetail.hint.translations">
+          Especifica la etiqueta en inglés y agrega traducciones para todos los idiomas utilizados.
+        </small>
+
+        <div class="d-flex af-translation-language">
+          <div (click)="selectLanguage(languageEnum.EN)"
+               [ngClass]="selectedLanguage === languageEnum.EN
+                                  ? 'af-translation-language--selected'
+                                  : (submitted && this.form.get('translations').errors && this.form.get('translations').errors.required
+                                      ? 'af-translation-language--error'
+                                      : '')">
+            <img src="../../../assets/icons/icon-flag--united-kingdom.svg" alt="Selected EN lang">
+            <span>EN</span>
+          </div>
+          <div (click)="selectLanguage(languageEnum.ES)"
+               [ngClass]="selectedLanguage === languageEnum.ES ? 'af-translation-language--selected' : ''">
+            <img src="../../../assets/icons/icon-flag--spain.svg" alt="Select ES lang">
+            <span>ES</span>
+          </div>
+        </div>
+
+        <div class="spacer-title-section"></div>
+
+        <ng-container *ngFor="let translation of this.form.get('translations')['controls']; index as i">
+          <ng-container *ngIf="translation.value.language === selectedLanguage">
+            <textinput
+              label="Etiqueta"
+              placeholder="Ingresa la etiqueta"
+              i18n-label="@@certificationTypeDetail.translation.label"
+              i18n-placeholder="@@certificationTypeDetail.translation.placeholder"
+              [form]="$any(this.form.get('translations.' + i + '.name'))"
+              [isInvalid]="translation.value.language === languageEnum.EN && submitted && !this.form.get('translations.' + i + '.name').value"
+              [markRequired]="translation.value.language === languageEnum.EN"
+              style="width: 100%">
+              <ng-container *ngIf="submitted && translation.value.language === languageEnum.EN && !this.form.get('translations.' + i + '.name').value">
+                <div *ngIf="this.form.get('translations').errors as errors" class="sc-invalid-feedback">
+                  <div *ngIf="errors.required" i18n="@@certificationTypeDetail.translation.error">
+                    La traducción al inglés es obligatoria
+                  </div>
+                </div>
+              </ng-container>
+            </textinput>
+          </ng-container>
+        </ng-container>
+      </ng-container>
+
+      <ng-container *ngIf="this.type !== 'semi-products' && this.type !== 'product-types' && this.type !== 'certification-types'">
         <textinput *ngIf="this.type !== 'processing-evidence-fields'"
                 hideAsterisk="true"
                 [form]="$any(form.get('code'))"

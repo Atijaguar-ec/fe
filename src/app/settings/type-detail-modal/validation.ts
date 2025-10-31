@@ -9,6 +9,7 @@ import { ApiProcessingEvidenceField } from '../../../api/model/apiProcessingEvid
 import { ApiSemiProductTranslation } from '../../../api/model/apiSemiProductTranslation';
 import LanguageEnum = ApiSemiProductTranslation.LanguageEnum;
 import {ApiProductType} from '../../../api/model/apiProductType';
+import {ApiCertificationType} from '../../../api/model/apiCertificationType';
 
 export const ApiSemiProductValidationScheme = {
   validators: [
@@ -166,6 +167,32 @@ export const ApiProcessingEvidenceFieldValidationScheme = {
   }
 } as SimpleValidationScheme<ApiProcessingEvidenceField>;
 
+export const ApiCertificationTypeValidationScheme = {
+  validators: [
+    multiFieldValidator(['translations'], (group: FormGroup) => requiredTranslationsCertificationType(group), ['required'])
+  ],
+  fields: {
+    id: {
+      validators: []
+    },
+    code: {
+      validators: [UndesrcoreAndCapitalsValidator(), Validators.required]
+    },
+    label: {
+      validators: [Validators.required]
+    },
+    category: {
+      validators: [Validators.required]
+    },
+    status: {
+      validators: [Validators.required]
+    },
+    translations: {
+      validators: [Validators.required]
+    }
+  }
+} as SimpleValidationScheme<ApiCertificationType>;
+
 export function requiredTranslationsSemiProduct(control: FormGroup): ValidationErrors | null {
   if (!control || !control.value || !control.contains('translations')) {
     return null;
@@ -229,6 +256,23 @@ export function requiredTranslationsProcessingTypeField(control: FormGroup): Val
   // English translation is required, other are optional
   const englishTranslation = translations.find(t => t.language === LanguageEnum.EN);
   if (!englishTranslation || !englishTranslation.label) {
+    return {required: true};
+  }
+  return null;
+}
+
+export function requiredTranslationsCertificationType(control: FormGroup): ValidationErrors | null {
+  if (!control || !control.value || !control.contains('translations')) {
+    return null;
+  }
+  const translations = control.value['translations'];
+  if (translations.length === 0) {
+    return { required: true };
+  }
+
+  // English translation is required, other are optional
+  const englishTranslation = translations.find(t => t.language === LanguageEnum.EN);
+  if (!englishTranslation || !englishTranslation.name) {
     return {required: true};
   }
   return null;

@@ -13,6 +13,8 @@ import { CodebookTranslations } from '../../../../shared-services/codebook-trans
 import { CompanyControllerService } from '../../../../../api/api/companyController.service';
 import { ApiUserCustomer } from '../../../../../api/model/apiUserCustomer';
 import { ApiStockOrder } from '../../../../../api/model/apiStockOrder';
+import { CertificationTypeControllerService } from '../../../../../api/api/certificationTypeController.service';
+import { ApiCertificationType } from '../../../../../api/model/apiCertificationType';
 import {dateISOString, defaultEmptyObject, generateFormFromMetadata} from '../../../../../shared/utils';
 import { ApiStockOrderValidationScheme } from './validation';
 import { Location } from '@angular/common';
@@ -84,6 +86,13 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   companyProfile: ApiCompanyGet | null = null;
   private currentLoggedInUser: ApiUserGet | null = null;
 
+  certificationTypes: ApiCertificationType[] = [];
+  certificationTypeMap: Record<string, string> = {};
+  certificationTypeOptions: EnumSifrant = EnumSifrant.fromObject({});
+
+  varietyOptionsMap: Record<string, string> = {};
+  varietyOptions: EnumSifrant = EnumSifrant.fromObject({});
+
   private facility: ApiFacility;
 
   private purchaseOrderId = this.route.snapshot.params.purchaseOrderId;
@@ -106,6 +115,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     private selUserCompanyService: SelectedUserCompanyService,
     private pdfGeneratorService: PdfGeneratorService,
     private envInfo: EnvironmentInfoService,
+    private certificationTypeService: CertificationTypeControllerService,
   ) { }
 
   // Additional proof item factory methods (used when creating ListEditorManger)
@@ -187,6 +197,29 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
+  private initializeVarietyOptions() {
+    this.varietyOptionsMap = {
+      NACIONAL: 'Nacional',
+      CCN51: 'CCN51'
+    };
+    this.refreshVarietyOptions();
+  }
+
+  private refreshVarietyOptions() {
+    this.varietyOptions = EnumSifrant.fromObject(this.varietyOptionsMap);
+    this.varietyOptions.setPlaceholder($localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.variety.placeholder:Selecciona la variedad`);
+  }
+
+  private ensureVarietyOption(value?: string) {
+    if (!value) {
+      return;
+    }
+    if (!this.varietyOptionsMap[value]) {
+      this.varietyOptionsMap[value] = value;
+      this.refreshVarietyOptions();
+    }
+  }
+
   get tareLabel() {
     return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.tare.label:Tare` + ` (${this.measureUnit})`;
   }
@@ -243,9 +276,11 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         if (cp) {
           this.companyProfile = cp;
           this.selectedCurrency = cp.currency?.code ? cp.currency.code : '-';
-          this.reloadOrder();
+          this.loadCertificationTypes().then(() => this.reloadOrder());
         }
       });
+
+    this.initializeVarietyOptions();
   }
 
   ngOnDestroy(): void {
@@ -478,6 +513,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.stockOrderForm.addControl('variety', new FormControl(null));
     }
     if ((this.order as any)?.variety != null) {
+      this.ensureVarietyOption((this.order as any).variety);
       this.stockOrderForm.get('variety').setValue((this.order as any).variety);
     }
     // Ensure organicCertification control exists and set value if backend provides it
@@ -485,9 +521,51 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.stockOrderForm.addControl('organicCertification', new FormControl(null));
     }
     if ((this.order as any)?.organicCertification != null) {
-      this.stockOrderForm.get('organicCertification').setValue((this.order as any).organicCertification);
+      const value = (this.order as any).organicCertification;
+      this.ensureCertificationOption(value);
+      this.stockOrderForm.get('organicCertification').setValue(value);
     }
     this.updateWeekNumberVisibilityAndValidation();
+  }
+
+  private async loadCertificationTypes() {
+    try {
+      const response = await this.certificationTypeService.getCertificationTypeList(
+        undefined,
+        100,
+        0,
+        'label',
+        'ASC'
+      ).pipe(take(1)).toPromise();
+      if (response?.status === 'OK') {
+        this.certificationTypes = response?.data?.items || [];
+        const activeTypes = this.certificationTypes.filter(ct => ct.status === ApiCertificationType.StatusEnum.ACTIVE);
+        this.certificationTypeMap = {};
+        activeTypes.forEach(ct => {
+          if (ct.label) {
+            this.certificationTypeMap[ct.label] = ct.label;
+          }
+        });
+        this.refreshCertificationTypeOptions();
+      }
+    } catch (err) {
+      console.error('Error loading certification types', err);
+    }
+  }
+
+  private refreshCertificationTypeOptions() {
+    this.certificationTypeOptions = EnumSifrant.fromObject(this.certificationTypeMap);
+    this.certificationTypeOptions.setPlaceholder($localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.organicsCertificationType.placeholder:Selecciona un tipo de certificación`);
+  }
+
+  private ensureCertificationOption(value?: string) {
+    if (!value) {
+      return;
+    }
+    if (!this.certificationTypeMap[value]) {
+      this.certificationTypeMap[value] = value;
+      this.refreshCertificationTypeOptions();
+    }
   }
 
   async createOrUpdatePurchaseOrder(close: boolean = true) {

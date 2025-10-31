@@ -142,5 +142,27 @@
       (showing)="onShow($event, 'product-types')">
     </app-type-list>
 
+    <!-- CERTIFICATION TYPES CODEBOOK  -->
+    <div class="main-inside-top content-element">
+      <div class="d-flex justify-content-between main-inside-top--row1">
+        <div class="title-page content-element--title" i18n="@@settingsPage.title.certificationTypes">Certification types</div>
+        <button class="btn btn-solid round btn-table-new content-element--btn" (click)="newType('certification-types')" i18n="@@settingsPage.button.newCertificationType">
+          <span>+ Add</span>
+        </button>
+      </div>
+      <div class="d-flex align-items-start main-inside-top--row2">
+        <div>
+          <div class="sub-title-page content-element--subtitle" i18n="@@settingsPage.subTitle.listOfCertificationTypes">List of certification types</div>
+          <div class="counting-page content-element--counting" i18n="@@settingsPage.subTitle.showingCertificationTypes">Showing {{showedCertificationTypes}}/{{allCertificationTypes}}</div>
+        </div>
+      </div>
+    </div>
+    <app-type-list
+      [parentReload]="parentReloadCertificationTypes"
+      type='certification-types'
+      (countAll)="onCountAll($event, 'certification-types')"
+      (showing)="onShow($event, 'certification-types')">
+    </app-type-list>
+
   </div>
 </app-authorised-layout>

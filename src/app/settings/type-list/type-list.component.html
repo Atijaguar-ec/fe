@@ -14,7 +14,10 @@
         <tr *ngIf="type === 'product-types'"
             result-sorter [sortOptions]="sortOptionsProductTypes" (sortByKey)="changeSort($event)"></tr>
 
-        <tr *ngIf="type !== 'semi-products' && type !== 'processing-evidence-types' && type !== 'processing-evidence-fields' && type !== 'product-types'"
+        <tr *ngIf="type === 'certification-types'"
+            result-sorter [sortOptions]="sortOptionsCertificationTypes" (sortByKey)="changeSort($event)"></tr>
+
+        <tr *ngIf="type !== 'semi-products' && type !== 'processing-evidence-types' && type !== 'processing-evidence-fields' && type !== 'product-types' && type !== 'certification-types'"
             result-sorter [sortOptions]="sortOptions" (sortByKey)="changeSort($event)"></tr>
       </thead>
       <tbody>
@@ -113,7 +116,32 @@
           </tr>
         </ng-container>
 
-        <ng-container *ngIf="(type !== 'semi-products' &&  type !== 'processing-evidence-types' && type !== 'processing-evidence-fields' && type !== 'product-types')">
+        <ng-container *ngIf="type === 'certification-types'">
+          <tr *ngFor="let type of types.items">
+            <td [attr.data-label]="sortOptionsCertificationTypes[0].name"><span>{{ type.code }}</span></td>
+            <td [attr.data-label]="sortOptionsCertificationTypes[1].name"><span>{{ type | translateCodebook: 'label' }}</span></td>
+            <td [attr.data-label]="sortOptionsCertificationTypes[2].name"><span>{{ translateCertificationCategory(type.category) }}</span></td>
+            <td [attr.data-label]="sortOptionsCertificationTypes[3].name"><span>{{ translateCertificationStatus(type.status) }}</span></td>
+            <td [attr.data-label]="sortOptionsCertificationTypes[4].name">
+              <span>
+                <a (click)="edit(type)"
+                   class="company-action"
+                   [class.enabled-action]="true">
+                  <span *ngIf="isRegionalAdmin; else editMode" i18n="@@settingsTypes.tableCol.view">View</span>
+                </a>
+                <a i18n="@@settingsTypes.tableCol.delete"
+                   (click)="delete(type)"
+                   class="company-action"
+                   [class.enabled-action]="!isRegionalAdmin"
+                   [class.disabled-action]="isRegionalAdmin">
+                  Delete
+                </a>
+              </span>
+            </td>
+          </tr>
+        </ng-container>
+
+        <ng-container *ngIf="(type !== 'semi-products' &&  type !== 'processing-evidence-types' && type !== 'processing-evidence-fields' && type !== 'product-types' && type !== 'certification-types')">
           <tr *ngFor="let type of types.items">
             <td [attr.data-label]="sortOptions[0].name"><span>{{ type.code }}</span></td>
             <td [attr.data-label]="sortOptions[1].name"><span>{{ type.order }}</span></td>

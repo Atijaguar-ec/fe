@@ -18,6 +18,12 @@ export function ApiStockOrderValidationScheme(orderType: StockOrderType) {
       representativeOfProducerUserCustomer: {
         validators: []
       },
+      parcelLot: {
+        validators: [Validators.pattern(/^[0-9]+$/)]
+      },
+      weekNumber: {
+        validators: [Validators.pattern(/^[0-9]+$/)]
+      },
       totalQuantity: {
         validators: []
       },

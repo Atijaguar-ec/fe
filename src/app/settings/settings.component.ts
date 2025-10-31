@@ -39,6 +39,9 @@ export class SettingsComponent extends ComponentCanDeactivate implements OnInit,
   allProductTypes = 0;
   showedProductTypes = 0;
 
+  allCertificationTypes = 0;
+  showedCertificationTypes = 0;
+
   parentReloadProcEvidTypes = false;
   parentReloadProcEvidFields = false;
   parentReloadFacility = false;
@@ -46,6 +49,7 @@ export class SettingsComponent extends ComponentCanDeactivate implements OnInit,
   parentReloadAction = false;
   parentReloadSemiProducts = false;
   parentReloadProductTypes = false;
+  parentReloadCertificationTypes = false;
 
   allSemiProducts = 0;
   showedSemiProducts = 0;
@@ -110,6 +114,7 @@ export class SettingsComponent extends ComponentCanDeactivate implements OnInit,
     if (type === 'processing-evidence-fields') { this.showedProcEvidFields = event; }
     if (type === 'semi-products') { this.showedSemiProducts = event; }
     if (type === 'product-types') { this.showedProductTypes = event; }
+    if (type === 'certification-types') { this.showedCertificationTypes = event; }
   }
 
   onCountAll(event, type) {
@@ -120,6 +125,7 @@ export class SettingsComponent extends ComponentCanDeactivate implements OnInit,
     if (type === 'processing-evidence-fields') { this.allProcEvidFields = event; }
     if (type === 'semi-products') { this.allSemiProducts = event; }
     if (type === 'product-types') { this.allProductTypes = event; }
+    if (type === 'certification-types') { this.allCertificationTypes = event; }
   }
 
   ngOnDestroy() {
@@ -183,6 +189,7 @@ export class SettingsComponent extends ComponentCanDeactivate implements OnInit,
     if (type === 'processing-evidence-fields') { addTitle = $localize`:@@settingsPage.newProcessingEvidenceField.addTitle:Add processing evidence field`; }
     if (type === 'semi-products') { addTitle = $localize`:@@settingsPage.newSemiProducts.addTitle:Add new semi-product`; }
     if (type === 'product-types') { addTitle = $localize`:@@settingsPage.newProductTypes.addTitle:Add new product type`; }
+    if (type === 'certification-types') { addTitle = $localize`:@@settingsPage.newCertificationType.addTitle:Add new certification type`; }
 
     this.modalService.open(TypeDetailModalComponent, {
       centered: true
@@ -197,6 +204,7 @@ export class SettingsComponent extends ComponentCanDeactivate implements OnInit,
         if (type === 'processing-evidence-fields') { this.parentReloadProcEvidFields = !this.parentReloadProcEvidFields; }
         if (type === 'semi-products') { this.parentReloadSemiProducts = !this.parentReloadSemiProducts; }
         if (type === 'product-types') { this.parentReloadProductTypes = !this.parentReloadProductTypes; }
+        if (type === 'certification-types') { this.parentReloadCertificationTypes = !this.parentReloadCertificationTypes; }
       }
     });
   }

@@ -14,6 +14,7 @@ import { SortOption } from '../../shared/result-sorter/result-sorter-types';
 import { SemiProductControllerService } from '../../../api/api/semiProductController.service';
 import { ProcessingEvidenceFieldControllerService } from '../../../api/api/processingEvidenceFieldController.service';
 import { ProductTypeControllerService } from '../../../api/api/productTypeController.service';
+import { CertificationTypeControllerService } from '../../../api/api/certificationTypeController.service';
 import { AuthService } from '../../core/auth.service';
 
 @Component({
@@ -30,6 +31,7 @@ export class TypeListComponent implements OnInit, OnChanges {
     private processingEvidenceFieldService: ProcessingEvidenceFieldControllerService,
     private semiProductsService: SemiProductControllerService,
     private productTypesService: ProductTypeControllerService,
+    private certificationTypeService: CertificationTypeControllerService,
     private route: ActivatedRoute,
     private modalService: NgbModalImproved,
     protected globalEventsManager: GlobalEventManagerService,
@@ -122,6 +124,30 @@ export class TypeListComponent implements OnInit, OnChanges {
       name: $localize`:@@settingsTypes.sortOptions.actions.name:Actions`,
       inactive: true
     },
+  ];
+
+  sortOptionsCertificationTypes: SortOption[] = [
+    {
+      key: 'code',
+      name: $localize`:@@settingsTypes.sortOptions.code.name:Código`
+    },
+    {
+      key: 'label',
+      name: $localize`:@@settingsTypes.sortOptions.label.name:Etiqueta`
+    },
+    {
+      key: 'category',
+      name: $localize`:@@settingsTypes.sortOptions.category.name:Categoría`
+    },
+    {
+      key: 'status',
+      name: $localize`:@@settingsTypes.sortOptions.status.name:Estado`
+    },
+    {
+      key: 'actions',
+      name: $localize`:@@settingsTypes.sortOptions.actions.name:Comportamiento`,
+      inactive: true
+    }
   ];
 
   sortOptionsFPQ: SortOption[] = [
@@ -297,6 +323,9 @@ export class TypeListComponent implements OnInit, OnChanges {
     if (this.type === 'product-types') {
       return this.productTypesService.getProductTypesByMap({ ...params });
     }
+    if (this.type === 'certification-types') {
+      return this.certificationTypeService.getCertificationTypeListByMap({ ...params });
+    }
   }
 
   edit(type) {
@@ -321,6 +350,9 @@ export class TypeListComponent implements OnInit, OnChanges {
     }
     if (this.type === 'product-types') {
       editTitle = $localize`:@@settingsTypes.editProductType.editTitle:Edit product type`;
+    }
+    if (this.type === 'certification-types') {
+      editTitle = $localize`:@@settingsTypes.editCertificationType.editTitle:Edit certification type`;
     }
 
     this.modalService.open(TypeDetailModalComponent, {
@@ -381,6 +413,12 @@ export class TypeListComponent implements OnInit, OnChanges {
           this.reloadPage();
         }
       }
+      if (this.type === 'certification-types') {
+        const res = await this.certificationTypeService.deleteCertificationType(type.id).pipe(take(1)).toPromise();
+        if (res && res.status === 'OK') {
+          this.reloadPage();
+        }
+      }
     } catch (e) {
     } finally {
       this.globalEventsManager.showLoading(false);
@@ -389,6 +427,28 @@ export class TypeListComponent implements OnInit, OnChanges {
 
   showPagination() {
     return ((this.showed - this.pageSize) === 0 && this.all >= this.pageSize) || this.page > 1;
+  }
+
+  translateCertificationCategory(category?: string): string {
+    if (!category) {
+      return '';
+    }
+    const map = {
+      CERTIFICATE: $localize`:@@certificationType.category.certificate:Certificado`,
+      SEAL: $localize`:@@certificationType.category.seal:Sello`
+    } as Record<string, string>;
+    return map[category] || category;
+  }
+
+  translateCertificationStatus(status?: string): string {
+    if (!status) {
+      return '';
+    }
+    const map = {
+      ACTIVE: $localize`:@@certificationType.status.active:Activo`,
+      INACTIVE: $localize`:@@certificationType.status.inactive:Inactivo`
+    } as Record<string, string>;
+    return map[status] || status;
   }
 
   async setAll() {
