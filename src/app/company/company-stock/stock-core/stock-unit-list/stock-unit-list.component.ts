@@ -284,8 +284,20 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
         hide: ['COMPANY_ADMIN', 'SYSTEM_ADMIN'].indexOf(this.pageListingMode) >= 0,
       },
       {
+        key: 'grossQuantity',
+        name: $localize`:@@productLabelPurchaseOrder.sortOptions.grossQuantity.name:Gross Quantity`,
+        inactive: true,
+        hide: ['COMPANY_ADMIN', 'SYSTEM_ADMIN'].indexOf(this.pageListingMode) >= 0,
+      },
+      {
+        key: 'deductions',
+        name: $localize`:@@productLabelPurchaseOrder.sortOptions.deductions.name:Deductions`,
+        inactive: true,
+        hide: ['COMPANY_ADMIN', 'SYSTEM_ADMIN'].indexOf(this.pageListingMode) >= 0,
+      },
+      {
         key: 'quantity',
-        name: $localize`:@@productLabelPurchaseOrder.sortOptions.quantity.name:Quantity`,
+        name: $localize`:@@productLabelPurchaseOrder.sortOptions.netQuantity.name:Net Quantity`,
         inactive: true,
         hide: ['COMPANY_ADMIN', 'SYSTEM_ADMIN'].indexOf(this.pageListingMode) >= 0,
       },
@@ -882,8 +894,28 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
       return `⚠️ ADVERTENCIA: Cerca del límite de producción orgánica. ` +
              `Usado: ${used.toFixed(2)} qq de ${maxLimit} qq (${percentage.toFixed(1)}%)`;
     } else {
-      return `Producción orgánica normal. Usado: ${used.toFixed(2)} qq de ${maxLimit} qq (${percentage.toFixed(1)}%)`;
+      return `Disponible: ${balance.toFixed(2)} qq de ${maxLimit} qq (${(100 - percentage).toFixed(1)}% restante)`;
     }
   }
 
+  /**
+   * Formats deductions summary for display
+   */
+  getDeductionsSummary(order: ApiStockOrder): string {
+    const deductions: string[] = [];
+    const unit = order.measureUnitType?.label || '';
+
+    if (order.tare) {
+      deductions.push(`Tara: ${order.tare.toFixed(2)} ${unit}`);
+    }
+    if (order.damagedWeightDeduction) {
+      deductions.push(`Peso: ${order.damagedWeightDeduction.toFixed(2)} ${unit}`);
+    }
+    if (order.moisturePercentage) {
+      const moistureDeduction = order.moistureWeightDeduction || 0;
+      deductions.push(`Humedad (${order.moisturePercentage}%): ${moistureDeduction.toFixed(2)} ${unit}`);
+    }
+
+    return deductions.length > 0 ? deductions.join(' | ') : '-';
+  }
 }
