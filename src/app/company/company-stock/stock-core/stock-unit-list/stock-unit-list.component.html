@@ -1,4 +1,4 @@
-<ng-container *ngIf="orders$ | async as orders">
+    <ng-container *ngIf="orders$ | async as orders">
   <div class="main-inside-main"
        [ngbTooltip]="deliveriesListTooltipTemplate"
        [autoClose]="false"
@@ -40,10 +40,7 @@
             </ng-container>
           </td>
           <td *ngIf="!sortOptions[6].hide" [attr.data-label]="sortOptions[6].name">
-            <div>{{ order.weekNumber != null ? ('Semana ' + order.weekNumber) : '-' }}</div>
-            <div *ngIf="order.parcelLot" class="text-muted">Lote (Parcela): {{ order.parcelLot }}</div>
-            <div *ngIf="order.variety" class="text-muted">Variedad: {{ order.variety }}</div>
-            <div *ngIf="order.organicCertification" class="text-muted">Certificación Orgánica: {{ order.organicCertification }}</div>
+            {{ order.weekNumber != null ? order.weekNumber : '-' }}
           </td>
           <td *ngIf="!sortOptions[7].hide" [attr.data-label]="sortOptions[7].name">{{ order.totalQuantity | number : '1.0-2' }} {{ order.measureUnitType.label }}</td>
           <td *ngIf="!sortOptions[8].hide" [attr.data-label]="sortOptions[8].name">

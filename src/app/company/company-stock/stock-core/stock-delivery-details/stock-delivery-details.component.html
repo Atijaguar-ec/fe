@@ -354,47 +354,36 @@
               <div class="af-c6">
                 <textinput
                         [form]="stockOrderForm.get('moisturePercentage')"
-                        label="Moisture percentage (%)"
-                        i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.moisturePercentage.label"
+                        label="Moisture discount (%)"
+                        i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.moistureDiscount.label"
                         style="width: 100%"
-                        placeholder="Enter moisture percentage"
-                        i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.moisturePercentage.placeholder"
+                        placeholder="Enter moisture discount"
+                        i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.moistureDiscount.placeholder"
                         [isInvalid]="submitted && stockOrderForm.get('moisturePercentage').invalid"
                         [readOnly]="readonlyMoisturePercentage">
                   <ng-container *ngIf="submitted">
                     <div *ngIf="stockOrderForm.get('moisturePercentage').errors as errors" class="sc-invalid-feedback">
-                      <div *ngIf="errors.required" i18n="@@productLabelStockPurchaseOrdersModal.textinput.moisturePercentage.error">
-                        Moisture percentage is required
+                      <div *ngIf="errors.required" i18n="@@productLabelStockPurchaseOrdersModal.textinput.moistureDiscount.error">
+                        Moisture discount is required
                       </div>
-                      <div *ngIf="errors.min || errors.max" i18n="@@productLabelStockPurchaseOrdersModal.textinput.moisturePercentage.rangeError">
-                        Moisture percentage must be between 0 and 100
+                      <div *ngIf="errors.min || errors.max" i18n="@@productLabelStockPurchaseOrdersModal.textinput.moistureDiscount.rangeError">
+                        Moisture discount must be between 0 and 100
                       </div>
                     </div>
                   </ng-container>
                 </textinput>
               </div>
-              <div class="af-c6">
-                <textinput
-                        [form]="stockOrderForm.get('moistureWeightDeduction')"
-                        label="Moisture weight deduction"
-                        i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.moistureWeightDeduction.label"
-                        style="width: 100%"
-                        [readOnly]="true"
-                        placeholder="Auto-calculated"
-                        i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.moistureWeightDeduction.placeholder">
-                </textinput>
-              </div>
             </div>
 
-            <div class="af-row" *ngIf="showTare">
+            <div class="af-row">
               <div class="af-c6">
                 <textinput [form]="netWeightForm"
                            [label]="netLabel"
                            [readOnly]="true"
                            [value]="netWeight()"
                            style="width: 100%"
-                           placeholder="Enter net weight"
-                           i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.netWeight.placeholder">
+                           placeholder="Net weight after all deductions"
+                           i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.netWeightFinal.placeholder">
                   <ng-container *ngIf="submitted">
                     <div *ngIf="netWeightForm.errors as errors" class="sc-invalid-feedback">
                       <div *ngIf="errors.required" i18n="@@productLabelStockPurchaseOrdersModal.textinput.netWeight.error">
@@ -404,23 +393,8 @@
                   </ng-container>
                 </textinput>
               </div>
-              <div class="af-c6">
-                <textinput [form]="finalPriceForm"
-                           [label]="finalPriceLabel"
-                           [readOnly]="true"
-                           [value]="finalPrice()"
-                           style="width: 100%"
-                           [isInvalid]="submitted && finalPriceForm.invalid">
-                  <ng-container *ngIf="submitted">
-                    <div *ngIf="finalPriceForm.errors as errors" class="sc-invalid-feedback">
-                      <div *ngIf="errors.required" i18n="@@productLabelStockPurchaseOrdersModal.textinput.finalPrice.error">
-                        Final price is required
-                      </div>
-                    </div>
-                  </ng-container>
-                </textinput>
-              </div>
             </div>
+
 
             <div class="af-row">
               <div class="af-c6">

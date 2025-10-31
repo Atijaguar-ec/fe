@@ -447,9 +447,17 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if (!this.stockOrderForm.get('organicCertification')) {
       this.stockOrderForm.addControl('organicCertification', new FormControl(null));
     }
+    // Add Moisture Percentage controls
+    if (!this.stockOrderForm.get('moisturePercentage')) {
+      this.stockOrderForm.addControl('moisturePercentage', new FormControl(null));
+    }
+    if (!this.stockOrderForm.get('moistureWeightDeduction')) {
+      this.stockOrderForm.addControl('moistureWeightDeduction', new FormControl(null));
+    }
     this.updateWeekNumberVisibilityAndValidation();
 
     this.prepareData();
+    this.setupFormListeners();
   }
 
   private async editStockOrder() {
@@ -525,7 +533,39 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.ensureCertificationOption(value);
       this.stockOrderForm.get('organicCertification').setValue(value);
     }
+    // Ensure moisture percentage controls exist
+    if (!this.stockOrderForm.get('moisturePercentage')) {
+      this.stockOrderForm.addControl('moisturePercentage', new FormControl(null));
+    }
+    if (!this.stockOrderForm.get('moistureWeightDeduction')) {
+      this.stockOrderForm.addControl('moistureWeightDeduction', new FormControl(null));
+    }
     this.updateWeekNumberVisibilityAndValidation();
+    this.setupFormListeners();
+  }
+
+  private setupFormListeners() {
+    // Listen to changes in fields that affect net weight calculation
+    const fieldsToWatch = ['totalGrossQuantity', 'moisturePercentage', 'tare', 'damagedWeightDeduction'];
+    fieldsToWatch.forEach(fieldName => {
+      const control = this.stockOrderForm.get(fieldName);
+      if (control) {
+        control.valueChanges.subscribe(() => {
+          this.netWeight();
+        });
+      }
+    });
+
+    // Listen to changes in fields that affect final price calculation
+    const priceFieldsToWatch = ['pricePerUnit', 'damagedPriceDeduction'];
+    priceFieldsToWatch.forEach(fieldName => {
+      const control = this.stockOrderForm.get(fieldName);
+      if (control) {
+        control.valueChanges.subscribe(() => {
+          this.finalPrice();
+        });
+      }
+    });
   }
 
   private async loadCertificationTypes() {
@@ -709,23 +749,36 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   setToBePaid() {
 
     if (this.stockOrderForm && this.stockOrderForm.get('totalGrossQuantity').value && this.stockOrderForm.get('pricePerUnit').value) {
-      let netWeight = this.stockOrderForm.get('totalGrossQuantity').value;
+      const grossQuantity = Number(this.stockOrderForm.get('totalGrossQuantity').value);
+      let baseWeight = grossQuantity;
       let finalPrice = this.stockOrderForm.get('pricePerUnit').value;
 
-      if (this.stockOrderForm.get('tare').value) {
-        netWeight -= this.stockOrderForm.get('tare').value;
+      const tareControl = this.stockOrderForm.get('tare');
+      if (tareControl && tareControl.value) {
+        baseWeight -= Number(tareControl.value);
+      }
+      const damagedWeightControl = this.stockOrderForm.get('damagedWeightDeduction');
+      if (damagedWeightControl && damagedWeightControl.value) {
+        baseWeight -= Number(damagedWeightControl.value);
       }
 
-      if (this.stockOrderForm.get('damagedWeightDeduction').value) {
-        netWeight -= this.stockOrderForm.get('damagedWeightDeduction').value;
+      baseWeight = Math.max(0, baseWeight);
+
+      let netWeight = baseWeight;
+      const moistureControl = this.stockOrderForm.get('moisturePercentage');
+      if (moistureControl && moistureControl.value) {
+        const moisturePercent = Number(moistureControl.value);
+        netWeight = baseWeight * (moisturePercent / 100);
       }
 
       if (netWeight < 0) {
         netWeight = 0.00;
       }
 
-      if (this.stockOrderForm.get('damagedPriceDeduction').value) {
-        finalPrice -= this.stockOrderForm.get('damagedPriceDeduction').value;
+      // Apply price deductions
+      const damagedPriceControl = this.stockOrderForm.get('damagedPriceDeduction');
+      if (damagedPriceControl && damagedPriceControl.value) {
+        finalPrice -= damagedPriceControl.value;
       }
 
       if (finalPrice < 0) {
@@ -803,25 +856,30 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   netWeight() {
     if (this.stockOrderForm && this.stockOrderForm.get('totalGrossQuantity').value) {
-      let netWeight = Number(this.stockOrderForm.get('totalGrossQuantity').value);
+      const grossQuantity = Number(this.stockOrderForm.get('totalGrossQuantity').value);
+      let baseWeight = grossQuantity;
+
       if (this.stockOrderForm.get('tare').value) {
-        netWeight -= Number(this.stockOrderForm.get('tare').value);
+        baseWeight -= Number(this.stockOrderForm.get('tare').value);
       }
       if (this.stockOrderForm.get('damagedWeightDeduction').value) {
-        netWeight -= Number(this.stockOrderForm.get('damagedWeightDeduction').value);
+        baseWeight -= Number(this.stockOrderForm.get('damagedWeightDeduction').value);
       }
-      // Calculate moisture weight deduction
+
+      baseWeight = Math.max(0, baseWeight);
+
+      let finalNetWeight = baseWeight;
       if (this.stockOrderForm.get('moisturePercentage').value) {
         const moisturePercent = Number(this.stockOrderForm.get('moisturePercentage').value);
-        const grossQuantity = Number(this.stockOrderForm.get('totalGrossQuantity').value);
-        const moistureDeduction = grossQuantity * (moisturePercent / 100);
+        finalNetWeight = baseWeight * (moisturePercent / 100);
+        const moistureDeduction = baseWeight - finalNetWeight;
         this.stockOrderForm.get('moistureWeightDeduction').setValue(moistureDeduction.toFixed(2), { emitEvent: false });
-        netWeight -= moistureDeduction;
       } else {
         this.stockOrderForm.get('moistureWeightDeduction').setValue(null, { emitEvent: false });
       }
-      netWeight = Math.max(0, netWeight);
-      this.netWeightForm.setValue(netWeight.toFixed(2));
+
+      finalNetWeight = Math.max(0, finalNetWeight);
+      this.netWeightForm.setValue(finalNetWeight.toFixed(2));
     } else {
       this.netWeightForm.setValue(null);
     }
@@ -865,6 +923,23 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
             [Validators.required] : []
     );
     this.stockOrderForm.get('damagedWeightDeduction').updateValueAndValidity();
+
+    const moistureControl = this.stockOrderForm.get('moisturePercentage');
+    if (moistureControl) {
+      const moistureValidators = [Validators.min(0), Validators.max(100)];
+      if (this.orderType === 'PURCHASE_ORDER' && this.facility && this.facility.displayMoisturePercentage) {
+        moistureValidators.unshift(Validators.required);
+      }
+      moistureControl.setValidators(moistureValidators);
+      if (!(this.facility && this.facility.displayMoisturePercentage)) {
+        moistureControl.setValue(null);
+        const moistureWeightControl = this.stockOrderForm.get('moistureWeightDeduction');
+        if (moistureWeightControl) {
+          moistureWeightControl.setValue(null);
+        }
+      }
+      moistureControl.updateValueAndValidity();
+    }
   }
 
   get tareInvalidCheck() {
