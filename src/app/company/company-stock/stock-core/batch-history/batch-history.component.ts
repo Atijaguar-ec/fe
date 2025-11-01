@@ -351,7 +351,6 @@ export class BatchHistoryComponent implements OnInit, AfterViewInit {
   }
 
   getGrossQuantity(order: ApiStockOrder): string {
-    console.log('000000000',order)
     return this.formatQuantity(order, order?.totalGrossQuantity ?? 0);
   }
 
