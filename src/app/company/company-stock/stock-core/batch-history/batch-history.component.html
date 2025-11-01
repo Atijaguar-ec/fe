@@ -67,16 +67,24 @@
               <table class="af-table af-table--200 table-striped af-table--divider">
                 <tbody>
                 <tr>
-                  <th>Total</th>
-                  <td>{{ stockOrder.totalQuantity }} {{ stockOrder.measureUnitType?.label }} </td>
+                  <th i18n="@@orderHistoryView.tableCol.grossQuantity">Cantidad bruta</th>
+                  <td>{{ getGrossQuantity(stockOrder) }}</td>
                 </tr>
                 <tr>
-                  <th>Fulfilled</th>
-                  <td>{{ stockOrder.fulfilledQuantity }} {{ stockOrder.measureUnitType?.label }}</td>
+                  <th i18n="@@orderHistoryView.tableCol.deductions">Descuentos aplicados</th>
+                  <td class="text-muted small">{{ getDeductionsSummary(stockOrder) }}</td>
                 </tr>
                 <tr>
-                  <th>Available quantity</th>
-                  <td>{{ stockOrder.availableQuantity }} {{ stockOrder.measureUnitType?.label }} </td>
+                  <th i18n="@@orderHistoryView.tableCol.netQuantity">Cantidad neta</th>
+                  <td>{{ getNetQuantity(stockOrder) }}</td>
+                </tr>
+                <tr>
+                  <th i18n="@@orderHistoryView.tableCol.fulfilled">Cumplido</th>
+                  <td>{{ formatQuantity(stockOrder, stockOrder.fulfilledQuantity) }}</td>
+                </tr>
+                <tr>
+                  <th i18n="@@orderHistoryView.tableCol.available">Disponible</th>
+                  <td>{{ formatQuantity(stockOrder, stockOrder.availableQuantity) }}</td>
                 </tr>
                 </tbody>
               </table>

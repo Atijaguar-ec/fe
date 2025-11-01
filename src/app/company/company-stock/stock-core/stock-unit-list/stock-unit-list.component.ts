@@ -905,15 +905,30 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
     const deductions: string[] = [];
     const unit = order.measureUnitType?.label || '';
 
-    if (order.tare) {
-      deductions.push(`Tara: ${order.tare.toFixed(2)} ${unit}`);
+    const gross = Number(order.totalGrossQuantity ?? order.totalQuantity ?? 0);
+    let currentWeight = gross;
+
+    // Tare deduction
+    if (order.tare && Number(order.tare) > 0) {
+      deductions.push(`Tara: -${Number(order.tare).toFixed(2)} ${unit}`);
+      currentWeight -= Number(order.tare);
     }
-    if (order.damagedWeightDeduction) {
-      deductions.push(`Peso: ${order.damagedWeightDeduction.toFixed(2)} ${unit}`);
+
+    // Damaged weight deduction
+    if (order.damagedWeightDeduction && Number(order.damagedWeightDeduction) > 0) {
+      deductions.push(`Peso: -${Number(order.damagedWeightDeduction).toFixed(2)} ${unit}`);
+      currentWeight -= Number(order.damagedWeightDeduction);
     }
-    if (order.moisturePercentage) {
-      const moistureDeduction = order.moistureWeightDeduction || 0;
-      deductions.push(`Humedad (${order.moisturePercentage}%): ${moistureDeduction.toFixed(2)} ${unit}`);
+
+    // Moisture percentage deduction
+    if (order.moisturePercentage && Number(order.moisturePercentage) > 0) {
+      const baseWeight = Math.max(0, currentWeight);
+      const netAfterMoisture = baseWeight * (Number(order.moisturePercentage) / 100);
+      const moistureDeduction = baseWeight - netAfterMoisture;
+      
+      if (moistureDeduction > 0) {
+        deductions.push(`Humedad (${Number(order.moisturePercentage).toFixed(0)}%): -${moistureDeduction.toFixed(2)} ${unit}`);
+      }
     }
 
     return deductions.length > 0 ? deductions.join(' | ') : '-';

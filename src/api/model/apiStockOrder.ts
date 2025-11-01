@@ -1558,6 +1558,9 @@ export namespace ApiStockOrder {
   //               moistureWeightDeduction: {
   //                   validators: []
   //               },
+  //               netQuantity: {
+  //                   validators: []
+  //               },
   //               qrCodeTag: {
   //                   validators: []
   //               },

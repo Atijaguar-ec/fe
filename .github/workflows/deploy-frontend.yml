@@ -294,7 +294,7 @@ jobs:
             docker rm inatrace-fe-dev 2>/dev/null || true
             docker compose down
 
-            echo "🚀 Deploying with Docker Compose..."
+            echo "🚀 Deploying with Docker Compose"
             docker compose pull
             docker compose up -d
 

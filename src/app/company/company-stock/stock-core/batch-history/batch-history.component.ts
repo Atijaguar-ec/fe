@@ -343,4 +343,80 @@ export class BatchHistoryComponent implements OnInit, AfterViewInit {
     return 'ab-edit-link';
   }
 
+  formatQuantity(order: ApiStockOrder, value?: number): string {
+    const quantity = Number(value ?? 0);
+    const formatted = quantity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const unit = order?.measureUnitType?.label;
+    return unit ? `${formatted} ${unit}` : formatted;
+  }
+
+  getGrossQuantity(order: ApiStockOrder): string {
+    console.log('000000000',order)
+    return this.formatQuantity(order, order?.totalGrossQuantity ?? 0);
+  }
+
+  getNetQuantity(order: ApiStockOrder): string {
+    return this.formatQuantity(order, order?.netQuantity ?? order?.totalQuantity ?? 0);
+  }
+
+  getDeductionsSummary(order: ApiStockOrder): string {
+    const deductions: string[] = [];
+    if (!order) {
+      return '-';
+    }
+
+    const gross = Number(order.totalGrossQuantity ?? order.totalQuantity ?? 0);
+    let currentWeight = gross;
+
+    // Tare deduction
+    if (order.tare && Number(order.tare) > 0) {
+      const tareLabel = $localize`:@@orderHistoryView.deductions.tare:Tara`;
+      deductions.push(`${tareLabel}: -${this.formatQuantity(order, order.tare)}`);
+      currentWeight -= Number(order.tare);
+    }
+
+    // Damaged weight deduction
+    if (order.damagedWeightDeduction && Number(order.damagedWeightDeduction) > 0) {
+      const damageLabel = $localize`:@@orderHistoryView.deductions.damage:Descuento peso`;
+      deductions.push(`${damageLabel}: -${this.formatQuantity(order, order.damagedWeightDeduction)}`);
+      currentWeight -= Number(order.damagedWeightDeduction);
+    }
+
+    // Moisture percentage deduction
+    if (order.moisturePercentage && Number(order.moisturePercentage) > 0) {
+      const moistureLabel = $localize`:@@orderHistoryView.deductions.moisture:Humedad`;
+      const percentage = Number(order.moisturePercentage).toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 0 });
+      
+      // Calculate what remains after moisture percentage
+      const baseWeight = Math.max(0, currentWeight);
+      const netAfterMoisture = baseWeight * (Number(order.moisturePercentage) / 100);
+      const moistureDeduction = baseWeight - netAfterMoisture;
+      
+      if (moistureDeduction > 0) {
+        deductions.push(`${moistureLabel} (${percentage}%): -${this.formatQuantity(order, moistureDeduction)}`);
+      }
+    }
+
+    return deductions.length > 0 ? deductions.join(' | ') : '-';
+  }
+
+  private getMoistureWeightDeduction(order: ApiStockOrder): number {
+    if (order.moistureWeightDeduction != null) {
+      return Number(order.moistureWeightDeduction);
+    }
+
+    if (order.moisturePercentage == null) {
+      return 0;
+    }
+
+    const gross = Number(order.totalGrossQuantity ?? order.totalQuantity ?? 0);
+    const tare = Number(order.tare ?? 0);
+    const damaged = Number(order.damagedWeightDeduction ?? 0);
+    const baseWeight = Math.max(0, gross - tare - damaged);
+    const moistureFactor = Number(order.moisturePercentage) / 100;
+    const netAfterMoisture = baseWeight * moistureFactor;
+    const deduction = baseWeight - netAfterMoisture;
+    return deduction > 0 ? deduction : 0;
+  }
+
 }
