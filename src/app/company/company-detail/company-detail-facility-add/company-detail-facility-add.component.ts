@@ -276,8 +276,8 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
 
   get publiclyVisible() {
     return {
-      'true': $localize`:@@productLabelStockFacilityModal.publiclyVisible.yes:YES`,
-      'false': $localize`:@@productLabelStockFacilityModal.publiclyVisible.no:NO`
+      true: $localize`:@@productLabelStockFacilityModal.publiclyVisible.yes:YES`,
+      false: $localize`:@@productLabelStockFacilityModal.publiclyVisible.no:NO`
     } as Record<string, string>;
   }
 
