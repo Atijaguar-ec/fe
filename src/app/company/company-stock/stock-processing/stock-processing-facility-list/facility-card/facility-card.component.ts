@@ -139,8 +139,6 @@ export class FacilityCardComponent implements OnInit {
 
   private setMenuOptions() {
 
-
-    console.log('this.actions',this.actions)
     for (const action of this.actions) {
 
       // Filter-out processing actions of type 'SHIPMENT' (Quote orders)
