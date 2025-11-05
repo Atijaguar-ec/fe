@@ -24,16 +24,16 @@ export class FacilityCardComponent implements OnInit {
   menuOptions: { id: any; name: string }[] = [];
 
   @Input()
-  facility: ApiFacility;
+  facility!: ApiFacility;
 
   @Input()
-  indexInList: number;
+  indexInList!: number;
 
   @Input()
-  companyId: number;
+  companyId!: number;
 
   @Input()
-  actions: ApiProcessingAction[] = [];
+  actions!: ApiProcessingAction[];
 
   constructor(
     private router: Router
@@ -122,11 +122,13 @@ export class FacilityCardComponent implements OnInit {
 
   private async semiAndFinalProductsIncluded() {
 
-    for (const item of this.facility.facilitySemiProductList) {
+    const semiProducts = this.facility?.facilitySemiProductList ?? [];
+    for (const item of semiProducts) {
       this.description += item.name + ', ';
     }
 
-    for (const item of this.facility.facilityFinalProducts) {
+    const finalProducts = this.facility?.facilityFinalProducts ?? [];
+    for (const item of finalProducts) {
       this.description += `${item.name} (${item.product.name})` + ', ';
     }
 
@@ -149,7 +151,7 @@ export class FacilityCardComponent implements OnInit {
         continue;
       }
 
-      const facilitySemiProd = this.facility.facilitySemiProductList.find(fsp => fsp.id === action.inputSemiProduct?.id);
+      const facilitySemiProd = this.facility?.facilitySemiProductList?.find(fsp => fsp.id === action.inputSemiProduct?.id);
       if (facilitySemiProd) {
         this.menuOptions.push({
           id: action.id,
@@ -157,7 +159,7 @@ export class FacilityCardComponent implements OnInit {
         });
       }
 
-      const facilityFinalProd = this.facility.facilityFinalProducts.find(ffp => ffp.id === action.inputFinalProduct?.id);
+      const facilityFinalProd = this.facility?.facilityFinalProducts?.find(ffp => ffp.id === action.inputFinalProduct?.id);
       if (facilityFinalProd) {
         this.menuOptions.push({
           id: action.id,

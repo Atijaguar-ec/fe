@@ -21,7 +21,7 @@ export class StockProcessingFacilityListComponent implements OnInit {
   reloadPingList$ = new BehaviorSubject<boolean>(false);
 
   @Input()
-  companyId: number;
+  companyId!: number;
 
   @Output()
   showing = new EventEmitter<number>();
@@ -32,13 +32,9 @@ export class StockProcessingFacilityListComponent implements OnInit {
   allFacilities = 0;
   showedFacilities = 0;
 
-  facilities$: Observable<ApiPaginatedListApiFacility>;
+  facilities$!: Observable<ApiPaginatedListApiFacility>;
 
-  // categoryOne = [];
-  // categoryTwo = [];
-  // categoryThree = [];
-  // categoryFour = [];
-  // categoryFive = [];
+  
   
   // Dynamic categories based on facility types
   categories: Record<string, ApiFacility[]> = {};
