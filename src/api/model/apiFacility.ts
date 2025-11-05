@@ -80,6 +80,10 @@ export interface ApiFacility {
      * Enable form control 'Price determined later'
      */
     displayPriceDeterminedLater?: boolean;
+    /**
+     * Custom facility level overriding facility type order
+     */
+    level?: number;
     facilityLocation?: ApiFacilityLocation;
     company?: ApiCompanyBase;
     facilityType?: ApiFacilityType;
@@ -158,6 +162,10 @@ export namespace ApiFacility {
          * Enable form control 'Price determined later'
          */
         displayPriceDeterminedLater = 'displayPriceDeterminedLater',
+        /**
+         * Custom facility level overriding facility type order
+         */
+        level = 'level',
         facilityLocation = 'facilityLocation',
         company = 'company',
         facilityType = 'facilityType',
@@ -319,6 +327,17 @@ export namespace ApiFacility {
                     complexType: ''
                 },
                 {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'level',
+                    classname: 'ApiFacility',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
                     metadata: ApiFacilityLocation.formMetadata,
                     isReadOnly: false,
                     isEnum: false,
@@ -439,6 +458,8 @@ export namespace ApiFacility {
                 ],
                 displayPriceDeterminedLater: [
                 ],
+                level: [
+                ],
                 facilityLocation: [
                 ],
                 company: [
@@ -496,6 +517,9 @@ export namespace ApiFacility {
   //                   validators: []
   //               },
   //               displayPriceDeterminedLater: {
+  //                   validators: []
+  //               },
+  //               level: {
   //                   validators: []
   //               },
   //               facilityLocation: {

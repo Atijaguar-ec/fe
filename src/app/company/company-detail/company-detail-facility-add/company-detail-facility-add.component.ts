@@ -30,6 +30,8 @@ import { CompanyValueChainsService } from '../../../shared-services/company-valu
 import { CompanyControllerService } from '../../../../api/api/companyController.service';
 import LanguageEnum = ApiFacilityTranslation.LanguageEnum;
 
+declare const $localize: (messageParts: TemplateStringsArray, ...expressions: any[]) => string;
+
 @Component({
   selector: 'app-company-detail-facility-add',
   templateUrl: './company-detail-facility-add.component.html',
@@ -39,24 +41,26 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<boolean>();
 
-  public edit: boolean;
-  public title: string;
-  public form: FormGroup;
+  public edit!: boolean;
+  public title!: string;
+  public form!: FormGroup;
   public submitted = false;
-  public companyId: string;
+  public companyId!: string;
 
-  semiProductsForValueChainsService: SemiProductsForValueChainsService;
+  semiProductsForValueChainsService: SemiProductsForValueChainsService | null = null;
 
-  companyValueChainsCodebook: CompanyValueChainsService;
+  companyValueChainsCodebook!: CompanyValueChainsService;
   valueChainsForm = new FormControl(null);
   valueChains: Array<ApiValueChain> = [];
-  selectedCompanyValueChainsControl = new FormControl(null, [ListNotEmptyValidator()]);
+  selectedCompanyValueChainsControl = new FormControl(null as ApiValueChain[] | null, [ListNotEmptyValidator()]);
+
+  levelControl = new FormControl(null, [Validators.min(0)]);
 
   codebookStatus = EnumSifrant.fromObject(this.publiclyVisible);
   semiProductsForm = new FormControl(null);
   semiProducts: Array<ApiSemiProduct> = [];
 
-  finalProductsForCompanyCodebook: FinalProductsForCompanyService;
+  finalProductsForCompanyCodebook!: FinalProductsForCompanyService;
   finalProductForm = new FormControl(null);
   finalProducts: Array<ApiFinalProduct> = [];
 
@@ -66,7 +70,7 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
   languages = [LanguageEnum.EN, LanguageEnum.ES];
   selectedLanguage = LanguageEnum.ES;
 
-  private valueChainSubs: Subscription;
+  private valueChainSubs?: Subscription;
 
   constructor(
       private route: ActivatedRoute,
@@ -99,13 +103,32 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
 
   }
 
+  private registerFacilityTypeLevelDefaults(): void {
+    const facilityTypeControl = this.form.get('facilityType');
+    if (!facilityTypeControl) {
+      return;
+    }
+
+    const applyDefault = (facilityType: ApiFacility['facilityType']) => {
+      if (!this.edit && facilityType?.order != null && this.levelControl && this.levelControl.pristine) {
+        this.levelControl.setValue(facilityType.order, { emitEvent: false });
+      }
+    };
+
+    applyDefault(facilityTypeControl.value as ApiFacility['facilityType']);
+
+    facilityTypeControl.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((facilityType: ApiFacility['facilityType']) => applyDefault(facilityType));
+  }
+
   async initValueChainData() {
     const companyId = this.route.snapshot.params.id;
     // this code sets the default value-chain, when only 1 is available
     const defaultValChainCheck = await this.companyController.getCompanyValueChains(companyId).pipe(take(1)).toPromise();
-    if (defaultValChainCheck && defaultValChainCheck.status === 'OK') {
+    if (defaultValChainCheck?.status === 'OK' && defaultValChainCheck.data) {
       if (defaultValChainCheck.data.count === 1) {
-        this.valueChains = defaultValChainCheck.data.items;
+        this.valueChains = (defaultValChainCheck.data.items ?? []) as ApiValueChain[];
 
         setTimeout(() => this.selectedCompanyValueChainsControl.setValue(this.valueChains));
       }
@@ -113,10 +136,18 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
   }
 
   private registerValueChainSubs() {
-    this.valueChainSubs = this.form.get('valueChains').valueChanges.subscribe((valueChains: ApiValueChain[]) => {
+    this.valueChainSubs?.unsubscribe();
+    const valueChainsControl = this.form.get('valueChains');
+    if (!valueChainsControl) {
+      return;
+    }
+
+    this.valueChainSubs = valueChainsControl.valueChanges.subscribe((valueChains: ApiValueChain[] | null) => {
 
       if (valueChains && valueChains.length > 0) {
-        const valueChainIds = valueChains?.map(valueChain => valueChain.id);
+        const valueChainIds = valueChains
+          .map(valueChain => valueChain?.id)
+          .filter((id): id is number => typeof id === 'number');
         // Initialize codebook services for semi-products
         this.semiProductsForValueChainsService = new SemiProductsForValueChainsService(this.semiProductControllerService, this.codebookTranslations, valueChainIds);
 
@@ -127,7 +158,12 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
   }
 
   registerValidatorsOnUpdate() {
-    this.fLoc.controls.publiclyVisible.valueChanges
+    const publiclyVisibleControl = this.fLoc?.controls?.publiclyVisible;
+    if (!publiclyVisibleControl) {
+      return;
+    }
+
+    publiclyVisibleControl.valueChanges
         .pipe(takeUntil(this.destroy$))
         .subscribe((val: string) => {
           if (val === 'true') {
@@ -147,6 +183,8 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
     this.form = generateFormFromMetadata(ApiFacility.formMetadata(), this.emptyObject(), ApiFacilityValidationScheme);
     (this.form as FormGroup).setControl('valueChains', this.selectedCompanyValueChainsControl);
     this.finalizeForm();
+    this.initializeLevelControl(null);
+    this.registerFacilityTypeLevelDefaults();
     this.registerValidatorsOnUpdate();
     this.registerValueChainSubs();
   }
@@ -154,29 +192,53 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
   initializeEdit() {
 
     this.title = $localize`:@@productLabelStockFacilityModal.newFacility.editTitle:Edit facility`;
-    const facilityId = this.route.snapshot.params.facilityId;
+    const facilityId = Number(this.route.snapshot.params.facilityId);
     this.facilityControllerService.getFacilityDetail(facilityId).pipe(first()).subscribe(res => {
+      const facilityData = res?.data;
+      if (!facilityData) {
+        return;
+      }
 
-      this.form = generateFormFromMetadata(ApiFacility.formMetadata(), res.data, ApiFacilityValidationScheme);
+      this.form = generateFormFromMetadata(ApiFacility.formMetadata(), facilityData, ApiFacilityValidationScheme);
+      this.initializeLevelControl(facilityData.level ?? facilityData.facilityType?.order ?? null);
       (this.form as FormGroup).setControl('valueChains', this.selectedCompanyValueChainsControl);
 
-      this.valueChains = res.data.facilityValueChains ? res.data.facilityValueChains : [];
-      this.semiProducts = res.data.facilitySemiProductList;
-      this.finalProducts = res.data.facilityFinalProducts;
+      this.valueChains = facilityData.facilityValueChains ?? [];
+      this.semiProducts = facilityData.facilitySemiProductList ?? [];
+      this.finalProducts = facilityData.facilityFinalProducts ?? [];
 
       setTimeout(() => this.selectedCompanyValueChainsControl.setValue(this.valueChains));
 
-      const tmpVis = this.form.get('facilityLocation.publiclyVisible').value;
-      if (tmpVis != null) { this.form.get('facilityLocation.publiclyVisible').setValue(tmpVis.toString()); }
-      const tmpPub = this.form.get('isPublic').value;
-      if (tmpPub != null) { this.form.get('isPublic').setValue(tmpPub.toString()); }
-      const tmpCollection = this.form.get('isCollectionFacility').value;
-      if (tmpCollection != null) { this.form.get('isCollectionFacility').setValue(tmpCollection.toString()); }
+      const publiclyVisible = this.form.get('facilityLocation.publiclyVisible');
+      const tmpVis = publiclyVisible?.value;
+      if (tmpVis != null) { publiclyVisible?.setValue(tmpVis.toString()); }
+      const isPublic = this.form.get('isPublic');
+      const tmpPub = isPublic?.value;
+      if (tmpPub != null) { isPublic?.setValue(tmpPub.toString()); }
+      const isCollection = this.form.get('isCollectionFacility');
+      const tmpCollection = isCollection?.value;
+      if (tmpCollection != null) { isCollection?.setValue(tmpCollection.toString()); }
 
       this.finalizeForm();
+      this.registerFacilityTypeLevelDefaults();
       this.registerValidatorsOnUpdate();
       this.registerValueChainSubs();
     });
+  }
+
+  private initializeLevelControl(initialValue: number | null) {
+    let control = this.form.get('level') as FormControl | null;
+    if (!control) {
+      control = this.levelControl;
+      this.form.addControl('level', control);
+    } else {
+      this.levelControl = control;
+      control.setValidators([Validators.min(0)]);
+    }
+
+    control.setValue(initialValue, { emitEvent: false });
+    control.markAsPristine();
+    control.updateValueAndValidity({ emitEvent: false });
   }
 
   emptyObject() {
@@ -196,9 +258,13 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
     if (this.form.invalid) {
       return;
     }
-    const facility: ApiFacility = this.form.value;
+    const facility: ApiFacility = {
+      ...this.form.value,
+      level: this.levelControl?.value ?? undefined
+    };
+    facility.company = facility.company ?? ({} as ApiCompanyBase);
     if (!this.edit) {
-      facility.company.id = this.route.snapshot.params.id;
+      facility.company.id = Number(this.route.snapshot.params.id);
     }
     facility.facilityValueChains = this.valueChains;
     facility.facilitySemiProductList = this.semiProducts;
@@ -209,10 +275,10 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
   }
 
   get publiclyVisible() {
-    const obj = {};
-    obj['true'] = $localize`:@@productLabelStockFacilityModal.publiclyVisible.yes:YES`;
-    obj['false'] = $localize`:@@productLabelStockFacilityModal.publiclyVisible.no:NO`;
-    return obj;
+    return {
+      'true': $localize`:@@productLabelStockFacilityModal.publiclyVisible.yes:YES`,
+      'false': $localize`:@@productLabelStockFacilityModal.publiclyVisible.no:NO`
+    } as Record<string, string>;
   }
 
   async addSelectedValueChain(valueChain: ApiValueChain) {
@@ -328,6 +394,7 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.destroy$.next(true);
+    this.destroy$.complete();
     if (this.valueChainSubs) {
       this.valueChainSubs.unsubscribe();
     }
@@ -338,18 +405,17 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
   }
 
   finalizeForm() {
-    if (!this.form.contains('translations')) {
-      this.form.addControl('translations', new FormArray([]));
-    }
+    const translationsControl = this.form.get('translations');
+    const existingTranslations = (translationsControl?.value ?? []) as ApiFacilityTranslation[];
 
-    const translations = this.form.get('translations').value;
     this.form.removeControl('translations');
-    this.form.addControl('translations', new FormArray([]));
+    const translationsArray = new FormArray([]);
+    this.form.addControl('translations', translationsArray);
 
     for (const lang of this.languages) {
-      const translation = translations.find(t => t.language === lang);
-      (this.form.get('translations') as FormArray).push(new FormGroup({
-        name: new FormControl(translation ? translation.name : ''),
+      const translation = existingTranslations.find((item: ApiFacilityTranslation) => item.language === lang);
+      translationsArray.push(new FormGroup({
+        name: new FormControl(translation?.name ?? ''),
         language: new FormControl(lang)
       }));
     }

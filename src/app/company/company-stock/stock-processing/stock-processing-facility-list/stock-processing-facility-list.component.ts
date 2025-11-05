@@ -94,7 +94,7 @@ export class StockProcessingFacilityListComponent implements OnInit {
       }
       
       const code = facilityType.code;
-      const order = (facilityType as any).order || 999;
+      const order = facilityType.order ?? 999;
       
       if (!this.categories[code]) {
         this.categories[code] = [];
@@ -112,11 +112,23 @@ export class StockProcessingFacilityListComponent implements OnInit {
       return orderA - orderB;
     });
 
-    // Sort facilities within each type by name for consistency
+    // Sort facilities within each type by level, facility type order fallback, then name
     for (const code of this.categoriesOrder) {
-      this.categories[code].sort((a, b) => 
-        (a.name || '').localeCompare(b.name || '', 'es')
-      );
+      this.categories[code].sort((a, b) => {
+        const levelA = a.level ?? a.facilityType?.order ?? Number.MAX_SAFE_INTEGER;
+        const levelB = b.level ?? b.facilityType?.order ?? Number.MAX_SAFE_INTEGER;
+        if (levelA !== levelB) {
+          return levelA - levelB;
+        }
+
+        const typeOrderA = a.facilityType?.order ?? Number.MAX_SAFE_INTEGER;
+        const typeOrderB = b.facilityType?.order ?? Number.MAX_SAFE_INTEGER;
+        if (typeOrderA !== typeOrderB) {
+          return typeOrderA - typeOrderB;
+        }
+
+        return (a.name || '').localeCompare(b.name || '', 'es');
+      });
     }
   }
 

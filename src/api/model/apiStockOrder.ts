@@ -245,8 +245,8 @@ export interface ApiStockOrder {
      */
     repackedOriginStockOrderId?: string;
     purchaseOrder?: boolean;
-    available?: boolean;
     openOrder?: boolean;
+    available?: boolean;
 }
 
 /**
@@ -462,8 +462,8 @@ export namespace ApiStockOrder {
          */
         repackedOriginStockOrderId = 'repackedOriginStockOrderId',
         purchaseOrder = 'purchaseOrder',
-        available = 'available',
-        openOrder = 'openOrder'
+        openOrder = 'openOrder',
+        available = 'available'
     }
 
     /**
@@ -1225,7 +1225,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'available',
+                    name: 'openOrder',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1236,7 +1236,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'openOrder',
+                    name: 'available',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1373,9 +1373,9 @@ export namespace ApiStockOrder {
                 ],
                 purchaseOrder: [
                 ],
-                available: [
-                ],
                 openOrder: [
+                ],
+                available: [
                 ],
             }
         }
@@ -1576,10 +1576,10 @@ export namespace ApiStockOrder {
   //               purchaseOrder: {
   //                   validators: []
   //               },
-  //               available: {
+  //               openOrder: {
   //                   validators: []
   //               },
-  //               openOrder: {
+  //               available: {
   //                   validators: []
   //               },
   //     }

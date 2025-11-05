@@ -81,6 +81,9 @@ export const ApiFacilityValidationScheme = {
         },
         isPublic: {
             validators: [Validators.required]
+        },
+        level: {
+            validators: [Validators.min(0)]
         }
     }
 } as SimpleValidationScheme<ApiFacility>;
@@ -89,14 +92,17 @@ export function requiredTranslationsFacility(control: FormGroup): ValidationErro
     if (!control || !control.value || !control.contains('translations')) {
         return null;
     }
-    const translations = control.value['translations'];
+    const translations = control.value['translations'] as Array<{ language: string; name: string }>;
     if (translations.length === 0) {
-        return {required: true};
+        return {
+            required: true
+        };
     }
-    // English translation is required, other are optional
-    const englishTranslation = translations.find(t => t.language === 'EN');
-    if (!englishTranslation || !englishTranslation.name) {
-        return {required: true};
+    const enTranslation = translations.find((translation) => translation.language === 'EN');
+    if (!enTranslation || !enTranslation.name) {
+        return {
+            required: true
+        };
     }
     return null;
 }

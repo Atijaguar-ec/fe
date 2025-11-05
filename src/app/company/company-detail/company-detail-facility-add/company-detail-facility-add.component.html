@@ -24,6 +24,22 @@
                             </ng-container>
                         </single-choice>
                     </div>
+                    <div class="af-form-element">
+                        <textinput
+                            label="Nivel (Orden)"
+                            i18n-label="@@productLabelStockFacilityModal.facilityLevel.label"
+                            placeholder="Ingrese nivel personalizado"
+                            i18n-placeholder="@@productLabelStockFacilityModal.facilityLevel.placeholder"
+                            type="number"
+                            [form]="levelControl"
+                            [isInvalid]="submitted && levelControl.invalid">
+                            <ng-container *ngIf="submitted && levelControl.errors as errors">
+                                <div *ngIf="errors.min" class="sc-invalid-feedback" i18n="@@productLabelStockFacilityModal.facilityLevel.error.min">
+                                    El nivel debe ser 0 o mayor
+                                </div>
+                            </ng-container>
+                        </textinput>
+                    </div>
                 </div>
             </div>
 
