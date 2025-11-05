@@ -50,7 +50,7 @@ export class BatchHistoryComponent implements OnInit, AfterViewInit {
 
           const stockOrderHistory = val.data;
 
-          stockOrderHistory.timelineItems.forEach(timelineItem => {
+          stockOrderHistory?.timelineItems?.forEach(timelineItem => {
             if (timelineItem.processingOrder) {
 
               const groups = new Map<string, ApiStockOrder[]>();
@@ -88,8 +88,8 @@ export class BatchHistoryComponent implements OnInit, AfterViewInit {
 
                 // Remove the stock orders from the original target stock order array
                 stockOrders.forEach(so => {
-                  const removeIndex = timelineItem.processingOrder.targetStockOrders.findIndex(tso => tso.id === so.id);
-                  timelineItem.processingOrder.targetStockOrders.splice(removeIndex, 1);
+                  const removeIndex = timelineItem?.processingOrder?.targetStockOrders?.findIndex(tso => tso.id === so.id);
+                  timelineItem.processingOrder?.targetStockOrders?.splice(removeIndex, 1);
                 });
               });
               timelineItem.processingOrder['stockOrderGroups'] = groupsArray;

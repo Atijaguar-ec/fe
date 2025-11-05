@@ -68,8 +68,32 @@
 
               <table class="af-table af-table--200 table-striped af-table--divider">
                 <tbody>
+                  <ng-container *ngIf="stockOrder.totalGrossQuantity">
+                  <tr>
+                    <th>Total bruto</th>
+                    <td>{{ stockOrder.totalGrossQuantity }} {{ stockOrder.measureUnitType?.label }} </td>
+                  </tr>
+                  </ng-container>
+
+                <ng-container *ngIf="stockOrder.moisturePercentage">
+                  <tr>
+                    <th>Descuento de peso</th>
+                    <td> {{ stockOrder.damagedWeightDeduction }} {{ stockOrder.measureUnitType?.label  }} </td>
+                  </tr>
+                  </ng-container>
+
+
+                   <ng-container *ngIf="stockOrder.moisturePercentage">
+                  <tr>
+                    <th>% Descuento por humedad (peso)'</th>
+                    <td>{{ stockOrder.moisturePercentage }}% =>  {{ stockOrder.moistureWeightDeduction }} </td>
+                  </tr>
+                  </ng-container>
+
+
+                 
                 <tr>
-                  <th>Total</th>
+                  <th i18n="@@orderHistoryView.tableCol.measurementUnitType">Total</th>
                   <td>{{ stockOrder.totalQuantity }} {{ stockOrder.measureUnitType?.label }} </td>
                 </tr>
 
@@ -187,12 +211,7 @@
                               <div class="timeline-transaction__header">
                                 <span class="timeline-transaction__quantity">{{ tx.inputQuantity | number:'1.0-2' }}</span>
                                 <span class="timeline-transaction__unit">{{ tx.inputMeasureUnitType?.label }}</span>
-                                <span class="timeline-chip timeline-chip--status ml-2" *ngIf="tx.status"
-                                      [ngClass]="{
-                                        'timeline-chip--success': tx.status === 'EXECUTED',
-                                        'timeline-chip--warning': tx.status === 'PENDING',
-                                        'timeline-chip--danger': tx.status === 'CANCELED'
-                                      }">{{ tx.status | lowercase | titlecase }}</span>
+                                
                               </div>
                               <div class="timeline-transaction__meta" *ngIf="tx.company?.name || tx.sourceStockOrder?.facility?.name || tx.sourceStockOrder?.facility?.company?.name">
                                 <span class="timeline-transaction__company" *ngIf="tx.company?.name">{{ tx.company?.name }}</span>
@@ -232,12 +251,7 @@
                               <div class="timeline-transaction__header">
                                 <span class="timeline-transaction__quantity">{{ tx.inputQuantity | number:'1.0-2' }}</span>
                                 <span class="timeline-transaction__unit">{{ tx.inputMeasureUnitType?.label }}</span>
-                                <span class="timeline-chip timeline-chip--status ml-2" *ngIf="tx.status"
-                                      [ngClass]="{
-                                        'timeline-chip--success': tx.status === 'EXECUTED',
-                                        'timeline-chip--warning': tx.status === 'PENDING',
-                                        'timeline-chip--danger': tx.status === 'CANCELED'
-                                      }">{{ tx.status | lowercase | titlecase }}</span>
+                               
                               </div>
                               <div class="timeline-transaction__meta" *ngIf="tx.company?.name || tx.targetStockOrder?.facility?.name || tx.targetStockOrder?.facility?.company?.name">
                                 <span class="timeline-transaction__company" *ngIf="tx.company?.name">{{ tx.company?.name }}</span>
