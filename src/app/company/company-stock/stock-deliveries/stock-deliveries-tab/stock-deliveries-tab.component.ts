@@ -47,14 +47,14 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
       })
   );
 
-  private facilityIdChangeSub: Subscription;
-  private subs: Subscription;
+  private facilityIdChangeSub!: Subscription;
+  private subs!: Subscription;
 
   @ViewChild('deliveriesTitleTooltip')
-  deliveriesTitleTooltip: NgbTooltip;
+  deliveriesTitleTooltip!: NgbTooltip;
 
   @ViewChild('addDeliveryButtonTooltip')
-  addDeliveryButtonTooltip: NgbTooltip;
+  addDeliveryButtonTooltip!: NgbTooltip;
 
   constructor(
       protected router: Router,
@@ -145,15 +145,15 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
     }
   }
 
-  onShowPO(event) {
+  onShowPO(event:any) {
     this.showedPurchaseOrders = event;
   }
 
-  onCountAllPO(event) {
+  onCountAllPO(event:any) {
     this.allPurchaseOrders = event;
   }
 
-  searchPurchaseInput(event) {
+  searchPurchaseInput(event:any) {
     this.searchFarmerNameSurnamePing$.next(event);
   }
   

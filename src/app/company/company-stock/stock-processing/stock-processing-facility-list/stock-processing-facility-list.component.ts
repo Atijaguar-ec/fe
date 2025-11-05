@@ -94,7 +94,7 @@ export class StockProcessingFacilityListComponent implements OnInit {
       }
       
       const code = facilityType.code;
-      const order = facilityType.order ?? 999;
+      const order = facility.level ?? 999;
       
       if (!this.categories[code]) {
         this.categories[code] = [];
@@ -115,14 +115,14 @@ export class StockProcessingFacilityListComponent implements OnInit {
     // Sort facilities within each type by level, facility type order fallback, then name
     for (const code of this.categoriesOrder) {
       this.categories[code].sort((a, b) => {
-        const levelA = a.level ?? a.facilityType?.order ?? Number.MAX_SAFE_INTEGER;
-        const levelB = b.level ?? b.facilityType?.order ?? Number.MAX_SAFE_INTEGER;
+        const levelA = a.level ?? a.level ?? Number.MAX_SAFE_INTEGER;
+        const levelB = b.level ?? b.level ?? Number.MAX_SAFE_INTEGER;
         if (levelA !== levelB) {
           return levelA - levelB;
         }
 
-        const typeOrderA = a.facilityType?.order ?? Number.MAX_SAFE_INTEGER;
-        const typeOrderB = b.facilityType?.order ?? Number.MAX_SAFE_INTEGER;
+        const typeOrderA = a.level ?? Number.MAX_SAFE_INTEGER;
+        const typeOrderB = b.level ?? Number.MAX_SAFE_INTEGER;
         if (typeOrderA !== typeOrderB) {
           return typeOrderA - typeOrderB;
         }

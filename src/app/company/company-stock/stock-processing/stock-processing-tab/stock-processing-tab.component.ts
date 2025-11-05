@@ -24,13 +24,13 @@ export class StockProcessingTabComponent extends StockCoreTabComponent implement
 
   reloadProcessingFacilitiesListPing$ = new BehaviorSubject<boolean>(false);
 
-  subs: Subscription;
+  subs!: Subscription;
 
   @ViewChild('procActionsTitleTooltip')
-  procActionsTitleTooltip: NgbTooltip;
+  procActionsTitleTooltip!: NgbTooltip;
 
   @ViewChild('facilityListTooltip')
-  facilityListTooltip: NgbTooltip;
+  facilityListTooltip!: NgbTooltip;
 
   constructor(
     protected router: Router,
@@ -77,11 +77,11 @@ export class StockProcessingTabComponent extends StockCoreTabComponent implement
     this.router.navigate(['my-stock', 'processing', 'NEW', 'facility', 'NEW', 'new']).then();
   }
 
-  public onCountAll(event) {
+  public onCountAll(event:any) {
     this.allProcessFacilities = event;
   }
 
-  public onShow(event) {
+  public onShow(event:any) {
     this.showedProcessFacilities = event;
   }
 

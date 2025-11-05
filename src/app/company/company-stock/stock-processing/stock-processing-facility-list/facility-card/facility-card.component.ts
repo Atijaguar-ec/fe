@@ -109,7 +109,7 @@ export class FacilityCardComponent implements OnInit {
   }
 
   private getFacilityOrder(): number {
-    const order = this.facility?.facilityType?.order || 0;
+    const order = this.facility?.level || 0;
     if (!order) {
       return 0;
     }
@@ -129,7 +129,7 @@ export class FacilityCardComponent implements OnInit {
 
     const finalProducts = this.facility?.facilityFinalProducts ?? [];
     for (const item of finalProducts) {
-      this.description += `${item.name} (${item.product.name})` + ', ';
+      this.description += `${item.name} (${item.product?.name})` + ', ';
     }
 
     if (this.description.length > 0) {
@@ -139,6 +139,8 @@ export class FacilityCardComponent implements OnInit {
 
   private setMenuOptions() {
 
+
+    console.log('this.actions',this.actions)
     for (const action of this.actions) {
 
       // Filter-out processing actions of type 'SHIPMENT' (Quote orders)
@@ -155,7 +157,7 @@ export class FacilityCardComponent implements OnInit {
       if (facilitySemiProd) {
         this.menuOptions.push({
           id: action.id,
-          name: action.name
+          name: action.name || ''
         });
       }
 
@@ -163,13 +165,13 @@ export class FacilityCardComponent implements OnInit {
       if (facilityFinalProd) {
         this.menuOptions.push({
           id: action.id,
-          name: action.name
+          name: action.name || ''
         });
       }
     }
   }
 
-  goTo(actionId) {
+  goTo(actionId:any) {
     this.router.navigate(['my-stock', 'processing', actionId, 'facility', this.facility.id, 'new']).then();
   }
 

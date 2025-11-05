@@ -10,13 +10,13 @@ import { Location } from '@angular/common';
 export class FormDetailsLeftPanelComponent implements OnInit {
 
   @Input()
-  title: string = null;
+  title: string = '';
 
   @Input()
   showIcon = false;
 
   @Input()
-  goToLink: string = null;
+  goToLink: string = '';
 
   @Input()
   goToBack = false;
