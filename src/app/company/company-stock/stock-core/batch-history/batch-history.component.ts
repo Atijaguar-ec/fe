@@ -13,6 +13,8 @@ import { ApiStockOrderHistoryTimelineItem } from '../../../../../api/model/apiSt
 import { ApiFacility } from '../../../../../api/model/apiFacility';
 import { ApiMeasureUnitType } from '../../../../../api/model/apiMeasureUnitType';
 
+declare const $localize: (messageParts: TemplateStringsArray, ...expressions: unknown[]) => string;
+
 interface GroupedStockOrders {
   processingDate: string;
   facility: ApiFacility;
@@ -336,6 +338,51 @@ export class BatchHistoryComponent implements OnInit, AfterViewInit {
 
   copyToClipboard() {
     document.execCommand('copy');
+  }
+
+  companyNameForTimelineItem(item: ApiStockOrderHistoryTimelineItem): string {
+    if (!item) {
+      return '';
+    }
+
+    const directOrders = (this.getTargetStockOrders(item) || []) as ApiStockOrder[];
+    const groupedOrders = this.getStockOrderGroups(item) || [];
+
+    const firstOrder = directOrders.length > 0 ? directOrders[0] : undefined;
+    const firstGroup = groupedOrders.length > 0 ? groupedOrders[0] : undefined;
+
+    const facility = firstOrder?.facility ?? firstGroup?.facility;
+    const companyName = facility?.company?.name;
+
+    if (companyName) {
+      return companyName;
+    }
+
+    if (facility?.name) {
+      return facility.name;
+    }
+
+    return '';
+  }
+
+  companyLabelForTimelineItem(item: ApiStockOrderHistoryTimelineItem): string {
+    const companyName = this.companyNameForTimelineItem(item);
+    return companyName || $localize`:@@orderHistoryView.timeline.unknownCompany:Empresa no especificada`;
+  }
+
+  shouldShowCompanyDivider(items: ApiStockOrderHistoryTimelineItem[], index: number): boolean {
+    if (!items || index < 0 || index >= items.length) {
+      return false;
+    }
+
+    const current = this.companyNameForTimelineItem(items[index]);
+
+    if (index === 0) {
+      return true;
+    }
+
+    const previous = this.companyNameForTimelineItem(items[index - 1]);
+    return current !== previous;
   }
 
   transactionColor(tx) {

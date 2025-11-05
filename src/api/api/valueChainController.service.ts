@@ -321,7 +321,7 @@ export namespace GetValueChainList {
 })
 export class ValueChainControllerService {
 
-    protected basePath = 'http://192.168.100.53:8080';
+    protected basePath = 'http://192.168.100.128:8080';
     public defaultHeaders = new HttpHeaders();
     public configuration = new Configuration();
 

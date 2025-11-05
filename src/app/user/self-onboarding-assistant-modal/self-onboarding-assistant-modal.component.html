@@ -1,7 +1,7 @@
 <div class="modal-container self-onboarding-assistant-modal position-relative">
     <div class="modal-body">
         <div class="assistant-icon-container">
-            <img src="/assets/icons/icon-self-onboarding-assistant.svg" alt="Image representing pineapple">
+            <img [src]="iconPath" [alt]="environmentInfoService.getProductDisplayName()" />
         </div>
         <div class="content-container">
             <h2><span i18n="@@selfOnboarding.assistantModal.header.line1">Hi {{ userProfile.name }}! Glad you are here.</span><br>

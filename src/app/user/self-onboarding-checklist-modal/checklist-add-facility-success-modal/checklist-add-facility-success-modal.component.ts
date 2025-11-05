@@ -3,6 +3,7 @@ import { SelfOnboardingChecklistModalComponent } from '../self-onboarding-checkl
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NgbModalImproved } from '../../../core/ngb-modal-improved/ngb-modal-improved.service';
 import { SelfOnboardingService } from '../../../shared-services/self-onboarding.service';
+import { EnvironmentInfoService } from '../../../core/environment-info.service';
 
 @Component({
   selector: 'app-checklist-add-facility-success-modal',
@@ -11,13 +12,17 @@ import { SelfOnboardingService } from '../../../shared-services/self-onboarding.
 })
 export class ChecklistAddFacilitySuccessModalComponent implements OnInit {
 
+  iconPath = '/assets/icons/icon-self-onboarding-assistant.png';
+
   constructor(
       private activeModal: NgbActiveModal,
       private modalService: NgbModalImproved,
-      private selfOnboardingService: SelfOnboardingService
+      private selfOnboardingService: SelfOnboardingService,
+      public environmentInfoService: EnvironmentInfoService
   ) { }
 
   ngOnInit(): void {
+    this.iconPath = this.environmentInfoService.getProductIconPath();
   }
 
   continue() {

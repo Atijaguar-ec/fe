@@ -110,6 +110,20 @@ export class EnvironmentInfoService {
     }
   }
 
+  getProductIconPath(productType?: string): string {
+    const normalized = this.normalizeProductType(productType || this.primaryProductType);
+    switch (normalized) {
+      case 'coffee':
+        return '/assets/icons/icon-coffee.png';
+      case 'cocoa':
+        return '/assets/icons/icon-cocoa.png';
+      case 'shrimp':
+        return '/assets/icons/icon-shrimp.png';
+      default:
+        return '/assets/icons/icon-self-onboarding-assistant.png';
+    }
+  }
+
   /**
    * Check if the current product type matches a specific type
    */

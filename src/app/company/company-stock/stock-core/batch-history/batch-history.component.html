@@ -7,7 +7,9 @@
             <div class="title-page content-element--title d-flex justify-content-between">
               <div i18n="@@orderHistoryView.title.batchHistory">Batch history</div>
               <div class="actions">
-                <button class="btn btn-primary mr-2" type="button" (click)="edit()" i18n="@@batchHistory.editButton">Editar</button>
+                 <button class="btn btn-solid round btn-table-new content-element--btn" (click)="edit(stockOrder)" i18n="@@orderHistoryView.button.edit">
+                <span>Edit</span>
+              </button>
                 <button class="btn btn-secondary" type="button" (click)="downloadPdf()" i18n="@@batchHistory.downloadPdfButton">Imprimir PDF</button>
               </div>
             </div>
@@ -67,17 +69,11 @@
               <table class="af-table af-table--200 table-striped af-table--divider">
                 <tbody>
                 <tr>
-                  <th i18n="@@orderHistoryView.tableCol.grossQuantity">Cantidad bruta</th>
-                  <td>{{ getGrossQuantity(stockOrder) }}</td>
+                  <th>Total</th>
+                  <td>{{ stockOrder.totalQuantity }} {{ stockOrder.measureUnitType?.label }} </td>
                 </tr>
-                <tr>
-                  <th i18n="@@orderHistoryView.tableCol.deductions">Descuentos aplicados</th>
-                  <td class="text-muted small">{{ getDeductionsSummary(stockOrder) }}</td>
-                </tr>
-                <tr>
-                  <th i18n="@@orderHistoryView.tableCol.netQuantity">Cantidad neta</th>
-                  <td>{{ getNetQuantity(stockOrder) }}</td>
-                </tr>
+
+                 
                 <tr>
                   <th i18n="@@orderHistoryView.tableCol.fulfilled">Cumplido</th>
                   <td>{{ formatQuantity(stockOrder, stockOrder.fulfilledQuantity) }}</td>
@@ -107,10 +103,7 @@
                   <th i18n="@@orderHistoryView.tableCol.comment">Comment</th>
                   <td>{{ stockOrder.comments || '-' }}</td>
                 </tr>
-                <tr *ngIf="stockOrder.weekNumber">
-                  <th i18n="@@orderHistoryView.tableCol.weekNumber">N° de Semana</th>
-                  <td>{{ stockOrder.weekNumber }}</td>
-                </tr>
+               
 
                 </tbody>
               </table>
@@ -188,10 +181,31 @@
                         <ng-container *ngIf="history.processingOrder?.processingAction?.inputFinalProduct">
                           {{ history.processingOrder.processingAction.inputFinalProduct.name }} ({{ history.processingOrder.processingAction.inputFinalProduct.product.name }})
                         </ng-container>
-                        <ul *ngIf="history.processingOrder?.inputTransactions && history.processingOrder?.inputTransactions.length> 0" style="margin-bottom: 0;">
-                          <li *ngFor="let tx of history.processingOrder?.inputTransactions">
-                            <a [ngClass]="transactionColor(tx)" (click)="goToInput(tx)">{{ tx.inputQuantity }} {{ tx.inputMeasureUnitType?.label }}</a>
-                            <div *ngIf="tx.status === 'CANCELED'" class="canceled">{{ tx.rejectComment }}</div>
+                        <ul *ngIf="history.processingOrder?.inputTransactions && history.processingOrder?.inputTransactions.length> 0" class="timeline-transaction-list">
+                          <li *ngFor="let tx of history.processingOrder?.inputTransactions" class="timeline-transaction-item">
+                            <a [ngClass]="transactionColor(tx)" (click)="goToInput(tx)">
+                              <div class="timeline-transaction__header">
+                                <span class="timeline-transaction__quantity">{{ tx.inputQuantity | number:'1.0-2' }}</span>
+                                <span class="timeline-transaction__unit">{{ tx.inputMeasureUnitType?.label }}</span>
+                                <span class="timeline-chip timeline-chip--status ml-2" *ngIf="tx.status"
+                                      [ngClass]="{
+                                        'timeline-chip--success': tx.status === 'EXECUTED',
+                                        'timeline-chip--warning': tx.status === 'PENDING',
+                                        'timeline-chip--danger': tx.status === 'CANCELED'
+                                      }">{{ tx.status | lowercase | titlecase }}</span>
+                              </div>
+                              <div class="timeline-transaction__meta" *ngIf="tx.company?.name || tx.sourceStockOrder?.facility?.name || tx.sourceStockOrder?.facility?.company?.name">
+                                <span class="timeline-transaction__company" *ngIf="tx.company?.name">{{ tx.company?.name }}</span>
+                                <span class="timeline-transaction__separator" *ngIf="tx.company?.name && (tx.sourceStockOrder?.facility?.company?.name || tx.sourceStockOrder?.facility?.name)">·</span>
+                                <span class="timeline-transaction__facility" *ngIf="tx.sourceStockOrder?.facility?.name">{{ tx.sourceStockOrder?.facility?.name }}</span>
+                                <span class="timeline-transaction__separator" *ngIf="tx.sourceStockOrder?.facility?.name && tx.sourceStockOrder?.facility?.company?.name">·</span>
+                                <span class="timeline-transaction__facility-company" *ngIf="tx.sourceStockOrder?.facility?.company?.name">{{ tx.sourceStockOrder?.facility?.company?.name }}</span>
+                              </div>
+                              <div class="timeline-transaction__details" *ngIf="tx.sourceStockOrder?.internalLotNumber || tx.sourceStockOrder?.identifier">
+                                {{ tx.sourceStockOrder?.internalLotNumber || tx.sourceStockOrder?.identifier }}
+                              </div>
+                            </a>
+                            <div *ngIf="tx.status === 'CANCELED' && tx.rejectComment" class="timeline-transaction__note">{{ tx.rejectComment }}</div>
                           </li>
                         </ul>
                       </td>
@@ -212,10 +226,31 @@
                         <ng-container *ngIf="history.processingOrder?.processingAction?.outputFinalProduct">
                           {{ history.processingOrder.processingAction.outputFinalProduct.name }} ({{ history.processingOrder.processingAction.outputFinalProduct.product.name }})
                         </ng-container>
-                        <ul *ngIf="history.outputTransactions.length > 0" style="margin-bottom: 0;">
-                          <li *ngFor="let tx of history.outputTransactions">
-                            <a [ngClass]="transactionColor(tx)" (click)="goToOutput(tx)">{{ tx.inputQuantity }} {{ tx.inputMeasureUnitType?.label }}</a>
-                            <div *ngIf="tx.status === 'CANCELED'" class="canceled">{{ tx.rejectComment }}</div>
+                        <ul *ngIf="history.outputTransactions.length > 0" class="timeline-transaction-list">
+                          <li *ngFor="let tx of history.outputTransactions" class="timeline-transaction-item">
+                            <a [ngClass]="transactionColor(tx)" (click)="goToOutput(tx)">
+                              <div class="timeline-transaction__header">
+                                <span class="timeline-transaction__quantity">{{ tx.inputQuantity | number:'1.0-2' }}</span>
+                                <span class="timeline-transaction__unit">{{ tx.inputMeasureUnitType?.label }}</span>
+                                <span class="timeline-chip timeline-chip--status ml-2" *ngIf="tx.status"
+                                      [ngClass]="{
+                                        'timeline-chip--success': tx.status === 'EXECUTED',
+                                        'timeline-chip--warning': tx.status === 'PENDING',
+                                        'timeline-chip--danger': tx.status === 'CANCELED'
+                                      }">{{ tx.status | lowercase | titlecase }}</span>
+                              </div>
+                              <div class="timeline-transaction__meta" *ngIf="tx.company?.name || tx.targetStockOrder?.facility?.name || tx.targetStockOrder?.facility?.company?.name">
+                                <span class="timeline-transaction__company" *ngIf="tx.company?.name">{{ tx.company?.name }}</span>
+                                <span class="timeline-transaction__separator" *ngIf="tx.company?.name && (tx.targetStockOrder?.facility?.company?.name || tx.targetStockOrder?.facility?.name)">·</span>
+                                <span class="timeline-transaction__facility" *ngIf="tx.targetStockOrder?.facility?.name">{{ tx.targetStockOrder?.facility?.name }}</span>
+                                <span class="timeline-transaction__separator" *ngIf="tx.targetStockOrder?.facility?.name && tx.targetStockOrder?.facility?.company?.name">·</span>
+                                <span class="timeline-transaction__facility-company" *ngIf="tx.targetStockOrder?.facility?.company?.name">{{ tx.targetStockOrder?.facility?.company?.name }}</span>
+                              </div>
+                              <div class="timeline-transaction__details" *ngIf="tx.targetStockOrder?.internalLotNumber || tx.targetStockOrder?.identifier">
+                                {{ tx.targetStockOrder?.internalLotNumber || tx.targetStockOrder?.identifier }}
+                              </div>
+                            </a>
+                            <div *ngIf="tx.status === 'CANCELED' && tx.rejectComment" class="timeline-transaction__note">{{ tx.rejectComment }}</div>
                           </li>
                         </ul>
                       </td>
@@ -250,9 +285,18 @@
             <div class="af-form-element" style="background-color: inherit;">
               <ng-container *ngIf="history">
                 <ng-container *ngFor="let historyItem of history.timelineItems; let i= index; let last= last">
+                  <ng-container *ngIf="shouldShowCompanyDivider(history.timelineItems, i)">
+                    <div class="timeline-company-divider">
+                      <div class="timeline-company-divider__line"></div>
+                      <div class="timeline-company-divider__label">
+                        <span class="timeline-chip timeline-chip--company">{{ companyLabelForTimelineItem(historyItem) }}</span>
+                      </div>
+                    </div>
+                  </ng-container>
                   <div class="af-timeline-box" [class.last-box]="last">
-                    <h5 class="af-timeline-box-subtitle">
-                      <span *ngIf="processingCreationDate(historyItem) as dateOfCreation">{{ dateOfCreation | date: 'yyyy-MM-dd' }} - </span>{{ processingOrderName(historyItem) }}
+                    <h5 class="af-timeline-box-subtitle d-flex align-items-center flex-wrap">
+                      <span class="mr-2" *ngIf="processingCreationDate(historyItem) as dateOfCreation">{{ dateOfCreation | date: 'yyyy-MM-dd' }} - </span>{{ processingOrderName(historyItem) }}
+                      <span class="timeline-badge ml-2" *ngIf="historyItem.processingOrder?.processingAction?.type">{{ historyItem.processingOrder.processingAction.type | formatProcessingActionType }}</span>
                     </h5>
 
                     <ul>
@@ -260,10 +304,21 @@
                       <!-- SINGLE OUTPUTS -->
                       <ng-container *ngFor="let targetStockOrder of getTargetStockOrders(historyItem)">
                         <li>
-                          <a class="ab-edit-link" [class.root-order]="isRoot(stockOrder, targetStockOrder)"
+                          <a class="ab-edit-link timeline-order" [class.root-order]="isRoot(stockOrder, targetStockOrder)"
                              (click)="goToOrderView(targetStockOrder)">
-                            {{ targetStockOrder.productionDate | date: 'yyyy-MM-dd' }} @ {{ targetStockOrder.facility?.name }} : {{ targetStockOrder.internalLotNumber || targetStockOrder.identifier }} - {{ targetStockOrder.totalQuantity }} {{ targetStockOrder.measureUnitType?.label }}
-                            <span *ngIf="isRoot(stockOrder, targetStockOrder)">&nbsp;(<span i18n="@@orderHistoryView.thisOrder.notice">this order</span>)</span>
+                            <div class="timeline-order__header">
+                              <span class="timeline-order__date">{{ targetStockOrder.productionDate | date: 'yyyy-MM-dd' }}</span>
+                              <span class="timeline-chip ml-2" *ngIf="targetStockOrder.orderType">{{ targetStockOrder.orderType | formatStockOrderType }}</span>
+                            </div>
+                            <div class="timeline-order__meta">
+                              <span class="timeline-order__facility" *ngIf="targetStockOrder.facility?.name">@ {{ targetStockOrder.facility?.name }}</span>
+                              <span class="timeline-order__company" *ngIf="targetStockOrder.facility?.company?.name"> · {{ targetStockOrder.facility?.company?.name }}</span>
+                            </div>
+                            <div class="timeline-order__details">
+                              <span>{{ targetStockOrder.internalLotNumber || targetStockOrder.identifier }}</span>
+                              <span class="timeline-order__quantity">— {{ targetStockOrder.totalQuantity }} {{ targetStockOrder.measureUnitType?.label }}</span>
+                              <span *ngIf="isRoot(stockOrder, targetStockOrder)" class="timeline-order__root" i18n="@@orderHistoryView.thisOrder.notice">(this order)</span>
+                            </div>
                           </a>
 
                           <ul>
@@ -277,9 +332,22 @@
                       <!-- GROUPED OUTPUTS (ALL STOCK ORDERS IN A GROUP HAVE THE SAME PROCESSING EVIDENCE FIELD VALUES) -->
                       <ng-container *ngFor="let stockOrderGroup of getStockOrderGroups(historyItem)">
                         <li>
-                          <a class="ab-edit-link" (click)="goToOrderView(stockOrderGroup.stockOrders[0])">
-                            <span class="mr-2">{{ stockOrderGroup.processingDate | date: 'yyyy-MM-dd' }} @ {{ stockOrderGroup.facility?.name }} : {{ stockOrderGroup.internalLotNumber }}</span>
-                            (<span i18n="@@orderHistoryView.history.timelineItem.numberOfSacs.label">Number of sacs:</span><span> {{ stockOrderGroup.stockOrders.length }} - {{ stockOrderGroup.summedUpQuantity }} {{ stockOrderGroup.measureUnitType?.label }}</span>)
+                          <a class="ab-edit-link timeline-order" (click)="goToOrderView(stockOrderGroup.stockOrders[0])">
+                            <div class="timeline-order__header">
+                              <span class="timeline-order__date">{{ stockOrderGroup.processingDate | date: 'yyyy-MM-dd' }}</span>
+                              <span class="timeline-chip ml-2" i18n="@@orderHistoryView.tableCol.outputs">Outputs</span>
+                            </div>
+                            <div class="timeline-order__meta">
+                              <span class="timeline-order__facility" *ngIf="stockOrderGroup.facility?.name">@ {{ stockOrderGroup.facility?.name }}</span>
+                              <span class="timeline-order__company" *ngIf="stockOrderGroup.facility?.company?.name"> · {{ stockOrderGroup.facility?.company?.name }}</span>
+                            </div>
+                            <div class="timeline-order__details">
+                              <span>{{ stockOrderGroup.internalLotNumber }}</span>
+                              <span class="timeline-order__quantity">
+                                — <span i18n="@@orderHistoryView.history.timelineItem.numberOfSacs.label">Number of sacs:</span>
+                                {{ stockOrderGroup.stockOrders.length }} · {{ stockOrderGroup.summedUpQuantity }} {{ stockOrderGroup.measureUnitType?.label }}
+                              </span>
+                            </div>
                           </a>
 
                           <ul>

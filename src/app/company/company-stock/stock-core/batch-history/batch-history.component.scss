@@ -70,3 +70,164 @@ $casovnica-circle-radius: 22px;
 .canceled {
   color: $moderate-red
 }
+
+.timeline-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: rgba($theme-primary, 0.1);
+  color: $theme-primary;
+
+  &--status {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &--success {
+    background-color: rgba($darker-green, 0.12);
+    color: $darker-green;
+  }
+
+  &--warning {
+    background-color: rgba($moderate-yellow, 0.18);
+    color: darken($moderate-yellow, 20%);
+  }
+
+  &--danger {
+    background-color: rgba($danger, 0.12);
+    color: $danger;
+  }
+}
+
+.timeline-order {
+  display: block;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  &__date {
+    font-size: 0.9rem;
+  }
+
+  &__meta {
+    font-size: 0.85rem;
+    color: $gray-dark;
+  }
+
+  &__company {
+    font-weight: 600;
+  }
+
+  &__details {
+    font-size: 0.85rem;
+    color: $theme-primary-text;
+  }
+
+  &__quantity {
+    font-weight: 600;
+  }
+
+  &__root {
+    color: $theme-primary;
+    font-weight: 600;
+    margin-left: 0.25rem;
+  }
+}
+
+.timeline-transaction-list {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0;
+}
+
+.timeline-transaction-item {
+  margin-bottom: 0.5rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  a {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid $gray-semi;
+    border-radius: 0.5rem;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+
+    &:hover {
+      border-color: $theme-primary;
+      background-color: rgba($theme-primary, 0.03);
+      text-decoration: none;
+    }
+  }
+}
+
+.timeline-transaction__header {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+.timeline-transaction__quantity {
+  font-size: 0.95rem;
+}
+
+.timeline-transaction__unit {
+  margin-left: 0.25rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: $gray-dark;
+}
+
+.timeline-transaction__meta {
+  font-size: 0.8rem;
+  color: $gray-dark;
+  margin-top: 0.25rem;
+}
+
+.timeline-transaction__details {
+  font-size: 0.78rem;
+  color: $secondary;
+  margin-top: 0.15rem;
+}
+
+.timeline-transaction__note {
+  font-size: 0.78rem;
+  color: $danger;
+  margin-top: 0.25rem;
+  margin-left: 0.5rem;
+}
+
+.timeline-transaction__separator {
+  margin: 0 0.25rem;
+}
+
+.timeline-company-divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0 1rem;
+
+  &__line {
+    flex: 1;
+    height: 1px;
+    background: $gray-semi;
+  }
+
+  &__label {
+    margin-left: 1rem;
+    white-space: nowrap;
+  }
+}
+
+.timeline-chip--company {
+  background-color: $theme-secondary-light;
+  color: $secondary;
+}

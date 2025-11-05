@@ -126,7 +126,7 @@
 
   </div>
 
-    <div class="help-assistant" (click)="openAssistantModal()"></div>
+    <div class="help-assistant" (click)="openAssistantModal()" [ngStyle]="{ 'background-image': helpAssistantBackground }"></div>
     <div class="help-tooltip-main cursor-pointer"
          (click)="openAssistantModal()"
          i18n="@@selfOnboarding.helpAssistant.tooltipMessage">I'm here to help</div>

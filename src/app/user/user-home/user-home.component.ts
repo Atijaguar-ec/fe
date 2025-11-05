@@ -36,6 +36,7 @@ import { Router } from '@angular/router';
 import {
   GuidedTourSuccessModalComponent
 } from '../self-onboarding-checklist-modal/guided-tour-success-modal/guided-tour-success-modal.component';
+import { EnvironmentInfoService } from '../../core/environment-info.service';
 
 @Component({
   selector: 'app-user-home',
@@ -44,8 +45,8 @@ import {
 })
 export class UserHomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
-  sub: Subscription;
-
+  helpAssistantBackground = 'url(/assets/icons/icon-self-onboarding-assistant.png)';
+  sub: Subscription | null = null;
   private paging$ = new BehaviorSubject(1);
   page = 0;
   pageSize = 10;
@@ -78,10 +79,10 @@ export class UserHomeComponent implements OnInit, OnDestroy, AfterViewInit {
   user: ApiUserGet | null = null;
 
   @ViewChild('farmersNavButtonTooltip')
-  farmersNavButtonTooltip: NgbTooltip;
+  farmersNavButtonTooltip!: NgbTooltip;
 
   @ViewChild('myStockNavButtonTooltip')
-  myStockNavButtonTooltip: NgbTooltip;
+  myStockNavButtonTooltip!: NgbTooltip;
 
   constructor(
       private globalEventManager: GlobalEventManagerService,
@@ -91,10 +92,13 @@ export class UserHomeComponent implements OnInit, OnDestroy, AfterViewInit {
       private modalService: NgbModalImproved,
       protected selfOnboardingService: SelfOnboardingService,
       private companyControllerService: CompanyControllerService,
-      private router: Router
+      private router: Router,
+      private environmentInfoService: EnvironmentInfoService
   ) { }
 
   ngOnInit(): void {
+
+    this.helpAssistantBackground = `url(${this.environmentInfoService.getProductIconPath()})`;
 
     this.sub = this.authService.userProfile$
         .pipe(
@@ -113,6 +117,10 @@ export class UserHomeComponent implements OnInit, OnDestroy, AfterViewInit {
             const addFarmersStep = await this.selfOnboardingService.addFarmersCurrentStep$.pipe(take(1)).toPromise();
 
             const guidedTourStep = await this.selfOnboardingService.guidedTourStep$.pipe(take(1)).toPromise();
+
+            if (!company.id) {
+              return;
+            }
 
             const companyOnboardingState = await this.companyControllerService.getCompanyOnboardingState(company.id).toPromise();
 
@@ -175,7 +183,7 @@ export class UserHomeComponent implements OnInit, OnDestroy, AfterViewInit {
             }
           }
 
-          this.showCollectorsNavButton = company?.supportsCollectors;
+          this.showCollectorsNavButton = company?.supportsCollectors ?? false;
 
           company?.companyRoles?.forEach(cr => {
             if (cr === CompanyRolesEnum.BUYER) {
@@ -187,7 +195,7 @@ export class UserHomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit() {
 
-    this.sub.add(
+    this.sub?.add(
       this.selfOnboardingService.addFarmersCurrentStep$.subscribe(currentStep => {
         if (currentStep === 1) {
           this.farmersNavButtonTooltip.open();
@@ -197,7 +205,7 @@ export class UserHomeComponent implements OnInit, OnDestroy, AfterViewInit {
       })
     );
 
-    this.sub.add(
+    this.sub?.add(
         this.selfOnboardingService.guidedTourStep$.subscribe(step => {
           if (step === 1) {
             this.myStockNavButtonTooltip.open();
@@ -209,9 +217,7 @@ export class UserHomeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
-    if (this.sub) {
-      this.sub.unsubscribe();
-    }
+    this.sub?.unsubscribe();
   }
 
   onPageChange(event: number) {
