@@ -14,7 +14,6 @@ import { CompanyControllerService } from '../../../../../api/api/companyControll
 import { ApiUserCustomer } from '../../../../../api/model/apiUserCustomer';
 import { ApiStockOrder } from '../../../../../api/model/apiStockOrder';
 import { CertificationTypeControllerService } from '../../../../../api/api/certificationTypeController.service';
-import { ApiCertificationType } from '../../../../../api/model/apiCertificationType';
 import {dateISOString, defaultEmptyObject, generateFormFromMetadata} from '../../../../../shared/utils';
 import { ApiStockOrderValidationScheme } from './validation';
 import { Location } from '@angular/common';
@@ -85,8 +84,6 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   companyProfile: ApiCompanyGet | null = null;
   private currentLoggedInUser: ApiUserGet | null = null;
-
-  certificationTypes: ApiCertificationType[] = [];
   certificationTypeMap: Record<string, string> = {};
   certificationTypeOptions: EnumSifrant = EnumSifrant.fromObject({});
 
@@ -110,12 +107,12 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     private companyControllerService: CompanyControllerService,
     private stockOrderControllerService: StockOrderControllerService,
     private semiProductControllerService: SemiProductControllerService,
+    private certificationTypeControllerService: CertificationTypeControllerService,
     private codebookTranslations: CodebookTranslations,
     private authService: AuthService,
     private selUserCompanyService: SelectedUserCompanyService,
     private pdfGeneratorService: PdfGeneratorService,
     private envInfo: EnvironmentInfoService,
-    private certificationTypeService: CertificationTypeControllerService,
   ) { }
 
   // Additional proof item factory methods (used when creating ListEditorManger)
@@ -210,6 +207,34 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.varietyOptions.setPlaceholder($localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.variety.placeholder:Selecciona la variedad`);
   }
 
+  private refreshCertificationTypeOptions() {
+    this.certificationTypeOptions = EnumSifrant.fromObject(this.certificationTypeMap);
+    this.certificationTypeOptions.setPlaceholder($localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.organicsCertificationType.placeholder:Seleccionar opción ...`);
+  }
+
+  private async loadCertificationTypes() {
+    try {
+      const res = await this.certificationTypeControllerService
+        .getCertificationTypeList('FETCH', 1000, 0, 'label', 'ASC', 'ES')
+        .pipe(take(1))
+        .toPromise();
+      const items = res?.data?.items || [];
+      this.certificationTypeMap = {};
+      items
+        .filter((it: any) => it?.status === 'ACTIVE')
+        .forEach((it: any) => {
+          // Use label as key and value to keep stored string readable
+          const key = it.label;
+          this.certificationTypeMap[key] = it.label;
+        });
+      this.refreshCertificationTypeOptions();
+    } catch (_) {
+      // keep empty codebook on error
+      this.certificationTypeMap = {};
+      this.refreshCertificationTypeOptions();
+    }
+  }
+
   private ensureVarietyOption(value?: string) {
     if (!value) {
       return;
@@ -229,7 +254,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   get finalPriceLabel() {
-    return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.finalPrice.label:Final price` + ` (${this.selectedCurrency}/${this.measureUnit})`;
+    const currency = this.selectedCurrency ? this.selectedCurrency : '-';
+    return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.finalPrice.label:Final price` + ` (${currency})`;
   }
 
   get pricePerUnitLabel() {
@@ -246,6 +272,10 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   get damagedPriceDeductionLabel() {
     return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.damagedPriceDeduction.label: Deduction` + ` (${this.selectedCurrency}/${this.measureUnit})`;
+  }
+
+  get finalPriceDiscountLabel() {
+    return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.finalPriceDiscount.label:Final price discount` + ` (${this.selectedCurrency})`;
   }
 
   get damagedWeightDeductionLabel() {
@@ -276,11 +306,13 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         if (cp) {
           this.companyProfile = cp;
           this.selectedCurrency = cp.currency?.code ? cp.currency.code : '-';
-          this.loadCertificationTypes().then(() => this.reloadOrder());
+          this.reloadOrder();
         }
       });
 
     this.initializeVarietyOptions();
+    // Load organic certification types for the combo (active only)
+    this.loadCertificationTypes().then();
   }
 
   ngOnDestroy(): void {
@@ -448,6 +480,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.stockOrderForm.addControl('organicCertification', new FormControl(null));
     }
     // Add Moisture Percentage controls
+    if (!this.stockOrderForm.get('finalPriceDiscount')) {
+      this.stockOrderForm.addControl('finalPriceDiscount', new FormControl(null));
+    }
     if (!this.stockOrderForm.get('moisturePercentage')) {
       this.stockOrderForm.addControl('moisturePercentage', new FormControl(null));
     }
@@ -530,7 +565,6 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
     if ((this.order as any)?.organicCertification != null) {
       const value = (this.order as any).organicCertification;
-      this.ensureCertificationOption(value);
       this.stockOrderForm.get('organicCertification').setValue(value);
     }
     // Ensure moisture percentage controls exist
@@ -557,7 +591,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     });
 
     // Listen to changes in fields that affect final price calculation
-    const priceFieldsToWatch = ['pricePerUnit', 'damagedPriceDeduction'];
+    const priceFieldsToWatch = ['pricePerUnit', 'damagedPriceDeduction', 'finalPriceDiscount'];
     priceFieldsToWatch.forEach(fieldName => {
       const control = this.stockOrderForm.get(fieldName);
       if (control) {
@@ -566,106 +600,6 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         });
       }
     });
-  }
-
-  private async loadCertificationTypes() {
-    try {
-      const response = await this.certificationTypeService.getCertificationTypeList(
-        undefined,
-        100,
-        0,
-        'label',
-        'ASC'
-      ).pipe(take(1)).toPromise();
-      if (response?.status === 'OK') {
-        this.certificationTypes = response?.data?.items || [];
-        const activeTypes = this.certificationTypes.filter(ct => ct.status === ApiCertificationType.StatusEnum.ACTIVE);
-        this.certificationTypeMap = {};
-        activeTypes.forEach(ct => {
-          if (ct.label) {
-            this.certificationTypeMap[ct.label] = ct.label;
-          }
-        });
-        this.refreshCertificationTypeOptions();
-      }
-    } catch (err) {
-      console.error('Error loading certification types', err);
-    }
-  }
-
-  private refreshCertificationTypeOptions() {
-    this.certificationTypeOptions = EnumSifrant.fromObject(this.certificationTypeMap);
-    this.certificationTypeOptions.setPlaceholder($localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.organicsCertificationType.placeholder:Selecciona un tipo de certificación`);
-  }
-
-  private ensureCertificationOption(value?: string) {
-    if (!value) {
-      return;
-    }
-    if (!this.certificationTypeMap[value]) {
-      this.certificationTypeMap[value] = value;
-      this.refreshCertificationTypeOptions();
-    }
-  }
-
-  async createOrUpdatePurchaseOrder(close: boolean = true) {
-
-    if (this.updatePOInProgress) {
-      return;
-    }
-    this.updatePOInProgress = true;
-    this.globalEventsManager.showLoading(true);
-    this.submitted = true;
-
-    // Set the user ID that creates the purchase order
-    this.stockOrderForm.get('creatorId').setValue(this.employeeForm.value);
-
-    // Set women share field
-    // Validate forms
-    if (this.cannotUpdatePO()) {
-      this.updatePOInProgress = false;
-      this.globalEventsManager.showLoading(false);
-      return;
-    }
-
-    // Set the identifier if we are creating new purchase order
-    if (!this.update) {
-      await this.setIdentifier();
-    }
-
-    const data: ApiStockOrder = _.cloneDeep(this.stockOrderForm.value);
-
-    // Convert weekNumber to number if it exists and is valid
-    if (data.weekNumber != null && String(data.weekNumber).trim() !== '') {
-      data.weekNumber = Number(data.weekNumber);
-    }
-
-    // Remove keys that are not set
-    Object.keys(data).forEach((key) => (data[key] == null) && delete data[key]);
-
-    // Create the purchase order
-    try {
-
-      const res = await this.stockOrderControllerService.createOrUpdateStockOrder(data).pipe(take(1)).toPromise();
-
-      if (res && res.status === 'OK') {
-        this.showPrintButton = true;
-        if (close) {
-          this.dismiss();
-        }
-        else {
-          this.stockOrderForm.markAsPristine();
-          this.searchFarmers.markAsPristine();
-          this.employeeForm.markAsPristine();
-          this.reloadOrder();
-        }
-      }
-    } catch (e) {
-      throw e;
-    } finally {
-      this.updatePOInProgress = false;
-      this.globalEventsManager.showLoading(false);
-    }
   }
 
   private cannotUpdatePO() {
@@ -751,7 +685,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if (this.stockOrderForm && this.stockOrderForm.get('totalGrossQuantity').value && this.stockOrderForm.get('pricePerUnit').value) {
       const grossQuantity = Number(this.stockOrderForm.get('totalGrossQuantity').value);
       let baseWeight = grossQuantity;
-      let finalPrice = this.stockOrderForm.get('pricePerUnit').value;
+      let pricePerUnit = this.stockOrderForm.get('pricePerUnit').value;
 
       const tareControl = this.stockOrderForm.get('tare');
       if (tareControl && tareControl.value) {
@@ -778,14 +712,22 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       // Apply price deductions
       const damagedPriceControl = this.stockOrderForm.get('damagedPriceDeduction');
       if (damagedPriceControl && damagedPriceControl.value) {
-        finalPrice -= damagedPriceControl.value;
+        pricePerUnit -= damagedPriceControl.value;
       }
 
-      if (finalPrice < 0) {
-        finalPrice = 0.00;
+      const perUnitTotal = Math.max(pricePerUnit, 0);
+      let total = perUnitTotal * netWeight;
+
+      const finalPriceDiscountControl = this.stockOrderForm.get('finalPriceDiscount');
+      if (finalPriceDiscountControl && finalPriceDiscountControl.value) {
+        total -= Number(finalPriceDiscountControl.value);
       }
 
-      this.stockOrderForm.get('cost').setValue(Number(netWeight * finalPrice).toFixed(2));
+      if (total < 0) {
+        total = 0.00;
+      }
+
+      this.stockOrderForm.get('cost').setValue(Number(total).toFixed(2));
     } else {
 
       this.stockOrderForm.get('cost').setValue(null);
@@ -834,12 +776,20 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     return false;
   }
 
+  get showFinalPriceDiscount() {
+    return this.facility && this.facility.displayFinalPriceDiscount || this.stockOrderForm.get('finalPriceDiscount').value;
+  }
+
   get showDamagedWeightDeduction() {
     return this.facility && this.facility.displayWeightDeductionDamage || this.stockOrderForm.get('damagedWeightDeduction').value;
   }
 
   get readonlyDamagedPriceDeduction() {
     return this.facility && !this.facility.displayPriceDeductionDamage || this.stockOrderForm.get('priceDeterminedLater').value;
+  }
+
+  get readonlyFinalPriceDiscount() {
+    return this.facility && !this.facility.displayFinalPriceDiscount || this.stockOrderForm.get('priceDeterminedLater').value;
   }
 
   get readonlyDamagedWeightDeduction() {
@@ -892,11 +842,18 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         finalPrice -= this.stockOrderForm.get('damagedPriceDeduction').value;
       }
 
-      if (finalPrice < 0) {
-        finalPrice = 0.00;
+      const finalPriceDiscountControl = this.stockOrderForm.get('finalPriceDiscount');
+      const netWeightValue = Number(this.netWeightForm.value ?? 0);
+      let total = finalPrice * netWeightValue;
+      if (finalPriceDiscountControl && finalPriceDiscountControl.value) {
+        total -= Number(finalPriceDiscountControl.value);
       }
 
-      this.finalPriceForm.setValue(Number(finalPrice).toFixed(2));
+      if (total < 0) {
+        total = 0.00;
+      }
+
+      this.finalPriceForm.setValue(Number(total).toFixed(2));
     } else {
       this.finalPriceForm.setValue(null);
     }
@@ -913,9 +870,19 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.stockOrderForm.get('tare').setValidators([]);
     this.stockOrderForm.get('tare').setValue(null);
     this.stockOrderForm.get('tare').updateValueAndValidity();
-    this.stockOrderForm.get('damagedPriceDeduction').setValidators([]);
-    this.stockOrderForm.get('damagedPriceDeduction').setValue(null);
-    this.stockOrderForm.get('damagedPriceDeduction').updateValueAndValidity();
+    const damagedPriceDeductionControl = this.stockOrderForm.get('damagedPriceDeduction');
+    damagedPriceDeductionControl.setValidators([]);
+    damagedPriceDeductionControl.setValue(null);
+    damagedPriceDeductionControl.updateValueAndValidity();
+
+    const finalPriceDiscountControl = this.stockOrderForm.get('finalPriceDiscount');
+    if (finalPriceDiscountControl) {
+      finalPriceDiscountControl.setValidators([]);
+      if (!(this.facility && this.facility.displayFinalPriceDiscount)) {
+        finalPriceDiscountControl.setValue(null, { emitEvent: false });
+      }
+      finalPriceDiscountControl.updateValueAndValidity();
+    }
     this.stockOrderForm.get('damagedWeightDeduction').setValidators(
         this.orderType === 'PURCHASE_ORDER' &&
         this.facility &&
@@ -1093,6 +1060,59 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
 
     this.stockOrderForm.get('pricePerUnit').updateValueAndValidity();
+  }
+
+  async createOrUpdatePurchaseOrder(close: boolean = true) {
+    if (this.updatePOInProgress) {
+      return;
+    }
+    this.updatePOInProgress = true;
+    this.globalEventsManager.showLoading(true);
+    this.submitted = true;
+
+    try {
+      // Ensure creator
+      this.stockOrderForm.get('creatorId').setValue(this.employeeForm.value);
+
+      // Normalize/prepare data
+      this.prepareData();
+
+      // Validate
+      if (this.cannotUpdatePO()) {
+        return;
+      }
+
+      // Set identifier for new orders
+      if (!this.update) {
+        await this.setIdentifier();
+      }
+
+      // Recompute amounts before sending
+      this.setToBePaid();
+      this.setBalance();
+
+      const data: ApiStockOrder = _.cloneDeep(this.stockOrderForm.value);
+      // Remove null/undefined keys
+      Object.keys(data as any).forEach((key) => ((data as any)[key] == null) && delete (data as any)[key]);
+
+      const res = await this.stockOrderControllerService
+        .createOrUpdateStockOrderByMap({ ApiStockOrder: data })
+        .pipe(take(1))
+        .toPromise();
+
+      if (res && res.status === 'OK') {
+        if (close) {
+          this.dismiss();
+        } else {
+          this.stockOrderForm.markAsPristine();
+          this.employeeForm.markAsPristine();
+          this.reloadOrder();
+        }
+      }
+    } finally {
+      this.updatePOInProgress = false;
+      this.globalEventsManager.showLoading(false);
+    }
   }
 
 }

@@ -61,6 +61,10 @@ export interface ApiFacility {
      */
     displayPriceDeductionDamage?: boolean;
     /**
+     * Enable form control 'Final price discount'
+     */
+    displayFinalPriceDiscount?: boolean;
+    /**
      * Enable form control 'Weight deduction damage'
      */
     displayWeightDeductionDamage?: boolean;
@@ -142,6 +146,10 @@ export namespace ApiFacility {
          * Enable form control 'Price deduction damage'
          */
         displayPriceDeductionDamage = 'displayPriceDeductionDamage',
+        /**
+         * Enable form control 'Final price discount'
+         */
+        displayFinalPriceDiscount = 'displayFinalPriceDiscount',
         /**
          * Enable form control 'Weight deduction damage'
          */
@@ -265,6 +273,17 @@ export namespace ApiFacility {
                     isEnum: false,
                     required: false,
                     name: 'displayPriceDeductionDamage',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'displayFinalPriceDiscount',
                     classname: 'ApiFacility',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -448,6 +467,8 @@ export namespace ApiFacility {
                 ],
                 displayPriceDeductionDamage: [
                 ],
+                displayFinalPriceDiscount: [
+                ],
                 displayWeightDeductionDamage: [
                 ],
                 displayMoisturePercentage: [
@@ -502,6 +523,9 @@ export namespace ApiFacility {
   //                   validators: []
   //               },
   //               displayPriceDeductionDamage: {
+  //                   validators: []
+  //               },
+  //               displayFinalPriceDiscount: {
   //                   validators: []
   //               },
   //               displayWeightDeductionDamage: {

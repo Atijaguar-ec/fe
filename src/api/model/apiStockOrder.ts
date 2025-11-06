@@ -216,6 +216,10 @@ export interface ApiStockOrder {
      */
     damagedPriceDeduction?: number;
     /**
+     * Final price discount per unit
+     */
+    finalPriceDiscount?: number;
+    /**
      * Damaged weight deduction
      */
     damagedWeightDeduction?: number;
@@ -244,9 +248,9 @@ export interface ApiStockOrder {
      * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
      */
     repackedOriginStockOrderId?: string;
+    available?: boolean;
     purchaseOrder?: boolean;
     openOrder?: boolean;
-    available?: boolean;
 }
 
 /**
@@ -433,6 +437,10 @@ export namespace ApiStockOrder {
          */
         damagedPriceDeduction = 'damagedPriceDeduction',
         /**
+         * Final price discount per unit
+         */
+        finalPriceDiscount = 'finalPriceDiscount',
+        /**
          * Damaged weight deduction
          */
         damagedWeightDeduction = 'damagedWeightDeduction',
@@ -461,9 +469,9 @@ export namespace ApiStockOrder {
          * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
          */
         repackedOriginStockOrderId = 'repackedOriginStockOrderId',
+        available = 'available',
         purchaseOrder = 'purchaseOrder',
-        openOrder = 'openOrder',
-        available = 'available'
+        openOrder = 'openOrder'
     }
 
     /**
@@ -1124,6 +1132,17 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'finalPriceDiscount',
+                    classname: 'ApiStockOrder',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'damagedWeightDeduction',
                     classname: 'ApiStockOrder',
                     dataType: 'number',
@@ -1214,6 +1233,17 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'available',
+                    classname: 'ApiStockOrder',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'purchaseOrder',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
@@ -1226,17 +1256,6 @@ export namespace ApiStockOrder {
                     isEnum: false,
                     required: false,
                     name: 'openOrder',
-                    classname: 'ApiStockOrder',
-                    dataType: 'boolean',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'available',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1355,6 +1374,8 @@ export namespace ApiStockOrder {
                 ],
                 damagedPriceDeduction: [
                 ],
+                finalPriceDiscount: [
+                ],
                 damagedWeightDeduction: [
                 ],
                 moisturePercentage: [
@@ -1371,11 +1392,11 @@ export namespace ApiStockOrder {
                 ],
                 repackedOriginStockOrderId: [
                 ],
+                available: [
+                ],
                 purchaseOrder: [
                 ],
                 openOrder: [
-                ],
-                available: [
                 ],
             }
         }
@@ -1549,6 +1570,9 @@ export namespace ApiStockOrder {
   //               damagedPriceDeduction: {
   //                   validators: []
   //               },
+  //               finalPriceDiscount: {
+  //                   validators: []
+  //               },
   //               damagedWeightDeduction: {
   //                   validators: []
   //               },
@@ -1573,13 +1597,13 @@ export namespace ApiStockOrder {
   //               repackedOriginStockOrderId: {
   //                   validators: []
   //               },
+  //               available: {
+  //                   validators: []
+  //               },
   //               purchaseOrder: {
   //                   validators: []
   //               },
   //               openOrder: {
-  //                   validators: []
-  //               },
-  //               available: {
   //                   validators: []
   //               },
   //     }

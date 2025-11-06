@@ -172,6 +172,7 @@
                                 Display "Damaged price deduction"
                             </checkbox-input-rich-label>
                         </checkbox-input>
+                       
                         <checkbox-input [form]="form.get('displayWeightDeductionDamage')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.weightReductionDamage.label">
                                 Display "Damaged weight deduction"
@@ -187,6 +188,13 @@
                                 Display "Price determined later"
                             </checkbox-input-rich-label>
                         </checkbox-input>
+
+                         <checkbox-input [form]="form.get('displayFinalPriceDiscount')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.finalPriceDiscount.label">
+                                Display "Final price discount"
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
                     </div>
                 </div>
                 <div class="af-form-block--c6">

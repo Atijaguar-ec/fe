@@ -274,7 +274,7 @@
               </div>
             </div>
 
-            <div class="af-row" *ngIf="showTare || showDamagedPriceDeduction">
+            <div class="af-row" *ngIf="showTare || showDamagedPriceDeduction || showFinalPriceDiscount">
               <div class="af-c6">
                 <textinput *ngIf="showTare"
                     [form]="stockOrderForm.get('tare')"
@@ -298,7 +298,7 @@
                   </div>
                 </textinput>
               </div>
-              <div class="af-c6">
+              <div class="af-c6" *ngIf="showDamagedPriceDeduction">
                 <textinput *ngIf="showDamagedPriceDeduction"
                         [form]="stockOrderForm.get('damagedPriceDeduction')"
                         [label]="damagedPriceDeductionLabel"
@@ -322,6 +322,7 @@
                   </div>
                 </textinput>
               </div>
+              
             </div>
 
             <div class="af-row">
@@ -388,6 +389,28 @@
                     <div *ngIf="netWeightForm.errors as errors" class="sc-invalid-feedback">
                       <div *ngIf="errors.required" i18n="@@productLabelStockPurchaseOrdersModal.textinput.netWeight.error">
                         Net weight is required
+                      </div>
+                    </div>
+                  </ng-container>
+                </textinput>
+              </div>
+            </div>
+
+             <!-- Final Price Discount moved to the end -->
+            <div class="af-row" *ngIf="showFinalPriceDiscount">
+              <div class="af-c12">
+                <textinput
+                        [form]="stockOrderForm.get('finalPriceDiscount')"
+                        [label]="finalPriceDiscountLabel"
+                        [disabled]="stockOrderForm.get('priceDeterminedLater').value"
+                        style="width: 100%"
+                        placeholder="Enter final price discount"
+                        i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.finalPriceDiscount.placeholder"
+                        [readOnly]="readonlyFinalPriceDiscount">
+                  <ng-container *ngIf="submitted">
+                    <div *ngIf="stockOrderForm.get('finalPriceDiscount').errors as errors" class="sc-invalid-feedback">
+                      <div *ngIf="errors.required" i18n="@@productLabelStockPurchaseOrdersModal.textinput.finalPriceDiscount.error">
+                        Final price discount is required
                       </div>
                     </div>
                   </ng-container>
@@ -479,6 +502,8 @@
                 </single-choice>
               </div>
             </div>
+
+           
 
           </div>
         </div>
