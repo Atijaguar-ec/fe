@@ -293,7 +293,7 @@
     "productLabelStakeholders.button.newProducer": "{$START_TAG_SPAN}+ Produzent*in hinzufügen{$CLOSE_TAG_SPAN}",
     "productLabelStakeholders.title.collectors": "Sammler*innen",
     "productLabelStakeholders.button.newCollector": "{$START_TAG_SPAN}+ Sammler*in hinzufügen{$CLOSE_TAG_SPAN}",
-    "productLabel.sideTitle.archiveProduct": "{$START_TAG_FA_ICON}{$CLOSE_TAG_FA_ICON} Produkt archivieren",
+    "productLabel.sideTitle.archiveProduct": "Produkt archivieren",
     "productLabel.deleteCurrentProduct.warning.message": "Möchten Sie das Produkt wirklich löschen? Dadurch werden auch alle mit dem Produkt verbundenen Label und Batches gelöscht!",
     "productLabel.deleteCurrentProduct.success.title": "Gelöscht",
     "productLabel.deleteCurrentProduct.success.message": "Produkt wurde erfolgreich gelöscht",

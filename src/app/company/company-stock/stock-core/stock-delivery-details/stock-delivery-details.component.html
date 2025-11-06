@@ -399,7 +399,7 @@
              <!-- Final Price Discount moved to the end -->
             <div class="af-row" *ngIf="showFinalPriceDiscount">
               <div class="af-c12">
-                <textinput
+                <textinput 
                         [form]="stockOrderForm.get('finalPriceDiscount')"
                         [label]="finalPriceDiscountLabel"
                         [disabled]="stockOrderForm.get('priceDeterminedLater').value"

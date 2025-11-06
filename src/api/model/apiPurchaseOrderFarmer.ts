@@ -63,6 +63,10 @@ export interface ApiPurchaseOrderFarmer {
      */
     damagedPriceDeduction?: number;
     /**
+     * Final price discount
+     */
+    finalPriceDiscount?: number;
+    /**
      * Damaged weight deduction
      */
     damagedWeightDeduction?: number;
@@ -130,6 +134,10 @@ export namespace ApiPurchaseOrderFarmer {
          * Damaged price deduction
          */
         damagedPriceDeduction = 'damagedPriceDeduction',
+        /**
+         * Final price discount
+         */
+        finalPriceDiscount = 'finalPriceDiscount',
         /**
          * Damaged weight deduction
          */
@@ -285,6 +293,17 @@ export namespace ApiPurchaseOrderFarmer {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'finalPriceDiscount',
+                    classname: 'ApiPurchaseOrderFarmer',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'damagedWeightDeduction',
                     classname: 'ApiPurchaseOrderFarmer',
                     dataType: 'number',
@@ -360,6 +379,8 @@ export namespace ApiPurchaseOrderFarmer {
                 ],
                 damagedPriceDeduction: [
                 ],
+                finalPriceDiscount: [
+                ],
                 damagedWeightDeduction: [
                 ],
                 organic: [
@@ -408,6 +429,9 @@ export namespace ApiPurchaseOrderFarmer {
   //                   validators: []
   //               },
   //               damagedPriceDeduction: {
+  //                   validators: []
+  //               },
+  //               finalPriceDiscount: {
   //                   validators: []
   //               },
   //               damagedWeightDeduction: {

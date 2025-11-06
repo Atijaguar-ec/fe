@@ -1250,7 +1250,7 @@
     "productLabelStakeholders.tab1.title": "Collectors",
     "productLabelStakeholders.tab2.title": "Farmers",
     "productLabelStakeholders.tab3.title": "Customers",
-    "productLabel.sideTitle.archiveProduct": "{$START_TAG_FA_ICON}{$CLOSE_TAG_FA_ICON} Archive product",
+    "productLabel.sideTitle.archiveProduct": "Archive product",
     "userBox.dropdown.system": "System",
     "systemLeftPanel.sideTitle.companies": "Companies",
     "systemLeftPanel.sideTitle.users": "Users",
