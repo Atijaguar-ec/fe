@@ -176,6 +176,10 @@
                     <td>{{ stockOrder.representativeOfProducerUserCustomer?.name }} {{ stockOrder.representativeOfProducerUserCustomer?.surname }}</td>
                   </tr>
                   <tr>
+                    <th i18n="@@orderHistoryView.tableCol.finalPriceDiscount">Final price discount</th>
+                    <td>{{ stockOrder.finalPriceDiscount }} {{ stockOrder.currency }}</td>
+                  </tr>
+                  <tr>
                     <th i18n="@@orderHistoryView.tableCol.costPaidBalance">Cost / Paid / Balance</th>
                     <td>
                       <ng-container *ngIf="stockOrder.priceDeterminedLater; else priceAvailable">

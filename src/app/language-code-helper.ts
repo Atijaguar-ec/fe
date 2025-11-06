@@ -5,7 +5,7 @@ export abstract class LanguageCodeHelper {
   // public static implementedLocales = ['de', 'rw', 'es', LanguageCodeHelper.defaultLocaleId];
 
     public static defaultLocaleId = 'es';
-    public static implementedLocales = [LanguageCodeHelper.defaultLocaleId];
+    public static implementedLocales = [LanguageCodeHelper.defaultLocaleId, 'en'];
 
   public static setCurrentLocale(localeId: string) {
 
