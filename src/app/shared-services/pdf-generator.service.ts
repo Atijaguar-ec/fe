@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
+declare const $localize: (messageParts: TemplateStringsArray, ...expressions: any[]) => string;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -36,18 +38,36 @@ export class PdfGeneratorService {
     element.scrollLeft = 0;
 
     // Wait for layout to settle
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     document.body.classList.add('pdf-capture-mode');
+    const restoreControlsState = this.prepareFormControlsForCapture(element);
+
+    const originalLayoutStyles = {
+      width: element.style.width,
+      maxWidth: element.style.maxWidth,
+      marginLeft: element.style.marginLeft,
+      marginRight: element.style.marginRight,
+      display: element.style.display
+    };
+
+    let appliedNarrowLayout = false;
+    const initialRect = element.getBoundingClientRect();
+    if (initialRect.width > 1000 || element.scrollWidth > 1000) {
+      element.style.width = '100%';
+      element.style.maxWidth = '100%';
+      element.style.marginLeft = '0px';
+      element.style.marginRight = 'auto';
+      element.style.display = 'block';
+      appliedNarrowLayout = true;
+    }
     try {
       // Get actual rendered dimensions and viewport offsets
       const rect = element.getBoundingClientRect();
       const actualHeight = element.scrollHeight || rect.height;
       const actualWidth = element.scrollWidth || rect.width;
 
-      console.log('Capturing element with dimensions:', { actualHeight, actualWidth });
-      console.log('Element bounding rect:', rect);
-
+    
       // Configurar html2canvas para mejor calidad y captura completa
       const canvas = await html2canvas(element, {
         scale: 2,
@@ -64,6 +84,41 @@ export class PdfGeneratorService {
         foreignObjectRendering: true,
         imageTimeout: 15000,
         removeContainer: false,
+        onclone: (clonedDocument) => {
+          const clonedElement = element.id ? clonedDocument.querySelector('#' + element.id) : null;
+          const scope = clonedElement ?? clonedDocument;
+
+          scope.querySelectorAll('input').forEach((input: HTMLInputElement) => {
+            if (input.type === 'checkbox' || input.type === 'radio') {
+              if (input.checked) {
+                input.setAttribute('checked', 'checked');
+              } else {
+                input.removeAttribute('checked');
+              }
+            } else {
+              input.setAttribute('value', input.value ?? '');
+            }
+
+            input.style.webkitTextFillColor = '#000';
+            input.style.color = '#000';
+          });
+
+          scope.querySelectorAll('textarea').forEach((textarea: HTMLTextAreaElement) => {
+            textarea.innerHTML = textarea.value ?? '';
+            textarea.style.webkitTextFillColor = '#000';
+            textarea.style.color = '#000';
+          });
+
+          scope.querySelectorAll('select').forEach((select: HTMLSelectElement) => {
+            Array.from(select.options).forEach((option: HTMLOptionElement) => {
+              if (option.selected) {
+                option.setAttribute('selected', 'selected');
+              } else {
+                option.removeAttribute('selected');
+              }
+            });
+          });
+        },
         ignoreElements: (el) => {
           // Ignore fixed/sticky elements that might interfere
           const style = window.getComputedStyle(el);
@@ -116,6 +171,15 @@ export class PdfGeneratorService {
       console.error('Error generating PDF:', error);
       throw error;
     } finally {
+      if (appliedNarrowLayout) {
+        element.style.width = originalLayoutStyles.width;
+        element.style.maxWidth = originalLayoutStyles.maxWidth;
+        element.style.marginLeft = originalLayoutStyles.marginLeft;
+        element.style.marginRight = originalLayoutStyles.marginRight;
+        element.style.display = originalLayoutStyles.display;
+      }
+      // Restore original form state
+      restoreControlsState();
       // Restore original styles
       element.style.overflow = '';
       element.style.height = '';
@@ -126,6 +190,95 @@ export class PdfGeneratorService {
       document.documentElement.style.overflow = originalHtmlOverflow;
       document.body.classList.remove('pdf-capture-mode');
     }
+  }
+
+  private prepareFormControlsForCapture(element: HTMLElement): () => void {
+    const restoreCallbacks: (() => void)[] = [];
+
+    element.querySelectorAll('input').forEach((input: HTMLInputElement) => {
+      const originalValueAttr = input.getAttribute('value');
+      const originalCheckedAttr = input.getAttribute('checked');
+      const originalTextFill = input.style.webkitTextFillColor;
+      const originalColor = input.style.color;
+
+      if (input.type === 'checkbox' || input.type === 'radio') {
+        if (input.checked) {
+          input.setAttribute('checked', 'checked');
+        } else {
+          input.removeAttribute('checked');
+        }
+      } else {
+        input.setAttribute('value', input.value ?? '');
+      }
+
+      input.style.webkitTextFillColor = '#000';
+      input.style.color = '#000';
+
+      restoreCallbacks.push(() => {
+        if (originalValueAttr === null) {
+          input.removeAttribute('value');
+        } else {
+          input.setAttribute('value', originalValueAttr);
+        }
+
+        if (originalCheckedAttr === null) {
+          input.removeAttribute('checked');
+        } else {
+          input.setAttribute('checked', originalCheckedAttr);
+        }
+
+        input.style.webkitTextFillColor = originalTextFill;
+        input.style.color = originalColor;
+      });
+    });
+
+    element.querySelectorAll('textarea').forEach((textarea: HTMLTextAreaElement) => {
+      const originalHtml = textarea.innerHTML;
+      const originalTextFill = textarea.style.webkitTextFillColor;
+      const originalColor = textarea.style.color;
+
+      textarea.innerHTML = textarea.value ?? '';
+      textarea.style.webkitTextFillColor = '#000';
+      textarea.style.color = '#000';
+
+      restoreCallbacks.push(() => {
+        textarea.innerHTML = originalHtml;
+        textarea.style.webkitTextFillColor = originalTextFill;
+        textarea.style.color = originalColor;
+      });
+    });
+
+    element.querySelectorAll('select').forEach((select: HTMLSelectElement) => {
+      const originalStates = Array.from(select.options).map(option => option.hasAttribute('selected'));
+
+      Array.from(select.options).forEach((option) => {
+        if (option.selected) {
+          option.setAttribute('selected', 'selected');
+        } else {
+          option.removeAttribute('selected');
+        }
+      });
+
+      restoreCallbacks.push(() => {
+        Array.from(select.options).forEach((option, idx) => {
+          if (originalStates[idx]) {
+            option.setAttribute('selected', 'selected');
+          } else {
+            option.removeAttribute('selected');
+          }
+        });
+      });
+    });
+
+    return () => {
+      restoreCallbacks.forEach(cb => {
+        try {
+          cb();
+        } catch (err) {
+          console.warn('Error restoring control state after PDF capture', err);
+        }
+      });
+    };
   }
 
   /**

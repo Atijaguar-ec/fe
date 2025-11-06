@@ -1,5 +1,23 @@
 @import "src/_variables";
 
+
+.delivery-columns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+}
+
+.delivery-columns .af-form-block--c6 {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.delivery-column {
+  flex: 1 1 520px;
+  max-width: 520px;
+}
+
 .btn-print {
   background-color: #e7ecff;
   color: #25265e;
@@ -17,6 +35,45 @@
     color: inherit;
     font-size: 1rem;
   }
+
+:host ::ng-deep body.pdf-capture-mode {
+  .af-form-wrapper {
+    max-width: 960px !important;
+    margin: 0 auto !important;
+    padding: 0 16px !important;
+  }
+
+  .delivery-columns {
+    display: block !important;
+  }
+
+  .delivery-column {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 1.5rem;
+  }
+
+  .delivery-columns .af-form-block--c6 {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  input,
+  select,
+  textarea,
+  .ng-select-container,
+  .ng-value,
+  .ng-select .ng-value,
+  .ng-select .ng-value > span,
+  .ng-select .ng-select-container {
+    color: #000 !important;
+    -webkit-text-fill-color: #000 !important;
+    background-color: #fff !important;
+  }
+}
 
   &:hover,
   &:focus {
