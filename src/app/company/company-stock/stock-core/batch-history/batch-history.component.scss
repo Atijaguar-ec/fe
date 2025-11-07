@@ -231,3 +231,8 @@ $casovnica-circle-radius: 22px;
   background-color: $theme-secondary-light;
   color: $secondary;
 }
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
