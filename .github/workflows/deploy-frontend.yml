@@ -34,7 +34,7 @@ on:
         - fortaleza
         - dufer
       product_type:
-        description: 'Product type configuration'
+        description: 'Product type configuration '
         required: false
         default: 'COCOA'
         type: choice
