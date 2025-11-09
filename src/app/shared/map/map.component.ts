@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import * as mapboxgl from 'mapbox-gl';
 import { Observable, Subscription } from 'rxjs';
@@ -10,13 +10,16 @@ import { GlobalEventManagerService } from '../../core/global-event-manager.servi
 import { Subject } from 'rxjs/internal/Subject';
 import { CompanyControllerService } from '../../../api/api/companyController.service';
 import { FormControl } from '@angular/forms';
+import { DEFAULT_MAP_OVERLAYS, MapOverlayConfig } from './map-overlays.config';
+
+declare const $localize: (messageParts: TemplateStringsArray, ...expressions: unknown[]) => string;
 
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.css']
 })
-export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
+export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges {
 
   private map: mapboxgl.Map;
   private MAPBOX_STYLE_BASE_PATH = 'mapbox://styles/mapbox/';
@@ -70,9 +73,18 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input()
   editable: boolean;
+
+  @Input()
+  overlays: MapOverlayConfig[] = DEFAULT_MAP_OVERLAYS;
   
   subscriptions: Subscription = new Subscription();
   markers: Array<mapboxgl.Marker> = [];
+
+  private overlayLayerIds: Set<string> = new Set();
+  private overlaySourceIds: Set<string> = new Set();
+  private mapReady = false;
+
+  overlayVisibility: Record<string, boolean> = {};
 
   mapStyle: FormControl = new FormControl('satellite-streets-v12');
   
@@ -80,7 +92,136 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
               private companyControllerService: CompanyControllerService) {
   }
 
+  private addConfiguredOverlays(): void {
+    if (!this.mapReady || !this.map || !this.overlays?.length) {
+      return;
+    }
+
+    this.ensureOverlayVisibilityState();
+
+    this.overlays.forEach(overlay => {
+      if (!overlay?.tiles?.length) {
+        return;
+      }
+
+      if (!this.map.getSource(overlay.sourceId)) {
+        const rasterSource: mapboxgl.RasterSourceSpecification = {
+          type: 'raster',
+          tiles: overlay.tiles,
+          tileSize: overlay.tileSize ?? 256,
+          attribution: overlay.attribution
+        };
+
+        if (typeof overlay.minZoom === 'number') {
+          rasterSource.minzoom = overlay.minZoom;
+        }
+        if (typeof overlay.maxZoom === 'number') {
+          rasterSource.maxzoom = overlay.maxZoom;
+        }
+        this.map.addSource(overlay.sourceId, rasterSource);
+        this.overlaySourceIds.add(overlay.sourceId);
+      }
+
+      if (!this.map.getLayer(overlay.layerId)) {
+        const rasterLayer: mapboxgl.RasterLayer = {
+          id: overlay.layerId,
+          type: 'raster',
+          source: overlay.sourceId,
+          layout: {
+            visibility: overlay.visibility ?? 'visible'
+          },
+          paint: {
+            'raster-opacity': overlay.opacity ?? 0.7
+          }
+        };
+
+        if (typeof overlay.minZoom === 'number') {
+          rasterLayer.minzoom = overlay.minZoom;
+        }
+        if (typeof overlay.maxZoom === 'number') {
+          rasterLayer.maxzoom = overlay.maxZoom;
+        }
+
+        this.map.addLayer(rasterLayer, overlay.beforeLayerId);
+        this.overlayLayerIds.add(overlay.layerId);
+      }
+
+      this.applyOverlayVisibility(overlay);
+    });
+  }
+
+  private removeConfiguredOverlays(): void {
+    if (!this.map) {
+      this.overlayLayerIds.clear();
+      this.overlaySourceIds.clear();
+      return;
+    }
+
+    this.overlayLayerIds.forEach(layerId => {
+      if (this.map.getLayer(layerId)) {
+        this.map.removeLayer(layerId);
+      }
+    });
+    this.overlayLayerIds.clear();
+
+    this.overlaySourceIds.forEach(sourceId => {
+      if (this.map.getSource(sourceId)) {
+        this.map.removeSource(sourceId);
+      }
+    });
+    this.overlaySourceIds.clear();
+  }
+
+  private updateConfiguredOverlays(): void {
+    if (!this.mapReady) {
+      return;
+    }
+
+    this.removeConfiguredOverlays();
+    this.addConfiguredOverlays();
+  }
+
+  private ensureOverlayVisibilityState(): void {
+    if (!this.overlays?.length) {
+      this.overlayVisibility = {};
+      return;
+    }
+
+    const existingState = { ...this.overlayVisibility };
+    this.overlayVisibility = {};
+    this.overlays.forEach(overlay => {
+      const isVisible = existingState[overlay.layerId];
+      if (typeof isVisible === 'boolean') {
+        this.overlayVisibility[overlay.layerId] = isVisible;
+      } else {
+        this.overlayVisibility[overlay.layerId] = overlay.visibility === 'visible';
+      }
+    });
+  }
+
+  private applyOverlayVisibility(overlay: MapOverlayConfig): void {
+    const shouldShow = this.overlayVisibility[overlay.layerId] ?? overlay.visibility === 'visible';
+    this.overlayVisibility[overlay.layerId] = shouldShow;
+
+    if (this.map && this.map.getLayer(overlay.layerId)) {
+      this.map.setLayoutProperty(overlay.layerId, 'visibility', shouldShow ? 'visible' : 'none');
+    }
+  }
+
+  onOverlayToggle(overlay: MapOverlayConfig, visible: boolean): void {
+    this.overlayVisibility[overlay.layerId] = visible;
+
+    if (!this.mapReady) {
+      return;
+    }
+
+    if (this.map.getLayer(overlay.layerId)) {
+      this.map.setLayoutProperty(overlay.layerId, 'visibility', visible ? 'visible' : 'none');
+    }
+  }
+
   ngOnInit(): void {
+    this.ensureOverlayVisibilityState();
   }
 
   ngAfterViewInit() {
@@ -89,6 +230,15 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+    this.removeConfiguredOverlays();
+    this.mapReady = false;
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['overlays'] && !changes['overlays'].firstChange) {
+      this.ensureOverlayVisibilityState();
+      this.updateConfiguredOverlays();
+    }
   }
 
   handlePlotCoordinateEvent(actionWrapper: PlotActionWrapper) {
@@ -439,6 +589,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   async mapLoaded() {
 
       this.map.resize();
+
+      this.mapReady = true;
+      this.addConfiguredOverlays();
 
       if (this.plotCoordinatesManager) {
         this.subscriptions.add(this.plotCoordinatesManager.plotCoordinateAction$.subscribe(actionWrapper => {

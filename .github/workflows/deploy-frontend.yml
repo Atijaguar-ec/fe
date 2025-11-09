@@ -298,7 +298,7 @@ jobs:
             docker compose pull
             docker compose up -d
 
-            echo "⏳ Waiting for frontend health endpoint..."
+            echo "⏳ Waiting for frontend health endpoint... "
             for i in {1..10}; do
               sleep 10
               if curl -f http://localhost:8081/health; then

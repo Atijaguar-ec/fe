@@ -17,5 +17,17 @@
                    value="outdoors-v12">
             <label class="form-check-label" for="defaultStyle" i18n="@@map.view.default">Default view</label>
         </div>
+        <ng-container *ngFor="let overlay of overlays">
+          <div class="form-check form-check-inline">
+            <input type="checkbox"
+                   class="form-check-input"
+                   [id]="overlay.layerId + '-toggle'"
+                   [checked]="overlayVisibility[overlay.layerId]"
+                   (change)="onOverlayToggle(overlay, $event.target.checked)">
+            <label class="form-check-label" [attr.for]="overlay.layerId + '-toggle'">
+              {{ overlay.label }}
+            </label>
+          </div>
+        </ng-container>
     </div>
 </div>
