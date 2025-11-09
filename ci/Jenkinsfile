@@ -328,9 +328,9 @@ git fetch --tags --prune origin
           echo "\n🚀 Iniciando despliegue remoto: ${deploy.name}"
 
           def envContent = """
-IMAGE_NAME=${env.IMAGE_REPOSITORY}
-TAG=${env.DEPLOY_TAG}
-NODE_ENV=${deploy.nodeEnv}
+# Frontend-specific variables (not backend)
+FE_IMAGE_NAME=${env.IMAGE_REPOSITORY}
+FE_TAG=${env.DEPLOY_TAG}
 CONTAINER_NAME=${deploy.containerName}
 HOST_HTTP_PORT=${deploy.hostPort}
 FRONTEND_NETWORK=${deploy.frontendNetwork}
@@ -340,7 +340,11 @@ TRAEFIK_ROUTER_NAME=${deploy.traefikRouter}
 TRAEFIK_ROUTER_RULE=${deploy.traefikRule}
 TRAEFIK_ENTRYPOINTS=${deploy.traefikEntrypoints}
 TRAEFIK_CERT_RESOLVER=${deploy.traefikResolver}
-HEALTHCHECK_URL=${deploy.healthLocal}
+HEALTHCHECK_URL=http://localhost
+HEALTHCHECK_INTERVAL=15s
+HEALTHCHECK_TIMEOUT=5s
+HEALTHCHECK_RETRIES=3
+HEALTHCHECK_START_PERIOD=10s
 NGINX_CONF_PATH=./nginx.conf
 """.stripIndent().trim() + '\n'
           writeFile file: "${env.WORKSPACE}/ci/.env.deploy", text: envContent
@@ -351,7 +355,7 @@ set -euo pipefail
 REMOTE_DIR="\${deploy.targetDir}"
 FRONTEND_NETWORK="\${deploy.frontendNetwork}"
 BACKEND_NETWORK="\${deploy.backendNetwork}"
-HEALTH_URL="\${deploy.healthLocal}"
+HEALTH_URL="http://localhost"
 MAX_RETRIES=\${env.HEALTH_MAX_RETRIES}
 SLEEP_TIME=\${env.HEALTH_SLEEP}
 
@@ -442,7 +446,11 @@ exit 1
                   docker network create inatrace-backend-network
 
                 echo "📝 Preparando archivo .env para docker compose..."
-                cp "\$ENVFILE" ci/.env
+                cp "${env.WORKSPACE}/ci/.env.frontend" ci/.env
+                
+                # Actualizar variables específicas para este build
+                sed -i "s|FE_TAG=.*|FE_TAG=${env.DEPLOY_TAG}|g" ci/.env
+                sed -i "s|CONTAINER_NAME=.*|CONTAINER_NAME=${deploy.containerName}|g" ci/.env
 
                 echo "🧾 Copiando nginx.conf para despliegue local..."
                 cp "${env.WORKSPACE}/nginx.conf" ci/nginx.conf
@@ -460,7 +468,7 @@ exit 1
                 RETRY_COUNT=0
                 MAX_RETRIES=${env.HEALTH_MAX_RETRIES}
                 SLEEP_TIME=${env.HEALTH_SLEEP}
-                HEALTH_URL=${deploy.healthLocal}
+                HEALTH_URL="http://localhost:${deploy.hostPort}"
 
                 while [ \$RETRY_COUNT -lt \$MAX_RETRIES ]; do
                   RETRY_COUNT=\$((RETRY_COUNT + 1))

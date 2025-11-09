@@ -1,30 +1,15 @@
 services:
   inatrace-frontend:
-    image: ${IMAGE_NAME}:${TAG}
+    image: ${FE_IMAGE_NAME:-ghcr.io/atijaguar-ec/fe-inatrace}:${FE_TAG:-latest}
     container_name: ${CONTAINER_NAME:-inatrace-frontend}
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
+      # Variables específicas del frontend (si son necesarias)
       - NODE_ENV=${NODE_ENV:-production}
       - PRIMARY_PRODUCT_TYPE=${PRIMARY_PRODUCT_TYPE:-CACAO}
-      - APP_BASE_URL=${APP_BASE_URL:-}
-      - COMPANY_NAME=${COMPANY_NAME:-INATrace}
       - COMPANY_THEME=${COMPANY_THEME:-cacao}
-      - DOMAIN=${DOMAIN:-inatrace.atijaguar.com}
-      - QR_CODE_BASE_PATH=${QR_CODE_BASE_PATH:-q-cd}
-      - RELATIVE_FILE_UPLOAD_URL=${RELATIVE_FILE_UPLOAD_URL:-/api/common/document}
-      - RELATIVE_FILE_UPLOAD_URL_MANUAL_TYPE=${RELATIVE_FILE_UPLOAD_URL_MANUAL_TYPE:-/api/common/document?type=}
-      - RELATIVE_IMAGE_UPLOAD_URL=${RELATIVE_IMAGE_UPLOAD_URL:-/api/common/image}
-      - RELATIVE_IMAGE_UPLOAD_URL_ALL_SIZES=${RELATIVE_IMAGE_UPLOAD_URL_ALL_SIZES:-/api/common/image}
-      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-}
-      - MAPBOX_ACCESS_TOKEN=${MAPBOX_ACCESS_TOKEN:-}
-      - TOKEN_FOR_PUBLIC_LOG_ROUTE=${TOKEN_FOR_PUBLIC_LOG_ROUTE:-}
-      - BEYCO_AUTH_URL=${BEYCO_AUTH_URL:-}
-      - BEYCO_CLIENT_ID=${BEYCO_CLIENT_ID:-}
     networks:
       - frontend
-      - backend
     ports:
       - "${HOST_HTTP_PORT:-8081}:80"
     volumes:
@@ -36,11 +21,11 @@ services:
       - "traefik.http.routers.${TRAEFIK_ROUTER_NAME:-inatrace-frontend}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}"
       - "traefik.http.services.${TRAEFIK_ROUTER_NAME:-inatrace-frontend}.loadbalancer.server.port=80"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f ${HEALTHCHECK_URL:-http://localhost/health} || exit 1"]
-      interval: ${HEALTHCHECK_INTERVAL:-30s}
-      timeout: ${HEALTHCHECK_TIMEOUT:-10s}
+      test: ["CMD-SHELL", "curl -f ${HEALTHCHECK_URL:-http://localhost} || exit 1"]
+      interval: ${HEALTHCHECK_INTERVAL:-15s}
+      timeout: ${HEALTHCHECK_TIMEOUT:-5s}
       retries: ${HEALTHCHECK_RETRIES:-3}
-      start_period: ${HEALTHCHECK_START_PERIOD:-40s}
+      start_period: ${HEALTHCHECK_START_PERIOD:-10s}
 
 networks:
   frontend:
