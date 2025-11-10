@@ -225,7 +225,8 @@
               </div>
             </div>
 
-            <div class="af-row" *ngIf="displayPriceDeterminedLater">
+            <!-- 🎯 Precio determinado después: Oculto para SHRIMP -->
+            <div class="af-row" *ngIf="displayPriceDeterminedLater && (showPriceFields$ | async)">
               <div class="af-c6"></div>
               <div class="af-c6">
                 <checkbox-input [form]="stockOrderForm.get('priceDeterminedLater')" (onClick)="priceDeterminedLaterChanged()">
@@ -234,6 +235,7 @@
               </div>
             </div>
 
+            <!-- 🎯 Cantidad y Precio por unidad -->
             <div class="af-row">
               <div class="af-c6">
                 <textinput
@@ -253,7 +255,8 @@
                 </textinput>
               </div>
 
-              <div class="af-c6">
+              <!-- 🎯 Precio por unidad: Oculto para SHRIMP -->
+              <div class="af-c6" *ngIf="showPriceFields$ | async">
                 <textinput
                         [form]="stockOrderForm.get('pricePerUnit')"
                         [label]="pricePerUnitLabel"
@@ -298,8 +301,9 @@
                   </div>
                 </textinput>
               </div>
-              <div class="af-c6" *ngIf="showDamagedPriceDeduction">
-                <textinput *ngIf="showDamagedPriceDeduction"
+              <!-- 🎯 Deducción de precio: Oculto para SHRIMP -->
+              <div class="af-c6" *ngIf="showDamagedPriceDeduction && (showPriceFields$ | async)">
+                <textinput *ngIf="showDamagedPriceDeduction && (showPriceFields$ | async)"
                         [form]="stockOrderForm.get('damagedPriceDeduction')"
                         [label]="damagedPriceDeductionLabel"
                         [disabled]="stockOrderForm.get('priceDeterminedLater').value"
@@ -396,8 +400,8 @@
               </div>
             </div>
 
-             <!-- Final Price Discount moved to the end -->
-            <div class="af-row" *ngIf="showFinalPriceDiscount">
+             <!-- 🎯 Final Price Discount: Oculto para SHRIMP -->
+            <div class="af-row" *ngIf="showFinalPriceDiscount && (showPriceFields$ | async)">
               <div class="af-c12">
                 <textinput 
                         [form]="stockOrderForm.get('finalPriceDiscount')"
@@ -419,7 +423,8 @@
             </div>
 
 
-            <div class="af-row">
+            <!-- 🎯 Pago inicial (cost) y Saldo pendiente (balance): Ocultos para SHRIMP -->
+            <div class="af-row" *ngIf="showPriceFields$ | async">
               <div class="af-c6">
                 <textinput
                         [form]="stockOrderForm.get('cost')"
@@ -445,7 +450,8 @@
               </div>
             </div>
 
-            <div class="af-row">
+            <!-- 🎯 Forma de pago preferida: Oculta para SHRIMP -->
+            <div class="af-row" *ngIf="showPaymentFields$ | async">
               <div class="af-c12">
                 <single-choice
                         label="Preferred way of payment"

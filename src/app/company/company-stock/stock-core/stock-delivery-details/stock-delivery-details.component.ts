@@ -18,7 +18,6 @@ import {dateISOString, defaultEmptyObject, generateFormFromMetadata} from '../..
 import { ApiStockOrderValidationScheme } from './validation';
 import { Location } from '@angular/common';
 import { AuthService } from '../../../../core/auth.service';
-import _ from 'lodash-es';
 import { StockOrderControllerService } from '../../../../../api/api/stockOrderController.service';
 import { ListEditorManager } from '../../../../shared/list-editor/list-editor-manager';
 import { ApiActivityProofValidationScheme } from '../additional-proof-item/validation';
@@ -32,6 +31,10 @@ import { ApiUserGet } from '../../../../../api/model/apiUserGet';
 import { Subscription } from 'rxjs';
 import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
 import { EnvironmentInfoService } from '../../../../core/environment-info.service';
+import { ChainFieldConfigService } from '../../../../shared-services/chain-field-config.service';
+import { Observable } from 'rxjs';
+
+declare const $localize: (messageParts: TemplateStringsArray, ...placeholders: any[]) => string;
 
 @Component({
   selector: 'app-stock-delivery-details',
@@ -40,37 +43,37 @@ import { EnvironmentInfoService } from '../../../../core/environment-info.servic
 })
 export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
-  title: string = null;
+  title: string | null = null;
 
   update = true;
 
-  @ViewChild('deliveryDetailsContainer') deliveryDetailsContainer: ElementRef<HTMLElement>;
+  @ViewChild('deliveryDetailsContainer') deliveryDetailsContainer!: ElementRef<HTMLElement>;
 
-  stockOrderForm: FormGroup;
-  order: ApiStockOrder;
+  stockOrderForm!: FormGroup;
+  order: ApiStockOrder | null = null;
   orderTypeForm = new FormControl(null);
   orderTypeCodebook = EnumSifrant.fromObject(this.orderTypeOptions);
 
-  userLastChanged = null;
+  userLastChanged: string | null = null;
 
   submitted = false;
 
   showPrintButton = false;
 
-  codebookPreferredWayOfPayment: EnumSifrant;
+  codebookPreferredWayOfPayment!: EnumSifrant;
 
   searchFarmers = new FormControl(null, Validators.required);
   searchCollectors = new FormControl(null);
-  farmersCodebook: CompanyUserCustomersByRoleService;
-  collectorsCodebook: CompanyUserCustomersByRoleService;
+  farmersCodebook!: CompanyUserCustomersByRoleService;
+  collectorsCodebook!: CompanyUserCustomersByRoleService;
 
   employeeForm = new FormControl(null, Validators.required);
-  codebookUsers: EnumSifrant;
+  codebookUsers: EnumSifrant = EnumSifrant.fromObject({});
 
   facilityNameForm = new FormControl(null);
 
   options: ApiSemiProduct[] = [];
-  modelChoice = null;
+  modelChoice: number | null = null;
 
   measureUnit = '-';
   selectedCurrency = '-';
@@ -90,14 +93,18 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   varietyOptionsMap: Record<string, string> = {};
   varietyOptions: EnumSifrant = EnumSifrant.fromObject({});
 
-  private facility: ApiFacility;
+  private facility: ApiFacility | null = null;
 
-  private purchaseOrderId = this.route.snapshot.params.purchaseOrderId;
+  private purchaseOrderId: number | null;
 
-  additionalProofsListManager = null;
+  additionalProofsListManager: ListEditorManager<ApiActivityProof> | null = null;
 
-  private userProfileSubs: Subscription;
+  private userProfileSubs: Subscription | null = null;
   
+  // Observables para visibilidad de campos
+  showPriceFields$!: Observable<boolean>;
+  showPaymentFields$!: Observable<boolean>;
+  showMoistureField$!: Observable<boolean>;
 
   constructor(
     private route: ActivatedRoute,
@@ -113,7 +120,15 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     private selUserCompanyService: SelectedUserCompanyService,
     private pdfGeneratorService: PdfGeneratorService,
     private envInfo: EnvironmentInfoService,
-  ) { }
+    public fieldConfig: ChainFieldConfigService  
+  ) {
+    const purchaseOrderIdParam = this.route.snapshot.params?.purchaseOrderId;
+    this.purchaseOrderId = purchaseOrderIdParam != null ? Number(purchaseOrderIdParam) : null;
+    // Inicializar observables de visibilidad
+    this.showPriceFields$ = this.fieldConfig.isFieldVisible$('stockOrder', 'pricePerUnit');
+    this.showPaymentFields$ = this.fieldConfig.isFieldVisible$('stockOrder', 'preferredWayOfPayment');
+    this.showMoistureField$ = this.fieldConfig.isFieldVisible$('stockOrder', 'moisturePercentage');
+  }
 
   // Additional proof item factory methods (used when creating ListEditorManger)
   static AdditionalProofItemCreateEmptyObject(): ApiActivityProof {
@@ -130,7 +145,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   get orderType(): StockOrderType {
 
-    const realType = this.stockOrderForm && this.stockOrderForm.get('orderType').value;
+    const realType = this.stockOrderForm?.get('orderType')?.value;
 
     if (realType) {
       return realType;
@@ -151,7 +166,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   get orderTypeOptions() {
 
-    const obj = {};
+    const obj: Record<string, string> = {};
     obj['GENERAL_ORDER'] = $localize`:@@orderType.codebook.generalOrder:General order`;
     obj['PROCESSING_ORDER'] = $localize`:@@orderType.codebook.processingOrder:Processing order`;
     obj['PURCHASE_ORDER'] = $localize`:@@orderType.codebook.purchaseOrder:Purchase order`;
@@ -160,21 +175,16 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   get preferredWayOfPaymentList() {
 
-    const obj = {};
+    const obj: Record<string, string> = {};
     obj['CASH'] = $localize`:@@productLabelStockPurchaseOrdersModal.preferredWayOfPayment.cash:Cash`;
 
-    if (this.stockOrderForm &&
-      this.stockOrderForm.get('representativeOfProducerUserCustomer') &&
-      this.stockOrderForm.get('representativeOfProducerUserCustomer').value) {
+    if (this.stockOrderForm?.get('representativeOfProducerUserCustomer')?.value) {
 
       obj['CASH_VIA_COLLECTOR'] = $localize`:@@productLabelStockPurchaseOrdersModal.preferredWayOfPayment.cashViaCollector:Cash via collector`;
     }
 
-    if (this.stockOrderForm &&
-      this.stockOrderForm.get('producerUserCustomer') &&
-      this.stockOrderForm.get('producerUserCustomer').value &&
-      this.stockOrderForm.get('representativeOfProducerUserCustomer') &&
-      !this.stockOrderForm.get('representativeOfProducerUserCustomer').value) {
+    if (this.stockOrderForm?.get('producerUserCustomer')?.value &&
+      !this.stockOrderForm.get('representativeOfProducerUserCustomer')?.value) {
 
       obj['UNKNOWN'] = $localize`:@@productLabelStockPurchaseOrdersModal.preferredWayOfPayment.unknown:Unknown`;
     }
@@ -283,14 +293,14 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   get additionalProofsForm(): FormArray {
-    return this.stockOrderForm.get('activityProofs') as FormArray;
+    return (this.stockOrderForm?.get('activityProofs') as FormArray) ?? new FormArray([]);
   }
 
-  get yesNo() {
-    const obj = {};
-    obj['true'] = $localize`:@@productLabelStockPurchaseOrdersModal.organic.yes:Yes`;
-    obj['false'] = $localize`:@@productLabelStockPurchaseOrdersModal.organic.no:No`;
-    return obj;
+  get yesNo(): Record<string, string> {
+    return {
+      'true': $localize`:@@productLabelStockPurchaseOrdersModal.organic.yes:Yes`,
+      'false': $localize`:@@productLabelStockPurchaseOrdersModal.organic.no:No`
+    };
   }
 
   async ngOnInit() {
@@ -383,42 +393,50 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       const response = await this.facilityControllerService.getFacility(facilityId).pipe(take(1)).toPromise();
       if (response && response.status === StatusEnum.OK && response.data) {
         this.facility = response.data;
-        for (const item of this.facility.facilitySemiProductList) {
+        for (const item of this.facility?.facilitySemiProductList || []) {
           if (item.buyable) {
             item.name = this.translateName(item);
             this.options.push(item);
           }
         }
-        this.facilityNameForm.setValue(this.translateName(this.facility));
+        this.facilityNameForm.setValue(this.facility ? this.translateName(this.facility) : null);
       }
 
     } else if (action === 'update') {
 
       this.update = true;
 
-      const stockOrderResponse = await this.stockOrderControllerService.getStockOrder(this.purchaseOrderId).pipe(take(1)).toPromise();
+      const purchaseOrderId = this.purchaseOrderId;
+      if (purchaseOrderId == null) {
+        throw Error('Missing purchase order id for update action.');
+      }
+
+      const stockOrderResponse = await this.stockOrderControllerService.getStockOrder(purchaseOrderId).pipe(take(1)).toPromise();
       if (stockOrderResponse && stockOrderResponse.status === StatusEnum.OK && stockOrderResponse.data) {
 
         this.order = stockOrderResponse.data;
         this.title = this.updateTitle(this.orderType);
-        this.facility = stockOrderResponse.data.facility;
+        this.facility = stockOrderResponse.data.facility ?? null;
 
-        for (const item of this.facility.facilitySemiProductList) {
+        for (const item of this.facility?.facilitySemiProductList || []) {
           if (item.buyable) {
             item.name = this.translateName(item);
             this.options.push(item);
           }
         }
-        this.facilityNameForm.setValue(this.translateName(this.facility));
+        this.facilityNameForm.setValue(this.facility ? this.translateName(this.facility) : null);
       }
     } else {
       throw Error('Wrong action.');
     }
 
     if (this.companyProfile) {
-      const obj = {};
-      for (const user of this.companyProfile.users) {
-        obj[user.id.toString()] = user.name + ' ' + user.surname;
+      const obj: Record<string, string> = {};
+      const users = this.companyProfile.users ?? [];
+      for (const user of users) {
+        if (user?.id != null) {
+          obj[user.id.toString()] = `${user.name ?? ''} ${user.surname ?? ''}`.trim();
+        }
       }
       this.codebookUsers = EnumSifrant.fromObject(obj);
     }
@@ -439,28 +457,32 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   private newStockOrder() {
 
-    this.stockOrderForm = generateFormFromMetadata(ApiStockOrder.formMetadata(), { facility: { id: this.facility.id } }, ApiStockOrderValidationScheme(this.orderType));
+    const facilityContext = this.facility?.id ? { facility: { id: this.facility.id } } : undefined;
+    this.stockOrderForm = generateFormFromMetadata(ApiStockOrder.formMetadata(), facilityContext, ApiStockOrderValidationScheme(this.orderType));
 
     // Initialize preferred way of payments
     this.codebookPreferredWayOfPayment = EnumSifrant.fromObject(this.preferredWayOfPaymentList);
 
     // Set initial data
     if (this.selectedCurrency !== '-') {
-      this.stockOrderForm.get('currency').setValue(this.selectedCurrency);
+      this.stockOrderForm.get('currency')?.setValue(this.selectedCurrency);
     }
 
-    this.stockOrderForm.get('orderType').setValue(this.orderType);
+    this.stockOrderForm.get('orderType')?.setValue(this.orderType);
     this.stockOrderForm.get('womenShare')?.setValue(false);
     this.setDate();
 
     // Set current logged-in user as employee
-    this.employeeForm.setValue(this.currentLoggedInUser?.id.toString());
+    this.employeeForm.setValue(this.currentLoggedInUser?.id != null ? this.currentLoggedInUser.id.toString() : null);
 
     // If only one semi-product select it as a default
     if (this.options && this.options.length === 1) {
-      this.modelChoice = this.options[0].id;
-      this.stockOrderForm.get('semiProduct').setValue({ id: this.options[0].id });
-      this.setMeasureUnit(this.modelChoice).then();
+      const defaultSemiProductId = this.options[0].id;
+      if (defaultSemiProductId != null) {
+        this.modelChoice = defaultSemiProductId;
+        this.stockOrderForm.get('semiProduct')?.setValue({ id: defaultSemiProductId });
+        this.setMeasureUnit(defaultSemiProductId).then();
+      }
     }
 
     // Add Week Number control (for cacao). Required only when cacao selected.
@@ -483,13 +505,16 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if (!this.stockOrderForm.get('finalPriceDiscount')) {
       this.stockOrderForm.addControl('finalPriceDiscount', new FormControl(null));
     }
-    if (!this.stockOrderForm.get('moisturePercentage')) {
-      this.stockOrderForm.addControl('moisturePercentage', new FormControl(null));
+    if (!this.stockOrderForm?.get('moisturePercentage')) {
+      this.stockOrderForm?.addControl('moisturePercentage', new FormControl(null));
     }
-    if (!this.stockOrderForm.get('moistureWeightDeduction')) {
-      this.stockOrderForm.addControl('moistureWeightDeduction', new FormControl(null));
+    if (!this.stockOrderForm?.get('moistureWeightDeduction')) {
+      this.stockOrderForm?.addControl('moistureWeightDeduction', new FormControl(null));
     }
     this.updateWeekNumberVisibilityAndValidation();
+
+    // Aplicar configuración dinámica de campos
+    this.applyFieldConfiguration();
 
     this.prepareData();
     this.setupFormListeners();
@@ -497,75 +522,83 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   private async editStockOrder() {
 
+    if (!this.order) {
+      return;
+    }
+
+    const order = this.order;
+
     // Generate the form
-    this.stockOrderForm = generateFormFromMetadata(ApiStockOrder.formMetadata(), this.order, ApiStockOrderValidationScheme(this.orderType));
+    this.stockOrderForm = generateFormFromMetadata(ApiStockOrder.formMetadata(), order, ApiStockOrderValidationScheme(this.orderType));
 
     // Initialize preferred way of payments
     this.codebookPreferredWayOfPayment = EnumSifrant.fromObject(this.preferredWayOfPaymentList);
 
     if (this.orderType === 'PURCHASE_ORDER') {
-      this.selectedCurrency = this.stockOrderForm.get('currency').value ? this.stockOrderForm.get('currency').value : '-';
-      this.searchFarmers.setValue(this.order.producerUserCustomer);
-      if (this.order.representativeOfProducerUserCustomer && this.order.representativeOfProducerUserCustomer.id) {
-        this.searchCollectors.setValue(this.order.representativeOfProducerUserCustomer);
+      const currencyValue = this.stockOrderForm?.get('currency')?.value;
+      this.selectedCurrency = currencyValue ? currencyValue : '-';
+      this.searchFarmers.setValue(order.producerUserCustomer);
+      if (order.representativeOfProducerUserCustomer && order.representativeOfProducerUserCustomer.id) {
+        this.searchCollectors.setValue(order.representativeOfProducerUserCustomer);
       }
     }
 
-    this.modelChoice = this.order.semiProduct?.id;
-    if (this.modelChoice) {
+    this.modelChoice = order.semiProduct?.id ?? null;
+    if (this.modelChoice != null) {
       this.setMeasureUnit(this.modelChoice).then();
     }
 
-    this.employeeForm.setValue(this.order.creatorId.toString());
+    this.employeeForm.setValue(order.creatorId != null ? order.creatorId.toString() : null);
     // TODO: set documents and payments if purchase order
 
-    if (this.order.updatedBy && this.order.updatedBy.id) {
-      const userUpdatedBy = this.order.updatedBy;
+    if (order.updatedBy && order.updatedBy.id) {
+      const userUpdatedBy = order.updatedBy;
       this.userLastChanged = `${userUpdatedBy.name} ${userUpdatedBy.surname}`;
-    } else if (this.order.createdBy && this.order.createdBy.id) {
-      const userCreatedBy = this.order.createdBy;
+    } else if (order.createdBy && order.createdBy.id) {
+      const userCreatedBy = order.createdBy;
       this.userLastChanged = `${userCreatedBy.name} ${userCreatedBy.surname}`;
     }
 
-    if (this.stockOrderForm.get('organic').value != null) {
-      this.stockOrderForm.get('organic').setValue(this.stockOrderForm.get('organic').value.toString());
+    const organicControl = this.stockOrderForm.get('organic');
+    if (organicControl && organicControl.value != null) {
+      organicControl.setValue(organicControl.value.toString());
     }
 
-    if (this.stockOrderForm.get('priceDeterminedLater').value) {
-      this.stockOrderForm.get('pricePerUnit').clearValidators();
-      this.stockOrderForm.get('damagedPriceDeduction').clearValidators();
+    if (this.stockOrderForm?.get('priceDeterminedLater')?.value) {
+      this.stockOrderForm.get('pricePerUnit')?.clearValidators();
+      this.stockOrderForm.get('damagedPriceDeduction')?.clearValidators();
     }
-    this.stockOrderForm.updateValueAndValidity();
+    this.stockOrderForm?.updateValueAndValidity();
 
     // Ensure weekNumber control exists and set value if backend provides it
     if (!this.stockOrderForm.get('weekNumber')) {
       this.stockOrderForm.addControl('weekNumber', new FormControl(null));
     }
-    if ((this.order as any)?.weekNumber != null) {
-      this.stockOrderForm.get('weekNumber').setValue((this.order as any).weekNumber);
+    if ((order as any)?.weekNumber != null) {
+      this.stockOrderForm?.get('weekNumber')?.setValue((order as any).weekNumber);
     }
     // Ensure parcelLot control exists and set value if backend provides it
-    if (!this.stockOrderForm.get('parcelLot')) {
-      this.stockOrderForm.addControl('parcelLot', new FormControl(null));
+    if (!this.stockOrderForm?.get('parcelLot')) {
+      this.stockOrderForm?.addControl('parcelLot', new FormControl(null));
     }
-    if ((this.order as any)?.parcelLot != null) {
-      this.stockOrderForm.get('parcelLot').setValue((this.order as any).parcelLot);
+    if ((order as any)?.parcelLot != null) {
+      this.stockOrderForm?.get('parcelLot')?.setValue((order as any).parcelLot);
     }
     // Ensure variety control exists and set value if backend provides it
-    if (!this.stockOrderForm.get('variety')) {
-      this.stockOrderForm.addControl('variety', new FormControl(null));
+    if (!this.stockOrderForm?.get('variety')) {
+      this.stockOrderForm?.addControl('variety', new FormControl(null));
     }
-    if ((this.order as any)?.variety != null) {
-      this.ensureVarietyOption((this.order as any).variety);
-      this.stockOrderForm.get('variety').setValue((this.order as any).variety);
+    if ((order as any)?.variety != null) {
+      this.ensureVarietyOption((order as any).variety);
+      this.stockOrderForm?.get('variety')?.setValue((order as any).variety);
     }
     // Ensure organicCertification control exists and set value if backend provides it
-    if (!this.stockOrderForm.get('organicCertification')) {
-      this.stockOrderForm.addControl('organicCertification', new FormControl(null));
+    if (!this.stockOrderForm?.get('organicCertification')) {
+      this.stockOrderForm?.addControl('organicCertification', new FormControl(null));
     }
-    if ((this.order as any)?.organicCertification != null) {
-      const value = (this.order as any).organicCertification;
-      this.stockOrderForm.get('organicCertification').setValue(value);
+    if ((order as any)?.organicCertification != null) {
+      const value = (order as any).organicCertification;
+      this.stockOrderForm?.get('organicCertification')?.setValue(value);
     }
     // Ensure moisture percentage controls exist
     if (!this.stockOrderForm.get('moisturePercentage')) {
@@ -610,9 +643,12 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   onSelectedType(type: StockOrderType) {
+    if (!this.stockOrderForm) {
+      return;
+    }
     switch (type as StockOrderType) {
       case 'PURCHASE_ORDER':
-        this.stockOrderForm.get('orderType').setValue(type);
+        this.stockOrderForm.get('orderType')?.setValue(type);
         return;
       case 'GENERAL_ORDER':
       case 'PROCESSING_ORDER':
@@ -624,47 +660,62 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   setFarmer(event: ApiUserCustomer) {
 
-    if (event) {
-      this.stockOrderForm.get('producerUserCustomer').setValue({ id: event.id });
-    } else {
-      this.stockOrderForm.get('producerUserCustomer').setValue(null);
+    if (!this.stockOrderForm) {
+      return;
     }
 
-    this.stockOrderForm.get('producerUserCustomer').markAsDirty();
-    this.stockOrderForm.get('producerUserCustomer').updateValueAndValidity();
+    if (event) {
+      this.stockOrderForm.get('producerUserCustomer')?.setValue({ id: event.id });
+    } else {
+      this.stockOrderForm.get('producerUserCustomer')?.setValue(null);
+    }
+
+    const producerControl = this.stockOrderForm.get('producerUserCustomer');
+    producerControl?.markAsDirty();
+    producerControl?.updateValueAndValidity();
     this.codebookPreferredWayOfPayment = EnumSifrant.fromObject(this.preferredWayOfPaymentList);
   }
 
   setCollector(event: ApiUserCustomer) {
 
+    if (!this.stockOrderForm) {
+      return;
+    }
+
     if (event) {
-      this.stockOrderForm.get('representativeOfProducerUserCustomer').setValue({ id: event.id });
-      if (this.stockOrderForm.get('preferredWayOfPayment') && this.stockOrderForm.get('preferredWayOfPayment').value === 'UNKNOWN') {
-        this.stockOrderForm.get('preferredWayOfPayment').setValue(null);
+      this.stockOrderForm.get('representativeOfProducerUserCustomer')?.setValue({ id: event.id });
+      if (this.stockOrderForm.get('preferredWayOfPayment')?.value === 'UNKNOWN') {
+        this.stockOrderForm.get('preferredWayOfPayment')?.setValue(null);
       }
     } else {
-      this.stockOrderForm.get('representativeOfProducerUserCustomer').setValue(null);
-      if (this.stockOrderForm.get('preferredWayOfPayment') && this.stockOrderForm.get('preferredWayOfPayment').value === 'CASH_VIA_COLLECTOR') {
-        this.stockOrderForm.get('preferredWayOfPayment').setValue(null);
+      this.stockOrderForm.get('representativeOfProducerUserCustomer')?.setValue(null);
+      if (this.stockOrderForm.get('preferredWayOfPayment')?.value === 'CASH_VIA_COLLECTOR') {
+        this.stockOrderForm.get('preferredWayOfPayment')?.setValue(null);
       }
     }
 
-    this.stockOrderForm.get('representativeOfProducerUserCustomer').markAsDirty();
-    this.stockOrderForm.get('representativeOfProducerUserCustomer').updateValueAndValidity();
+    const collectorControl = this.stockOrderForm.get('representativeOfProducerUserCustomer');
+    collectorControl?.markAsDirty();
+    collectorControl?.updateValueAndValidity();
     this.codebookPreferredWayOfPayment = EnumSifrant.fromObject(this.preferredWayOfPaymentList);
   }
 
   semiProductSelected(id: string) {
 
-    if (id) {
-      this.stockOrderForm.get('semiProduct').setValue({ id });
-      this.setMeasureUnit(Number(id)).then();
-    } else {
-      this.stockOrderForm.get('semiProduct').setValue(null);
+    if (!this.stockOrderForm) {
+      return;
     }
 
-    this.stockOrderForm.get('semiProduct').markAsDirty();
-    this.stockOrderForm.get('semiProduct').updateValueAndValidity();
+    if (id) {
+      this.stockOrderForm.get('semiProduct')?.setValue({ id });
+      this.setMeasureUnit(Number(id)).then();
+    } else {
+      this.stockOrderForm.get('semiProduct')?.setValue(null);
+    }
+
+    const semiProductControl = this.stockOrderForm.get('semiProduct');
+    semiProductControl?.markAsDirty();
+    semiProductControl?.updateValueAndValidity();
 
     // Update week number requirement when semi-product changes
     this.updateWeekNumberVisibilityAndValidation();
@@ -682,10 +733,10 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   setToBePaid() {
 
-    if (this.stockOrderForm && this.stockOrderForm.get('totalGrossQuantity').value && this.stockOrderForm.get('pricePerUnit').value) {
-      const grossQuantity = Number(this.stockOrderForm.get('totalGrossQuantity').value);
+    if (this.stockOrderForm?.get('totalGrossQuantity')?.value && this.stockOrderForm.get('pricePerUnit')?.value) {
+      const grossQuantity = Number(this.stockOrderForm.get('totalGrossQuantity')?.value);
       let baseWeight = grossQuantity;
-      let pricePerUnit = this.stockOrderForm.get('pricePerUnit').value;
+      let pricePerUnit = this.stockOrderForm.get('pricePerUnit')?.value ?? 0;
 
       const tareControl = this.stockOrderForm.get('tare');
       if (tareControl && tareControl.value) {
@@ -727,20 +778,26 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         total = 0.00;
       }
 
-      this.stockOrderForm.get('cost').setValue(Number(total).toFixed(2));
+      this.stockOrderForm.get('cost')?.setValue(Number(total).toFixed(2));
     } else {
 
-      this.stockOrderForm.get('cost').setValue(null);
+      this.stockOrderForm.get('cost')?.setValue(null);
     }
   }
 
   setBalance() {
 
-    if (this.stockOrderForm && this.stockOrderForm.get('cost').value !== null && this.stockOrderForm.get('cost').value !== undefined) {
-        this.stockOrderForm.get('balance').setValue(this.stockOrderForm.get('cost').value);
+    const costValue = this.stockOrderForm?.get('cost')?.value;
+    const balanceControl = this.stockOrderForm?.get('balance');
+    if (!balanceControl) {
+      return;
+    }
+
+    if (costValue !== null && costValue !== undefined) {
+      balanceControl.setValue(costValue);
     } else {
 
-      this.stockOrderForm.get('balance').setValue(null);
+      balanceControl.setValue(null);
     }
   }
 
@@ -757,7 +814,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   get showOrganic() {
-    return this.facility && this.facility.displayOrganic || this.stockOrderForm.get('organic').value;
+    return (this.facility && this.facility.displayOrganic) || this.stockOrderForm?.get('organic')?.value;
   }
 
   get readonlyOrganic() {
@@ -777,19 +834,19 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   get showFinalPriceDiscount() {
-    return this.facility && this.facility.displayFinalPriceDiscount || this.stockOrderForm.get('finalPriceDiscount').value;
+    return (this.facility && this.facility.displayFinalPriceDiscount) || this.stockOrderForm?.get('finalPriceDiscount')?.value;
   }
 
   get showDamagedWeightDeduction() {
-    return this.facility && this.facility.displayWeightDeductionDamage || this.stockOrderForm.get('damagedWeightDeduction').value;
+    return (this.facility && this.facility.displayWeightDeductionDamage) || this.stockOrderForm?.get('damagedWeightDeduction')?.value;
   }
 
   get readonlyDamagedPriceDeduction() {
-    return this.facility && !this.facility.displayPriceDeductionDamage || this.stockOrderForm.get('priceDeterminedLater').value;
+    return (this.facility && !this.facility.displayPriceDeductionDamage) || this.stockOrderForm?.get('priceDeterminedLater')?.value;
   }
 
   get readonlyFinalPriceDiscount() {
-    return this.facility && !this.facility.displayFinalPriceDiscount || this.stockOrderForm.get('priceDeterminedLater').value;
+    return (this.facility && !this.facility.displayFinalPriceDiscount) || this.stockOrderForm?.get('priceDeterminedLater')?.value;
   }
 
   get readonlyDamagedWeightDeduction() {
@@ -797,7 +854,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   get showMoisturePercentage() {
-    return this.facility && this.facility.displayMoisturePercentage || this.stockOrderForm.get('moisturePercentage').value;
+    return (this.facility && this.facility.displayMoisturePercentage) || this.stockOrderForm?.get('moisturePercentage')?.value;
   }
 
   get readonlyMoisturePercentage() {
@@ -805,27 +862,33 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   netWeight() {
-    if (this.stockOrderForm && this.stockOrderForm.get('totalGrossQuantity').value) {
-      const grossQuantity = Number(this.stockOrderForm.get('totalGrossQuantity').value);
+    const form = this.stockOrderForm;
+    if (form && form.get('totalGrossQuantity')?.value) {
+      const grossQuantity = Number(form.get('totalGrossQuantity')?.value);
       let baseWeight = grossQuantity;
 
-      if (this.stockOrderForm.get('tare').value) {
-        baseWeight -= Number(this.stockOrderForm.get('tare').value);
+      const tareValue = form.get('tare')?.value;
+      if (tareValue) {
+        baseWeight -= Number(tareValue);
       }
-      if (this.stockOrderForm.get('damagedWeightDeduction').value) {
-        baseWeight -= Number(this.stockOrderForm.get('damagedWeightDeduction').value);
+      const damagedWeight = form.get('damagedWeightDeduction')?.value;
+      if (damagedWeight) {
+        baseWeight -= Number(damagedWeight);
       }
 
       baseWeight = Math.max(0, baseWeight);
 
       let finalNetWeight = baseWeight;
-      if (this.stockOrderForm.get('moisturePercentage').value) {
-        const moisturePercent = Number(this.stockOrderForm.get('moisturePercentage').value);
+      const moistureValue = form.get('moisturePercentage')?.value;
+      if (moistureValue) {
+        const moisturePercent = Number(moistureValue);
         finalNetWeight = baseWeight * (moisturePercent / 100);
         const moistureDeduction = baseWeight - finalNetWeight;
-        this.stockOrderForm.get('moistureWeightDeduction').setValue(moistureDeduction.toFixed(2), { emitEvent: false });
+        const moistureWeightDeductionControl = form.get('moistureWeightDeduction');
+        moistureWeightDeductionControl?.setValue(moistureDeduction.toFixed(2), { emitEvent: false });
       } else {
-        this.stockOrderForm.get('moistureWeightDeduction').setValue(null, { emitEvent: false });
+        const moistureWeightDeductionControl = form.get('moistureWeightDeduction');
+        moistureWeightDeductionControl?.setValue(null, { emitEvent: false });
       }
 
       finalNetWeight = Math.max(0, finalNetWeight);
@@ -836,10 +899,11 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   finalPrice() {
-    if (this.stockOrderForm && this.stockOrderForm.get('pricePerUnit').value) {
-      let finalPrice = this.stockOrderForm.get('pricePerUnit').value;
-      if (this.stockOrderForm.get('damagedPriceDeduction').value) {
-        finalPrice -= this.stockOrderForm.get('damagedPriceDeduction').value;
+    if (this.stockOrderForm?.get('pricePerUnit')?.value) {
+      let finalPrice = this.stockOrderForm.get('pricePerUnit')?.value;
+      const damagedPriceValue = this.stockOrderForm.get('damagedPriceDeduction')?.value;
+      if (damagedPriceValue) {
+        finalPrice -= damagedPriceValue;
       }
 
       const finalPriceDiscountControl = this.stockOrderForm.get('finalPriceDiscount');
@@ -860,22 +924,32 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   updateValidators() {
-    this.stockOrderForm.get('organic').setValidators(
+    const organicControl = this.stockOrderForm?.get('organic');
+    if (organicControl) {
+      organicControl.setValidators(
         this.orderType === 'PURCHASE_ORDER' &&
         this.facility &&
         this.facility.displayOrganic ?
-            [Validators.required] : []
-    );
-    this.stockOrderForm.get('organic').updateValueAndValidity();
-    this.stockOrderForm.get('tare').setValidators([]);
-    this.stockOrderForm.get('tare').setValue(null);
-    this.stockOrderForm.get('tare').updateValueAndValidity();
-    const damagedPriceDeductionControl = this.stockOrderForm.get('damagedPriceDeduction');
-    damagedPriceDeductionControl.setValidators([]);
-    damagedPriceDeductionControl.setValue(null);
-    damagedPriceDeductionControl.updateValueAndValidity();
+          [Validators.required] : []
+      );
+      organicControl.updateValueAndValidity();
+    }
 
-    const finalPriceDiscountControl = this.stockOrderForm.get('finalPriceDiscount');
+    const tareControl = this.stockOrderForm?.get('tare');
+    if (tareControl) {
+      tareControl.setValidators([]);
+      tareControl.setValue(null);
+      tareControl.updateValueAndValidity();
+    }
+
+    const damagedPriceDeductionControl = this.stockOrderForm?.get('damagedPriceDeduction');
+    if (damagedPriceDeductionControl) {
+      damagedPriceDeductionControl.setValidators([]);
+      damagedPriceDeductionControl.setValue(null);
+      damagedPriceDeductionControl.updateValueAndValidity();
+    }
+
+    const finalPriceDiscountControl = this.stockOrderForm?.get('finalPriceDiscount');
     if (finalPriceDiscountControl) {
       finalPriceDiscountControl.setValidators([]);
       if (!(this.facility && this.facility.displayFinalPriceDiscount)) {
@@ -883,15 +957,19 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       }
       finalPriceDiscountControl.updateValueAndValidity();
     }
-    this.stockOrderForm.get('damagedWeightDeduction').setValidators(
+
+    const damagedWeightDeductionControl = this.stockOrderForm?.get('damagedWeightDeduction');
+    if (damagedWeightDeductionControl) {
+      damagedWeightDeductionControl.setValidators(
         this.orderType === 'PURCHASE_ORDER' &&
         this.facility &&
         this.facility.displayWeightDeductionDamage ?
-            [Validators.required] : []
-    );
-    this.stockOrderForm.get('damagedWeightDeduction').updateValueAndValidity();
+          [Validators.required] : []
+      );
+      damagedWeightDeductionControl.updateValueAndValidity();
+    }
 
-    const moistureControl = this.stockOrderForm.get('moisturePercentage');
+    const moistureControl = this.stockOrderForm?.get('moisturePercentage');
     if (moistureControl) {
       const moistureValidators = [Validators.min(0), Validators.max(100)];
       if (this.orderType === 'PURCHASE_ORDER' && this.facility && this.facility.displayMoisturePercentage) {
@@ -900,7 +978,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       moistureControl.setValidators(moistureValidators);
       if (!(this.facility && this.facility.displayMoisturePercentage)) {
         moistureControl.setValue(null);
-        const moistureWeightControl = this.stockOrderForm.get('moistureWeightDeduction');
+        const moistureWeightControl = this.stockOrderForm?.get('moistureWeightDeduction');
         if (moistureWeightControl) {
           moistureWeightControl.setValue(null);
         }
@@ -910,20 +988,20 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   get tareInvalidCheck() {
-      const tare: number = Number(this.stockOrderForm.get('tare').value).valueOf();
-      const totalGrossQuantity: number = Number(this.stockOrderForm.get('totalGrossQuantity').value).valueOf();
+      const tare = Number(this.stockOrderForm?.get('tare')?.value ?? 0);
+      const totalGrossQuantity = Number(this.stockOrderForm?.get('totalGrossQuantity')?.value ?? 0);
       return tare && totalGrossQuantity && (tare > totalGrossQuantity);
   }
 
   get damagedPriceDeductionInvalidCheck() {
-    const damagedPriceDeduction: number = Number(this.stockOrderForm.get('damagedPriceDeduction').value).valueOf();
-    const pricePerUnit: number = Number(this.stockOrderForm.get('pricePerUnit').value).valueOf();
+    const damagedPriceDeduction = Number(this.stockOrderForm?.get('damagedPriceDeduction')?.value ?? 0);
+    const pricePerUnit = Number(this.stockOrderForm?.get('pricePerUnit')?.value ?? 0);
     return damagedPriceDeduction && pricePerUnit && (damagedPriceDeduction > pricePerUnit);
   }
 
   get damagedWeightDeductionInvalidCheck() {
-    const damagedWeightDeduction = Number(this.stockOrderForm.get('damagedWeightDeduction').value).valueOf();
-    const totalQuantity = Number(this.stockOrderForm.get('totalQuantity').value).valueOf();
+    const damagedWeightDeduction = Number(this.stockOrderForm?.get('damagedWeightDeduction')?.value ?? 0);
+    const totalQuantity = Number(this.stockOrderForm?.get('totalQuantity')?.value ?? 0);
     return damagedWeightDeduction && totalQuantity && (damagedWeightDeduction > totalQuantity);
   }
 
@@ -962,57 +1040,59 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   private setQuantities() {
 
-    if (this.stockOrderForm.get('totalGrossQuantity').valid) {
+    const totalGrossControl = this.stockOrderForm?.get('totalGrossQuantity');
+    if (totalGrossControl?.valid) {
 
-      let quantity = parseFloat(this.stockOrderForm.get('totalGrossQuantity').value);
+      let quantity = parseFloat(totalGrossControl.value);
 
-      if (this.stockOrderForm.get('tare').value) {
-        quantity -= this.stockOrderForm.get('tare').value;
+      const tareValue = this.stockOrderForm?.get('tare')?.value;
+      if (tareValue) {
+        quantity -= tareValue;
       }
 
       if (quantity < 0) {
         quantity = 0.00;
       }
 
-      let form = this.stockOrderForm.get('totalQuantity');
-      form.setValue(quantity);
-      form.updateValueAndValidity();
+      const totalQuantityControl = this.stockOrderForm?.get('totalQuantity');
+      totalQuantityControl?.setValue(quantity);
+      totalQuantityControl?.updateValueAndValidity();
 
-      form = this.stockOrderForm.get('fulfilledQuantity');
-      form.setValue(quantity);
-      form.updateValueAndValidity();
+      const fulfilledQuantityControl = this.stockOrderForm?.get('fulfilledQuantity');
+      fulfilledQuantityControl?.setValue(quantity);
+      fulfilledQuantityControl?.updateValueAndValidity();
 
-      form = this.stockOrderForm.get('availableQuantity');
-      form.setValue(quantity);
-      form.updateValueAndValidity();
+      const availableQuantityControl = this.stockOrderForm?.get('availableQuantity');
+      availableQuantityControl?.setValue(quantity);
+      availableQuantityControl?.updateValueAndValidity();
     }
   }
 
   private setDate() {
     const today = dateISOString(new Date());
-    this.stockOrderForm.get('productionDate').setValue(today);
+    this.stockOrderForm?.get('productionDate')?.setValue(today);
   }
 
   private prepareData() {
     this.setQuantities();
-    const pd = this.stockOrderForm.get('productionDate').value;
+    const pd = this.stockOrderForm?.get('productionDate')?.value;
     if (pd != null) {
-      this.stockOrderForm.get('productionDate').setValue(dateISOString(pd));
+      this.stockOrderForm?.get('productionDate')?.setValue(dateISOString(pd));
     }
   }
 
   private async setIdentifier() {
 
     const farmerResponse = await this.companyControllerService
-      .getUserCustomer(this.stockOrderForm.get('producerUserCustomer').value?.id).pipe(take(1)).toPromise();
+      .getUserCustomer(this.stockOrderForm?.get('producerUserCustomer')?.value?.id).pipe(take(1)).toPromise();
 
     if (farmerResponse && farmerResponse.status === StatusEnum.OK && farmerResponse.data) {
-      const identifier = 'PT-' + farmerResponse.data.surname + '-' + this.stockOrderForm.get('productionDate').value;
-      this.stockOrderForm.get('identifier').setValue(identifier);
+      const identifier = 'PT-' + farmerResponse.data.surname + '-' + this.stockOrderForm?.get('productionDate')?.value;
+      this.stockOrderForm?.get('identifier')?.setValue(identifier);
     }
   }
 
-  private translateName(obj) {
+  private translateName(obj: unknown) {
     return this.codebookTranslations.translate(obj, 'name');
   }
   isCocoa(): boolean {
@@ -1047,19 +1127,58 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     return this.facility.displayPriceDeterminedLater;
   }
 
+  /**
+   * 🎯 Aplica configuración dinámica de campos según el tipo de producto
+   */
+  private applyFieldConfiguration(): void {
+    if (!this.stockOrderForm) {
+      return;
+    }
+
+    // Campos de precio
+    const priceConfig = this.fieldConfig.getFieldConfig('stockOrder', 'pricePerUnit');
+    const currencyConfig = this.fieldConfig.getFieldConfig('stockOrder', 'currency');
+    const damagedPriceConfig = this.fieldConfig.getFieldConfig('stockOrder', 'damagedPriceDeduction');
+    const finalDiscountConfig = this.fieldConfig.getFieldConfig('stockOrder', 'finalPriceDiscount');
+    const costConfig = this.fieldConfig.getFieldConfig('stockOrder', 'cost');
+    const balanceConfig = this.fieldConfig.getFieldConfig('stockOrder', 'balance');
+    const paymentConfig = this.fieldConfig.getFieldConfig('stockOrder', 'preferredWayOfPayment');
+    const priceLaterConfig = this.fieldConfig.getFieldConfig('stockOrder', 'priceDeterminedLater');
+
+    // Aplicar configuración a cada campo
+    const fieldsToConfig = [
+      { name: 'pricePerUnit', config: priceConfig },
+      { name: 'currency', config: currencyConfig },
+      { name: 'damagedPriceDeduction', config: damagedPriceConfig },
+      { name: 'finalPriceDiscount', config: finalDiscountConfig },
+      { name: 'cost', config: costConfig },
+      { name: 'balance', config: balanceConfig },
+      { name: 'preferredWayOfPayment', config: paymentConfig },
+      { name: 'priceDeterminedLater', config: priceLaterConfig }
+    ];
+
+    fieldsToConfig.forEach(({ name, config }) => {
+      const control = this.stockOrderForm.get(name);
+      if (control && !config.required) {
+        control.clearValidators();
+        control.updateValueAndValidity();
+      }
+    });
+  }
+
   priceDeterminedLaterChanged() {
     // change validation for price per unit based on
-    if (this.stockOrderForm.get('priceDeterminedLater').value) {
-      this.stockOrderForm.get('pricePerUnit').clearValidators();
-      this.stockOrderForm.get('pricePerUnit').setValue(null);
-      this.stockOrderForm.get('damagedPriceDeduction').setValue(null);
+    if (this.stockOrderForm?.get('priceDeterminedLater')?.value) {
+      this.stockOrderForm.get('pricePerUnit')?.clearValidators();
+      this.stockOrderForm.get('pricePerUnit')?.setValue(null);
+      this.stockOrderForm.get('damagedPriceDeduction')?.setValue(null);
       this.updateValidators();
     } else {
-      this.stockOrderForm.get('pricePerUnit').setValidators(ApiStockOrderValidationScheme(this.orderType).fields.pricePerUnit.validators);
+      this.stockOrderForm?.get('pricePerUnit')?.setValidators(ApiStockOrderValidationScheme(this.orderType).fields.pricePerUnit.validators);
       this.updateValidators();
     }
 
-    this.stockOrderForm.get('pricePerUnit').updateValueAndValidity();
+    this.stockOrderForm?.get('pricePerUnit')?.updateValueAndValidity();
   }
 
   async createOrUpdatePurchaseOrder(close: boolean = true) {
@@ -1072,7 +1191,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
     try {
       // Ensure creator
-      this.stockOrderForm.get('creatorId').setValue(this.employeeForm.value);
+      this.stockOrderForm?.get('creatorId')?.setValue(this.employeeForm.value);
 
       // Normalize/prepare data
       this.prepareData();
@@ -1091,7 +1210,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.setToBePaid();
       this.setBalance();
 
-      const data: ApiStockOrder = _.cloneDeep(this.stockOrderForm.value);
+      const data = this.stockOrderForm?.getRawValue() as ApiStockOrder;
       // Remove null/undefined keys
       Object.keys(data as any).forEach((key) => ((data as any)[key] == null) && delete (data as any)[key]);
 
@@ -1104,7 +1223,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         if (close) {
           this.dismiss();
         } else {
-          this.stockOrderForm.markAsPristine();
+          this.stockOrderForm?.markAsPristine();
           this.employeeForm.markAsPristine();
           this.reloadOrder();
         }
