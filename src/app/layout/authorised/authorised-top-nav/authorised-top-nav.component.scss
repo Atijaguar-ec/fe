@@ -35,7 +35,7 @@
 .topbar-authorised-mobile {
   @include media-breakpoint-down(md) {
     height: 16px;
-    background-color: $primary-lighter;
+    background-color: var(--theme-primary-lighter);  // 🎨 Dynamic theme
     width: 100%;
   }
 }
@@ -69,7 +69,7 @@
 }
 
 .env-badge {
-  background-color: $primary;
+  background-color: var(--theme-primary);  // 🎨 Dynamic theme
   color: $white;
   text-transform: uppercase;
   font-weight: 700;
@@ -94,8 +94,8 @@
 }
 
 .product-badge {
-  background-color: rgba($primary, 0.15);
-  color: $primary;
+  background-color: var(--theme-primary-lightest);  // 🎨 Dynamic theme (equivalent to rgba)
+  color: var(--theme-primary);  // 🎨 Dynamic theme
   font-weight: 600;
 }
 

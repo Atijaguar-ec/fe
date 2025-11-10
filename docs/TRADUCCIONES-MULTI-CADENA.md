@@ -18,22 +18,48 @@ Sistema profesional de traducciones que permite tener terminología diferente pa
 
 ## 🏗️ Arquitectura
 
-### Estructura de Archivos
-
 ```
-fe/src/assets/locale/
-├── _base/                          # Archivos maestros
-│   ├── es.base.json                # Español base (3330 claves)
-│   └── en.base.json                # Inglés base (3323 claves)
-├── cocoa/                          # Traducciones de cacao
-│   ├── es.json                     # = base (0 overrides)
-│   └── en.json
-├── shrimp/                         # Traducciones de camarón
-│   ├── es.json                     # = base + 46 overrides
-│   └── en.json                     # (ej: "Agricultor" → "Piscicultor")
-└── coffee/                         # Traducciones de café
-    ├── es.json                     # = base + 22 overrides
-    └── en.json                     # (ej: "Agricultor" → "Caficultor")
+┌─────────────────────────────────────────────────────────────┐
+│                     Base Translations                        │
+│                 (_base/es.base.json)                        │
+│                 (_base/en.base.json)                        │
+│                                                              │
+│  • Contiene TODAS las traducciones por defecto              │
+│  • Fuente de verdad para claves y estructura                │
+│  • Usado por cocoa (sin modificaciones)                     │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│              Chain-Specific Overrides                        │
+│         (chain-overrides.config.ts)                         │
+│                                                              │
+│  shrimp: {                                                   │
+│    es: { 'key': 'Piscicultor', ... }                        │
+│    en: { 'key': 'Fish farmer', ... }                        │
+│  }                                                           │
+│  coffee: {                                                   │
+│    es: { 'key': 'Caficultor', ... }                         │
+│  }                                                           │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│              Synchronization Script                          │
+│            (sync-translations.ts)                           │
+│                                                              │
+│  1. Lee base translations                                    │
+│  2. Aplica overrides por cadena                             │
+│  3. Aplica reemplazos masivos (bulk replacements) 🆕        │
+│  4. Valida consistencia                                      │
+│  5. Genera archivos finales                                  │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│              Generated Translation Files                     │
+│                                                              │
+│  cocoa/es.json   ← Base sin cambios                         │
+│  shrimp/es.json  ← Base + overrides + bulk replacements     │
+│  coffee/es.json  ← Base + overrides coffee                  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### Flujo de Trabajo
@@ -216,6 +242,43 @@ export const CHAIN_OVERRIDES: ChainOverrides = {
   }
 };
 ```
+
+### 🆕 Reemplazos Masivos (Bulk Replacements)
+
+Además de los overrides específicos por clave, el sistema aplica **reemplazos masivos** automáticos para evitar tener que listar cada clave manualmente:
+
+```typescript
+// En sync-translations.ts - Método applyBulkReplacements()
+
+const bulkReplacements = {
+  shrimp: {
+    es: [
+      { search: 'Agricultor', replace: 'Piscicultor' },
+      { search: 'agricultor', replace: 'piscicultor' },
+      { search: 'Agricultores', replace: 'Piscicultores' },
+      { search: 'agricultores', replace: 'piscicultores' },
+    ],
+    en: [
+      { search: 'Farmer', replace: 'Fish farmer' },
+      { search: 'farmer', replace: 'fish farmer' },
+      { search: 'Farmers', replace: 'Fish farmers' },
+      { search: 'farmers', replace: 'fish farmers' },
+    ]
+  }
+};
+```
+
+**Ventajas:**
+- ✅ No necesitas listar cada clave manualmente
+- ✅ Captura TODAS las ocurrencias del término en cualquier traducción
+- ✅ Mantiene consistencia terminológica automáticamente
+- ✅ Fácil de extender para nuevas cadenas
+
+**Orden de aplicación:**
+1. Se cargan las traducciones base
+2. Se aplican los overrides específicos (chain-overrides.config.ts)
+3. Se aplican los reemplazos masivos sobre el resultado final
+4. Se guarda el archivo JSON generado
 
 ---
 

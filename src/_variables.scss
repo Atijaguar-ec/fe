@@ -35,6 +35,8 @@ $primary-lighter:#C5BFBB;
 $primary-lightest:#E8E6E4;
 
 // bootstrap theme colors
+// 🎨 MIGRACIÓN A TEMAS DINÁMICOS: Usar var(--theme-*) en lugar de estas variables
+// Estas se mantienen como fallback para componentes no migrados
 $primary:       $theme-primary;
 $secondary:     #25265E;
 $tertiary:      #3C4859;

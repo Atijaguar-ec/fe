@@ -333,6 +333,9 @@ class TranslationSyncEngine {
       ...chainOverrides
     };
 
+    // Apply bulk replacements for specific chains
+    this.applyBulkReplacements(chain, lang, finalTranslations);
+
     // Create output object
     const output: TranslationFile = {
       locale: lang,
@@ -370,6 +373,60 @@ class TranslationSyncEngine {
       addedKeys,
       removedKeys
     };
+  }
+
+  /**
+   * Apply bulk string replacements for specific chains
+   * This is useful for systematic terminology changes (e.g., Agricultor → Piscicultor for shrimp)
+   */
+  private applyBulkReplacements(chain: Chain, lang: Language, translations: Record<string, string>): void {
+    // Define bulk replacements per chain
+    const bulkReplacements: Record<Chain, Record<Language, Array<{ search: string; replace: string }>>> = {
+      cocoa: { es: [], en: [] },
+      coffee: { es: [], en: [] },
+      shrimp: {
+        es: [
+          { search: 'Agricultor', replace: 'Piscicultor' },
+          { search: 'agricultor', replace: 'piscicultor' },
+          { search: 'Agricultores', replace: 'Piscicultores' },
+          { search: 'agricultores', replace: 'piscicultores' },
+        ],
+        en: [
+          { search: 'Farmer', replace: 'Fish farmer' },
+          { search: 'farmer', replace: 'fish farmer' },
+          { search: 'Farmers', replace: 'Fish farmers' },
+          { search: 'farmers', replace: 'fish farmers' },
+        ]
+      }
+    };
+
+    const replacements = bulkReplacements[chain]?.[lang] || [];
+    
+    if (replacements.length === 0) {
+      return;
+    }
+
+    // Apply replacements to all translation values
+    let replacementCount = 0;
+    for (const key in translations) {
+      const originalValue = translations[key];
+      let newValue = originalValue;
+
+      for (const { search, replace } of replacements) {
+        if (newValue.includes(search)) {
+          newValue = newValue.split(search).join(replace);
+          replacementCount++;
+        }
+      }
+
+      if (newValue !== originalValue) {
+        translations[key] = newValue;
+      }
+    }
+
+    if (this.verbose && replacementCount > 0) {
+      Logger.info(`  Applied ${replacementCount} bulk replacements for ${chain}/${lang}`);
+    }
   }
 
   private printSummary(result: SyncResult): void {
