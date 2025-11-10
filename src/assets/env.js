@@ -21,6 +21,6 @@
     window['env']['beycoClientId'] = '';
 
     // Product Configuration
-    window['env']['PRIMARY_PRODUCT_TYPE'] = 'COCOA'; // COFFEE, COCOA, or SHRIMP
+    window['env']['PRIMARY_PRODUCT_TYPE'] = 'SHRIMP'; // COFFEE, COCOA, or SHRIMP
 
 })(this);
