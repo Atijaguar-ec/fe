@@ -241,9 +241,9 @@ export interface ApiStockOrder {
      */
     numberOfGavetas?: number;
     /**
-     * Batea number (shrimp-specific)
+     * N° de Bines (específico para camarón)
      */
-    numberOfBatea?: string;
+    numberOfBines?: string;
     /**
      * Number of pools/piscinas (shrimp-specific)
      */
@@ -270,8 +270,8 @@ export interface ApiStockOrder {
      * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
      */
     repackedOriginStockOrderId?: string;
-    purchaseOrder?: boolean;
     openOrder?: boolean;
+    purchaseOrder?: boolean;
     available?: boolean;
 }
 
@@ -483,9 +483,9 @@ export namespace ApiStockOrder {
          */
         numberOfGavetas = 'numberOfGavetas',
         /**
-         * Batea number (shrimp-specific)
+         * N° de Bines (específico para camarón)
          */
-        numberOfBatea = 'numberOfBatea',
+        numberOfBines = 'numberOfBines',
         /**
          * Number of pools/piscinas (shrimp-specific)
          */
@@ -512,8 +512,8 @@ export namespace ApiStockOrder {
          * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
          */
         repackedOriginStockOrderId = 'repackedOriginStockOrderId',
-        purchaseOrder = 'purchaseOrder',
         openOrder = 'openOrder',
+        purchaseOrder = 'purchaseOrder',
         available = 'available'
     }
 
@@ -1241,7 +1241,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'numberOfBatea',
+                    name: 'numberOfBines',
                     classname: 'ApiStockOrder',
                     dataType: 'string',
                     isPrimitiveType: true,
@@ -1343,7 +1343,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'purchaseOrder',
+                    name: 'openOrder',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1354,7 +1354,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'openOrder',
+                    name: 'purchaseOrder',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1496,7 +1496,7 @@ export namespace ApiStockOrder {
                 ],
                 numberOfGavetas: [
                 ],
-                numberOfBatea: [
+                numberOfBines: [
                 ],
                 numberOfPiscinas: [
                 ],
@@ -1514,9 +1514,9 @@ export namespace ApiStockOrder {
                 ],
                 repackedOriginStockOrderId: [
                 ],
-                purchaseOrder: [
-                ],
                 openOrder: [
+                ],
+                purchaseOrder: [
                 ],
                 available: [
                 ],
@@ -1710,7 +1710,7 @@ export namespace ApiStockOrder {
   //               numberOfGavetas: {
   //                   validators: []
   //               },
-  //               numberOfBatea: {
+  //               numberOfBines: {
   //                   validators: []
   //               },
   //               numberOfPiscinas: {
@@ -1737,10 +1737,10 @@ export namespace ApiStockOrder {
   //               repackedOriginStockOrderId: {
   //                   validators: []
   //               },
-  //               purchaseOrder: {
+  //               openOrder: {
   //                   validators: []
   //               },
-  //               openOrder: {
+  //               purchaseOrder: {
   //                   validators: []
   //               },
   //               available: {

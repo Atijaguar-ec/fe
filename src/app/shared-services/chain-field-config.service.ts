@@ -9,7 +9,7 @@
  * - Cacao/Café: SÍ manejan precios → mostrar campos de precio
  * - Camarón: SÍ usa humedad → mostrar campo moisturePercentage
  * - Cacao: NO usa humedad → ocultar campo moisturePercentage
- * - Camarón: Campos específicos (N° de Gavetas, N° de Batea, N° de Piscinas, N° de Guía de Remisión)
+ * - Camarón: Campos específicos (N° de Gavetas, N° de Bines, N° de Piscinas, N° de Guía de Remisión)
  *   → se muestran solo en entregas normales (NO laboratorio)
  * 
  * ⚠️ NOTA: Los campos específicos de camarón se deben implementar primero en backend y frontend.

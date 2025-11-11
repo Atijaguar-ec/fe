@@ -521,8 +521,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if (!this.stockOrderForm.get('numberOfGavetas')) {
       this.stockOrderForm.addControl('numberOfGavetas', new FormControl(null));
     }
-    if (!this.stockOrderForm.get('numberOfBatea')) {
-      this.stockOrderForm.addControl('numberOfBatea', new FormControl(null));
+    if (!this.stockOrderForm.get('numberOfBines')) {
+      this.stockOrderForm.addControl('numberOfBines', new FormControl(null));
     }
     if (!this.stockOrderForm.get('numberOfPiscinas')) {
       this.stockOrderForm.addControl('numberOfPiscinas', new FormControl(null));
@@ -643,11 +643,11 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if ((order as any)?.numberOfGavetas != null) {
       this.stockOrderForm.get('numberOfGavetas')?.setValue((order as any).numberOfGavetas);
     }
-    if (!this.stockOrderForm.get('numberOfBatea')) {
-      this.stockOrderForm.addControl('numberOfBatea', new FormControl(null));
+    if (!this.stockOrderForm.get('numberOfBines')) {
+      this.stockOrderForm.addControl('numberOfBines', new FormControl(null));
     }
-    if ((order as any)?.numberOfBatea != null) {
-      this.stockOrderForm.get('numberOfBatea')?.setValue((order as any).numberOfBatea);
+    if ((order as any)?.numberOfBines != null) {
+      this.stockOrderForm.get('numberOfBines')?.setValue((order as any).numberOfBines);
     }
     if (!this.stockOrderForm.get('numberOfPiscinas')) {
       this.stockOrderForm.addControl('numberOfPiscinas', new FormControl(null));

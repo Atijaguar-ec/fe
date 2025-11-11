@@ -3330,12 +3330,6 @@
     "quoteOrdersOnOrganization.input.placehoder": "Introduce un valor",
     "companyDashboardComponent.graph.values.trunked": "Truncado",
     "collectorDetail.textinput.maxProductionQuantity.label": "Cantidad máxima de producción (qq)",
-    "productLabelPurchaseOrder.aggregated.organicBalance": "Saldo Orgánico (qq)",
-    "productLabelStockPurchaseOrdersModal.textinput.sampleNumber.label": "N° de Muestra",
-    "productLabelStockPurchaseOrdersModal.textinput.sampleNumber.placeholder": "Introduzca el número de muestra",
-    "productLabelStockPurchaseOrdersModal.textinput.receptionTime.label": "Hora de recepción",
-    "productLabelStockPurchaseOrdersModal.textinput.receptionTime.placeholder": "Introduzca la hora de recepción",
-    "productLabelStockPurchaseOrdersModal.textarea.comments.label": "Observación",
-    "productLabelStockPurchaseOrdersModal.textarea.comments.placeholder": "Introduzca observaciones"
+    "productLabelPurchaseOrder.aggregated.organicBalance": "Saldo Orgánico (qq)"
   }
 }

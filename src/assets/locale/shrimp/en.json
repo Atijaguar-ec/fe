@@ -3325,12 +3325,6 @@
     "collectorDetail.textinput.maxProductionQuantity.label": "Max production quantity (qq)",
     "productLabelPurchaseOrder.aggregated.organicBalance": "Organic Balance (qq)",
     "collectorDetail.textinput.numberOfTrees.label": "Total number of ponds",
-    "collectorDetail.textinput.numberOfTrees.placeholder": "Enter the number of ponds",
-    "productLabelStockPurchaseOrdersModal.textinput.sampleNumber.label": "Sample Number",
-    "productLabelStockPurchaseOrdersModal.textinput.sampleNumber.placeholder": "Enter sample number",
-    "productLabelStockPurchaseOrdersModal.textinput.receptionTime.label": "Reception Time",
-    "productLabelStockPurchaseOrdersModal.textinput.receptionTime.placeholder": "Enter reception time",
-    "productLabelStockPurchaseOrdersModal.textarea.comments.label": "Comments",
-    "productLabelStockPurchaseOrdersModal.textarea.comments.placeholder": "Enter comments"
+    "collectorDetail.textinput.numberOfTrees.placeholder": "Enter the number of ponds"
   }
 }

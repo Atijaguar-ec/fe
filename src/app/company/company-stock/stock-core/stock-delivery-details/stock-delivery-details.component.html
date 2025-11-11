@@ -45,7 +45,7 @@
 
           <div class="af-form-element">
             <div class="af-row">
-              <div class="af-c4">
+              <div class="af-c6">
                 <app-datepicker
                         label="Delivery date"
                         i18n-label="@@productLabelStockPurchaseOrdersModal.datepicker.date.label"
@@ -60,6 +60,21 @@
                   </ng-container>
                 </app-datepicker>
               </div>
+
+               <!-- Hora de recepción (para todos) -->
+            
+              <div class="af-c4">
+                <textinput
+                  [form]="stockOrderForm.get('receptionTime')"
+                  label="Hora de recepción"
+                  i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.receptionTime.label"
+                  style="width: 100%"
+                  type="time"
+                  placeholder="Introduzca la hora de recepción"
+                  i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.receptionTime.placeholder">
+                </textinput>
+              </div>
+            
             </div>
 
             <div class="af-row">
@@ -185,20 +200,7 @@
               </div>
             </div>
 
-            <!-- Hora de recepción (para todos) -->
-            <div class="af-row">
-              <div class="af-c6">
-                <textinput
-                  [form]="stockOrderForm.get('receptionTime')"
-                  label="Hora de recepción"
-                  i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.receptionTime.label"
-                  style="width: 100%"
-                  type="time"
-                  placeholder="Introduzca la hora de recepción"
-                  i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.receptionTime.placeholder">
-                </textinput>
-              </div>
-            </div>
+           
 
             <div class="af-row">
               <div class="af-c12">
@@ -446,12 +448,12 @@
                 
                 <div class="af-c6">
                   <textinput
-                    [form]="stockOrderForm.get('numberOfBatea')"
+                    [form]="stockOrderForm.get('numberOfBines')"
                     label="N° de Bines"
-                    i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.numberOfBatea.label"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.numberOfBines.label"
                     style="width: 100%"
-                    placeholder="Introduzca el número de batea"
-                    i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.numberOfBatea.placeholder">
+                    placeholder="Introduzca el número de bines"
+                    i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.numberOfBines.placeholder">
                   </textinput>
                 </div>
               </div>
@@ -484,8 +486,8 @@
 
             <!-- Observación (alineada con la segunda columna) -->
             <div class="af-row">
-              <div class="af-c6"></div>
-              <div class="af-c6">
+              
+              <div class="af-c12">
                 <textinput
                   [form]="stockOrderForm.get('comments')"
                   label="Observación"
