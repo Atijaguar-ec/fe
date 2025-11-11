@@ -36,7 +36,7 @@ export interface ChainOverrides {
  * Chain-specific translation overrides
  * 
  * SHRIMP: Aquaculture/fishing terminology
- * - "Agricultor" → "Piscicultor" (Fish farmer)
+ * - "Agricultor" → "Proveedor" (Supplier/Provider)
  * - "kg" → "libras" (pounds)
  * - "Colector" → "Acopiador" (Collector)
  * 
@@ -59,29 +59,29 @@ const CHAIN_OVERRIDES: ChainOverrides = {
   // ============================================================================
   shrimp: {
     es: {
-      // Farmer → Fish farmer / Shrimp producer
-      'collectorDetail.roles.farmer': 'Piscicultor',
-      'productLabelPurchaseOrder.sortOptions.farmer.name': 'Piscicultor',
-      'collectorDetail.textinput.farmerCompanyInternalId.label': 'Identificación interna del piscicultor (ID)',
-      'collectorDetail.textinput.farmerCompanyInternalId.placeholder': 'Introduzca identificación interna del piscicultor (ID)',
-      'collectorDetail.textinput.farmerCompanyInternalId.error': 'Se requiere Identificación interna del piscicultor (ID)',
-      'collectorDetail.section.balance': 'Saldo del piscicultor',
-      'productLabelStakeholders.title.farmers': 'Piscicultores',
-      'productLabelStakeholders.button.newFarmer': '{$START_TAG_SPAN}+ Añadir piscicultor{$CLOSE_TAG_SPAN}',
-      'productLabelStakeholders.button.exportFarmerData': '{$START_TAG_SPAN}Exportar datos de piscicultores{$CLOSE_TAG_SPAN}',
-      'productLabelStakeholders.subTitle.listOfFarmers': 'Lista de piscicultores',
-      'productLabelStakeholders.tab2.title': 'Piscicultores',
-      'collectorDetail.newFarmer.title': 'Nuevo piscicultor',
-      'collectorDetail.editFarmer.title': 'Editar piscicultor',
-      'farmerStoryPhotos.attachment-uploader.label': 'Foto del piscicultor o del grupo de piscicultores (PNG/JPG)',
-      'farmerStoryPhotos.attachment-uploader.small': 'Suba una foto de alta calidad del piscicultor o grupo de piscicultores que mejor represente a su empresa/marca.',
-      'facilityStockOrderPaymentModal.singleChoice.farmers': 'Piscicultor',
-      'facilityStockOrderPaymentModal.title': 'Seleccione el piscicultor y la entrega',
-      'orderHistoryView.tableCol.farmerRepresentative': 'Representante de los piscicultores',
-      'paymentForm.textinput.payableTo.farmer': 'Piscicultor',
-      'productLabelStockPayments.singleChoice.farmer.error.atLeastOne': 'Es necesario rellenar al menos uno de los campos del piscicultor',
-      'productLabelStockPayments.singleChoice.farmer.error.onlyOne': 'Es necesario rellenar solo uno de los campos del piscicultor',
-      'productLabelStockBulkPayments.textinput.payableTo.farmer': 'Piscicultor',
+      // Farmer → Proveedor (Supplier/Provider)
+      'collectorDetail.roles.farmer': 'Proveedor',
+      'productLabelPurchaseOrder.sortOptions.farmer.name': 'Proveedor',
+      'collectorDetail.textinput.farmerCompanyInternalId.label': 'Identificación interna del proveedor (ID)',
+      'collectorDetail.textinput.farmerCompanyInternalId.placeholder': 'Introduzca identificación interna del proveedor (ID)',
+      'collectorDetail.textinput.farmerCompanyInternalId.error': 'Se requiere Identificación interna del proveedor (ID)',
+      'collectorDetail.section.balance': 'Saldo del proveedor',
+      'productLabelStakeholders.title.farmers': 'Proveedores',
+      'productLabelStakeholders.button.newFarmer': '{$START_TAG_SPAN}+ Añadir proveedor{$CLOSE_TAG_SPAN}',
+      'productLabelStakeholders.button.exportFarmerData': '{$START_TAG_SPAN}Exportar datos de proveedores{$CLOSE_TAG_SPAN}',
+      'productLabelStakeholders.subTitle.listOfFarmers': 'Lista de proveedores',
+      'productLabelStakeholders.tab2.title': 'Proveedores',
+      'collectorDetail.newFarmer.title': 'Nuevo proveedor',
+      'collectorDetail.editFarmer.title': 'Editar proveedor',
+      'farmerStoryPhotos.attachment-uploader.label': 'Foto del proveedor o del grupo de proveedores (PNG/JPG)',
+      'farmerStoryPhotos.attachment-uploader.small': 'Suba una foto de alta calidad del proveedor o grupo de proveedores que mejor represente a su empresa/marca.',
+      'facilityStockOrderPaymentModal.singleChoice.farmers': 'Proveedor',
+      'facilityStockOrderPaymentModal.title': 'Seleccione el proveedor y la entrega',
+      'orderHistoryView.tableCol.farmerRepresentative': 'Representante de los proveedores',
+      'paymentForm.textinput.payableTo.farmer': 'Proveedor',
+      'productLabelStockPayments.singleChoice.farmer.error.atLeastOne': 'Es necesario rellenar al menos uno de los campos del proveedor',
+      'productLabelStockPayments.singleChoice.farmer.error.onlyOne': 'Es necesario rellenar solo uno de los campos del proveedor',
+      'productLabelStockBulkPayments.textinput.payableTo.farmer': 'Proveedor',
 
       // Collector → Acopiador (Collector/Aggregator)
       'collectorDetail.roles.collector': 'Acopiador',
@@ -131,20 +131,20 @@ const CHAIN_OVERRIDES: ChainOverrides = {
 
       // Storytelling & front page content
       'frontPage.journey.title': 'Viaje del camarón',
-      'front-page.fair-prices.paragraph1': 'Su lote de camarón es parte del pedido número {$INTERPOLATION}. Más abajo puede ver cuánto se pagó a los piscicultores por este pedido {$UNIT} en comparación con precios de referencia nacionales e internacionales.',
-      'frontPage.fair-prices.title2': 'Aumento de los ingresos de los piscicultores mediante trazabilidad y transparencia',
+      'front-page.fair-prices.paragraph1': 'Su lote de camarón es parte del pedido número {$INTERPOLATION}. Más abajo puede ver cuánto se pagó a los proveedores por este pedido {$UNIT} en comparación con precios de referencia nacionales e internacionales.',
+      'frontPage.fair-prices.title2': 'Aumento de los ingresos de los proveedores mediante trazabilidad y transparencia',
       'frontPage.fair-prices.barChart.label1': 'Precio del camarón en el mercado mundial',
       'frontPage.fair-prices.barChart.label2': 'Precio de referencia del camarón certificado',
       'frontPage.fair-prices.barChart.label1Farmers': 'Precio actual por camarón exportado',
       'frontPage.fair-prices.barChart.label2Farmers': 'Precio estimado en mercado local',
-      'frontPage.producers.title.meetFarmers': 'Conozca a los piscicultores',
+      'frontPage.producers.title.meetFarmers': 'Conozca a los proveedores',
       'frontPage.producers.title.meetCooperative': 'Conozca la organización acuícola',
       'frontPage.quality.paragraph.points': 'El gráfico muestra el puntaje de calidad de este lote de camarón considerando frescura, temperatura en cadena de frío y trazabilidad digital.',
       'frontPage.quality.paragraph.flavor': 'Textura firme, sabor dulce y balanceado, ideal para preparaciones a la parrilla, al vapor o salteadas.',
       'frontPage.quality.title': 'Calidad y certificaciones acuícolas',
       'frontPage.quality.flavourProfile': 'Perfil sensorial del camarón',
       'frontPage.quality.roastingProfile': 'Proceso post-cosecha',
-      'frontPage.feedback.textinput.text.label': 'Los piscicultores desean recibir sus comentarios (¿Qué le gustó o qué mejoraría?)',
+      'frontPage.feedback.textinput.text.label': 'Los proveedores desean recibir sus comentarios (¿Qué le gustó o qué mejoraría?)',
       'frontPage.feedback.taste': '1. ¿Cómo calificaría el sabor del camarón en comparación con otros productos que consume?',
       'frontPage.feedback.prepare': '2. ¿Cómo preparó el camarón? (es posible seleccionar respuestas múltiples)',
       'frontPage.feedback.checkbox-input.filterCoffee': 'Hervido',

@@ -33,6 +33,7 @@ import { ApiStockOrderEvidenceTypeValue } from './apiStockOrderEvidenceTypeValue
 import { ApiStockOrderLocation } from './apiStockOrderLocation';
 import { ApiUser } from './apiUser';
 import { ApiUserCustomer } from './apiUserCustomer';
+import { LocalTime } from './localTime';
 
 
 /**
@@ -235,6 +236,27 @@ export interface ApiStockOrder {
      * Net quantity after all deductions (tare, damaged weight, moisture)
      */
     netQuantity?: number;
+    /**
+     * Number of gavetas (shrimp-specific)
+     */
+    numberOfGavetas?: number;
+    /**
+     * Batea number (shrimp-specific)
+     */
+    numberOfBatea?: string;
+    /**
+     * Number of pools/piscinas (shrimp-specific)
+     */
+    numberOfPiscinas?: string;
+    /**
+     * Remission guide number (shrimp-specific)
+     */
+    guiaRemisionNumber?: string;
+    /**
+     * Sample number (laboratory-specific)
+     */
+    sampleNumber?: string;
+    receptionTime?: LocalTime;
     /**
      * Generated UUID tag for this stock order QR code
      */
@@ -456,6 +478,27 @@ export namespace ApiStockOrder {
          * Net quantity after all deductions (tare, damaged weight, moisture)
          */
         netQuantity = 'netQuantity',
+        /**
+         * Number of gavetas (shrimp-specific)
+         */
+        numberOfGavetas = 'numberOfGavetas',
+        /**
+         * Batea number (shrimp-specific)
+         */
+        numberOfBatea = 'numberOfBatea',
+        /**
+         * Number of pools/piscinas (shrimp-specific)
+         */
+        numberOfPiscinas = 'numberOfPiscinas',
+        /**
+         * Remission guide number (shrimp-specific)
+         */
+        guiaRemisionNumber = 'guiaRemisionNumber',
+        /**
+         * Sample number (laboratory-specific)
+         */
+        sampleNumber = 'sampleNumber',
+        receptionTime = 'receptionTime',
         /**
          * Generated UUID tag for this stock order QR code
          */
@@ -1187,6 +1230,73 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'numberOfGavetas',
+                    classname: 'ApiStockOrder',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'numberOfBatea',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'numberOfPiscinas',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'guiaRemisionNumber',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'sampleNumber',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    metadata: LocalTime.formMetadata,
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'receptionTime',
+                    classname: 'ApiStockOrder',
+                    dataType: 'LocalTime',
+                    isPrimitiveType: false,
+                    isListContainer: false,
+                    complexType: 'LocalTime'
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'qrCodeTag',
                     classname: 'ApiStockOrder',
                     dataType: 'string',
@@ -1383,6 +1493,18 @@ export namespace ApiStockOrder {
                 moistureWeightDeduction: [
                 ],
                 netQuantity: [
+                ],
+                numberOfGavetas: [
+                ],
+                numberOfBatea: [
+                ],
+                numberOfPiscinas: [
+                ],
+                guiaRemisionNumber: [
+                ],
+                sampleNumber: [
+                ],
+                receptionTime: [
                 ],
                 qrCodeTag: [
                 ],
@@ -1583,6 +1705,24 @@ export namespace ApiStockOrder {
   //                   validators: []
   //               },
   //               netQuantity: {
+  //                   validators: []
+  //               },
+  //               numberOfGavetas: {
+  //                   validators: []
+  //               },
+  //               numberOfBatea: {
+  //                   validators: []
+  //               },
+  //               numberOfPiscinas: {
+  //                   validators: []
+  //               },
+  //               guiaRemisionNumber: {
+  //                   validators: []
+  //               },
+  //               sampleNumber: {
+  //                   validators: []
+  //               },
+  //               receptionTime: {
   //                   validators: []
   //               },
   //               qrCodeTag: {

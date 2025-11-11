@@ -23,6 +23,7 @@ import { ToastrService } from 'ngx-toastr';
 import { FileSaverService } from 'ngx-filesaver';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { SelfOnboardingService } from '../../../../shared-services/self-onboarding.service';
+import { EnvironmentInfoService } from '../../../../core/environment-info.service';
 
 @Component({
   selector: 'app-stock-unit-list',
@@ -129,7 +130,8 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
     private processingOrderController: ProcessingOrderControllerService,
     private modalService: NgbModalImproved,
     private toasterService: ToastrService,
-    private selfOnboardingService: SelfOnboardingService
+    private selfOnboardingService: SelfOnboardingService,
+    private envInfo: EnvironmentInfoService
   ) { }
 
   ngOnInit(): void {
@@ -342,6 +344,14 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
         inactive: true
       }
     ];
+
+    if (this.envInfo.isProductType('shrimp')) {
+      // 🦐 Shrimp deliveries: hide week number, net quantity and payable columns
+      this.sortOptions[6].hide = true;  // Week Number
+      this.sortOptions[8].hide = true;  // Deductions
+      this.sortOptions[9].hide = true;  // Net Quantity
+      this.sortOptions[12].hide = true; // Payable / Balance
+    }
 
     if (this.mode === 'PURCHASE') {
       this.sortingParams$.next({ sortBy: 'date', sort: 'DESC' });

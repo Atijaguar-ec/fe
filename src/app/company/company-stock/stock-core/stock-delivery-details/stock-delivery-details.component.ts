@@ -32,7 +32,7 @@ import { Subscription } from 'rxjs';
 import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
 import { EnvironmentInfoService } from '../../../../core/environment-info.service';
 import { ChainFieldConfigService } from '../../../../shared-services/chain-field-config.service';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 declare const $localize: (messageParts: TemplateStringsArray, ...placeholders: any[]) => string;
 
@@ -101,10 +101,16 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   private userProfileSubs: Subscription | null = null;
   
-  // Observables para visibilidad de campos
-  showPriceFields$!: Observable<boolean>;
-  showPaymentFields$!: Observable<boolean>;
-  showMoistureField$!: Observable<boolean>;
+  // Observables para visibilidad de campos (dinámicos según facility)
+  private _showPriceFields$ = new BehaviorSubject<boolean>(true);
+  private _showPaymentFields$ = new BehaviorSubject<boolean>(true);
+  private _showMoistureField$ = new BehaviorSubject<boolean>(false);
+  private _showShrimpFields$ = new BehaviorSubject<boolean>(false);
+  
+  showPriceFields$: Observable<boolean> = this._showPriceFields$.asObservable();
+  showPaymentFields$: Observable<boolean> = this._showPaymentFields$.asObservable();
+  showMoistureField$: Observable<boolean> = this._showMoistureField$.asObservable();
+  showShrimpFields$: Observable<boolean> = this._showShrimpFields$.asObservable();
 
   constructor(
     private route: ActivatedRoute,
@@ -124,10 +130,6 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   ) {
     const purchaseOrderIdParam = this.route.snapshot.params?.purchaseOrderId;
     this.purchaseOrderId = purchaseOrderIdParam != null ? Number(purchaseOrderIdParam) : null;
-    // Inicializar observables de visibilidad
-    this.showPriceFields$ = this.fieldConfig.isFieldVisible$('stockOrder', 'pricePerUnit');
-    this.showPaymentFields$ = this.fieldConfig.isFieldVisible$('stockOrder', 'preferredWayOfPayment');
-    this.showMoistureField$ = this.fieldConfig.isFieldVisible$('stockOrder', 'moisturePercentage');
   }
 
   // Additional proof item factory methods (used when creating ListEditorManger)
@@ -155,7 +157,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       if (this.order && this.order.orderType) {
         return this.order.orderType;
       }
-      return null;
+      return {} as StockOrderType;
     }
 
     if (!this.route.snapshot.data.mode) {
@@ -363,8 +365,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.submitted = false;
 
     this.initializeData().then(() => {
-      this.farmersCodebook = new CompanyUserCustomersByRoleService(this.companyControllerService, this.companyProfile?.id, 'FARMER');
-      this.collectorsCodebook = new CompanyUserCustomersByRoleService(this.companyControllerService, this.companyProfile?.id, 'COLLECTOR');
+      this.farmersCodebook = new CompanyUserCustomersByRoleService(this.companyControllerService, this.companyProfile?.id ?? 0, 'FARMER');
+      this.collectorsCodebook = new CompanyUserCustomersByRoleService(this.companyControllerService, this.companyProfile?.id ?? 0, 'COLLECTOR');
 
       if (this.update) {
         this.editStockOrder().then();
@@ -393,6 +395,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       const response = await this.facilityControllerService.getFacility(facilityId).pipe(take(1)).toPromise();
       if (response && response.status === StatusEnum.OK && response.data) {
         this.facility = response.data;
+        // 🎯 Actualizar observables de visibilidad según facility cargado
+        this.updateFieldVisibilityObservables();
         for (const item of this.facility?.facilitySemiProductList || []) {
           if (item.buyable) {
             item.name = this.translateName(item);
@@ -417,6 +421,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         this.order = stockOrderResponse.data;
         this.title = this.updateTitle(this.orderType);
         this.facility = stockOrderResponse.data.facility ?? null;
+        // 🎯 Actualizar observables de visibilidad según facility cargado
+        this.updateFieldVisibilityObservables();
 
         for (const item of this.facility?.facilitySemiProductList || []) {
           if (item.buyable) {
@@ -510,6 +516,29 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
     if (!this.stockOrderForm?.get('moistureWeightDeduction')) {
       this.stockOrderForm?.addControl('moistureWeightDeduction', new FormControl(null));
+    }
+    // Add Shrimp-specific controls
+    if (!this.stockOrderForm.get('numberOfGavetas')) {
+      this.stockOrderForm.addControl('numberOfGavetas', new FormControl(null));
+    }
+    if (!this.stockOrderForm.get('numberOfBatea')) {
+      this.stockOrderForm.addControl('numberOfBatea', new FormControl(null));
+    }
+    if (!this.stockOrderForm.get('numberOfPiscinas')) {
+      this.stockOrderForm.addControl('numberOfPiscinas', new FormControl(null));
+    }
+    if (!this.stockOrderForm.get('guiaRemisionNumber')) {
+      this.stockOrderForm.addControl('guiaRemisionNumber', new FormControl(null));
+    }
+    // Add Laboratory-specific controls
+    if (!this.stockOrderForm.get('sampleNumber')) {
+      this.stockOrderForm.addControl('sampleNumber', new FormControl(null));
+    }
+    if (!this.stockOrderForm.get('receptionTime')) {
+      this.stockOrderForm.addControl('receptionTime', new FormControl(null));
+    }
+    if (!this.stockOrderForm.get('comments')) {
+      this.stockOrderForm.addControl('comments', new FormControl(null));
     }
     this.updateWeekNumberVisibilityAndValidation();
 
@@ -607,6 +636,52 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if (!this.stockOrderForm.get('moistureWeightDeduction')) {
       this.stockOrderForm.addControl('moistureWeightDeduction', new FormControl(null));
     }
+    // Ensure shrimp-specific controls exist and set values
+    if (!this.stockOrderForm.get('numberOfGavetas')) {
+      this.stockOrderForm.addControl('numberOfGavetas', new FormControl(null));
+    }
+    if ((order as any)?.numberOfGavetas != null) {
+      this.stockOrderForm.get('numberOfGavetas')?.setValue((order as any).numberOfGavetas);
+    }
+    if (!this.stockOrderForm.get('numberOfBatea')) {
+      this.stockOrderForm.addControl('numberOfBatea', new FormControl(null));
+    }
+    if ((order as any)?.numberOfBatea != null) {
+      this.stockOrderForm.get('numberOfBatea')?.setValue((order as any).numberOfBatea);
+    }
+    if (!this.stockOrderForm.get('numberOfPiscinas')) {
+      this.stockOrderForm.addControl('numberOfPiscinas', new FormControl(null));
+    }
+    if ((order as any)?.numberOfPiscinas != null) {
+      this.stockOrderForm.get('numberOfPiscinas')?.setValue((order as any).numberOfPiscinas);
+    }
+    if (!this.stockOrderForm.get('guiaRemisionNumber')) {
+      this.stockOrderForm.addControl('guiaRemisionNumber', new FormControl(null));
+    }
+    if ((order as any)?.guiaRemisionNumber != null) {
+      this.stockOrderForm.get('guiaRemisionNumber')?.setValue((order as any).guiaRemisionNumber);
+    }
+    // Ensure laboratory-specific controls exist and set values
+    if (!this.stockOrderForm.get('sampleNumber')) {
+      this.stockOrderForm.addControl('sampleNumber', new FormControl(null));
+    }
+    if ((order as any)?.sampleNumber != null) {
+      this.stockOrderForm.get('sampleNumber')?.setValue((order as any).sampleNumber);
+    }
+    if (!this.stockOrderForm.get('receptionTime')) {
+      this.stockOrderForm.addControl('receptionTime', new FormControl(null));
+    }
+    if ((order as any)?.receptionTime != null) {
+      this.stockOrderForm.get('receptionTime')?.setValue((order as any).receptionTime);
+    }
+    if (!this.stockOrderForm.get('comments')) {
+      this.stockOrderForm.addControl('comments', new FormControl(null));
+    }
+    if ((order as any)?.comments != null) {
+      this.stockOrderForm.get('comments')?.setValue((order as any).comments);
+    }
+    // Aplicar configuración dinámica (por ejemplo, valores por defecto para campos ocultos)
+    this.applyFieldConfiguration();
     this.updateWeekNumberVisibilityAndValidation();
     this.setupFormListeners();
   }
@@ -725,9 +800,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
     const res = await this.semiProductControllerService.getSemiProduct(semiProdId).pipe(take(1)).toPromise();
     if (res && res.status === StatusEnum.OK && res.data) {
-      this.measureUnit = res.data.measurementUnitType.label;
+      this.measureUnit = res.data.measurementUnitType?.label ?? '-';
     } else {
-      this.measureUnit = '-';
+      this.measureUnit = '-'; 
     }
   }
 
@@ -1124,26 +1199,112 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   get displayPriceDeterminedLater() {
-    return this.facility.displayPriceDeterminedLater;
+    return this.facility?.displayPriceDeterminedLater ?? false;
   }
 
   /**
-   * 🎯 Aplica configuración dinámica de campos según el tipo de producto
+   * 🔬 Detecta si el facility actual es un laboratorio
+   * Verifica si el nombre contiene "laboratorio" (case-insensitive)
+   */
+  private isLaboratoryFacility(): boolean {
+    if (!this.facility) {
+      return false;
+    }
+    
+    // Buscar en el nombre directo
+    const directName = (this.facility.name || '').toLowerCase();
+    if (directName.includes('laboratorio')) {
+      return true;
+    }
+    
+    // Buscar en traducciones
+    const translatedName = (this.facility.translations?.[0]?.name || '').toLowerCase();
+    return translatedName.includes('laboratorio');
+  }
+
+  /**
+   * 🔄 Actualiza los observables de visibilidad de campos según facility y tipo de producto
+   */
+  private updateFieldVisibilityObservables(): void {
+    const productType = this.fieldConfig.getProductType()?.toUpperCase() ?? '';
+    const isLaboratory = this.isLaboratoryFacility();
+
+    // 🔬 LABORATORIO: Ocultar todos los campos de precio/pago Y campos específicos de camarón
+    if (isLaboratory) {
+      this._showPriceFields$.next(false);
+      this._showPaymentFields$.next(false);
+      this._showShrimpFields$.next(false);
+      console.log('🔬 Facility is LABORATORY - Price and shrimp fields hidden');
+    }
+    // 🦐 CAMARÓN (NO laboratorio): Mostrar campos específicos de camarón
+    else if (productType === 'SHRIMP') {
+      const showPrice = this.fieldConfig.isFieldVisible('stockOrder', 'pricePerUnit');
+      const showPayment = this.fieldConfig.isFieldVisible('stockOrder', 'preferredWayOfPayment');
+      this._showPriceFields$.next(showPrice);
+      this._showPaymentFields$.next(showPayment);
+      this._showShrimpFields$.next(true);  // Mostrar campos específicos de camarón
+      console.log('🦐 Facility is NORMAL SHRIMP - Shrimp fields visible');
+    }
+    // 🍫☕ OTROS PRODUCTOS: Mostrar campos de precio, ocultar campos de camarón
+    else {
+      this._showPriceFields$.next(true);
+      this._showPaymentFields$.next(true);
+      this._showShrimpFields$.next(false);
+      console.log('🍫 Facility is NORMAL - Price fields visible');
+    }
+
+    // Humedad siempre según configuración de facility
+    const showMoisture = this.facility?.displayMoisturePercentage ?? false;
+    this._showMoistureField$.next(showMoisture);
+  }
+
+  /**
+   * 🎯 Aplica configuración dinámica de campos según el tipo de producto Y facility
    */
   private applyFieldConfiguration(): void {
     if (!this.stockOrderForm) {
       return;
     }
 
-    // Campos de precio
-    const priceConfig = this.fieldConfig.getFieldConfig('stockOrder', 'pricePerUnit');
-    const currencyConfig = this.fieldConfig.getFieldConfig('stockOrder', 'currency');
-    const damagedPriceConfig = this.fieldConfig.getFieldConfig('stockOrder', 'damagedPriceDeduction');
-    const finalDiscountConfig = this.fieldConfig.getFieldConfig('stockOrder', 'finalPriceDiscount');
-    const costConfig = this.fieldConfig.getFieldConfig('stockOrder', 'cost');
-    const balanceConfig = this.fieldConfig.getFieldConfig('stockOrder', 'balance');
-    const paymentConfig = this.fieldConfig.getFieldConfig('stockOrder', 'preferredWayOfPayment');
-    const priceLaterConfig = this.fieldConfig.getFieldConfig('stockOrder', 'priceDeterminedLater');
+    const productType = this.fieldConfig.getProductType()?.toUpperCase() ?? '';
+    const isLaboratory = this.isLaboratoryFacility();
+
+    // 🔬 LABORATORIO: Forzar ocultación de campos de precio
+    const shouldHidePriceFields = isLaboratory || 
+      (productType === 'SHRIMP' && !isLaboratory && !this.fieldConfig.isFieldVisible('stockOrder', 'pricePerUnit'));
+
+    // Campos de precio con configuración dinámica
+    const priceConfig = shouldHidePriceFields 
+      ? { visible: false, required: false }
+      : this.fieldConfig.getFieldConfig('stockOrder', 'pricePerUnit');
+    
+    const currencyConfig = shouldHidePriceFields
+      ? { visible: false, required: false }
+      : this.fieldConfig.getFieldConfig('stockOrder', 'currency');
+    
+    const damagedPriceConfig = shouldHidePriceFields
+      ? { visible: false, required: false }
+      : this.fieldConfig.getFieldConfig('stockOrder', 'damagedPriceDeduction');
+    
+    const finalDiscountConfig = shouldHidePriceFields
+      ? { visible: false, required: false }
+      : this.fieldConfig.getFieldConfig('stockOrder', 'finalPriceDiscount');
+    
+    const costConfig = shouldHidePriceFields
+      ? { visible: false, required: false }
+      : this.fieldConfig.getFieldConfig('stockOrder', 'cost');
+    
+    const balanceConfig = shouldHidePriceFields
+      ? { visible: false, required: false }
+      : this.fieldConfig.getFieldConfig('stockOrder', 'balance');
+    
+    const paymentConfig = shouldHidePriceFields
+      ? { visible: false, required: false }
+      : this.fieldConfig.getFieldConfig('stockOrder', 'preferredWayOfPayment');
+    
+    const priceLaterConfig = shouldHidePriceFields
+      ? { visible: false, required: false }
+      : this.fieldConfig.getFieldConfig('stockOrder', 'priceDeterminedLater');
 
     // Aplicar configuración a cada campo
     const fieldsToConfig = [
@@ -1157,13 +1318,46 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       { name: 'priceDeterminedLater', config: priceLaterConfig }
     ];
 
+    const hiddenFieldDefaults: Record<string, any> = {
+      pricePerUnit: 0,
+      damagedPriceDeduction: 0,
+      finalPriceDiscount: 0,
+      cost: 0,
+      balance: 0
+    };
+
     fieldsToConfig.forEach(({ name, config }) => {
       const control = this.stockOrderForm.get(name);
-      if (control && !config.required) {
+      if (!control) {
+        return;
+      }
+
+      if (!config.required) {
         control.clearValidators();
-        control.updateValueAndValidity();
+        control.updateValueAndValidity({ emitEvent: false });
+      }
+
+      if (!config.visible) {
+        const defaultValue = hiddenFieldDefaults[name];
+        if (typeof defaultValue !== 'undefined' && (control.value === null || control.value === undefined || control.value === '')) {
+          control.setValue(defaultValue, { emitEvent: false });
+        }
       }
     });
+
+    // Valores por defecto específicos para CAMARÓN o LABORATORIO
+    if (productType === 'SHRIMP' || isLaboratory) {
+      const priceLaterControl = this.stockOrderForm.get('priceDeterminedLater');
+      if (priceLaterControl && priceLaterControl.value !== true) {
+        priceLaterControl.setValue(true, { emitEvent: false });
+      }
+      const damagedWeightControl = this.stockOrderForm.get('damagedWeightDeduction');
+      if (damagedWeightControl && (damagedWeightControl.value === null || damagedWeightControl.value === undefined || damagedWeightControl.value === '')) {
+        damagedWeightControl.setValue(0, { emitEvent: false });
+      }
+    }
+
+    console.log(`🎯 Field config applied - Laboratory: ${isLaboratory}, Product: ${productType}, Hide prices: ${shouldHidePriceFields}`);
   }
 
   priceDeterminedLaterChanged() {

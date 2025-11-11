@@ -35,6 +35,7 @@ import { SelectedUserCompanyService } from '../../../../core/selected-user-compa
 import { ApiUserGet } from '../../../../../api/model/apiUserGet';
 import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
 import { Subscription } from 'rxjs';
+declare const $localize: (messageParts: TemplateStringsArray, ...placeholders: any[]) => string;
 
 @Component({
   selector: 'app-stock-bulk-delivery-details',

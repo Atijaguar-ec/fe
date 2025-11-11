@@ -377,7 +377,7 @@ class TranslationSyncEngine {
 
   /**
    * Apply bulk string replacements for specific chains
-   * This is useful for systematic terminology changes (e.g., Agricultor → Piscicultor for shrimp)
+   * This is useful for systematic terminology changes (e.g., Agricultor → Proveedor for shrimp)
    */
   private applyBulkReplacements(chain: Chain, lang: Language, translations: Record<string, string>): void {
     // Define bulk replacements per chain
@@ -386,16 +386,24 @@ class TranslationSyncEngine {
       coffee: { es: [], en: [] },
       shrimp: {
         es: [
-          { search: 'Agricultor', replace: 'Piscicultor' },
-          { search: 'agricultor', replace: 'piscicultor' },
-          { search: 'Agricultores', replace: 'Piscicultores' },
-          { search: 'agricultores', replace: 'piscicultores' },
+          { search: 'Agricultor', replace: 'Proveedor' },
+          { search: 'agricultor', replace: 'proveedor' },
+          { search: 'Agricultores', replace: 'Proveedores' },
+          { search: 'agricultores', replace: 'proveedores' },
+          { search: 'Piscicultor', replace: 'Proveedor' },
+          { search: 'piscicultor', replace: 'proveedor' },
+          { search: 'Piscicultores', replace: 'Proveedores' },
+          { search: 'piscicultores', replace: 'proveedores' },
         ],
         en: [
-          { search: 'Farmer', replace: 'Fish farmer' },
-          { search: 'farmer', replace: 'fish farmer' },
-          { search: 'Farmers', replace: 'Fish farmers' },
-          { search: 'farmers', replace: 'fish farmers' },
+          { search: 'Farmer', replace: 'Supplier' },
+          { search: 'farmer', replace: 'supplier' },
+          { search: 'Farmers', replace: 'Suppliers' },
+          { search: 'farmers', replace: 'suppliers' },
+          { search: 'Fish farmer', replace: 'Supplier' },
+          { search: 'fish farmer', replace: 'supplier' },
+          { search: 'Fish farmers', replace: 'Suppliers' },
+          { search: 'fish farmers', replace: 'suppliers' },
         ]
       }
     };

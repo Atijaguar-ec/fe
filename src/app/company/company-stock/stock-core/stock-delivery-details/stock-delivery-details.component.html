@@ -171,6 +171,35 @@
               </div>
             </div>
 
+            <!-- 🔬 N° de Muestra (solo laboratorio) -->
+            <div class="af-row" *ngIf="isLaboratoryFacility()">
+              <div class="af-c6">
+                <textinput
+                  [form]="stockOrderForm.get('sampleNumber')"
+                  label="N° de Muestra"
+                  i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.sampleNumber.label"
+                  style="width: 100%"
+                  placeholder="Introduzca el número de muestra"
+                  i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.sampleNumber.placeholder">
+                </textinput>
+              </div>
+            </div>
+
+            <!-- Hora de recepción (para todos) -->
+            <div class="af-row">
+              <div class="af-c6">
+                <textinput
+                  [form]="stockOrderForm.get('receptionTime')"
+                  label="Hora de recepción"
+                  i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.receptionTime.label"
+                  style="width: 100%"
+                  type="time"
+                  placeholder="Introduzca la hora de recepción"
+                  i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.receptionTime.placeholder">
+                </textinput>
+              </div>
+            </div>
+
             <div class="af-row">
               <div class="af-c12">
                 <single-choice
@@ -380,7 +409,7 @@
               </div>
             </div>
 
-            <div class="af-row">
+            <div class="af-row" *ngIf="isCocoa()">
               <div class="af-c6">
                 <textinput [form]="netWeightForm"
                            [label]="netLabel"
@@ -400,7 +429,77 @@
               </div>
             </div>
 
-             <!-- 🎯 Final Price Discount: Oculto para SHRIMP -->
+            <!-- 🦐 Campos específicos de camarón (solo NO laboratorio) -->
+            <ng-container *ngIf="showShrimpFields$ | async">
+              
+              <div class="af-row">
+                <div class="af-c6">
+                  <textinput
+                    [form]="stockOrderForm.get('numberOfGavetas')"
+                    label="N° de Gavetas"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.numberOfGavetas.label"
+                    style="width: 100%"
+                    placeholder="Introduzca el número de gavetas"
+                    i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.numberOfGavetas.placeholder">
+                  </textinput>
+                </div>
+                
+                <div class="af-c6">
+                  <textinput
+                    [form]="stockOrderForm.get('numberOfBatea')"
+                    label="N° de Bines"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.numberOfBatea.label"
+                    style="width: 100%"
+                    placeholder="Introduzca el número de batea"
+                    i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.numberOfBatea.placeholder">
+                  </textinput>
+                </div>
+              </div>
+
+              <div class="af-row">
+                <div class="af-c6">
+                  <textinput
+                    [form]="stockOrderForm.get('numberOfPiscinas')"
+                    label="N° de Piscinas"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.numberOfPiscinas.label"
+                    style="width: 100%"
+                    placeholder="Introduzca el número de piscinas"
+                    i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.numberOfPiscinas.placeholder">
+                  </textinput>
+                </div>
+                
+                <div class="af-c6">
+                  <textinput
+                    [form]="stockOrderForm.get('guiaRemisionNumber')"
+                    label="N° de Guía de Remisión"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.guiaRemisionNumber.label"
+                    style="width: 100%"
+                    placeholder="Introduzca el número de guía de remisión"
+                    i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.guiaRemisionNumber.placeholder">
+                  </textinput>
+                </div>
+              </div>
+
+            </ng-container>
+
+            <!-- Observación (alineada con la segunda columna) -->
+            <div class="af-row">
+              <div class="af-c6"></div>
+              <div class="af-c6">
+                <textinput
+                  [form]="stockOrderForm.get('comments')"
+                  label="Observación"
+                  i18n-label="@@productLabelStockPurchaseOrdersModal.textarea.comments.label"
+                  style="width: 100%"
+                  placeholder="Introduzca observaciones"
+                  i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textarea.comments.placeholder"
+                  [textarea]="true"
+                  rows="3">
+                </textinput>
+              </div>
+            </div>
+
+            <!-- 🎯 Final Price Discount: Oculto para SHRIMP -->
             <div class="af-row" *ngIf="showFinalPriceDiscount && (showPriceFields$ | async)">
               <div class="af-c12">
                 <textinput 

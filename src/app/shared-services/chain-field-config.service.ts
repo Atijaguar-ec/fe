@@ -9,9 +9,14 @@
  * - Cacao/Café: SÍ manejan precios → mostrar campos de precio
  * - Camarón: SÍ usa humedad → mostrar campo moisturePercentage
  * - Cacao: NO usa humedad → ocultar campo moisturePercentage
+ * - Camarón: Campos específicos (N° de Gavetas, N° de Batea, N° de Piscinas, N° de Guía de Remisión)
+ *   → se muestran solo en entregas normales (NO laboratorio)
+ * 
+ * ⚠️ NOTA: Los campos específicos de camarón se deben implementar primero en backend y frontend.
+ * Ver: docs/IMPLEMENTACION_CAMPOS_CAMARON.md
  * 
  * @author INATrace DevOps Team
- * @version 1.0.0
+ * @version 1.1.0
  */
 
 import { Injectable } from '@angular/core';
@@ -95,7 +100,8 @@ const CHAIN_CONFIGURATIONS: Record<string, ChainFieldConfiguration> = {
   },
   
   // ============================================================================
-  // SHRIMP - Sin precios en customer orders, con humedad en stock orders
+  // SHRIMP - NO maneja precios en ningún módulo
+  // Campos específicos de camarón se muestran SOLO para facility NO laboratorio
   // ============================================================================
   'SHRIMP': {
     customerOrder: {
@@ -105,16 +111,16 @@ const CHAIN_CONFIGURATIONS: Record<string, ChainFieldConfiguration> = {
     stockOrder: {
       moisturePercentage: { visible: true, required: true },  // 🦐 Usa humedad
       organicCertification: { visible: false, required: false },
-      pricePerUnit: { visible: false, required: false },  // 🦐 No maneja precio
-      currency: { visible: false, required: false },
+      pricePerUnit: { visible: false, required: false },  // 🦐 NO maneja precio
+      currency: { visible: false, required: false },  // 🦐 NO maneja moneda
       damagedWeightDeduction: { visible: true, required: false },
-      damagedPriceDeduction: { visible: false, required: false },  // 🦐 No maneja precio
-      finalPriceDiscount: { visible: false, required: false },  // 🦐 No maneja precio
+      damagedPriceDeduction: { visible: false, required: false },  // 🦐 NO maneja deducción de precio
+      finalPriceDiscount: { visible: false, required: false },  // 🦐 NO maneja descuento
       tare: { visible: true, required: false },
-      cost: { visible: false, required: false },  // 🦐 Pago inicial OCULTO
-      balance: { visible: false, required: false },  // 🦐 Saldo pendiente OCULTO
-      preferredWayOfPayment: { visible: false, required: false },  // 🦐 Forma de pago OCULTA
-      priceDeterminedLater: { visible: false, required: false }  // 🦐 Precio determinado después OCULTO
+      cost: { visible: false, required: false },  // 🦐 NO maneja pago inicial
+      balance: { visible: false, required: false },  // 🦐 NO maneja saldo
+      preferredWayOfPayment: { visible: false, required: false },  // 🦐 NO maneja forma de pago
+      priceDeterminedLater: { visible: false, required: false }  // 🦐 NO maneja precio determinado después
     },
     payment: {
       bankTransferEvidence: { visible: true, required: false },
