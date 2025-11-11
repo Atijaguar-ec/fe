@@ -2938,6 +2938,7 @@
     "productLabelStockProcessingOrderDetail.organicOnlyStatus.nonOrganicCoffee": "Café convencional",
     "productLabelStockFacilityModal.removeSemiOrFinalProduct.confirm.message": "Está seguro que quiere quitar el producto? Ya no va a poder trabajar con estos productos",
     "productLabelStockFacilityModal.checkbox.priceDeterminedLater.label": "Muestra 'Precio por determinar'",
+    "productLabelStockFacilityModal.checkbox.isLaboratory.label": "Es laboratorio",
     "productLabelStockPurchaseOrdersModal.checkboxinput.priceDeterminedLater.label": "Precio por determinar",
     "productLabelStockPayments.addPricePerUnit.message": "Seleccione 'editar' para añadir el precio por unidad antes de añadir un pago de saldo",
     "beycoOrderList.title": "Exportar a Beyco",

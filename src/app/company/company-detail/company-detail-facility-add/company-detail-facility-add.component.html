@@ -147,51 +147,58 @@
                                 </div>
                             </ng-container>
                         </single-choice>
-                        <checkbox-input [form]="form.get('displayMayInvolveCollectors')">
+                        <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayMayInvolveCollectors')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.mayInvolveCollectors.label">
                                 Display "May involve collectors"
                             </checkbox-input-rich-label>
                         </checkbox-input>
-                        <checkbox-input [form]="form.get('displayOrganic')">
+                        <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayOrganic')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.organic.label">
                                 Display "Organic"
                             </checkbox-input-rich-label>
                         </checkbox-input>
-                        <checkbox-input [form]="form.get('displayWomenOnly')">
+                        <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayWomenOnly')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.womenOnly.label">
                                 Display "Women only"
                             </checkbox-input-rich-label>
                         </checkbox-input>
-                        <checkbox-input [form]="form.get('displayTare')">
+                        <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayTare')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.tare.label">
                                 Display "Tare"
                             </checkbox-input-rich-label>
                         </checkbox-input>
-                        <checkbox-input [form]="form.get('displayPriceDeductionDamage')">
+                        <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayPriceDeductionDamage')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.priceReductionDamage.label">
                                 Display "Damaged price deduction"
                             </checkbox-input-rich-label>
                         </checkbox-input>
                        
-                        <checkbox-input [form]="form.get('displayWeightDeductionDamage')">
+                        <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayWeightDeductionDamage')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.weightReductionDamage.label">
                                 Display "Damaged weight deduction"
                             </checkbox-input-rich-label>
                         </checkbox-input>
-                        <checkbox-input [form]="form.get('displayMoisturePercentage')">
+                        <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayMoisturePercentage')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.moisturePercentage.label">
                                 Display "Moisture percentage deduction"
                             </checkbox-input-rich-label>
                         </checkbox-input>
-                        <checkbox-input [form]="form.get('displayPriceDeterminedLater')">
+                        <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayPriceDeterminedLater')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.priceDeterminedLater.label">
                                 Display "Price determined later"
                             </checkbox-input-rich-label>
                         </checkbox-input>
 
-                         <checkbox-input [form]="form.get('displayFinalPriceDiscount')">
+                         <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayFinalPriceDiscount')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.finalPriceDiscount.label">
                                 Display "Final price discount"
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
+                        <!-- Checkbox específico para SHRIMP: Es laboratorio -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isLaboratory')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isLaboratory.label">
+                                Es laboratorio
                             </checkbox-input-rich-label>
                         </checkbox-input>
 

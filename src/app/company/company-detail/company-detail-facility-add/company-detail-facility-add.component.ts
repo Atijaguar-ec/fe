@@ -28,6 +28,7 @@ import { SemiProductsForValueChainsService } from '../../../shared-services/semi
 import { ListNotEmptyValidator } from '../../../../shared/validation';
 import { CompanyValueChainsService } from '../../../shared-services/company-value-chains.service';
 import { CompanyControllerService } from '../../../../api/api/companyController.service';
+import { EnvironmentInfoService } from '../../../core/environment-info.service';
 import LanguageEnum = ApiFacilityTranslation.LanguageEnum;
 
 declare const $localize: (messageParts: TemplateStringsArray, ...expressions: any[]) => string;
@@ -81,7 +82,8 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
       private semiProductControllerService: SemiProductControllerService,
       private codebookTranslations: CodebookTranslations,
       private companyController: CompanyControllerService,
-      private finalProductController: FinalProductControllerService
+      private finalProductController: FinalProductControllerService,
+      private environmentInfo: EnvironmentInfoService
   ) { }
 
   ngOnInit(): void {
@@ -423,6 +425,13 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
 
   get languageEnum() {
     return LanguageEnum;
+  }
+
+  /**
+   * Check if the current product type is SHRIMP
+   */
+  get isShrimpProduct(): boolean {
+    return this.environmentInfo.isProductType('shrimp');
   }
 
 }

@@ -85,6 +85,10 @@ export interface ApiFacility {
      */
     displayPriceDeterminedLater?: boolean;
     /**
+     * Facility is a laboratory (specific for shrimp value chain)
+     */
+    isLaboratory?: boolean;
+    /**
      * Custom facility level overriding facility type order
      */
     level?: number;
@@ -170,6 +174,10 @@ export namespace ApiFacility {
          * Enable form control 'Price determined later'
          */
         displayPriceDeterminedLater = 'displayPriceDeterminedLater',
+        /**
+         * Facility is a laboratory (specific for shrimp value chain)
+         */
+        isLaboratory = 'isLaboratory',
         /**
          * Custom facility level overriding facility type order
          */
@@ -349,6 +357,17 @@ export namespace ApiFacility {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'isLaboratory',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'level',
                     classname: 'ApiFacility',
                     dataType: 'number',
@@ -478,6 +497,8 @@ export namespace ApiFacility {
                 displayWomenOnly: [
                 ],
                 displayPriceDeterminedLater: [
+                ],
+                isLaboratory: [
                 ],
                 level: [
                 ],
