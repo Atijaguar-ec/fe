@@ -18,6 +18,8 @@ import ProcessingEvidenceField = ApiProcessingEvidenceField.TypeEnum;
 import { ApiProcessingEvidenceField } from '../../../../../../api/model/apiProcessingEvidenceField';
 import { Subscription } from 'rxjs';
 import { StaticSemiProductsService } from '../static-semi-products.service';
+import { EnvironmentInfoService } from '../../../../../core/environment-info.service';
+import { ApiFacility } from '../../../../../../api/model/apiFacility';
 
 @Component({
   selector: 'app-processing-order-output',
@@ -76,7 +78,7 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
   @Output()
   calcRemainingQuantity = new EventEmitter<void>();
 
-  constructor() { }
+  constructor(private environmentInfo: EnvironmentInfoService) { }
 
   get actionType(): ProcessingActionType {
     return this.selectedProcAction ? this.selectedProcAction.type : null;
@@ -92,6 +94,29 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
 
   get showAddNewOutputButton() {
     return this.actionType === 'PROCESSING';
+  }
+
+  /**
+   * Check if current product type is SHRIMP
+   */
+  get isShrimpProduct(): boolean {
+    return this.environmentInfo.isProductType('shrimp');
+  }
+
+  /**
+   * Check if the selected facility is a laboratory
+   */
+  isFacilityLaboratory(tsoGroup: AbstractControl): boolean {
+    const facility = tsoGroup?.get('facility')?.value as ApiFacility;
+    return facility?.isLaboratory === true;
+  }
+
+  /**
+   * Check if we should show laboratory-specific fields
+   * (only for SHRIMP product AND laboratory facility)
+   */
+  shouldShowLaboratoryFields(tsoGroup: AbstractControl): boolean {
+    return this.isShrimpProduct && this.isFacilityLaboratory(tsoGroup);
   }
 
   getTSOGroupRepackedOutputsArray(tsoGroup: AbstractControl): FormArray {

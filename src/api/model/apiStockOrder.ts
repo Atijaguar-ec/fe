@@ -258,6 +258,34 @@ export interface ApiStockOrder {
     sampleNumber?: string;
     receptionTime?: LocalTime;
     /**
+     * Sensorial analysis - Raw odor
+     */
+    sensorialRawOdor?: string;
+    /**
+     * Sensorial analysis - Raw taste
+     */
+    sensorialRawTaste?: string;
+    /**
+     * Sensorial analysis - Raw color
+     */
+    sensorialRawColor?: string;
+    /**
+     * Sensorial analysis - Cooked odor
+     */
+    sensorialCookedOdor?: string;
+    /**
+     * Sensorial analysis - Cooked taste
+     */
+    sensorialCookedTaste?: string;
+    /**
+     * Sensorial analysis - Cooked color
+     */
+    sensorialCookedColor?: string;
+    /**
+     * Quality observations
+     */
+    qualityNotes?: string;
+    /**
      * Generated UUID tag for this stock order QR code
      */
     qrCodeTag?: string;
@@ -499,6 +527,34 @@ export namespace ApiStockOrder {
          */
         sampleNumber = 'sampleNumber',
         receptionTime = 'receptionTime',
+        /**
+         * Sensorial analysis - Raw odor
+         */
+        sensorialRawOdor = 'sensorialRawOdor',
+        /**
+         * Sensorial analysis - Raw taste
+         */
+        sensorialRawTaste = 'sensorialRawTaste',
+        /**
+         * Sensorial analysis - Raw color
+         */
+        sensorialRawColor = 'sensorialRawColor',
+        /**
+         * Sensorial analysis - Cooked odor
+         */
+        sensorialCookedOdor = 'sensorialCookedOdor',
+        /**
+         * Sensorial analysis - Cooked taste
+         */
+        sensorialCookedTaste = 'sensorialCookedTaste',
+        /**
+         * Sensorial analysis - Cooked color
+         */
+        sensorialCookedColor = 'sensorialCookedColor',
+        /**
+         * Quality observations
+         */
+        qualityNotes = 'qualityNotes',
         /**
          * Generated UUID tag for this stock order QR code
          */
@@ -1297,6 +1353,83 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'sensorialRawOdor',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'sensorialRawTaste',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'sensorialRawColor',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'sensorialCookedOdor',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'sensorialCookedTaste',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'sensorialCookedColor',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'qualityNotes',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'qrCodeTag',
                     classname: 'ApiStockOrder',
                     dataType: 'string',
@@ -1505,6 +1638,20 @@ export namespace ApiStockOrder {
                 sampleNumber: [
                 ],
                 receptionTime: [
+                ],
+                sensorialRawOdor: [
+                ],
+                sensorialRawTaste: [
+                ],
+                sensorialRawColor: [
+                ],
+                sensorialCookedOdor: [
+                ],
+                sensorialCookedTaste: [
+                ],
+                sensorialCookedColor: [
+                ],
+                qualityNotes: [
                 ],
                 qrCodeTag: [
                 ],
