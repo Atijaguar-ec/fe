@@ -1204,22 +1204,10 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   /**
    * 🔬 Detecta si el facility actual es un laboratorio
-   * Verifica si el nombre contiene "laboratorio" (case-insensitive)
+   * Usa la bandera explícita configurada en la instalación
    */
   private isLaboratoryFacility(): boolean {
-    if (!this.facility) {
-      return false;
-    }
-    
-    // Buscar en el nombre directo
-    const directName = (this.facility.name || '').toLowerCase();
-    if (directName.includes('laboratorio')) {
-      return true;
-    }
-    
-    // Buscar en traducciones
-    const translatedName = (this.facility.translations?.[0]?.name || '').toLowerCase();
-    return translatedName.includes('laboratorio');
+    return this.facility?.isLaboratory === true;
   }
 
   /**

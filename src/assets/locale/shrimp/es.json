@@ -883,6 +883,8 @@
     "productLabelStockProcessingOrderDetail.requiredEvidence.error": "Se deben subir todos los documentos necesarios (*) o al menos un documento",
     "productLabelStockProcessingOrderDetail.list-editor.processingEvidence.label": "Otros documentos de prueba",
     "productLabelStockProcessingOrderDetail.list-editor.processingEvidence.addText": "Añadir documento",
+    "productLabelStockProcessingOrderDetail.list.sampleNumber": "🔬 Muestra {$INTERPOLATION}",
+    "productLabelStockProcessingOrderDetail.list.weekNumber": "Semana {$INTERPOLATION}",
     "productLabelStockProcessingOrderDetail.section.certificationId": "Certificados",
     "productLabelStockProcessingOrderDetail.section.certificationId.label": "Certificados",
     "productLabelStockProcessingOrderDetail.section.certificationId.addText": "Añadir documento",

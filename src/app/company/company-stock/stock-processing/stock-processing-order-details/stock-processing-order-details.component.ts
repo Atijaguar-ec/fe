@@ -352,6 +352,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     const sameOrganic = selected.every(s => s.organic === ref.organic);
     const sameWomenShare = selected.every(s => s.womenShare === ref.womenShare);
     const sameProductionDate = selected.every(s => s.productionDate === ref.productionDate);
+    const sameSampleNumber = selected.every(s => s.sampleNumber === ref.sampleNumber);
 
     this.targetStockOrdersArray.controls.forEach(group => {
       // Handle internal lot number
@@ -427,6 +428,25 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
           }
         }
       }
+
+      // Propagate sample number for laboratory deliveries
+      if (sameSampleNumber && ref.sampleNumber != null) {
+        const sampleNumber = group.get('sampleNumber');
+        if (sampleNumber) {
+          sampleNumber.setValue(ref.sampleNumber, { emitEvent: false });
+          console.log('🔬 Propagated sample number:', ref.sampleNumber);
+        }
+      }
+
+      // Propagate total quantity from selected inputs
+      const totalQuantity = group.get('totalQuantity');
+      if (totalQuantity && selected.length > 0) {
+        const sumQuantity = selected.reduce((sum, s) => sum + (s.selectedQuantity || 0), 0);
+        if (sumQuantity > 0) {
+          totalQuantity.setValue(sumQuantity.toFixed(2), { emitEvent: false });
+          console.log('📊 Propagated total quantity:', sumQuantity.toFixed(2));
+        }
+      }
     });
   }
 
@@ -438,7 +458,9 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       'organic',
       'womenShare',
       'productionDate',
-      'productionLocation'
+      'productionLocation',
+      'sampleNumber',
+      'totalQuantity'
     ];
 
     fieldsToReset.forEach(fieldName => {

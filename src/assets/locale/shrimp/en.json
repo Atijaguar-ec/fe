@@ -1598,6 +1598,8 @@
     "productLabelStockProcessingOrderDetail.attachment-uploader.error": "{$START_TAG_SPAN} Document is required {$CLOSE_TAG_SPAN}",
     "productLabelStockProcessingOrderDetail.list-editor.processingEvidence.label": "Other evidence documents",
     "productLabelStockProcessingOrderDetail.list-editor.processingEvidence.addText": "Add document",
+    "productLabelStockProcessingOrderDetail.list.sampleNumber": "🔬 Sample {$INTERPOLATION}",
+    "productLabelStockProcessingOrderDetail.list.weekNumber": "Week {$INTERPOLATION}",
     "productLabelStockProcessingOrderDetail.section.certificationId": "Certificates",
     "productLabelStockProcessingOrderDetail.section.certificationId.label": "Certificates",
     "productLabelStockProcessingOrderDetail.section.certificationId.addText": "Add document",

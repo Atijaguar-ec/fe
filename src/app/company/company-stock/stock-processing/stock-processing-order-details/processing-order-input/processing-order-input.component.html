@@ -119,6 +119,8 @@
                             <div class="af-c9 pl-3">
                                 <div>
                                     <span>{{ tx.sourceStockOrder.lotPrefix }} {{ tx.sourceStockOrder.identifier }} {{ tx.sourceStockOrder.internalLotNumber }} ({{ tx.status }})</span>
+                                    <span *ngIf="tx.sourceStockOrder.sampleNumber" class="ml-2 badge badge-info" i18n="@@productLabelStockProcessingOrderDetail.list.sampleNumber">🔬 Muestra {{ tx.sourceStockOrder.sampleNumber }}</span>
+                                    <span *ngIf="tx.sourceStockOrder.productionDate" class="ml-2 text-muted">{{ tx.sourceStockOrder.productionDate | date:'dd/MM/yyyy' }}</span>
                                     <span *ngIf="tx.sourceStockOrder.qrCodeTag"
                                           (click)="openInputStockOrderQRCode(tx.sourceStockOrder)"
                                           class="cursor-pointer">
@@ -173,11 +175,15 @@
                         <div class="af-c8">
                             <ng-container *ngIf="item.orderType === 'PURCHASE_ORDER'">
                                 <span>{{ item.identifier }} ({{ item.producerUserCustomer.name }} {{ item.producerUserCustomer.surname }})</span>
+                                <span *ngIf="item.sampleNumber" class="ml-2 badge badge-info" i18n="@@productLabelStockProcessingOrderDetail.list.sampleNumber">🔬 Muestra {{ item.sampleNumber }}</span>
                                 <span *ngIf="item.weekNumber" class="ml-2 text-muted" i18n="@@productLabelStockProcessingOrderDetail.list.weekNumber">Semana {{ item.weekNumber }}</span>
+                                <span *ngIf="item.productionDate" class="ml-2 text-muted">{{ item.productionDate | date:'dd/MM/yyyy' }}</span>
                             </ng-container>
                             <ng-container *ngIf="item.orderType != 'PURCHASE_ORDER'">
                                 <span>{{ item.lotPrefix }} {{ item.identifier }} {{ item.internalLotNumber }}</span>
+                                <span *ngIf="item.sampleNumber" class="ml-2 badge badge-info" i18n="@@productLabelStockProcessingOrderDetail.list.sampleNumber">🔬 Muestra {{ item.sampleNumber }}</span>
                                 <span *ngIf="item.weekNumber" class="ml-2 text-muted" i18n="@@productLabelStockProcessingOrderDetail.list.weekNumber">Semana {{ item.weekNumber }}</span>
+                                <span *ngIf="item.productionDate" class="ml-2 text-muted">{{ item.productionDate | date:'dd/MM/yyyy' }}</span>
                                 <span *ngIf="item.qrCodeTag"
                                       (click)="openInputStockOrderQRCode(item)"
                                       class="cursor-pointer">
