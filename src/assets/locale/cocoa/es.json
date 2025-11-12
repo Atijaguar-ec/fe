@@ -841,7 +841,7 @@
     "productLabelStockProcessingOrderDetail.outputFacilityForm.label": "Área",
     "productLabelStockProcessingOrderDetail.outputFacilityForm.error": "Se requiere el área de salida",
     "productLabelStockProcessingOrderDetail.internalLotNumber.textinput.error": "Se requiere nombre de lote interno",
-    "productLabelStockProcessingOrderDetail.textinput.outputQuantity.label": "Cantidad de salida en kg",
+    "productLabelStockProcessingOrderDetail.textinput.outputQuantity.label": "Cantidad de salida",
     "productLabelStockProcessingOrderDetail.textinput.outputQuantity.placeholder": "Introduzca la cantidad",
     "productLabelStockProcessingOrderDetail.checkbox.useInput.label": "Usar cantidad de entrada",
     "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.required": "Se requiere cantidad",

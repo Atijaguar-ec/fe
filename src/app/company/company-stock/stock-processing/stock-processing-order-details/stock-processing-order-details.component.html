@@ -78,11 +78,11 @@
               </div>
 
               <div class="af-row">
-                <div class="af-c12">
+                <div class="af-c6">
                   <app-datepicker [label]="processingDateLabel"
                                   [form]="$any(procOrderGroup.get('processingDate'))"
                                   [invalid]="submitted && procOrderGroup.get('processingDate').invalid"
-                                  style="width: 130px; margin-right: 1rem;">
+                                  style="width: 100%;">
                     <ng-container>
                       <div *ngIf="procOrderGroup.get('processingDate').errors as errors" class="sc-invalid-feedback">
                         <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.datepicker.processingDate.error">
@@ -91,6 +91,17 @@
                       </div>
                     </ng-container>
                   </app-datepicker>
+                </div>
+                <div class="af-c6" *ngIf="inspectionTimeControl as inspectionTime">
+                  <textinput
+                          [form]="inspectionTime"
+                          type="time"
+                          label="Hora de inspección"
+                          i18n-label="@@productLabelStockProcessingOrderDetail.textinput.inspectionTime.label"
+                          placeholder="HH:MM"
+                          i18n-placeholder="@@productLabelStockProcessingOrderDetail.textinput.inspectionTime.placeholder"
+                          style="width: 100%;">
+                  </textinput>
                 </div>
               </div>
 
@@ -129,6 +140,7 @@
                                         [selectedProcAction]="selectedProcAction"
                                         [inputFacilitiesCodebook]="inputFacilitiesCodebook"
                                         [inputFacilityControl]="inputFacilityControl"
+                                        [inspectionTimeControl]="inspectionTimeControl"
                                         [totalInputQuantityControl]="totalInputQuantityControl"
                                         [currentInputStockUnit]="currentInputStockUnit"
                                         [remainingQuantityControl]="remainingQuantityControl"
@@ -165,8 +177,10 @@
                                        [currentOutputFinalProduct]="currentOutputFinalProduct"
                                        [outputFinalProductNameControl]="outputFinalProductNameControl"
                                        [outputSemiProductsCodebook]="outputSemiProductsCodebook"
+                                       [selectedInputFacility]="input?.selectedInputFacility"
                                        (calcTotalOutputQuantity)="calcTotalOutputQuantity()"
-                                       (calcRemainingQuantity)="calcRemainingQuantity()">
+                                       (calcRemainingQuantity)="calcRemainingQuantity()"
+                                       (newOutputAdded)="onNewOutputAdded()">
           </app-processing-order-output>
         </div>
       </div>

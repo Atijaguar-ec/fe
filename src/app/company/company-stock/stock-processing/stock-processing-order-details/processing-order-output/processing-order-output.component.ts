@@ -21,6 +21,8 @@ import { StaticSemiProductsService } from '../static-semi-products.service';
 import { EnvironmentInfoService } from '../../../../../core/environment-info.service';
 import { ApiFacility } from '../../../../../../api/model/apiFacility';
 
+declare const $localize: any;
+
 @Component({
   selector: 'app-processing-order-output',
   templateUrl: './processing-order-output.component.html',
@@ -34,43 +36,46 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
 
   @Input()
-  editing: boolean;
+  editing!: boolean;
 
   @Input()
-  submitted: boolean;
+  submitted!: boolean;
 
   @Input()
-  processingUserId: number;
+  processingUserId!: number;
 
   @Input()
-  productOrderId: string | null;
+  productOrderId!: string | null;
 
   @Input()
-  selectedProcAction: ApiProcessingAction;
+  selectedProcAction!: ApiProcessingAction;
 
   @Input()
-  procActionLotPrefixControl: FormControl;
+  procActionLotPrefixControl!: FormControl;
 
   @Input()
-  rightSideEnabled: boolean;
+  rightSideEnabled!: boolean;
 
   @Input()
-  targetStockOrdersArray: FormArray;
+  targetStockOrdersArray!: FormArray;
 
   @Input()
-  finalProductOutputFacilitiesCodebook: CompanyFacilitiesForStockUnitProductService;
+  finalProductOutputFacilitiesCodebook!: CompanyFacilitiesForStockUnitProductService;
 
   @Input()
-  semiProductOutputFacilitiesCodebooks: Map<number, CompanyFacilitiesForStockUnitProductService>;
+  semiProductOutputFacilitiesCodebooks!: Map<number, CompanyFacilitiesForStockUnitProductService>;
 
   @Input()
-  currentOutputFinalProduct: ApiFinalProduct;
+  currentOutputFinalProduct!: ApiFinalProduct;
 
   @Input()
-  outputFinalProductNameControl: FormControl;
+  outputFinalProductNameControl!: FormControl;
 
   @Input()
-  outputSemiProductsCodebook: StaticSemiProductsService;
+  outputSemiProductsCodebook!: StaticSemiProductsService;
+
+  @Input()
+  selectedInputFacility: ApiFacility | null = null;
 
   @Output()
   calcTotalOutputQuantity = new EventEmitter<void>();
@@ -78,10 +83,13 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
   @Output()
   calcRemainingQuantity = new EventEmitter<void>();
 
+  @Output()
+  newOutputAdded = new EventEmitter<void>();
+
   constructor(private environmentInfo: EnvironmentInfoService) { }
 
-  get actionType(): ProcessingActionType {
-    return this.selectedProcAction ? this.selectedProcAction.type : null;
+  get actionType(): ProcessingActionType | null {
+    return this.selectedProcAction ? this.selectedProcAction.type || null : null;
   }
 
   get targetStockOrderOutputQuantityLabel() {
@@ -116,7 +124,28 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
    * (only for SHRIMP product AND laboratory facility)
    */
   shouldShowLaboratoryFields(tsoGroup: AbstractControl): boolean {
-    return this.isShrimpProduct && this.isFacilityLaboratory(tsoGroup);
+    if (!this.isShrimpProduct) {
+      return false;
+    }
+
+    // Priority: input facility drives visibility; fall back to output facility if needed
+    const inputFacilityIsLab = this.selectedInputFacility?.isLaboratory === true;
+    if (inputFacilityIsLab) {
+      return true;
+    }
+
+    return this.isFacilityLaboratory(tsoGroup);
+  }
+
+  /**
+   * Check if lot fields should be hidden
+   * When input facility is laboratory, lot is assigned AFTER lab tests, not before
+   */
+  shouldHideLotFields(): boolean {
+    if (!this.isShrimpProduct) {
+      return false;
+    }
+    return this.selectedInputFacility?.isLaboratory === true;
   }
 
   getTSOGroupRepackedOutputsArray(tsoGroup: AbstractControl): FormArray {
@@ -136,13 +165,58 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
     this.calcRemainingQuantity.emit();
   }
 
+  private ensureLaboratoryControls(tsoGroup: FormGroup): void {
+    const labTextFields = [
+      'sensorialRawOdor',
+      'sensorialRawTaste',
+      'sensorialRawColor',
+      'sensorialCookedOdor',
+      'sensorialCookedTaste',
+      'sensorialCookedColor',
+      'qualityNotes'
+    ];
+
+    if (!tsoGroup.get('sampleNumber')) {
+      tsoGroup.addControl('sampleNumber', new FormControl(null));
+    }
+    if (!tsoGroup.get('receptionTime')) {
+      tsoGroup.addControl('receptionTime', new FormControl(null));
+    }
+    if (!tsoGroup.get('qualityDocument')) {
+      tsoGroup.addControl('qualityDocument', new FormControl(null));
+    }
+
+    labTextFields.forEach(fieldName => {
+      if (!tsoGroup.get(fieldName)) {
+        tsoGroup.addControl(fieldName, new FormControl(null));
+      }
+    });
+  }
+
+  private updateLaboratoryFieldValidators(tsoGroup: FormGroup): void {
+    const isLab = this.shouldShowLaboratoryFields(tsoGroup);
+    const requiredControls = ['sampleNumber'];
+
+    requiredControls.forEach(fieldName => {
+      const control = tsoGroup.get(fieldName);
+      if (!control) { return; }
+
+      if (isLab) {
+        control.setValidators([Validators.required]);
+      } else {
+        control.clearValidators();
+      }
+      control.updateValueAndValidity({ emitEvent: false });
+    });
+  }
+
   getOutputFacilityCodebook(tsoGroup: FormGroup): CompanyFacilitiesForStockUnitProductService | null {
 
     if (this.finalProductOutputFacilitiesCodebook) {
       return this.finalProductOutputFacilitiesCodebook;
     }
 
-    const semiProduct = (tsoGroup.get('semiProduct').value as ApiSemiProduct);
+    const semiProduct = (tsoGroup.get('semiProduct' )?.value as ApiSemiProduct);
     if (semiProduct) {
       return this.semiProductOutputFacilitiesCodebooks?.get(semiProduct.id);
     }
@@ -152,14 +226,14 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
 
   getRepackedSacQuantityLabel(tsoGroup: AbstractControl) {
 
-    const outputFinalProduct = tsoGroup.get('finalProduct').value as ApiFinalProduct;
-    const outputSemiProduct = tsoGroup.get('semiProduct').value as ApiProcessingActionOutputSemiProduct;
+    const outputFinalProduct = tsoGroup.get('finalProduct')?.value as ApiFinalProduct;
+    const outputSemiProduct = tsoGroup.get('semiProduct')?.value as ApiProcessingActionOutputSemiProduct;
 
     let unit = '';
     if (outputFinalProduct) {
-      unit = outputFinalProduct.measurementUnitType.label;
+      unit = outputFinalProduct.measurementUnitType?.label;
     } else if (outputSemiProduct) {
-      unit = outputSemiProduct.measurementUnitType.label;
+      unit = outputSemiProduct.measurementUnitType?.label;
     }
 
     return $localize`:@@productLabelStockProcessingOrderDetail.itemNetWeightLabel: Quantity (max. ${ this.getTSOGroupRepackedMaxWeight(tsoGroup) } ${ unit })`;
@@ -167,7 +241,7 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
 
   getTSOGroupRepackedMaxWeight(tsoGroup: AbstractControl): number | null {
 
-    const outputSemiProduct = tsoGroup.get('semiProduct').value as ApiProcessingActionOutputSemiProduct;
+    const outputSemiProduct = tsoGroup.get('semiProduct')?.value as ApiProcessingActionOutputSemiProduct;
     let maxOutputWeight: number | null = null;
 
     if (this.selectedProcAction.repackedOutputFinalProducts) {
@@ -183,7 +257,7 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
 
     const repackedOutputsArray = this.getTSOGroupRepackedOutputsArray(tsoGroup);
 
-    let availableQua = tsoGroup.get('totalQuantity').value;
+    let availableQua = tsoGroup.get('totalQuantity')?.value;
     const maxAllowedWeight = this.getTSOGroupRepackedMaxWeight(tsoGroup);
 
     repackedOutputsArray.controls.some((outputStockOrderGroup: FormGroup) => {
@@ -222,7 +296,7 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    const enteredOutputQuantity = tsoGroup.get('totalQuantity').value;
+    const enteredOutputQuantity = tsoGroup.get('totalQuantity')?.value;
     if (!enteredOutputQuantity) {
       return false;
     }
@@ -307,6 +381,9 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
       // If we have output semi-products, and there is only one defined in the Processing action, set it automatically
       targetStockOrderGroup.get('semiProduct').setValue(this.selectedProcAction.outputSemiProducts[0]);
     }
+
+    // Emit event to notify parent that a new output was added
+    this.newOutputAdded.emit();
   }
 
   setRequiredFieldsAndListenersForTSO(tsoGroup: FormGroup) {
@@ -379,27 +456,45 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
 
     tsoGroup.setControl('requiredProcEvidenceFieldGroup', requiredProcEvidenceFieldGroup);
 
+    this.ensureLaboratoryControls(tsoGroup);
+    this.updateLaboratoryFieldValidators(tsoGroup);
+
     // Register value change listeners for specific fields
-    this.subscriptions.push(tsoGroup.get('totalQuantity').valueChanges
-      .pipe(debounceTime(350))
-      .subscribe((totalQuantity: number) => {
-        setTimeout(() => this.targetStockOrderOutputQuantityChange());
+    const totalQuantityControl = tsoGroup.get('totalQuantity');
+    if (totalQuantityControl) {
+      this.subscriptions.push(totalQuantityControl.valueChanges
+        .pipe(debounceTime(350))
+        .subscribe((totalQuantity: number) => {
+          setTimeout(() => this.targetStockOrderOutputQuantityChange());
 
-        // When the total output quantity changes we need to re/generate the output stock orders that are
-        // being repacked as part of this processing; This is only applicable when we have selected output semi-product
-        // with the option 'repackedOutputs' and set 'maxOutputWeight'
-        this.generateRepackedOutputStockOrders(totalQuantity, tsoGroup);
-      }));
+          // When the total output quantity changes we need to re/generate the output stock orders that are
+          // being repacked as part of this processing; This is only applicable when we have selected output semi-product
+          // with the option 'repackedOutputs' and set 'maxOutputWeight'
+          this.generateRepackedOutputStockOrders(totalQuantity, tsoGroup);
+        }));
+    }
 
-    this.subscriptions.push(tsoGroup.get('finalProduct').valueChanges
-      .subscribe((value: ApiFinalProduct | null) => this.targetStockOrderFinalProductChange(value, tsoGroup)));
+    const finalProductControl = tsoGroup.get('finalProduct');
+    if (finalProductControl) {
+      this.subscriptions.push(finalProductControl.valueChanges
+        .subscribe((value: ApiFinalProduct | null) => this.targetStockOrderFinalProductChange(value, tsoGroup)));
+    }
 
-    this.subscriptions.push(tsoGroup.get('semiProduct').valueChanges
-      .subscribe((value: ApiFinalProduct | null) => this.targetStockOrderSemiProductChange(value, tsoGroup)));
+    const semiProductControl = tsoGroup.get('semiProduct');
+    if (semiProductControl) {
+      this.subscriptions.push(semiProductControl.valueChanges
+        .subscribe((value: ApiFinalProduct | null) => this.targetStockOrderSemiProductChange(value, tsoGroup)));
+    }
+
+    const facilityControl = tsoGroup.get('facility');
+    if (facilityControl) {
+      this.subscriptions.push(facilityControl.valueChanges
+        .subscribe(() => this.updateLaboratoryFieldValidators(tsoGroup)));
+    }
 
     // Set specific fields to default disabled state
-    if (!this.editing) {
-      tsoGroup.get('totalQuantity').disable({ emitEvent: false });
+    if (!this.editing && totalQuantityControl) {
+      totalQuantityControl.disable({ emitEvent: false });
     }
   }
 

@@ -87,7 +87,8 @@
         </div>
 
         <!-- THE INTERNAL LOT NUMBER -->
-        <div class="af-row">
+        <!-- Hidden when input facility is laboratory (lot assigned AFTER lab tests) -->
+        <div class="af-row" *ngIf="!shouldHideLotFields()">
             <div class="af-c3">
                 <textinput
                         [form]="procActionLotPrefixControl"
@@ -117,29 +118,6 @@
         </div>
 
         <!-- WEEK NUMBER (1-53) -->
-        <div class="af-row">
-            <div class="af-c3">
-                <textinput
-                        [form]="$any(tsoGroup.get('weekNumber'))"
-                        type="number"
-                        min="1"
-                        max="53"
-                        label="N° de Semana"
-                        style="width: 100%"
-                        placeholder="Ingrese el número de semana"
-                        i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.weekNumber.label"
-                        i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.weekNumber.placeholder"
-                        [isInvalid]="submitted && tsoGroup.get('weekNumber').invalid">
-                    <ng-container *ngIf="submitted">
-                        <div *ngIf="tsoGroup.get('weekNumber').errors as errors" class="sc-invalid-feedback">
-                            <div *ngIf="errors.min || errors.max" i18n="@@productLabelStockPurchaseOrdersModal.textinput.weekNumber.error.range">
-                                El N° de Semana debe estar entre 1 y 53
-                            </div>
-                        </div>
-                    </ng-container>
-                </textinput>
-            </div>
-        </div>
 
         <!-- FORM CONTROLS FOR DEFINING OUTPUT QUANTITY -->
         <div *ngIf="actionType !== 'TRANSFER' && actionType !== 'GENERATE_QR_CODE'" class="af-row">
@@ -204,24 +182,6 @@
                                 <div *ngIf="tsoGroup.get('sampleNumber').errors as errors" class="sc-invalid-feedback">
                                     <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.textinput.sampleNumber.error">
                                         Sample number is required
-                                    </div>
-                                </div>
-                            </ng-container>
-                        </textinput>
-                    </div>
-                    <div class="af-c6">
-                        <textinput
-                            [form]="tsoGroup.get('receptionTime')"
-                            [submitted]="submitted"
-                            type="time"
-                            label="Hora de recepción"
-                            i18n-label="@@productLabelStockProcessingOrderDetail.textinput.receptionTime.label"
-                            placeholder="HH:MM"
-                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.textinput.receptionTime.placeholder">
-                            <ng-container *ngIf="submitted">
-                                <div *ngIf="tsoGroup.get('receptionTime').errors as errors" class="sc-invalid-feedback">
-                                    <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.textinput.receptionTime.error">
-                                        Reception time is required
                                     </div>
                                 </div>
                             </ng-container>
@@ -331,6 +291,35 @@
                             i18n-placeholder="@@productLabelStockProcessingOrderDetail.textarea.qualityNotes.placeholder"
                             [rows]="4">
                         </textarea-input>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-c12">
+                        <attachment-uploader
+                            [allowedMimeType]="['application/pdf']"
+                            allowedMimeTypeErrorMessage="Solo se permiten archivos PDF."
+                            mode="simpleAsTextField"
+                            label="Documento de Calidad (PDF)"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.attachment-uploader.qualityDocument.label"
+                            i18n-allowedMimeTypeErrorMessage="@@productLabelStockProcessingOrderDetail.attachment-uploader.qualityDocument.allowedMimeTypeErrorMessage"
+                            [form]="$any(tsoGroup.get('qualityDocument'))"
+                            [attachmentUploaderId]="'qualityDocument'+tsoIndex"
+                            [invalid]="submitted && tsoGroup.get('qualityDocument').invalid">
+                            <attachment-uploader-content i18n="@@productLabelStockProcessingOrderDetail.attachment-uploader.qualityDocument.content">
+                                Subir documento de calidad
+                            </attachment-uploader-content>
+                        </attachment-uploader>
+                        <attachment-uploader-errors>
+                            <ng-container *ngIf="submitted">
+                                <div *ngIf="tsoGroup.get('qualityDocument').errors as errors" validation-error class="sc-invalid-feedback">
+                                    <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.attachment-uploader.qualityDocument.error">
+                                        <span>
+                                            Documento de calidad es requerido
+                                        </span>
+                                    </div>
+                                </div>
+                            </ng-container>
+                        </attachment-uploader-errors>
                     </div>
                 </div>
             </ng-container>

@@ -21,6 +21,7 @@
 import { ApiActivityProof } from './apiActivityProof';
 import { ApiCompany } from './apiCompany';
 import { ApiCompanyCustomer } from './apiCompanyCustomer';
+import { ApiDocument } from './apiDocument';
 import { ApiFacility } from './apiFacility';
 import { ApiFinalProduct } from './apiFinalProduct';
 import { ApiMeasureUnitType } from './apiMeasureUnitType';
@@ -257,34 +258,7 @@ export interface ApiStockOrder {
      */
     sampleNumber?: string;
     receptionTime?: LocalTime;
-    /**
-     * Sensorial analysis - Raw odor
-     */
-    sensorialRawOdor?: string;
-    /**
-     * Sensorial analysis - Raw taste
-     */
-    sensorialRawTaste?: string;
-    /**
-     * Sensorial analysis - Raw color
-     */
-    sensorialRawColor?: string;
-    /**
-     * Sensorial analysis - Cooked odor
-     */
-    sensorialCookedOdor?: string;
-    /**
-     * Sensorial analysis - Cooked taste
-     */
-    sensorialCookedTaste?: string;
-    /**
-     * Sensorial analysis - Cooked color
-     */
-    sensorialCookedColor?: string;
-    /**
-     * Quality observations
-     */
-    qualityNotes?: string;
+    qualityDocument?: ApiDocument;
     /**
      * Generated UUID tag for this stock order QR code
      */
@@ -298,9 +272,9 @@ export interface ApiStockOrder {
      * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
      */
     repackedOriginStockOrderId?: string;
-    openOrder?: boolean;
-    purchaseOrder?: boolean;
     available?: boolean;
+    purchaseOrder?: boolean;
+    openOrder?: boolean;
 }
 
 /**
@@ -527,34 +501,7 @@ export namespace ApiStockOrder {
          */
         sampleNumber = 'sampleNumber',
         receptionTime = 'receptionTime',
-        /**
-         * Sensorial analysis - Raw odor
-         */
-        sensorialRawOdor = 'sensorialRawOdor',
-        /**
-         * Sensorial analysis - Raw taste
-         */
-        sensorialRawTaste = 'sensorialRawTaste',
-        /**
-         * Sensorial analysis - Raw color
-         */
-        sensorialRawColor = 'sensorialRawColor',
-        /**
-         * Sensorial analysis - Cooked odor
-         */
-        sensorialCookedOdor = 'sensorialCookedOdor',
-        /**
-         * Sensorial analysis - Cooked taste
-         */
-        sensorialCookedTaste = 'sensorialCookedTaste',
-        /**
-         * Sensorial analysis - Cooked color
-         */
-        sensorialCookedColor = 'sensorialCookedColor',
-        /**
-         * Quality observations
-         */
-        qualityNotes = 'qualityNotes',
+        qualityDocument = 'qualityDocument',
         /**
          * Generated UUID tag for this stock order QR code
          */
@@ -568,9 +515,9 @@ export namespace ApiStockOrder {
          * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
          */
         repackedOriginStockOrderId = 'repackedOriginStockOrderId',
-        openOrder = 'openOrder',
+        available = 'available',
         purchaseOrder = 'purchaseOrder',
-        available = 'available'
+        openOrder = 'openOrder'
     }
 
     /**
@@ -1350,81 +1297,16 @@ export namespace ApiStockOrder {
                     complexType: 'LocalTime'
                 },
                 {
+                    metadata: ApiDocument.formMetadata,
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'sensorialRawOdor',
+                    name: 'qualityDocument',
                     classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
+                    dataType: 'ApiDocument',
+                    isPrimitiveType: false,
                     isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'sensorialRawTaste',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'sensorialRawColor',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'sensorialCookedOdor',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'sensorialCookedTaste',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'sensorialCookedColor',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'qualityNotes',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
+                    complexType: 'ApiDocument'
                 },
                 {
                     isReadOnly: false,
@@ -1476,7 +1358,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'openOrder',
+                    name: 'available',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1498,7 +1380,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'available',
+                    name: 'openOrder',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1639,19 +1521,7 @@ export namespace ApiStockOrder {
                 ],
                 receptionTime: [
                 ],
-                sensorialRawOdor: [
-                ],
-                sensorialRawTaste: [
-                ],
-                sensorialRawColor: [
-                ],
-                sensorialCookedOdor: [
-                ],
-                sensorialCookedTaste: [
-                ],
-                sensorialCookedColor: [
-                ],
-                qualityNotes: [
+                qualityDocument: [
                 ],
                 qrCodeTag: [
                 ],
@@ -1661,11 +1531,11 @@ export namespace ApiStockOrder {
                 ],
                 repackedOriginStockOrderId: [
                 ],
-                openOrder: [
+                available: [
                 ],
                 purchaseOrder: [
                 ],
-                available: [
+                openOrder: [
                 ],
             }
         }
@@ -1872,6 +1742,9 @@ export namespace ApiStockOrder {
   //               receptionTime: {
   //                   validators: []
   //               },
+  //               qualityDocument: {
+  //                   validators: []
+  //               },
   //               qrCodeTag: {
   //                   validators: []
   //               },
@@ -1884,13 +1757,13 @@ export namespace ApiStockOrder {
   //               repackedOriginStockOrderId: {
   //                   validators: []
   //               },
-  //               openOrder: {
+  //               available: {
   //                   validators: []
   //               },
   //               purchaseOrder: {
   //                   validators: []
   //               },
-  //               available: {
+  //               openOrder: {
   //                   validators: []
   //               },
   //     }

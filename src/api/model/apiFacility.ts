@@ -564,6 +564,9 @@ export namespace ApiFacility {
   //               displayPriceDeterminedLater: {
   //                   validators: []
   //               },
+  //               isLaboratory: {
+  //                   validators: []
+  //               },
   //               level: {
   //                   validators: []
   //               },

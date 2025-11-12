@@ -76,6 +76,9 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
   inputFacilityControl: FormControl;
 
   @Input()
+  inspectionTimeControl: FormControl;
+
+  @Input()
   totalInputQuantityControl: FormControl;
 
   @Input()

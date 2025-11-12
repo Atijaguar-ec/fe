@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { GlobalEventManagerService } from '../../../../core/global-event-manager.service';
-import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { CompanyProcessingActionsService } from '../../../../shared-services/company-processing-actions.service';
 import { CompanyProcessingActionsService as CompanyProcessingActionsApiService } from '../../../../core/api/company-processing-actions.service';
 import { ApiCompanyProcessingAction } from '../../../../../api/model/apiCompanyProcessingAction';
@@ -39,6 +39,8 @@ import { SelectedUserCompanyService } from '../../../../core/selected-user-compa
 import { ProcessingOrderInputComponent } from './processing-order-input/processing-order-input.component';
 import { ProcessingOrderOutputComponent } from './processing-order-output/processing-order-output.component';
 
+declare const $localize: (messageParts: TemplateStringsArray, ...expressions: unknown[]) => string;
+
 type PageMode = 'create' | 'edit';
 
 interface RepackedTargetStockOrder extends ApiStockOrder {
@@ -75,6 +77,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
   // Properties and controls used for display and selection of input facility
   inputFacilitiesCodebook: CompanyFacilitiesForStockUnitProductService | AvailableSellingFacilitiesForCompany;
   inputFacilityControl = new FormControl(null, Validators.required);
+  inspectionTimeControl = new FormControl(null);
 
   // Input stock orders properties and controls
   totalInputQuantityControl = new FormControl({ value: null, disabled: true });
@@ -197,10 +200,11 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     let quantityFrom = '/';
     let quantityTo = '/';
 
-    if (this.totalInputQuantity) {
+    const unitLabel = this.currentInputStockUnit?.measurementUnitType?.label ?? '';
 
-      let expectedOutputQuantity;
-      expectedOutputQuantity = this.totalInputQuantity * this.selectedProcAction.estimatedOutputQuantityPerUnit;
+    if (this.totalInputQuantity && this.selectedProcAction) {
+
+      const expectedOutputQuantity = this.totalInputQuantity * this.selectedProcAction.estimatedOutputQuantityPerUnit;
 
       this.totalOutQuantityRangeLow = Number(expectedOutputQuantity * 0.8);
       this.totalOutQuantityRangeHigh = Math.min(Number(expectedOutputQuantity * 1.2), this.totalInputQuantity);
@@ -209,12 +213,14 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       quantityTo = this.totalOutQuantityRangeHigh.toFixed(2);
     } else {
 
-      this.totalOutQuantityRangeLow = null;
+      this.totalOutQuantityRangeLow = null; 
       this.totalOutQuantityRangeHigh = null;
+      quantityFrom = '--';
+      quantityTo = '--';
     }
 
     return $localize`:@@productLabelStockProcessingOrderDetail.textinput.outputQuantity.expectedOutputHelpText:Expected output quantity range:` +
-        ` ${quantityFrom} ~ ${quantityTo} (${this.currentInputStockUnit.measurementUnitType.label})`;
+        ` ${quantityFrom} ~ ${quantityTo}${unitLabel ? ` (${unitLabel})` : ''}`;
   }
 
   get targetStockOrdersArray(): FormArray {
@@ -314,7 +320,14 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
 
   // Prefill and lock lot info on outputs based on selected input stock orders
   onSelectedInputsChanged(selected: ApiStockOrderSelectable[]) {
-    if (this.editing) { return; }
+    console.log('=== onSelectedInputsChanged ===');
+    console.log('Selected inputs:', selected);
+    console.log('Target stock orders array length:', this.targetStockOrdersArray?.length);
+    
+    if (this.editing) { 
+      console.log('Editing mode - skipping propagation');
+      return; 
+    }
 
     // Enable editing when no inputs selected
     if (!selected || selected.length === 0) {
@@ -323,6 +336,8 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
         if (iln && iln.disabled) { iln.enable({ emitEvent: false }); }
         const wn = group.get('weekNumber');
         if (wn && wn.disabled) { wn.enable({ emitEvent: false }); }
+        // Clear propagated values when no inputs selected
+        this.clearPropagatedValues(group);
       });
       return;
     }
@@ -330,35 +345,116 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     const ref = selected[0];
     const sameLot = selected.every(s => s.internalLotNumber === ref.internalLotNumber);
     const sameWeek = selected.every(s => s.weekNumber === ref.weekNumber);
+    const sameProducer = selected.every(s => 
+      s.producerUserCustomer?.id === ref.producerUserCustomer?.id);
+    const sameRepresentative = selected.every(s => 
+      s.representativeOfProducerUserCustomer?.id === ref.representativeOfProducerUserCustomer?.id);
+    const sameOrganic = selected.every(s => s.organic === ref.organic);
+    const sameWomenShare = selected.every(s => s.womenShare === ref.womenShare);
+    const sameProductionDate = selected.every(s => s.productionDate === ref.productionDate);
 
-    // If inputs share same internal lot number, use it; otherwise let user type
-    if (sameLot && ref.internalLotNumber) {
-      this.targetStockOrdersArray.controls.forEach(group => {
-        const iln = group.get('internalLotNumber');
-        if (iln) {
-          iln.setValue(ref.internalLotNumber, { emitEvent: false });
-          iln.disable({ emitEvent: false });
-        }
-      });
-    } else {
-      // Different lot numbers selected – keep field editable
-      this.targetStockOrdersArray.controls.forEach(group => {
-        const iln = group.get('internalLotNumber');
-        if (iln && iln.disabled) { iln.enable({ emitEvent: false }); }
-      });
-    }
-
-    // If inputs share the same week number and it exists, use it and lock the field; otherwise keep editable
     this.targetStockOrdersArray.controls.forEach(group => {
+      // Handle internal lot number
+      const iln = group.get('internalLotNumber');
+      if (sameLot && ref.internalLotNumber && iln) {
+        iln.setValue(ref.internalLotNumber, { emitEvent: false });
+        iln.disable({ emitEvent: false });
+      } else if (iln && iln.disabled) {
+        iln.enable({ emitEvent: false });
+      }
+
+      // Handle week number
       const wn = group.get('weekNumber');
-      if (!wn) { return; }
-      if (sameWeek && ref.weekNumber != null) {
-        wn.setValue(ref.weekNumber, { emitEvent: false });
-        wn.disable({ emitEvent: false });
-      } else if (wn.disabled) {
-        wn.enable({ emitEvent: false });
+      if (wn) {
+        if (sameWeek && ref.weekNumber != null) {
+          wn.setValue(ref.weekNumber, { emitEvent: false });
+          wn.disable({ emitEvent: false });
+        } else if (wn.disabled) {
+          wn.enable({ emitEvent: false });
+        }
+      }
+
+      // Propagate producer information
+      if (sameProducer && ref.producerUserCustomer) {
+        const producer = group.get('producerUserCustomer');
+        if (producer) {
+          producer.setValue(ref.producerUserCustomer, { emitEvent: false });
+        }
+      }
+
+      // Propagate representative information
+      if (sameRepresentative && ref.representativeOfProducerUserCustomer) {
+        const representative = group.get('representativeOfProducerUserCustomer');
+        if (representative) {
+          representative.setValue(ref.representativeOfProducerUserCustomer, { emitEvent: false });
+        }
+      }
+
+      // Propagate organic status
+      if (sameOrganic && ref.organic !== undefined) {
+        const organic = group.get('organic');
+        if (organic) {
+          organic.setValue(ref.organic, { emitEvent: false });
+        }
+      }
+
+      // Propagate women share
+      if (sameWomenShare && ref.womenShare !== undefined) {
+        const womenShare = group.get('womenShare');
+        if (womenShare) {
+          womenShare.setValue(ref.womenShare, { emitEvent: false });
+        }
+      }
+
+      // Propagate production date
+      if (sameProductionDate && ref.productionDate) {
+        const productionDate = group.get('productionDate');
+        if (productionDate) {
+          productionDate.setValue(ref.productionDate, { emitEvent: false });
+        }
+      }
+
+      // Propagate production location if all inputs share the same location
+      if (ref.productionLocation) {
+        const sameLocation = selected.every(s => 
+          s.productionLocation?.address?.address === ref.productionLocation?.address?.address &&
+          s.productionLocation?.address?.city === ref.productionLocation?.address?.city);
+        
+        if (sameLocation) {
+          const productionLocation = group.get('productionLocation');
+          if (productionLocation) {
+            productionLocation.setValue(ref.productionLocation, { emitEvent: false });
+          }
+        }
       }
     });
+  }
+
+  private clearPropagatedValues(group: AbstractControl) {
+    // Clear values that were propagated from input selection
+    const fieldsToReset = [
+      'producerUserCustomer',
+      'representativeOfProducerUserCustomer', 
+      'organic',
+      'womenShare',
+      'productionDate',
+      'productionLocation'
+    ];
+
+    fieldsToReset.forEach(fieldName => {
+      const control = group.get(fieldName);
+      if (control && !control.disabled) {
+        control.setValue(null, { emitEvent: false });
+      }
+    });
+  }
+
+  onNewOutputAdded() {
+    // When a new output is added, synchronize values from selected inputs
+    if (this.input?.selectedInputStockOrders?.length) {
+      console.log('New output added - synchronizing values from selected inputs');
+      this.onSelectedInputsChanged(this.input.selectedInputStockOrders);
+    }
   }
 
   processingActionSelected(event: ApiProcessingAction): void {
