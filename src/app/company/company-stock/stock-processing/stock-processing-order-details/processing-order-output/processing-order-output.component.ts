@@ -121,20 +121,16 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
 
   /**
    * Check if we should show laboratory-specific fields
-   * (only for SHRIMP product AND laboratory facility)
+   * For SHRIMP product: show sensorial analysis and quality fields for ALL entries
+   * (both laboratory and normal production entries)
    */
   shouldShowLaboratoryFields(tsoGroup: AbstractControl): boolean {
     if (!this.isShrimpProduct) {
       return false;
     }
 
-    // Priority: input facility drives visibility; fall back to output facility if needed
-    const inputFacilityIsLab = this.selectedInputFacility?.isLaboratory === true;
-    if (inputFacilityIsLab) {
-      return true;
-    }
-
-    return this.isFacilityLaboratory(tsoGroup);
+    // Show sensorial/quality fields for all shrimp entries (lab and normal)
+    return true;
   }
 
   /**
@@ -195,6 +191,9 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
 
   private updateLaboratoryFieldValidators(tsoGroup: FormGroup): void {
     const isLab = this.shouldShowLaboratoryFields(tsoGroup);
+    const isInputFromLab = this.selectedInputFacility?.isLaboratory === true;
+    
+    // Sample number is required for all shrimp entries (lab and normal)
     const requiredControls = ['sampleNumber'];
 
     requiredControls.forEach(fieldName => {
@@ -208,6 +207,21 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
       }
       control.updateValueAndValidity({ emitEvent: false });
     });
+
+    // Internal lot number: NOT required when input is from laboratory (field is hidden)
+    const internalLotControl = tsoGroup.get('internalLotNumber');
+    if (internalLotControl) {
+      if (isInputFromLab) {
+        // Laboratory input: lot field is hidden, so NOT required
+        internalLotControl.clearValidators();
+        console.log('🔬 Laboratory input: internalLotNumber NOT required (field hidden)');
+      } else {
+        // Normal input: lot field is visible, so required
+        internalLotControl.setValidators([Validators.required]);
+        console.log('🦐 Normal input: internalLotNumber required');
+      }
+      internalLotControl.updateValueAndValidity({ emitEvent: false });
+    }
   }
 
   getOutputFacilityCodebook(tsoGroup: FormGroup): CompanyFacilitiesForStockUnitProductService | null {

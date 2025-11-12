@@ -353,15 +353,26 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     const sameWomenShare = selected.every(s => s.womenShare === ref.womenShare);
     const sameProductionDate = selected.every(s => s.productionDate === ref.productionDate);
     const sameSampleNumber = selected.every(s => s.sampleNumber === ref.sampleNumber);
+    
+    // Check if input facility is laboratory (for shrimp, lot is assigned AFTER lab tests)
+    const isInputFromLab = this.input?.selectedInputFacility?.isLaboratory === true;
 
     this.targetStockOrdersArray.controls.forEach(group => {
       // Handle internal lot number
+      // For normal entry (not laboratory), keep lot field unlocked for manual assignment
       const iln = group.get('internalLotNumber');
-      if (sameLot && ref.internalLotNumber && iln) {
+      if (!isInputFromLab && sameLot && ref.internalLotNumber && iln) {
+        // Only propagate and lock if NOT from laboratory
         iln.setValue(ref.internalLotNumber, { emitEvent: false });
         iln.disable({ emitEvent: false });
       } else if (iln && iln.disabled) {
         iln.enable({ emitEvent: false });
+      }
+      
+      // For normal entry (not from lab), ensure lot field is enabled for manual input
+      if (!isInputFromLab && iln && iln.disabled) {
+        iln.enable({ emitEvent: false });
+        console.log('🦐 Normal entry: lot field enabled for manual assignment');
       }
 
       // Handle week number
