@@ -74,7 +74,7 @@ const CHAIN_CONFIGURATIONS: Record<string, ChainFieldConfiguration> = {
   // ============================================================================
   // COCOA - Configuración por defecto
   // ============================================================================
-  'COCOA': {
+  COCOA: {
     customerOrder: {
       currencyForEndCustomer: { visible: true, required: true },
       pricePerUnitForEndCustomer: { visible: true, required: true }
@@ -88,8 +88,8 @@ const CHAIN_CONFIGURATIONS: Record<string, ChainFieldConfiguration> = {
       damagedPriceDeduction: { visible: true, required: false },
       finalPriceDiscount: { visible: true, required: false },
       tare: { visible: true, required: false },
-      cost: { visible: true, required: false },  // 🍫 Pago inicial visible
-      balance: { visible: true, required: false },  // 🍫 Saldo pendiente visible
+      cost: { visible: true, required: false },  // Pago inicial visible
+      balance: { visible: true, required: false },  // Saldo pendiente visible
       preferredWayOfPayment: { visible: true, required: true },
       priceDeterminedLater: { visible: true, required: false }
     },
@@ -103,24 +103,24 @@ const CHAIN_CONFIGURATIONS: Record<string, ChainFieldConfiguration> = {
   // SHRIMP - NO maneja precios en ningún módulo
   // Campos específicos de camarón se muestran SOLO para facility NO laboratorio
   // ============================================================================
-  'SHRIMP': {
+  SHRIMP: {
     customerOrder: {
-      currencyForEndCustomer: { visible: false, required: false },  // 🦐 No maneja precio
-      pricePerUnitForEndCustomer: { visible: false, required: false }  // 🦐 No maneja precio
+      currencyForEndCustomer: { visible: false, required: false },  // No maneja precio
+      pricePerUnitForEndCustomer: { visible: false, required: false }  // No maneja precio
     },
     stockOrder: {
-      moisturePercentage: { visible: true, required: true },  // 🦐 Usa humedad
+      moisturePercentage: { visible: true, required: true },  // Usa humedad
       organicCertification: { visible: false, required: false },
-      pricePerUnit: { visible: false, required: false },  // 🦐 NO maneja precio
-      currency: { visible: false, required: false },  // 🦐 NO maneja moneda
+      pricePerUnit: { visible: false, required: false },  // NO maneja precio
+      currency: { visible: false, required: false },  // NO maneja moneda
       damagedWeightDeduction: { visible: true, required: false },
-      damagedPriceDeduction: { visible: false, required: false },  // 🦐 NO maneja deducción de precio
-      finalPriceDiscount: { visible: false, required: false },  // 🦐 NO maneja descuento
+      damagedPriceDeduction: { visible: false, required: false },  // NO maneja deducción de precio
+      finalPriceDiscount: { visible: false, required: false },  // NO maneja descuento
       tare: { visible: true, required: false },
-      cost: { visible: false, required: false },  // 🦐 NO maneja pago inicial
-      balance: { visible: false, required: false },  // 🦐 NO maneja saldo
-      preferredWayOfPayment: { visible: false, required: false },  // 🦐 NO maneja forma de pago
-      priceDeterminedLater: { visible: false, required: false }  // 🦐 NO maneja precio determinado después
+      cost: { visible: false, required: false },  // NO maneja pago inicial
+      balance: { visible: false, required: false },  // NO maneja saldo
+      preferredWayOfPayment: { visible: false, required: false },  // NO maneja forma de pago
+      priceDeterminedLater: { visible: false, required: false }  // NO maneja precio determinado después
     },
     payment: {
       bankTransferEvidence: { visible: true, required: false },
@@ -131,13 +131,13 @@ const CHAIN_CONFIGURATIONS: Record<string, ChainFieldConfiguration> = {
   // ============================================================================
   // COFFEE - Similar a cocoa
   // ============================================================================
-  'COFFEE': {
+  COFFEE: {
     customerOrder: {
       currencyForEndCustomer: { visible: true, required: true },
       pricePerUnitForEndCustomer: { visible: true, required: true }
     },
     stockOrder: {
-      moisturePercentage: { visible: true, required: false },  // ☕ Café puede usar humedad
+      moisturePercentage: { visible: true, required: false },  // Café puede usar humedad
       organicCertification: { visible: true, required: false },
       pricePerUnit: { visible: true, required: true },
       currency: { visible: true, required: true },
