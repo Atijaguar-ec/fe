@@ -83,6 +83,27 @@
         </div>
     </div>
 
+    <!-- OUTPUT QUANTITY -->
+    <div class="af-row">
+        <div class="af-c6">
+            <textinput
+                [form]="$any(tsoGroup.get('totalQuantity'))"
+                [label]="outputQuantityLabel + ' ' + (tsoGroup.get('measureUnitType')?.value ? tsoGroup.get('measureUnitType').value.label : '-')"
+                style="width: 100%"
+                placeholder="Ingrese cantidad"
+                i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.outputQuantity.placeholder"
+                [isInvalid]="submitted && tsoGroup.get('totalQuantity').invalid">
+                <ng-container *ngIf="submitted">
+                    <div *ngIf="tsoGroup.get('totalQuantity').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.outputQuantity.error.required">
+                            La cantidad es requerida
+                        </div>
+                    </div>
+                </ng-container>
+            </textinput>
+        </div>
+    </div>
+
     <!-- CLASSIFICATION HEADER SECTION -->
     <div class="af-row mt-4">
         <div class="af-c12">

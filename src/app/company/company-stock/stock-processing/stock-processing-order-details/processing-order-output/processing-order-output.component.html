@@ -8,6 +8,7 @@
             *ngFor="let tsoGroup of targetStockOrdersArray.controls; index as tsoGroupIndex"
             [tsoGroup]="$any(tsoGroup)"
             [tsoGroupIndex]="tsoGroupIndex"
+            [outputQuantityLabel]="targetStockOrderOutputQuantityLabel"
             [submitted]="submitted"
             [rightSideEnabled]="rightSideEnabled"
             [procActionLotPrefixControl]="procActionLotPrefixControl"
@@ -184,6 +185,87 @@
                 </app-datepicker>
             </div>
         </div>
+        
+        <!-- CAMPOS ESPECÍFICOS PARA CONGELACIÓN (solo cuando el facility de salida es de congelación) -->
+        <ng-container *ngIf="shouldShowFreezingSection(tsoGroup)">
+            <div class="af-row mt-3">
+                <div class="af-c12">
+                    <h4 i18n="@@productLabelStockProcessingOrderDetail.section.freezing.title">CONGELACIÓN</h4>
+                </div>
+            </div>
+
+            <div class="af-row">
+                <div class="af-c6">
+                    <textinput
+                            [form]="$any(tsoGroup.get('freezingType'))"
+                            label="Tipo de Congelación"
+                            placeholder="Ej., IQF, Bloque"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.freezing.type.label"
+                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.freezing.type.placeholder"
+                            [isInvalid]="submitted && tsoGroup.get('freezingType').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('freezingType').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.freezing.type.error">
+                                    El tipo de congelación es requerido
+                                </div>
+                            </div>
+                        </ng-container>
+                    </textinput>
+                </div>
+
+                <div class="af-c3">
+                    <app-datepicker
+                            label="Fecha de Ingreso"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.freezing.entryDate.label"
+                            [form]="tsoGroup.get('freezingEntryDate')"
+                            [invalid]="submitted && tsoGroup.get('freezingEntryDate').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('freezingEntryDate').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.freezing.entryDate.error">
+                                    La fecha de ingreso es requerida
+                                </div>
+                            </div>
+                        </ng-container>
+                    </app-datepicker>
+                </div>
+
+                <div class="af-c3">
+                    <app-datepicker
+                            label="Fecha de Salida"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.freezing.exitDate.label"
+                            [form]="tsoGroup.get('freezingExitDate')"
+                            [invalid]="submitted && tsoGroup.get('freezingExitDate').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('freezingExitDate').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.freezing.exitDate.error">
+                                    La fecha de salida es requerida
+                                </div>
+                            </div>
+                        </ng-container>
+                    </app-datepicker>
+                </div>
+            </div>
+
+            <div class="af-row">
+                <div class="af-c12">
+                    <textinput
+                            [form]="$any(tsoGroup.get('freezingTemperatureControl'))"
+                            label="Control de Temperatura"
+                            placeholder="Ej., -18°C, rango de temperaturas"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.freezing.temperatureControl.label"
+                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.freezing.temperatureControl.placeholder"
+                            [isInvalid]="submitted && tsoGroup.get('freezingTemperatureControl').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('freezingTemperatureControl').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.freezing.temperatureControl.error">
+                                    El control de temperatura es requerido
+                                </div>
+                            </div>
+                        </ng-container>
+                    </textinput>
+                </div>
+            </div>
+        </ng-container>
         
         <!-- CAMPOS ESPECÍFICOS PARA LABORATORIO SEGÚN PRODUCTO -->
         <ng-container *ngIf="shouldShowLaboratoryFields(tsoGroup)">

@@ -32,6 +32,9 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
   tsoGroupIndex!: number;
 
   @Input()
+  outputQuantityLabel!: string;
+
+  @Input()
   submitted!: boolean;
 
   @Input()

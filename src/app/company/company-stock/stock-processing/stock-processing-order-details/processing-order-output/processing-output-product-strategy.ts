@@ -13,6 +13,7 @@ export abstract class ProcessingOutputProductStrategy {
   abstract shouldShowLaboratorySection(tsoGroup: AbstractControl): boolean;
   abstract shouldHideLotFields(selectedInputFacility: ApiFacility | null): boolean;
   abstract shouldShowOutputQuantityField(actionType: ProcessingActionType | null): boolean;
+  abstract shouldShowFreezingSection(tsoGroup: AbstractControl): boolean;
   abstract ensureExtraControls(tsoGroup: FormGroup): void;
   abstract updateValidators(tsoGroup: FormGroup, selectedInputFacility: ApiFacility | null): void;
   abstract isClassificationMode(selectedInputFacility: ApiFacility | null): boolean;
@@ -32,6 +33,10 @@ class DefaultProcessingOutputStrategy extends ProcessingOutputProductStrategy {
 
   shouldShowOutputQuantityField(actionType: ProcessingActionType | null): boolean {
     return actionType !== 'TRANSFER' && actionType !== 'GENERATE_QR_CODE';
+  }
+
+  shouldShowFreezingSection(_tsoGroup: AbstractControl): boolean {
+    return false;
   }
 
   ensureExtraControls(_tsoGroup: FormGroup): void {
@@ -79,11 +84,23 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
     'guiaRemisionNumber'
   ];
 
+  private readonly freezingFields = [
+    'freezingType',
+    'freezingEntryDate',
+    'freezingExitDate',
+    'freezingTemperatureControl'
+  ];
+
   shouldShowLaboratorySection(tsoGroup: AbstractControl): boolean {
     // For shrimp product: show sensorial/quality fields ONLY when the output facility
     // is explicitly marked as a collection facility (centro de acopio).
     const facility = tsoGroup?.get('facility')?.value as ApiFacility | null;
     return facility?.isCollectionFacility === true;
+  }
+
+  shouldShowFreezingSection(tsoGroup: AbstractControl): boolean {
+    const facility = tsoGroup?.get('facility')?.value as ApiFacility | null;
+    return facility?.isFreezingProcess === true;
   }
 
   shouldHideLotFields(selectedInputFacility: ApiFacility | null): boolean {
@@ -113,6 +130,12 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
       }
     });
 
+    this.freezingFields.forEach(fieldName => {
+      if (!tsoGroup.get(fieldName)) {
+        tsoGroup.addControl(fieldName, new FormControl(null));
+      }
+    });
+
     // Ensure shrimp-specific traceability controls exist for custody
     this.shrimpTraceabilityFields.forEach(fieldName => {
       if (!tsoGroup.get(fieldName)) {
@@ -124,6 +147,8 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
   updateValidators(tsoGroup: FormGroup, selectedInputFacility: ApiFacility | null): void {
     const isLabSectionVisible = this.shouldShowLaboratorySection(tsoGroup);
     const isInputFromLab = selectedInputFacility?.isLaboratory === true;
+    const isFreezingFacility = this.shouldShowFreezingSection(tsoGroup);
+    const isClassification = this.isClassificationMode(selectedInputFacility);
 
     // Sample number is required for all shrimp entries (lab and normal)
     const requiredControls = ['sampleNumber'];
@@ -133,6 +158,20 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
       if (!control) { return; }
 
       if (isLabSectionVisible) {
+        control.setValidators([Validators.required]);
+      } else {
+        control.clearValidators();
+      }
+      control.updateValueAndValidity({ emitEvent: false });
+    });
+
+    // Freezing fields: in standard mode require all; in classification mode only the shared freezingType
+    const freezingRequiredControls = isClassification ? ['freezingType'] : this.freezingFields;
+    freezingRequiredControls.forEach(fieldName => {
+      const control = tsoGroup.get(fieldName);
+      if (!control) { return; }
+
+      if (isFreezingFacility) {
         control.setValidators([Validators.required]);
       } else {
         control.clearValidators();

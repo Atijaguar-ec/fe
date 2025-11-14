@@ -133,6 +133,10 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
     return this.productStrategy.shouldShowOutputQuantityField(this.actionType);
   }
 
+  shouldShowFreezingSection(tsoGroup: AbstractControl): boolean {
+    return this.productStrategy.shouldShowFreezingSection(tsoGroup);
+  }
+
   /**
    * Check if the selected input facility is a classification process facility
    * This determines whether to show the specialized classification form
