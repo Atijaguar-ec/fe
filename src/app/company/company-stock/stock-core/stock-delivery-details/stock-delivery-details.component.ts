@@ -300,8 +300,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   get yesNo(): Record<string, string> {
     return {
-      'true': $localize`:@@productLabelStockPurchaseOrdersModal.organic.yes:Yes`,
-      'false': $localize`:@@productLabelStockPurchaseOrdersModal.organic.no:No`
+      true: $localize`:@@productLabelStockPurchaseOrdersModal.organic.yes:Yes`,
+      false: $localize`:@@productLabelStockPurchaseOrdersModal.organic.no:No`
     };
   }
 
