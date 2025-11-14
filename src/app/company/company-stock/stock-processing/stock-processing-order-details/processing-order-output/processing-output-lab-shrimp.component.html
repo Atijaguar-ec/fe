@@ -104,19 +104,6 @@
 </div>
 <div class="af-row">
   <div class="af-c12">
-    <textinput
-      [form]="tsoGroup.get('qualityNotes')"
-      [textarea]="true"
-      [rows]="4"
-      label="Observaciones de Calidad"
-      i18n-label="@@productLabelStockProcessingOrderDetail.textarea.qualityNotes.label"
-      placeholder="Ingrese observaciones sobre la calidad"
-      i18n-placeholder="@@productLabelStockProcessingOrderDetail.textarea.qualityNotes.placeholder">
-    </textinput>
-  </div>
-</div>
-<div class="af-row">
-  <div class="af-c12">
     <attachment-uploader
       [allowedMimeType]="['application/pdf']"
       allowedMimeTypeErrorMessage="Solo se permiten archivos PDF."
@@ -142,5 +129,19 @@
         </div>
       </ng-container>
     </attachment-uploader-errors>
+  </div>
+</div>
+
+<div class="af-row">
+  <div class="af-c12">
+    <textinput
+      [form]="tsoGroup.get('qualityNotes')"
+      [textarea]="true"
+      [rows]="4"
+      label="Observaciones"
+      i18n-label="@@productLabelStockProcessingOrderDetail.textarea.qualityNotes.label"
+      placeholder="Ingrese observaciones sobre la calidad"
+      i18n-placeholder="@@productLabelStockProcessingOrderDetail.textarea.qualityNotes.placeholder">
+    </textinput>
   </div>
 </div>

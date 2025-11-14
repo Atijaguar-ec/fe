@@ -1,6 +1,7 @@
 import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ApiFacility } from '../../../../../../api/model/apiFacility';
 import { ProductContext } from '../../../../../core/product-context';
+import { ProcessingActionType } from '../../../../../../shared/types';
 
 /**
  * Base abstract strategy for product-specific behavior in ProcessingOrderOutputComponent.
@@ -11,6 +12,7 @@ import { ProductContext } from '../../../../../core/product-context';
 export abstract class ProcessingOutputProductStrategy {
   abstract shouldShowLaboratorySection(tsoGroup: AbstractControl): boolean;
   abstract shouldHideLotFields(selectedInputFacility: ApiFacility | null): boolean;
+  abstract shouldShowOutputQuantityField(actionType: ProcessingActionType | null): boolean;
   abstract ensureExtraControls(tsoGroup: FormGroup): void;
   abstract updateValidators(tsoGroup: FormGroup, selectedInputFacility: ApiFacility | null): void;
   abstract isClassificationMode(selectedInputFacility: ApiFacility | null): boolean;
@@ -26,6 +28,10 @@ class DefaultProcessingOutputStrategy extends ProcessingOutputProductStrategy {
 
   shouldHideLotFields(_selectedInputFacility: ApiFacility | null): boolean {
     return false;
+  }
+
+  shouldShowOutputQuantityField(actionType: ProcessingActionType | null): boolean {
+    return actionType !== 'TRANSFER' && actionType !== 'GENERATE_QR_CODE';
   }
 
   ensureExtraControls(_tsoGroup: FormGroup): void {
@@ -81,6 +87,11 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
   shouldHideLotFields(selectedInputFacility: ApiFacility | null): boolean {
     // When input facility is laboratory, lot is assigned AFTER lab tests, not before.
     return selectedInputFacility?.isLaboratory === true;
+  }
+
+  shouldShowOutputQuantityField(actionType: ProcessingActionType | null): boolean {
+    // For shrimp product: show quantity for all actions except QR code generation.
+    return actionType !== 'GENERATE_QR_CODE';
   }
 
   ensureExtraControls(tsoGroup: FormGroup): void {

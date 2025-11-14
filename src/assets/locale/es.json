@@ -2967,7 +2967,7 @@
     "productLabelStockProcessingOrderDetail.textinput.sensorialCookedColor.label": "Color",
     "productLabelStockProcessingOrderDetail.textinput.sensorialCookedColor.placeholder": "Color",
     "productLabelStockProcessingOrderDetail.section.quality.title": "CALIDAD",
-    "productLabelStockProcessingOrderDetail.textarea.qualityNotes.label": "Observaciones de Calidad",
+    "productLabelStockProcessingOrderDetail.textarea.qualityNotes.label": "Observaciones",
     "productLabelStockProcessingOrderDetail.textarea.qualityNotes.placeholder": "Ingrese observaciones sobre la calidad",
     "productLabelStockPurchaseOrdersModal.checkboxinput.priceDeterminedLater.label": "Precio por determinar",
     "productLabelStockPayments.addPricePerUnit.message": "Seleccione 'editar' para añadir el precio por unidad antes de añadir un pago de saldo",

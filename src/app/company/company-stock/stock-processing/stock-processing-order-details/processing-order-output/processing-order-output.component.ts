@@ -129,6 +129,10 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
     return this.productStrategy.shouldHideLotFields(this.selectedInputFacility);
   }
 
+  shouldShowOutputQuantity(): boolean {
+    return this.productStrategy.shouldShowOutputQuantityField(this.actionType);
+  }
+
   /**
    * Check if the selected input facility is a classification process facility
    * This determines whether to show the specialized classification form
