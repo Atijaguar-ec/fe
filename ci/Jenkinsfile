@@ -452,6 +452,19 @@ exit 1
                 sed -i "s|FE_TAG=.*|FE_TAG=${env.DEPLOY_TAG}|g" ci/.env
                 sed -i "s|CONTAINER_NAME=.*|CONTAINER_NAME=${deploy.containerName}|g" ci/.env
 
+                # Forzar configuración de entorno y producto para staging
+                if grep -q '^NODE_ENV=' ci/.env; then
+                  sed -i "s|^NODE_ENV=.*|NODE_ENV=test|g" ci/.env
+                else
+                  echo "NODE_ENV=test" >> ci/.env
+                fi
+
+                if grep -q '^PRIMARY_PRODUCT_TYPE=' ci/.env; then
+                  sed -i "s|^PRIMARY_PRODUCT_TYPE=.*|PRIMARY_PRODUCT_TYPE=COCOA|g" ci/.env
+                else
+                  echo "PRIMARY_PRODUCT_TYPE=COCOA" >> ci/.env
+                fi
+
                 echo "🧾 Copiando nginx.conf para despliegue local..."
                 cp "${env.WORKSPACE}/nginx.conf" ci/nginx.conf
 
