@@ -79,9 +79,11 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
     'guiaRemisionNumber'
   ];
 
-  shouldShowLaboratorySection(_tsoGroup: AbstractControl): boolean {
-    // For shrimp product: show sensorial/quality fields for all entries (lab and normal).
-    return true;
+  shouldShowLaboratorySection(tsoGroup: AbstractControl): boolean {
+    // For shrimp product: show sensorial/quality fields ONLY when the output facility
+    // is explicitly marked as a collection facility (centro de acopio).
+    const facility = tsoGroup?.get('facility')?.value as ApiFacility | null;
+    return facility?.isCollectionFacility === true;
   }
 
   shouldHideLotFields(selectedInputFacility: ApiFacility | null): boolean {

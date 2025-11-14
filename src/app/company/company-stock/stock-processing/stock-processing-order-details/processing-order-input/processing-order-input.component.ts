@@ -272,18 +272,26 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
         }),
         map(availableStockOrders => {
 
+          let filtered = availableStockOrders;
+
           // If generating QR code, filter all the stock orders that have already generated QR code tag
           if (this.selectedProcAction.type === 'GENERATE_QR_CODE') {
-            return availableStockOrders.filter(apiStockOrder => !apiStockOrder.qrCodeTag);
+            filtered = availableStockOrders.filter(apiStockOrder => !apiStockOrder.qrCodeTag);
           } else if (finalProduct) {
 
             // If final product action (final processing of Quote or Transfer order for a final product)
             // filter the stock orders that have QR code tag for different final products than the selected one (from the Proc. action)
-            return availableStockOrders.filter(apiStockOrder => !apiStockOrder.qrCodeTag || apiStockOrder.qrCodeTagFinalProduct.id === finalProduct.id);
-
-          } else {
-            return availableStockOrders;
+            filtered = availableStockOrders.filter(apiStockOrder => !apiStockOrder.qrCodeTag || apiStockOrder.qrCodeTagFinalProduct.id === finalProduct.id);
           }
+
+          // Business rule (shrimp / laboratory): when the selected input facility is NOT a
+          // collection facility, hide laboratory test samples from the list of inputs.
+          const inputFacility = this.selectedInputFacility;
+          if (inputFacility && inputFacility.isCollectionFacility !== true) {
+            filtered = filtered.filter(so => !(so.facility?.isLaboratory === true && !!so.sampleNumber));
+          }
+
+          return filtered;
         })
       )
       .toPromise();
