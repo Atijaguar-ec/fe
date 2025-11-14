@@ -18,8 +18,8 @@ import ProcessingEvidenceField = ApiProcessingEvidenceField.TypeEnum;
 import { ApiProcessingEvidenceField } from '../../../../../../api/model/apiProcessingEvidenceField';
 import { Subscription } from 'rxjs';
 import { StaticSemiProductsService } from '../static-semi-products.service';
-import { EnvironmentInfoService } from '../../../../../core/environment-info.service';
 import { ApiFacility } from '../../../../../../api/model/apiFacility';
+import { ProcessingOutputProductStrategy } from './processing-output-product-strategy';
 
 declare const $localize: any;
 
@@ -86,7 +86,7 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
   @Output()
   newOutputAdded = new EventEmitter<void>();
 
-  constructor(private environmentInfo: EnvironmentInfoService) { }
+  constructor(private productStrategy: ProcessingOutputProductStrategy) { }
 
   get actionType(): ProcessingActionType | null {
     return this.selectedProcAction ? this.selectedProcAction.type || null : null;
@@ -105,13 +105,6 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Check if current product type is SHRIMP
-   */
-  get isShrimpProduct(): boolean {
-    return this.environmentInfo.isProductType('shrimp');
-  }
-
-  /**
    * Check if the selected facility is a laboratory
    */
   isFacilityLaboratory(tsoGroup: AbstractControl): boolean {
@@ -125,12 +118,7 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
    * (both laboratory and normal production entries)
    */
   shouldShowLaboratoryFields(tsoGroup: AbstractControl): boolean {
-    if (!this.isShrimpProduct) {
-      return false;
-    }
-
-    // Show sensorial/quality fields for all shrimp entries (lab and normal)
-    return true;
+    return this.productStrategy.shouldShowLaboratorySection(tsoGroup);
   }
 
   /**
@@ -138,10 +126,15 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
    * When input facility is laboratory, lot is assigned AFTER lab tests, not before
    */
   shouldHideLotFields(): boolean {
-    if (!this.isShrimpProduct) {
-      return false;
-    }
-    return this.selectedInputFacility?.isLaboratory === true;
+    return this.productStrategy.shouldHideLotFields(this.selectedInputFacility);
+  }
+
+  /**
+   * Check if the selected input facility is a classification process facility
+   * This determines whether to show the specialized classification form
+   */
+  isClassificationMode(): boolean {
+    return this.productStrategy.isClassificationMode(this.selectedInputFacility);
   }
 
   getTSOGroupRepackedOutputsArray(tsoGroup: AbstractControl): FormArray {
@@ -162,66 +155,11 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
   }
 
   private ensureLaboratoryControls(tsoGroup: FormGroup): void {
-    const labTextFields = [
-      'sensorialRawOdor',
-      'sensorialRawTaste',
-      'sensorialRawColor',
-      'sensorialCookedOdor',
-      'sensorialCookedTaste',
-      'sensorialCookedColor',
-      'qualityNotes'
-    ];
-
-    if (!tsoGroup.get('sampleNumber')) {
-      tsoGroup.addControl('sampleNumber', new FormControl(null));
-    }
-    if (!tsoGroup.get('receptionTime')) {
-      tsoGroup.addControl('receptionTime', new FormControl(null));
-    }
-    if (!tsoGroup.get('qualityDocument')) {
-      tsoGroup.addControl('qualityDocument', new FormControl(null));
-    }
-
-    labTextFields.forEach(fieldName => {
-      if (!tsoGroup.get(fieldName)) {
-        tsoGroup.addControl(fieldName, new FormControl(null));
-      }
-    });
+    this.productStrategy.ensureExtraControls(tsoGroup);
   }
 
   private updateLaboratoryFieldValidators(tsoGroup: FormGroup): void {
-    const isLab = this.shouldShowLaboratoryFields(tsoGroup);
-    const isInputFromLab = this.selectedInputFacility?.isLaboratory === true;
-    
-    // Sample number is required for all shrimp entries (lab and normal)
-    const requiredControls = ['sampleNumber'];
-
-    requiredControls.forEach(fieldName => {
-      const control = tsoGroup.get(fieldName);
-      if (!control) { return; }
-
-      if (isLab) {
-        control.setValidators([Validators.required]);
-      } else {
-        control.clearValidators();
-      }
-      control.updateValueAndValidity({ emitEvent: false });
-    });
-
-    // Internal lot number: NOT required when input is from laboratory (field is hidden)
-    const internalLotControl = tsoGroup.get('internalLotNumber');
-    if (internalLotControl) {
-      if (isInputFromLab) {
-        // Laboratory input: lot field is hidden, so NOT required
-        internalLotControl.clearValidators();
-        console.log('🔬 Laboratory input: internalLotNumber NOT required (field hidden)');
-      } else {
-        // Normal input: lot field is visible, so required
-        internalLotControl.setValidators([Validators.required]);
-        console.log('🦐 Normal input: internalLotNumber required');
-      }
-      internalLotControl.updateValueAndValidity({ emitEvent: false });
-    }
+    this.productStrategy.updateValidators(tsoGroup, this.selectedInputFacility);
   }
 
   getOutputFacilityCodebook(tsoGroup: FormGroup): CompanyFacilitiesForStockUnitProductService | null {

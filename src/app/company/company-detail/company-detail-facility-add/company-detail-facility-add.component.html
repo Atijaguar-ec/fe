@@ -202,6 +202,20 @@
                             </checkbox-input-rich-label>
                         </checkbox-input>
 
+                        <!-- Checkbox específico para SHRIMP: Actividades de clasificado -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isClassificationProcess')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isClassificationProcess.label">
+                                Actividades de clasificado
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
+                        <!-- Checkbox específico para SHRIMP: Congelación -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isFreezingProcess')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isFreezingProcess.label">
+                                Congelación
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
                     </div>
                 </div>
                 <div class="af-form-block--c6">

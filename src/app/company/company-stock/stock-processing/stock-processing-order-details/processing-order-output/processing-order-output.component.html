@@ -1,9 +1,27 @@
 <ng-container>
     <h2 *ngIf="actionType !== 'SHIPMENT'"
         i18n="@@productLabelStockProcessingOrderDetail.section.output.outputsSectionTitle">Outputs of this processing</h2>
-    <div class="af-form-element position-relative outputs-bottom-spacing processing-section"
-         [class.output]="actionType !== 'SHIPMENT'"
-         *ngFor="let tsoGroup of targetStockOrdersArray.controls; index as tsoGroupIndex">
+    
+    <!-- CLASSIFICATION MODE: Use specialized component -->
+    <ng-container *ngIf="isClassificationMode()">
+        <app-processing-order-output-classification
+            *ngFor="let tsoGroup of targetStockOrdersArray.controls; index as tsoGroupIndex"
+            [tsoGroup]="$any(tsoGroup)"
+            [tsoGroupIndex]="tsoGroupIndex"
+            [submitted]="submitted"
+            [rightSideEnabled]="rightSideEnabled"
+            [procActionLotPrefixControl]="procActionLotPrefixControl"
+            [outputSemiProductsCodebook]="outputSemiProductsCodebook"
+            [semiProductOutputFacilitiesCodebooks]="semiProductOutputFacilitiesCodebooks"
+            (removeOutputEvent)="removeOutput($event)">
+        </app-processing-order-output-classification>
+    </ng-container>
+
+    <!-- STANDARD MODE: Use regular output form -->
+    <ng-container *ngIf="!isClassificationMode()">
+        <div class="af-form-element position-relative outputs-bottom-spacing processing-section"
+             [class.output]="actionType !== 'SHIPMENT'"
+             *ngFor="let tsoGroup of targetStockOrdersArray.controls; index as tsoGroupIndex">
 
         <!-- CONTROLS FOR DISPLAYING AND SELECTING OUTPUT STOCK UNIT -->
         <div class="af-row">
@@ -166,163 +184,15 @@
                 </app-datepicker>
             </div>
         </div>
-
-         <!-- CAMPOS ESPECÍFICOS PARA LABORATORIO DE CAMARÓN -->
-            <ng-container *ngIf="shouldShowLaboratoryFields(tsoGroup)">
-                <div class="af-row">
-                    <div class="af-c6">
-                        <textinput
-                            [form]="tsoGroup.get('sampleNumber')"
-                            [submitted]="submitted"
-                            label="N° de Muestra"
-                            i18n-label="@@productLabelStockProcessingOrderDetail.textinput.sampleNumber.label"
-                            placeholder="Ingrese el número de muestra"
-                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.textinput.sampleNumber.placeholder">
-                            <ng-container *ngIf="submitted">
-                                <div *ngIf="tsoGroup.get('sampleNumber').errors as errors" class="sc-invalid-feedback">
-                                    <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.textinput.sampleNumber.error">
-                                        Sample number is required
-                                    </div>
-                                </div>
-                            </ng-container>
-                        </textinput>
-                    </div>
-                </div>
-
-                <!-- ANÁLISIS SENSORIAL -->
-                <div class="af-row mt-3">
-                    <div class="af-c12">
-                        <h4 i18n="@@productLabelStockProcessingOrderDetail.section.sensorialAnalysis.title">ANÁLISIS SENSORIAL</h4>
-                    </div>
-                </div>
-
-                <!-- CRUDO -->
-                <div class="af-row">
-                    <div class="af-c12">
-                        <label class="font-weight-bold" i18n="@@productLabelStockProcessingOrderDetail.section.sensorialAnalysis.raw.title">CRUDO</label>
-                    </div>
-                </div>
-                <div class="af-row">
-                    <div class="af-c4">
-                        <textinput
-                            [form]="tsoGroup.get('sensorialRawOdor')"
-                            [submitted]="submitted"
-                            label="Olor"
-                            i18n-label="@@productLabelStockProcessingOrderDetail.textinput.sensorialRawOdor.label"
-                            placeholder="Olor"
-                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.textinput.sensorialRawOdor.placeholder">
-                        </textinput>
-                    </div>
-                    <div class="af-c4">
-                        <textinput
-                            [form]="tsoGroup.get('sensorialRawTaste')"
-                            [submitted]="submitted"
-                            label="Sabor"
-                            i18n-label="@@productLabelStockProcessingOrderDetail.textinput.sensorialRawTaste.label"
-                            placeholder="Sabor"
-                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.textinput.sensorialRawTaste.placeholder">
-                        </textinput>
-                    </div>
-                    <div class="af-c4">
-                        <textinput
-                            [form]="tsoGroup.get('sensorialRawColor')"
-                            [submitted]="submitted"
-                            label="Color"
-                            i18n-label="@@productLabelStockProcessingOrderDetail.textinput.sensorialRawColor.label"
-                            placeholder="Color"
-                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.textinput.sensorialRawColor.placeholder">
-                        </textinput>
-                    </div>
-                </div>
-
-                <!-- COCIDO -->
-                <div class="af-row mt-2">
-                    <div class="af-c12">
-                        <label class="font-weight-bold" i18n="@@productLabelStockProcessingOrderDetail.section.sensorialAnalysis.cooked.title">COCIDO</label>
-                    </div>
-                </div>
-                <div class="af-row">
-                    <div class="af-c4">
-                        <textinput
-                            [form]="tsoGroup.get('sensorialCookedOdor')"
-                            [submitted]="submitted"
-                            label="Olor"
-                            i18n-label="@@productLabelStockProcessingOrderDetail.textinput.sensorialCookedOdor.label"
-                            placeholder="Olor"
-                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.textinput.sensorialCookedOdor.placeholder">
-                        </textinput>
-                    </div>
-                    <div class="af-c4">
-                        <textinput
-                            [form]="tsoGroup.get('sensorialCookedTaste')"
-                            [submitted]="submitted"
-                            label="Sabor"
-                            i18n-label="@@productLabelStockProcessingOrderDetail.textinput.sensorialCookedTaste.label"
-                            placeholder="Sabor"
-                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.textinput.sensorialCookedTaste.placeholder">
-                        </textinput>
-                    </div>
-                    <div class="af-c4">
-                        <textinput
-                            [form]="tsoGroup.get('sensorialCookedColor')"
-                            [submitted]="submitted"
-                            label="Color"
-                            i18n-label="@@productLabelStockProcessingOrderDetail.textinput.sensorialCookedColor.label"
-                            placeholder="Color"
-                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.textinput.sensorialCookedColor.placeholder">
-                        </textinput>
-                    </div>
-                </div>
-
-                <!-- CALIDAD -->
-                <div class="af-row mt-3">
-                    <div class="af-c12">
-                        <h4 i18n="@@productLabelStockProcessingOrderDetail.section.quality.title">CALIDAD</h4>
-                    </div>
-                </div>
-                <div class="af-row">
-                    <div class="af-c12">
-                        <textarea-input
-                            [form]="tsoGroup.get('qualityNotes')"
-                            [submitted]="submitted"
-                            label="Observaciones de Calidad"
-                            i18n-label="@@productLabelStockProcessingOrderDetail.textarea.qualityNotes.label"
-                            placeholder="Ingrese observaciones sobre la calidad"
-                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.textarea.qualityNotes.placeholder"
-                            [rows]="4">
-                        </textarea-input>
-                    </div>
-                </div>
-                <div class="af-row">
-                    <div class="af-c12">
-                        <attachment-uploader
-                            [allowedMimeType]="['application/pdf']"
-                            allowedMimeTypeErrorMessage="Solo se permiten archivos PDF."
-                            mode="simpleAsTextField"
-                            label="Documento de Calidad (PDF)"
-                            i18n-label="@@productLabelStockProcessingOrderDetail.attachment-uploader.qualityDocument.label"
-                            i18n-allowedMimeTypeErrorMessage="@@productLabelStockProcessingOrderDetail.attachment-uploader.qualityDocument.allowedMimeTypeErrorMessage"
-                            [form]="$any(tsoGroup.get('qualityDocument'))"
-                            [attachmentUploaderId]="'qualityDocument'+tsoIndex"
-                            [invalid]="submitted && tsoGroup.get('qualityDocument').invalid">
-                            <attachment-uploader-content i18n="@@productLabelStockProcessingOrderDetail.attachment-uploader.qualityDocument.content">
-                                Subir documento de calidad
-                            </attachment-uploader-content>
-                        </attachment-uploader>
-                        <attachment-uploader-errors>
-                            <ng-container *ngIf="submitted">
-                                <div *ngIf="tsoGroup.get('qualityDocument').errors as errors" validation-error class="sc-invalid-feedback">
-                                    <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.attachment-uploader.qualityDocument.error">
-                                        <span>
-                                            Documento de calidad es requerido
-                                        </span>
-                                    </div>
-                                </div>
-                            </ng-container>
-                        </attachment-uploader-errors>
-                    </div>
-                </div>
-            </ng-container>
+        
+        <!-- CAMPOS ESPECÍFICOS PARA LABORATORIO SEGÚN PRODUCTO -->
+        <ng-container *ngIf="shouldShowLaboratoryFields(tsoGroup)">
+            <app-processing-output-lab-shrimp
+                [tsoGroup]="$any(tsoGroup)"
+                [submitted]="submitted"
+                [tsoIndex]="tsoGroupIndex">
+            </app-processing-output-lab-shrimp>
+        </ng-container>
 
         <!-- DISPLAY THE PROCESSING EVIDENCE FIELDS -->
         <ng-container *ngIf="selectedProcAction.requiredEvidenceFields">
@@ -412,7 +282,8 @@
         </ng-container>
 
         <div *ngIf="!rightSideEnabled" class="disabled-section-overlay"></div>
-    </div>
+        </div>
+    </ng-container>
 
     <div *ngIf="showAddNewOutputButton" class="d-flex justify-content-end outputs-bottom-spacing">
         <button class="btn" type="button" (click)="addNewOutput()">

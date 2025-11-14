@@ -1,0 +1,365 @@
+<div class="af-form-element position-relative outputs-bottom-spacing processing-section classification-section">
+    
+    <!-- HEADER: Selección de semi-producto y instalación -->
+    <div class="af-row">
+        <div class="af-c12 d-flex">
+            <div class="flex-fill">
+                <single-choice
+                    label="Tipo de semi-producto"
+                    i18n-label="@@productLabelStockProcessingOrderDetail.classification.semiProduct.label"
+                    [formControlInput]="$any(tsoGroup.get('semiProduct'))"
+                    [codebookService]="outputSemiProductsCodebook"
+                    [clearable]="false"
+                    style="min-width: 150px;"
+                    [isInvalidChoice]="submitted && tsoGroup.get('semiProduct').invalid">
+                    <ng-container *ngIf="submitted">
+                        <div *ngIf="tsoGroup.get('semiProduct').errors as errors" class="sc-invalid-feedback"
+                             i18n="@@productLabelStockProcessingOrderDetail.classification.semiProduct.error">
+                            El semi-producto es requerido
+                        </div>
+                    </ng-container>
+                </single-choice>
+            </div>
+            <div class="ml-4">
+                <div class="delete-output-icon"
+                     [class.disabled]="!canDelete"
+                     (click)="onRemoveOutput()">
+                    <fa-icon class="del-icon" [icon]="faTrashAlt"></fa-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FACILITY SELECTION -->
+    <div class="af-row">
+        <div class="af-c12">
+            <single-choice
+                *ngIf="tsoGroup.get('semiProduct').value"
+                label="Instalación"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.facility.label"
+                [formControlInput]="$any(tsoGroup.get('facility'))"
+                [codebookService]="getOutputFacilityCodebook()"
+                [clearable]="false"
+                style="min-width: 150px;"
+                [isInvalidChoice]="submitted && tsoGroup.get('facility').invalid">
+                <ng-container *ngIf="submitted">
+                    <div *ngIf="tsoGroup.get('facility').errors as errors" class="sc-invalid-feedback"
+                         i18n="@@productLabelStockProcessingOrderDetail.classification.facility.error">
+                        La instalación es requerida
+                    </div>
+                </ng-container>
+            </single-choice>
+        </div>
+    </div>
+
+
+    <!-- INTERNAL LOT NUMBER -->
+    <div class="af-row">
+        <div class="af-c3">
+            <textinput
+                [form]="procActionLotPrefixControl"
+                label="Prefijo"
+                style="width: 100%"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.lotPrefix.label">
+            </textinput>
+        </div>
+        <div class="af-c9">
+            <textinput
+                [form]="$any(tsoGroup.get('internalLotNumber'))"
+                label="Nombre de lote interno"
+                style="width: 100%" 
+                placeholder="Ingrese nombre de lote interno"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.internalLotNumber.label"
+                i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.internalLotNumber.placeholder"
+                [isInvalid]="submitted && tsoGroup.get('internalLotNumber').invalid">
+                <ng-container *ngIf="submitted">
+                    <div *ngIf="tsoGroup.get('internalLotNumber').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.internalLotNumber.error">
+                            El nombre de lote interno es requerido
+                        </div>
+                    </div>
+                </ng-container>
+            </textinput>
+        </div>
+    </div>
+
+    <!-- CLASSIFICATION HEADER SECTION -->
+    <div class="af-row mt-4">
+        <div class="af-c12">
+            <h3 class="classification-section-title" i18n="@@productLabelStockProcessingOrderDetail.classification.header.title">
+                Detalles de Clasificación
+            </h3>
+        </div>
+    </div>
+
+    <!-- START AND END DATE -->
+    <div class="af-row">
+        <div class="af-c6">
+            <app-datepicker
+                label="Fecha de inicio"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.startTime.label"
+                [form]="tsoGroup.get('classificationStartTime')"
+                [invalid]="submitted && tsoGroup.get('classificationStartTime').invalid">
+                <ng-container *ngIf="submitted">
+                    <div *ngIf="tsoGroup.get('classificationStartTime').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.startTime.error">
+                            La fecha de inicio es requerida
+                        </div>
+                    </div>
+                </ng-container>
+            </app-datepicker>
+        </div>
+        <div class="af-c6">
+            <app-datepicker
+                label="Fecha de fin"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.endTime.label"
+                [form]="tsoGroup.get('classificationEndTime')"
+                [invalid]="submitted && tsoGroup.get('classificationEndTime').invalid">
+                <ng-container *ngIf="submitted">
+                    <div *ngIf="tsoGroup.get('classificationEndTime').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.endTime.error">
+                            La fecha de fin es requerida
+                        </div>
+                    </div>
+                </ng-container>
+            </app-datepicker>
+        </div>
+    </div>
+
+    <!-- PRODUCTION ORDER, FREEZING TYPE, MACHINE -->
+    <div class="af-row">
+        <div class="af-c4">
+            <textinput
+                [form]="$any(tsoGroup.get('productionOrder'))"
+                label="Orden de producción"
+                placeholder="Ingrese orden de producción"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.productionOrder.label"
+                i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.productionOrder.placeholder"
+                [isInvalid]="submitted && tsoGroup.get('productionOrder').invalid">
+                <ng-container *ngIf="submitted">
+                    <div *ngIf="tsoGroup.get('productionOrder').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.productionOrder.error">
+                            La orden de producción es requerida
+                        </div>
+                    </div>
+                </ng-container>
+            </textinput>
+        </div>
+        <div class="af-c4">
+            <textinput
+                [form]="$any(tsoGroup.get('freezingType'))"
+                label="Tipo de congelación"
+                placeholder="ej., IQF, Bloque"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.freezingType.label"
+                i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.freezingType.placeholder"
+                [isInvalid]="submitted && tsoGroup.get('freezingType').invalid">
+                <ng-container *ngIf="submitted">
+                    <div *ngIf="tsoGroup.get('freezingType').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.freezingType.error">
+                            El tipo de congelación es requerido
+                        </div>
+                    </div>
+                </ng-container>
+            </textinput>
+        </div>
+        <div class="af-c4">
+            <textinput
+                [form]="$any(tsoGroup.get('machine'))"
+                label="Máquina"
+                placeholder="Ingrese identificador de máquina"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.machine.label"
+                i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.machine.placeholder"
+                [isInvalid]="submitted && tsoGroup.get('machine').invalid">
+                <ng-container *ngIf="submitted">
+                    <div *ngIf="tsoGroup.get('machine').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.machine.error">
+                            La máquina es requerida
+                        </div>
+                    </div>
+                </ng-container>
+            </textinput>
+        </div>
+    </div>
+
+    <!-- BRAND HEADER -->
+    <div class="af-row">
+        <div class="af-c12">
+            <textinput
+                [form]="$any(tsoGroup.get('brandHeader'))"
+                label="Marca"
+                placeholder="Ingrese nombre de marca"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.brandHeader.label"
+                i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.brandHeader.placeholder"
+                [isInvalid]="submitted && tsoGroup.get('brandHeader').invalid">
+                <ng-container *ngIf="submitted">
+                    <div *ngIf="tsoGroup.get('brandHeader').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.brandHeader.error">
+                            La marca es requerida
+                        </div>
+                    </div>
+                </ng-container>
+            </textinput>
+        </div>
+    </div>
+
+    <!-- CLASSIFICATION DETAILS TABLE -->
+    <div class="af-row mt-4">
+        <div class="af-c12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="classification-table-title" i18n="@@productLabelStockProcessingOrderDetail.classification.detailsTable.title">
+                    Clasificación por Talla
+                </h4>
+                <button class="btn btn-solid round" type="button" (click)="addClassificationDetail()">
+                    <fa-icon [icon]="faPlus"></fa-icon>
+                    <span class="ml-2" i18n="@@productLabelStockProcessingOrderDetail.classification.addDetail.button">Agregar talla</span>
+                </button>
+            </div>
+
+            <!-- TABLE HEADER -->
+            <div class="classification-table">
+                <div class="classification-table-header">
+                    <div class="classification-col col-brand" i18n="@@productLabelStockProcessingOrderDetail.classification.table.brand">Marca</div>
+                    <div class="classification-col col-size" i18n="@@productLabelStockProcessingOrderDetail.classification.table.size">Talla</div>
+                    <div class="classification-col col-boxes" i18n="@@productLabelStockProcessingOrderDetail.classification.table.boxes">Cajas</div>
+                    <div class="classification-col col-classification-u" i18n="@@productLabelStockProcessingOrderDetail.classification.table.classificationU">Clasif. U</div>
+                    <div class="classification-col col-classification-num" i18n="@@productLabelStockProcessingOrderDetail.classification.table.classificationNumber">Clasif. #</div>
+                    <div class="classification-col col-weight-box" i18n="@@productLabelStockProcessingOrderDetail.classification.table.weightPerBox">Peso/Caja</div>
+                    <div class="classification-col col-format" i18n="@@productLabelStockProcessingOrderDetail.classification.table.format">Formato</div>
+                    <div class="classification-col col-total-weight" i18n="@@productLabelStockProcessingOrderDetail.classification.table.totalWeight">Peso Total</div>
+                    <div class="classification-col col-pounds" i18n="@@productLabelStockProcessingOrderDetail.classification.table.poundsPerSize">Lb/Talla</div>
+                    <div class="classification-col col-actions"></div>
+                </div>
+
+                <!-- TABLE ROWS -->
+                <div *ngFor="let detailGroup of classificationDetailsArray.controls; index as detailIndex" 
+                     class="classification-table-row">
+                    
+                    <!-- Brand Detail -->
+                    <div class="classification-col col-brand">
+                        <textinput
+                            [form]="$any(detailGroup.get('brandDetail'))"
+                            placeholder="Marca"
+                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.brandDetail.placeholder"
+                            [isInvalid]="submitted && detailGroup.get('brandDetail').invalid">
+                        </textinput>
+                    </div>
+
+                    <!-- Size -->
+                    <div class="classification-col col-size">
+                        <textinput
+                            [form]="$any(detailGroup.get('size'))"
+                            placeholder="Talla"
+                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.size.placeholder"
+                            [isInvalid]="submitted && detailGroup.get('size').invalid">
+                        </textinput>
+                    </div>
+
+                    <!-- Boxes -->
+                    <div class="classification-col col-boxes">
+                        <textinput
+                            [form]="$any(detailGroup.get('boxes'))"
+                            type="number"
+                            min="0"
+                            step="1"
+                            placeholder="0"
+                            [isInvalid]="submitted && detailGroup.get('boxes').invalid">
+                        </textinput>
+                    </div>
+
+                    <!-- Classification U -->
+                    <div class="classification-col col-classification-u">
+                        <textinput
+                            [form]="$any(detailGroup.get('classificationU'))"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="0"
+                            [isInvalid]="submitted && detailGroup.get('classificationU').invalid">
+                        </textinput>
+                    </div>
+
+                    <!-- Classification Number -->
+                    <div class="classification-col col-classification-num">
+                        <textinput
+                            [form]="$any(detailGroup.get('classificationNumber'))"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="0"
+                            [isInvalid]="submitted && detailGroup.get('classificationNumber').invalid">
+                        </textinput>
+                    </div>
+
+                    <!-- Weight Per Box -->
+                    <div class="classification-col col-weight-box">
+                        <textinput
+                            [form]="$any(detailGroup.get('weightPerBox'))"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="0.00"
+                            [isInvalid]="submitted && detailGroup.get('weightPerBox').invalid">
+                        </textinput>
+                    </div>
+
+                    <!-- Weight Format -->
+                    <div class="classification-col col-format">
+                        <select class="form-control" [formControl]="$any(detailGroup.get('weightFormat'))">
+                            <option value="KG">KG</option>
+                            <option value="LB">LB</option>
+                        </select>
+                    </div>
+
+                    <!-- Total Weight (Calculated) -->
+                    <div class="classification-col col-total-weight">
+                        <span class="calculated-value">{{ calculateTotalWeight(detailGroup) | number:'1.2-2' }}</span>
+                    </div>
+
+                    <!-- Pounds Per Size (Calculated) -->
+                    <div class="classification-col col-pounds">
+                        <span class="calculated-value">{{ calculatePoundsPerSize(detailGroup) | number:'1.2-2' }}</span>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="classification-col col-actions">
+                        <div class="delete-row-icon" 
+                             [class.disabled]="classificationDetailsArray.length <= 1"
+                             (click)="removeClassificationDetail(detailIndex)">
+                            <fa-icon class="del-icon" [icon]="faTrashAlt"></fa-icon>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TOTALS ROW -->
+                <div class="classification-table-row classification-totals-row">
+                    <div class="classification-col col-brand"></div>
+                    <div class="classification-col col-size">
+                        <strong i18n="@@productLabelStockProcessingOrderDetail.classification.table.totals">TOTALES</strong>
+                    </div>
+                    <div class="classification-col col-boxes">
+                        <strong>{{ calculateGrandTotalBoxes() }}</strong>
+                    </div>
+                    <div class="classification-col col-classification-u"></div>
+                    <div class="classification-col col-classification-num"></div>
+                    <div class="classification-col col-weight-box"></div>
+                    <div class="classification-col col-format"></div>
+                    <div class="classification-col col-total-weight">
+                        <strong>{{ calculateGrandTotalWeight() | number:'1.2-2' }}</strong>
+                    </div>
+                    <div class="classification-col col-pounds"></div>
+                    <div class="classification-col col-actions"></div>
+                </div>
+            </div>
+
+            <!-- Validation Messages -->
+            <div *ngIf="submitted && classificationDetailsArray.length === 0" class="sc-invalid-feedback mt-2">
+                <span i18n="@@productLabelStockProcessingOrderDetail.classification.detailsRequired.error">
+                    Se requiere al menos una clasificación por talla
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disabled overlay when right side is not enabled -->
+    <div *ngIf="!rightSideEnabled" class="disabled-section-overlay"></div>
+</div>

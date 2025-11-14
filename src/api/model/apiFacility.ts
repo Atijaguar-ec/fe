@@ -89,6 +89,14 @@ export interface ApiFacility {
      */
     isLaboratory?: boolean;
     /**
+     * Facility performs shrimp classification process (specific for shrimp value chain)
+     */
+    isClassificationProcess?: boolean;
+    /**
+     * Facility performs shrimp freezing process (specific for shrimp value chain)
+     */
+    isFreezingProcess?: boolean;
+    /**
      * Custom facility level overriding facility type order
      */
     level?: number;
@@ -178,6 +186,14 @@ export namespace ApiFacility {
          * Facility is a laboratory (specific for shrimp value chain)
          */
         isLaboratory = 'isLaboratory',
+        /**
+         * Facility performs shrimp classification process (specific for shrimp value chain)
+         */
+        isClassificationProcess = 'isClassificationProcess',
+        /**
+         * Facility performs shrimp freezing process (specific for shrimp value chain)
+         */
+        isFreezingProcess = 'isFreezingProcess',
         /**
          * Custom facility level overriding facility type order
          */
@@ -368,6 +384,28 @@ export namespace ApiFacility {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'isClassificationProcess',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'isFreezingProcess',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'level',
                     classname: 'ApiFacility',
                     dataType: 'number',
@@ -500,6 +538,10 @@ export namespace ApiFacility {
                 ],
                 isLaboratory: [
                 ],
+                isClassificationProcess: [
+                ],
+                isFreezingProcess: [
+                ],
                 level: [
                 ],
                 facilityLocation: [
@@ -565,6 +607,12 @@ export namespace ApiFacility {
   //                   validators: []
   //               },
   //               isLaboratory: {
+  //                   validators: []
+  //               },
+  //               isClassificationProcess: {
+  //                   validators: []
+  //               },
+  //               isFreezingProcess: {
   //                   validators: []
   //               },
   //               level: {
