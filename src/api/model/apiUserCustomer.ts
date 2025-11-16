@@ -201,6 +201,14 @@ export namespace ApiUserCustomer {
     }
 
     /**
+     * All possible values of personType.
+     */
+    export enum PersonTypeEnum {
+        NATURAL = 'NATURAL',
+        LEGAL = 'LEGAL'
+    }
+
+    /**
      * All possible values of gender.
      */
     export enum GenderEnum {
@@ -208,12 +216,6 @@ export namespace ApiUserCustomer {
         MALE = 'MALE',
         NA = 'N_A',
         DIVERSE = 'DIVERSE'
-    }
-
-
-    export enum PersonTypeEnum {
-        NATURAL = 'NATURAL',
-        LEGAL = 'LEGAL'
     }
 
 
@@ -484,6 +486,14 @@ export namespace ApiUserCustomer {
                         ['minlength', 0],
                         ['maxlength', 255],
                 ],
+                companyName: [
+                        ['minlength', 0],
+                        ['maxlength', 255],
+                ],
+                legalRepresentative: [
+                        ['minlength', 0],
+                        ['maxlength', 255],
+                ],
                 phone: [
                         ['minlength', 0],
                         ['maxlength', 20],
@@ -531,10 +541,19 @@ export namespace ApiUserCustomer {
   //               type: {
   //                   validators: []
   //               },
+  //               personType: {
+  //                   validators: []
+  //               },
   //               name: {
   //                   validators: []
   //               },
   //               surname: {
+  //                   validators: []
+  //               },
+  //               companyName: {
+  //                   validators: []
+  //               },
+  //               legalRepresentative: {
   //                   validators: []
   //               },
   //               phone: {

@@ -10,10 +10,10 @@ import { ProcessingActionType } from '../../../../../../shared/types';
  * an Angular DI token (no parameter decorators needed in the component).
  */
 export abstract class ProcessingOutputProductStrategy {
-  abstract shouldShowLaboratorySection(tsoGroup: AbstractControl): boolean;
+  abstract shouldShowLaboratorySection(tsoGroup: AbstractControl, selectedInputFacility: ApiFacility | null): boolean;
   abstract shouldHideLotFields(selectedInputFacility: ApiFacility | null): boolean;
   abstract shouldShowOutputQuantityField(actionType: ProcessingActionType | null): boolean;
-  abstract shouldShowFreezingSection(tsoGroup: AbstractControl): boolean;
+  abstract shouldShowFreezingSection(tsoGroup: AbstractControl, selectedInputFacility: ApiFacility | null): boolean;
   abstract ensureExtraControls(tsoGroup: FormGroup): void;
   abstract updateValidators(tsoGroup: FormGroup, selectedInputFacility: ApiFacility | null): void;
   abstract isClassificationMode(selectedInputFacility: ApiFacility | null): boolean;
@@ -23,7 +23,7 @@ export abstract class ProcessingOutputProductStrategy {
  * Default strategy for products without special laboratory behavior (e.g. cocoa, coffee).
  */
 class DefaultProcessingOutputStrategy extends ProcessingOutputProductStrategy {
-  shouldShowLaboratorySection(_tsoGroup: AbstractControl): boolean {
+  shouldShowLaboratorySection(_tsoGroup: AbstractControl, _selectedInputFacility: ApiFacility | null): boolean {
     return false;
   }
 
@@ -35,7 +35,7 @@ class DefaultProcessingOutputStrategy extends ProcessingOutputProductStrategy {
     return actionType !== 'TRANSFER' && actionType !== 'GENERATE_QR_CODE';
   }
 
-  shouldShowFreezingSection(_tsoGroup: AbstractControl): boolean {
+  shouldShowFreezingSection(_tsoGroup: AbstractControl, _selectedInputFacility: ApiFacility | null): boolean {
     return false;
   }
 
@@ -91,15 +91,17 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
     'freezingTemperatureControl'
   ];
 
-  shouldShowLaboratorySection(tsoGroup: AbstractControl): boolean {
-    // For shrimp product: show sensorial/quality fields ONLY when the output facility
-    // is explicitly marked as a collection facility (centro de acopio).
-    const facility = tsoGroup?.get('facility')?.value as ApiFacility | null;
+  shouldShowLaboratorySection(_tsoGroup: AbstractControl, selectedInputFacility: ApiFacility | null): boolean {
+    // For shrimp product: decide visibility based on the INPUT facility
+    // (area from which the product comes), not the output facility.
+    const facility = selectedInputFacility;
     return facility?.isCollectionFacility === true;
   }
 
-  shouldShowFreezingSection(tsoGroup: AbstractControl): boolean {
-    const facility = tsoGroup?.get('facility')?.value as ApiFacility | null;
+  shouldShowFreezingSection(_tsoGroup: AbstractControl, selectedInputFacility: ApiFacility | null): boolean {
+    // For shrimp product: show freezing-specific fields when the INPUT facility
+    // is marked as freezing process.
+    const facility = selectedInputFacility;
     return facility?.isFreezingProcess === true;
   }
 
@@ -145,9 +147,9 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
   }
 
   updateValidators(tsoGroup: FormGroup, selectedInputFacility: ApiFacility | null): void {
-    const isLabSectionVisible = this.shouldShowLaboratorySection(tsoGroup);
+    const isLabSectionVisible = this.shouldShowLaboratorySection(tsoGroup, selectedInputFacility);
     const isInputFromLab = selectedInputFacility?.isLaboratory === true;
-    const isFreezingFacility = this.shouldShowFreezingSection(tsoGroup);
+    const isFreezingFacility = this.shouldShowFreezingSection(tsoGroup, selectedInputFacility);
     const isClassification = this.isClassificationMode(selectedInputFacility);
 
     // Sample number is required for all shrimp entries (lab and normal)

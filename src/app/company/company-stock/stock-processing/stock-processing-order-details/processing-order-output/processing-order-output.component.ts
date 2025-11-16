@@ -118,7 +118,7 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
    * (both laboratory and normal production entries)
    */
   shouldShowLaboratoryFields(tsoGroup: AbstractControl): boolean {
-    return this.productStrategy.shouldShowLaboratorySection(tsoGroup);
+    return this.productStrategy.shouldShowLaboratorySection(tsoGroup, this.selectedInputFacility);
   }
 
   /**
@@ -134,7 +134,7 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
   }
 
   shouldShowFreezingSection(tsoGroup: AbstractControl): boolean {
-    return this.productStrategy.shouldShowFreezingSection(tsoGroup);
+    return this.productStrategy.shouldShowFreezingSection(tsoGroup, this.selectedInputFacility);
   }
 
   /**
