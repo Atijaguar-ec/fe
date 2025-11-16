@@ -47,6 +47,10 @@ export interface ApiUserCustomer {
      */
     type?: ApiUserCustomer.TypeEnum;
     /**
+     * Person type: NATURAL (individual) or LEGAL (company)
+     */
+    personType?: ApiUserCustomer.PersonTypeEnum;
+    /**
      * Name
      */
     name?: string;
@@ -54,6 +58,14 @@ export interface ApiUserCustomer {
      * Surname
      */
     surname?: string;
+    /**
+     * Legal entity company name (when personType = LEGAL)
+     */
+    companyName?: string;
+    /**
+     * Legal representative full name (when personType = LEGAL)
+     */
+    legalRepresentative?: string;
     /**
      * Phone
      */
@@ -120,6 +132,10 @@ export namespace ApiUserCustomer {
          */
         type = 'type',
         /**
+         * Person type: NATURAL (individual) or LEGAL (company)
+         */
+        personType = 'personType',
+        /**
          * Name
          */
         name = 'name',
@@ -127,6 +143,14 @@ export namespace ApiUserCustomer {
          * Surname
          */
         surname = 'surname',
+        /**
+         * Legal entity company name (when personType = LEGAL)
+         */
+        companyName = 'companyName',
+        /**
+         * Legal representative full name (when personType = LEGAL)
+         */
+        legalRepresentative = 'legalRepresentative',
         /**
          * Phone
          */
@@ -187,6 +211,12 @@ export namespace ApiUserCustomer {
     }
 
 
+    export enum PersonTypeEnum {
+        NATURAL = 'NATURAL',
+        LEGAL = 'LEGAL'
+    }
+
+
     export function formMetadata() {
         return  {
             metadata: formMetadata,
@@ -239,6 +269,18 @@ export namespace ApiUserCustomer {
                 },
                 {
                     isReadOnly: false,
+                    isEnum: true,
+                    datatypeWithEnum: 'ApiUserCustomer.PersonTypeEnum',
+                    required: false,
+                    name: 'personType',
+                    classname: 'ApiUserCustomer',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
                     isEnum: false,
                     required: false,
                     name: 'name',
@@ -253,6 +295,28 @@ export namespace ApiUserCustomer {
                     isEnum: false,
                     required: false,
                     name: 'surname',
+                    classname: 'ApiUserCustomer',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'companyName',
+                    classname: 'ApiUserCustomer',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'legalRepresentative',
                     classname: 'ApiUserCustomer',
                     dataType: 'string',
                     isPrimitiveType: true,
@@ -409,6 +473,8 @@ export namespace ApiUserCustomer {
                 farmerCompanyInternalId: [
                 ],
                 type: [
+                ],
+                personType: [
                 ],
                 name: [
                         ['minlength', 0],
