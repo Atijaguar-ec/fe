@@ -96,6 +96,38 @@
   </div>
 </div>
 
+<!-- METABISULFITO -->
+<div class="af-row mt-2">
+  <div class="af-c12">
+    <checkbox-input [form]="$any(tsoGroup.get('metabisulfiteLevelAcceptable'))">
+      <checkbox-input-rich-label i18n="@@productLabelStockProcessingOrderDetail.checkbox.metabisulfiteAcceptable.label">
+        Nivel de Metabisulfito aceptable?
+      </checkbox-input-rich-label>
+    </checkbox-input>
+  </div>
+</div>
+
+<!-- APROBACIÓN PARA COMPRA (single-choice Sí/No) -->
+<div class="af-row mt-2">
+  <div class="af-c12">
+    <single-choice
+      label="Análisis aprobado para compra"
+      i18n-label="@@productLabelStockProcessingOrderDetail.checkbox.approvedForPurchase.label"
+      [formControlInput]="$any(tsoGroup.get('approvedForPurchase'))"
+      [codebookService]="approvalCodebook"
+      style="min-width: 150px;"
+      [isInvalidChoice]="submitted && tsoGroup.get('approvedForPurchase').invalid">
+      <ng-container *ngIf="submitted">
+        <div *ngIf="tsoGroup.get('approvedForPurchase').errors as errors" class="sc-invalid-feedback">
+          <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.singleChoice.approvedForPurchase.error">
+            Análisis aprobado para compra es obligatorio
+          </div>
+        </div>
+      </ng-container>
+    </single-choice>
+  </div>
+</div>
+
 <!-- CALIDAD -->
 <div class="af-row mt-3">
   <div class="af-c12">

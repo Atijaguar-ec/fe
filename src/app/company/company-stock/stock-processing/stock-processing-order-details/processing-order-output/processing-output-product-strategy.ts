@@ -126,6 +126,15 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
       tsoGroup.addControl('qualityDocument', new FormControl(null));
     }
 
+    // Sensory analysis: metabisulfite acceptance (yes/no)
+    if (!tsoGroup.get('metabisulfiteLevelAcceptable')) {
+      tsoGroup.addControl('metabisulfiteLevelAcceptable', new FormControl(null));
+    }
+
+    if (!tsoGroup.get('approvedForPurchase')) {
+      tsoGroup.addControl('approvedForPurchase', new FormControl(null));
+    }
+
     this.labTextFields.forEach(fieldName => {
       if (!tsoGroup.get(fieldName)) {
         tsoGroup.addControl(fieldName, new FormControl(null));
@@ -152,7 +161,7 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
     const isFreezingFacility = this.shouldShowFreezingSection(tsoGroup, selectedInputFacility);
     const isClassification = this.isClassificationMode(selectedInputFacility);
 
-    // Sample number is required for all shrimp entries (lab and normal)
+    // Sample number is required when lab section is visible
     const requiredControls = ['sampleNumber'];
 
     requiredControls.forEach(fieldName => {
@@ -166,6 +175,21 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
       }
       control.updateValueAndValidity({ emitEvent: false });
     });
+
+    // Analysis approval must be explicitly answered (cannot stay null),
+    // but both true (yes) and false (no) are valid values.
+    const approvalControl = tsoGroup.get('approvedForPurchase');
+    if (approvalControl) {
+      if (isLabSectionVisible) {
+        approvalControl.setValidators([
+          (ctrl: AbstractControl) =>
+            ctrl.value === null || ctrl.value === undefined ? { required: true } : null
+        ]);
+      } else {
+        approvalControl.clearValidators();
+      }
+      approvalControl.updateValueAndValidity({ emitEvent: false });
+    }
 
     // Freezing fields: in standard mode require all; in classification mode only the shared freezingType
     const freezingRequiredControls = isClassification ? ['freezingType'] : this.freezingFields;
