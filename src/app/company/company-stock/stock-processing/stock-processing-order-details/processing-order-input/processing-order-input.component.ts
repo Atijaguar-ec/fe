@@ -671,7 +671,7 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
         totalQuantity: selectedStockOrder.availableQuantity
       };
 
-      // Propagate laboratory analysis fields from the temporary output form
+      // Propagate laboratory analysis fields and classification fields from the temporary output form
       // so they are preserved in TRANSFER-type processing actions.
       const labSource: any = sourceStockOrder as any;
       const labTarget: any = newStockOrder as any;
@@ -685,7 +685,15 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
         'qualityNotes',
         'metabisulfiteLevelAcceptable',
         'approvedForPurchase',
-        'qualityDocument'
+        'qualityDocument',
+        // Classification fields
+        'classificationStartTime',
+        'classificationEndTime',
+        'productionOrder',
+        'freezingType',
+        'machine',
+        'brandHeader',
+        'classificationDetails'
       ].forEach(fieldName => {
         if (labSource[fieldName] !== undefined) {
           labTarget[fieldName] = labSource[fieldName];

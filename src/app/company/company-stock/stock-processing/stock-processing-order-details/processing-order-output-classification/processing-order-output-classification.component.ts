@@ -134,8 +134,8 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
    */
   addClassificationDetail(): void {
     const detailGroup = new FormGroup({
-      brandDetail: new FormControl(null, [Validators.required]),
-      size: new FormControl(null, [Validators.required]),
+      brandDetail: new FormControl(null), // Optional
+      size: new FormControl(null), // Optional
       boxes: new FormControl(null, [Validators.required, Validators.min(0)]),
       classificationU: new FormControl(null, [Validators.required, Validators.min(0)]),
       classificationNumber: new FormControl(null, [Validators.required, Validators.min(0)]),

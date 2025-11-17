@@ -239,8 +239,8 @@
             <!-- TABLE HEADER -->
             <div class="classification-table">
                 <div class="classification-table-header">
-                    <div class="classification-col col-brand" i18n="@@productLabelStockProcessingOrderDetail.classification.table.brand">Marca</div>
-                    <div class="classification-col col-size" i18n="@@productLabelStockProcessingOrderDetail.classification.table.size">Talla</div>
+                    <div class="classification-col col-brand" *ngIf="false" i18n="@@productLabelStockProcessingOrderDetail.classification.table.brand">Marca</div>
+                    <div class="classification-col col-size" *ngIf="false" i18n="@@productLabelStockProcessingOrderDetail.classification.table.size">Talla</div>
                     <div class="classification-col col-boxes" i18n="@@productLabelStockProcessingOrderDetail.classification.table.boxes">Cajas</div>
                     <div class="classification-col col-classification-u" i18n="@@productLabelStockProcessingOrderDetail.classification.table.classificationU">Clasif. U</div>
                     <div class="classification-col col-classification-num" i18n="@@productLabelStockProcessingOrderDetail.classification.table.classificationNumber">Clasif. #</div>
@@ -255,8 +255,8 @@
                 <div *ngFor="let detailGroup of classificationDetailsArray.controls; index as detailIndex" 
                      class="classification-table-row">
                     
-                    <!-- Brand Detail -->
-                    <div class="classification-col col-brand">
+                    <!-- Brand Detail (Hidden) -->
+                    <div class="classification-col col-brand" *ngIf="false">
                         <textinput
                             [form]="$any(detailGroup.get('brandDetail'))"
                             placeholder="Marca"
@@ -265,8 +265,8 @@
                         </textinput>
                     </div>
 
-                    <!-- Size -->
-                    <div class="classification-col col-size">
+                    <!-- Size (Hidden) -->
+                    <div class="classification-col col-size" *ngIf="false">
                         <textinput
                             [form]="$any(detailGroup.get('size'))"
                             placeholder="Talla"
@@ -353,12 +353,10 @@
 
                 <!-- TOTALS ROW -->
                 <div class="classification-table-row classification-totals-row">
-                    <div class="classification-col col-brand"></div>
-                    <div class="classification-col col-size">
-                        <strong i18n="@@productLabelStockProcessingOrderDetail.classification.table.totals">TOTALES</strong>
-                    </div>
+                    <div class="classification-col col-brand" *ngIf="false"></div>
+                    <div class="classification-col col-size" *ngIf="false"></div>
                     <div class="classification-col col-boxes">
-                        <strong>{{ calculateGrandTotalBoxes() }}</strong>
+                        <strong i18n="@@productLabelStockProcessingOrderDetail.classification.table.totals">TOTALES {{ calculateGrandTotalBoxes() }}</strong>
                     </div>
                     <div class="classification-col col-classification-u"></div>
                     <div class="classification-col col-classification-num"></div>
