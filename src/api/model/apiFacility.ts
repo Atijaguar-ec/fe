@@ -97,6 +97,22 @@ export interface ApiFacility {
      */
     isFreezingProcess?: boolean;
     /**
+     * Facility performs shrimp cutting process (specific for shrimp value chain)
+     */
+    isCuttingProcess?: boolean;
+    /**
+     * Facility performs shrimp treatment process (specific for shrimp value chain)
+     */
+    isTreatmentProcess?: boolean;
+    /**
+     * Facility has a shrimp tunnel freezing area (specific for shrimp value chain)
+     */
+    isTunnelFreezing?: boolean;
+    /**
+     * Facility has a shrimp washing area (specific for shrimp value chain)
+     */
+    isWashingArea?: boolean;
+    /**
      * Custom facility level overriding facility type order
      */
     level?: number;
@@ -194,6 +210,22 @@ export namespace ApiFacility {
          * Facility performs shrimp freezing process (specific for shrimp value chain)
          */
         isFreezingProcess = 'isFreezingProcess',
+        /**
+         * Facility performs shrimp cutting process (specific for shrimp value chain)
+         */
+        isCuttingProcess = 'isCuttingProcess',
+        /**
+         * Facility performs shrimp treatment process (specific for shrimp value chain)
+         */
+        isTreatmentProcess = 'isTreatmentProcess',
+        /**
+         * Facility has a shrimp tunnel freezing area (specific for shrimp value chain)
+         */
+        isTunnelFreezing = 'isTunnelFreezing',
+        /**
+         * Facility has a shrimp washing area (specific for shrimp value chain)
+         */
+        isWashingArea = 'isWashingArea',
         /**
          * Custom facility level overriding facility type order
          */
@@ -406,6 +438,50 @@ export namespace ApiFacility {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'isCuttingProcess',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'isTreatmentProcess',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'isTunnelFreezing',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'isWashingArea',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'level',
                     classname: 'ApiFacility',
                     dataType: 'number',
@@ -542,6 +618,14 @@ export namespace ApiFacility {
                 ],
                 isFreezingProcess: [
                 ],
+                isCuttingProcess: [
+                ],
+                isTreatmentProcess: [
+                ],
+                isTunnelFreezing: [
+                ],
+                isWashingArea: [
+                ],
                 level: [
                 ],
                 facilityLocation: [
@@ -613,6 +697,18 @@ export namespace ApiFacility {
   //                   validators: []
   //               },
   //               isFreezingProcess: {
+  //                   validators: []
+  //               },
+  //               isCuttingProcess: {
+  //                   validators: []
+  //               },
+  //               isTreatmentProcess: {
+  //                   validators: []
+  //               },
+  //               isTunnelFreezing: {
+  //                   validators: []
+  //               },
+  //               isWashingArea: {
   //                   validators: []
   //               },
   //               level: {

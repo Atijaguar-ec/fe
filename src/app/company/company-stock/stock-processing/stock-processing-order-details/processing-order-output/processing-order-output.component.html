@@ -186,7 +186,7 @@
             </div>
         </div>
         
-        <!-- CAMPOS ESPECÍFICOS PARA CONGELACIÓN (solo cuando el facility de salida es de congelación) -->
+        <!-- CAMPOS ESPECÍFICOS PARA CONGELACIÓN (solo cuando el facility de entrada es de congelación) -->
         <ng-container *ngIf="shouldShowFreezingSection(tsoGroup)">
             <div class="af-row mt-3">
                 <div class="af-c12">
@@ -258,6 +258,364 @@
                         <ng-container *ngIf="submitted">
                             <div *ngIf="tsoGroup.get('freezingTemperatureControl').errors as errors" class="sc-invalid-feedback">
                                 <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.freezing.temperatureControl.error">
+                                    El control de temperatura es requerido
+                                </div>
+                            </div>
+                        </ng-container>
+                    </textinput>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- CAMPOS ESPECÍFICOS PARA TÚNEL DE CONGELACIÓN (solo cuando el facility de entrada es túnel) -->
+        <ng-container *ngIf="shouldShowTunnelSection()">
+            <div class="af-row mt-3">
+                <div class="af-c12">
+                    <h4 i18n="@@productLabelStockProcessingOrderDetail.section.tunnel.title">TÚNEL DE CONGELACIÓN</h4>
+                </div>
+            </div>
+
+            <div class="af-row">
+                <div class="af-c3">
+                    <app-datepicker
+                            label="Fecha de producción"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.tunnel.productionDate.label"
+                            [form]="tsoGroup.get('tunnelProductionDate')"
+                            [invalid]="submitted && tsoGroup.get('tunnelProductionDate').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('tunnelProductionDate').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.tunnel.productionDate.error">
+                                    La fecha de producción es requerida
+                                </div>
+                            </div>
+                        </ng-container>
+                    </app-datepicker>
+                </div>
+
+                <div class="af-c3">
+                    <app-datepicker
+                            label="Fecha de Expiración"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.tunnel.expirationDate.label"
+                            [form]="tsoGroup.get('tunnelExpirationDate')"
+                            [invalid]="submitted && tsoGroup.get('tunnelExpirationDate').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('tunnelExpirationDate').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.tunnel.expirationDate.error">
+                                    La fecha de expiración es requerida
+                                </div>
+                            </div>
+                        </ng-container>
+                    </app-datepicker>
+                </div>
+
+                <div class="af-c3">
+                    <textinput
+                            [form]="$any(tsoGroup.get('tunnelNetWeight'))"
+                            label="Peso Neto"
+                            placeholder="Ej., peso neto total"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.tunnel.netWeight.label"
+                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.tunnel.netWeight.placeholder"
+                            [isInvalid]="submitted && tsoGroup.get('tunnelNetWeight').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('tunnelNetWeight').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.tunnel.netWeight.error">
+                                    El peso neto es requerido
+                                </div>
+                            </div>
+                        </ng-container>
+                    </textinput>
+                </div>
+
+                <div class="af-c3">
+                    <textinput
+                            [form]="$any(tsoGroup.get('tunnelSupplier'))"
+                            label="Proveedor"
+                            placeholder="Ej., nombre del proveedor"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.tunnel.supplier.label"
+                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.tunnel.supplier.placeholder"
+                            [isInvalid]="submitted && tsoGroup.get('tunnelSupplier').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('tunnelSupplier').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.tunnel.supplier.error">
+                                    El proveedor es requerido
+                                </div>
+                            </div>
+                        </ng-container>
+                    </textinput>
+                </div>
+            </div>
+
+            <div class="af-row">
+                <div class="af-c4">
+                    <textinput
+                            [form]="$any(tsoGroup.get('tunnelFreezingType'))"
+                            label="Tipo Congelación"
+                            placeholder="Ej., IQF, túnel continuo"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.tunnel.freezingType.label"
+                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.tunnel.freezingType.placeholder"
+                            [isInvalid]="submitted && tsoGroup.get('tunnelFreezingType').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('tunnelFreezingType').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.tunnel.freezingType.error">
+                                    El tipo de congelación es requerido
+                                </div>
+                            </div>
+                        </ng-container>
+                    </textinput>
+                </div>
+
+                <div class="af-c4">
+                    <app-datepicker
+                            label="Fecha de Ingreso"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.tunnel.entryDate.label"
+                            [form]="tsoGroup.get('tunnelEntryDate')"
+                            [invalid]="submitted && tsoGroup.get('tunnelEntryDate').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('tunnelEntryDate').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.tunnel.entryDate.error">
+                                    La fecha de ingreso es requerida
+                                </div>
+                            </div>
+                        </ng-container>
+                    </app-datepicker>
+                </div>
+
+                <div class="af-c4">
+                    <app-datepicker
+                            label="Fecha de Salida"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.tunnel.exitDate.label"
+                            [form]="tsoGroup.get('tunnelExitDate')"
+                            [invalid]="submitted && tsoGroup.get('tunnelExitDate').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('tunnelExitDate').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.tunnel.exitDate.error">
+                                    La fecha de salida es requerida
+                                </div>
+                            </div>
+                        </ng-container>
+                    </app-datepicker>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- CAMPOS ESPECÍFICOS PARA ÁREA DE LAVADO (solo cuando el facility de entrada es de lavado) -->
+        <ng-container *ngIf="shouldShowWashingSection()">
+            <div class="af-row mt-3">
+                <div class="af-c12">
+                    <h4 i18n="@@productLabelStockProcessingOrderDetail.section.washing.title">ÁREA DE LAVADO</h4>
+                </div>
+            </div>
+
+            <div class="af-row">
+                <div class="af-c6">
+                    <textinput
+                            [form]="$any(tsoGroup.get('washingWaterTemperature'))"
+                            label="Temperatura del Agua"
+                            placeholder="Ej., temperatura del agua de lavado"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.washing.waterTemperature.label"
+                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.washing.waterTemperature.placeholder"
+                            [isInvalid]="submitted && tsoGroup.get('washingWaterTemperature').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('washingWaterTemperature').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.washing.waterTemperature.error">
+                                    La temperatura del agua es requerida
+                                </div>
+                            </div>
+                        </ng-container>
+                    </textinput>
+                </div>
+
+                <div class="af-c6">
+                    <textinput
+                            [form]="$any(tsoGroup.get('washingShrimpTemperatureControl'))"
+                            label="P.C. de la temperatura del camarón"
+                            placeholder="Ej., punto crítico/control de temperatura del camarón"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.washing.shrimpTemperatureControl.label"
+                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.washing.shrimpTemperatureControl.placeholder"
+                            [isInvalid]="submitted && tsoGroup.get('washingShrimpTemperatureControl').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('washingShrimpTemperatureControl').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.washing.shrimpTemperatureControl.error">
+                                    El P.C. de la temperatura del camarón es requerido
+                                </div>
+                            </div>
+                        </ng-container>
+                    </textinput>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- CAMPOS ESPECÍFICOS PARA TRATAMIENTO (solo cuando el facility de entrada es de tratamiento) -->
+        <ng-container *ngIf="shouldShowTreatmentSection()">
+            <div class="af-row mt-3">
+                <div class="af-c12">
+                    <h4 i18n="@@productLabelStockProcessingOrderDetail.section.treatment.title">TRATAMIENTO</h4>
+                </div>
+            </div>
+
+            <div class="af-row">
+                <div class="af-c6">
+                    <textinput
+                            [form]="$any(tsoGroup.get('treatmentType'))"
+                            label="Tipo de Corte"
+                            placeholder="Ej., inmersión, rociado"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.treatment.type.label"
+                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.treatment.type.placeholder"
+                            [isInvalid]="submitted && tsoGroup.get('treatmentType').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('treatmentType').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.treatment.type.error">
+                                    El tipo de corte es requerido
+                                </div>
+                            </div>
+                        </ng-container>
+                    </textinput>
+                </div>
+
+                <div class="af-c3">
+                    <app-datepicker
+                            label="Fecha de Ingreso"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.treatment.entryDate.label"
+                            [form]="tsoGroup.get('treatmentEntryDate')"
+                            [invalid]="submitted && tsoGroup.get('treatmentEntryDate').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('treatmentEntryDate').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.treatment.entryDate.error">
+                                    La fecha de ingreso es requerida
+                                </div>
+                            </div>
+                        </ng-container>
+                    </app-datepicker>
+                </div>
+
+                <div class="af-c3">
+                    <app-datepicker
+                            label="Fecha de Salida"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.treatment.exitDate.label"
+                            [form]="tsoGroup.get('treatmentExitDate')"
+                            [invalid]="submitted && tsoGroup.get('treatmentExitDate').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('treatmentExitDate').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.treatment.exitDate.error">
+                                    La fecha de salida es requerida
+                                </div>
+                            </div>
+                        </ng-container>
+                    </app-datepicker>
+                </div>
+            </div>
+
+            <div class="af-row">
+                <div class="af-c6">
+                    <textinput
+                            [form]="$any(tsoGroup.get('treatmentTemperatureControl'))"
+                            label="Control de Temperatura"
+                            placeholder="Ej., rango de temperaturas durante el tratamiento"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.treatment.temperatureControl.label"
+                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.treatment.temperatureControl.placeholder"
+                            [isInvalid]="submitted && tsoGroup.get('treatmentTemperatureControl').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('treatmentTemperatureControl').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.treatment.temperatureControl.error">
+                                    El control de temperatura es requerido
+                                </div>
+                            </div>
+                        </ng-container>
+                    </textinput>
+                </div>
+
+                <div class="af-c6">
+                    <textinput
+                            [form]="$any(tsoGroup.get('treatmentChemicalUsed'))"
+                            label="Químico utilizado"
+                            placeholder="Ej., tipo y concentración de químico"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.treatment.chemicalUsed.label"
+                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.treatment.chemicalUsed.placeholder"
+                            [isInvalid]="submitted && tsoGroup.get('treatmentChemicalUsed').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('treatmentChemicalUsed').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.treatment.chemicalUsed.error">
+                                    El químico utilizado es requerido
+                                </div>
+                            </div>
+                        </ng-container>
+                    </textinput>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- CAMPOS ESPECÍFICOS PARA CORTE (solo cuando el facility de entrada es de corte) -->
+        <ng-container *ngIf="shouldShowCuttingSection()">
+            <div class="af-row mt-3">
+                <div class="af-c12">
+                    <h4 i18n="@@productLabelStockProcessingOrderDetail.section.cutting.title">CORTE</h4>
+                </div>
+            </div>
+
+            <div class="af-row">
+                <div class="af-c6">
+                    <textinput
+                            [form]="$any(tsoGroup.get('cuttingType'))"
+                            label="Tipo de Corte"
+                            placeholder="Ej., pelado, descabezado"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.cutting.type.label"
+                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.cutting.type.placeholder"
+                            [isInvalid]="submitted && tsoGroup.get('cuttingType').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('cuttingType').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.cutting.type.error">
+                                    El tipo de corte es requerido
+                                </div>
+                            </div>
+                        </ng-container>
+                    </textinput>
+                </div>
+
+                <div class="af-c3">
+                    <app-datepicker
+                            label="Fecha de Ingreso"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.cutting.entryDate.label"
+                            [form]="tsoGroup.get('cuttingEntryDate')"
+                            [invalid]="submitted && tsoGroup.get('cuttingEntryDate').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('cuttingEntryDate').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.cutting.entryDate.error">
+                                    La fecha de ingreso es requerida
+                                </div>
+                            </div>
+                        </ng-container>
+                    </app-datepicker>
+                </div>
+
+                <div class="af-c3">
+                    <app-datepicker
+                            label="Fecha de Salida"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.cutting.exitDate.label"
+                            [form]="tsoGroup.get('cuttingExitDate')"
+                            [invalid]="submitted && tsoGroup.get('cuttingExitDate').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('cuttingExitDate').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.cutting.exitDate.error">
+                                    La fecha de salida es requerida
+                                </div>
+                            </div>
+                        </ng-container>
+                    </app-datepicker>
+                </div>
+            </div>
+
+            <div class="af-row">
+                <div class="af-c12">
+                    <textinput
+                            [form]="$any(tsoGroup.get('cuttingTemperatureControl'))"
+                            label="Control de Temperatura"
+                            placeholder="Ej., rango de temperaturas durante el corte"
+                            i18n-label="@@productLabelStockProcessingOrderDetail.cutting.temperatureControl.label"
+                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.cutting.temperatureControl.placeholder"
+                            [isInvalid]="submitted && tsoGroup.get('cuttingTemperatureControl').invalid">
+                        <ng-container *ngIf="submitted">
+                            <div *ngIf="tsoGroup.get('cuttingTemperatureControl').errors as errors" class="sc-invalid-feedback">
+                                <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.cutting.temperatureControl.error">
                                     El control de temperatura es requerido
                                 </div>
                             </div>

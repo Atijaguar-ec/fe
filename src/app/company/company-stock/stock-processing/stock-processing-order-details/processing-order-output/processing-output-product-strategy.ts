@@ -17,6 +17,12 @@ export abstract class ProcessingOutputProductStrategy {
   abstract ensureExtraControls(tsoGroup: FormGroup): void;
   abstract updateValidators(tsoGroup: FormGroup, selectedInputFacility: ApiFacility | null): void;
   abstract isClassificationMode(selectedInputFacility: ApiFacility | null): boolean;
+
+  // Shrimp-specific facility capabilities (default implementation in non-shrimp strategies returns false)
+  abstract isCuttingFacility(selectedInputFacility: ApiFacility | null): boolean;
+  abstract isTreatmentFacility(selectedInputFacility: ApiFacility | null): boolean;
+  abstract isTunnelFreezingFacility(selectedInputFacility: ApiFacility | null): boolean;
+  abstract isWashingAreaFacility(selectedInputFacility: ApiFacility | null): boolean;
 }
 
 /**
@@ -61,6 +67,22 @@ class DefaultProcessingOutputStrategy extends ProcessingOutputProductStrategy {
   isClassificationMode(_selectedInputFacility: ApiFacility | null): boolean {
     return false;
   }
+
+  isCuttingFacility(_selectedInputFacility: ApiFacility | null): boolean {
+    return false;
+  }
+
+  isTreatmentFacility(_selectedInputFacility: ApiFacility | null): boolean {
+    return false;
+  }
+
+  isTunnelFreezingFacility(_selectedInputFacility: ApiFacility | null): boolean {
+    return false;
+  }
+
+  isWashingAreaFacility(_selectedInputFacility: ApiFacility | null): boolean {
+    return false;
+  }
 }
 
 /**
@@ -89,6 +111,36 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
     'freezingEntryDate',
     'freezingExitDate',
     'freezingTemperatureControl'
+  ];
+
+  private readonly cuttingFields = [
+    'cuttingType',
+    'cuttingEntryDate',
+    'cuttingExitDate',
+    'cuttingTemperatureControl'
+  ];
+
+  private readonly treatmentFields = [
+    'treatmentType',
+    'treatmentEntryDate',
+    'treatmentExitDate',
+    'treatmentTemperatureControl',
+    'treatmentChemicalUsed'
+  ];
+
+  private readonly tunnelFields = [
+    'tunnelProductionDate',
+    'tunnelExpirationDate',
+    'tunnelNetWeight',
+    'tunnelSupplier',
+    'tunnelFreezingType',
+    'tunnelEntryDate',
+    'tunnelExitDate'
+  ];
+
+  private readonly washingFields = [
+    'washingWaterTemperature',
+    'washingShrimpTemperatureControl'
   ];
 
   shouldShowLaboratorySection(_tsoGroup: AbstractControl, selectedInputFacility: ApiFacility | null): boolean {
@@ -147,6 +199,30 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
       }
     });
 
+    this.cuttingFields.forEach(fieldName => {
+      if (!tsoGroup.get(fieldName)) {
+        tsoGroup.addControl(fieldName, new FormControl(null));
+      }
+    });
+
+    this.treatmentFields.forEach(fieldName => {
+      if (!tsoGroup.get(fieldName)) {
+        tsoGroup.addControl(fieldName, new FormControl(null));
+      }
+    });
+
+    this.tunnelFields.forEach(fieldName => {
+      if (!tsoGroup.get(fieldName)) {
+        tsoGroup.addControl(fieldName, new FormControl(null));
+      }
+    });
+
+    this.washingFields.forEach(fieldName => {
+      if (!tsoGroup.get(fieldName)) {
+        tsoGroup.addControl(fieldName, new FormControl(null));
+      }
+    });
+
     // Ensure shrimp-specific traceability controls exist for custody
     this.shrimpTraceabilityFields.forEach(fieldName => {
       if (!tsoGroup.get(fieldName)) {
@@ -160,6 +236,10 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
     const isInputFromLab = selectedInputFacility?.isLaboratory === true;
     const isFreezingFacility = this.shouldShowFreezingSection(tsoGroup, selectedInputFacility);
     const isClassification = this.isClassificationMode(selectedInputFacility);
+    const isCuttingFacility = this.isCuttingFacility(selectedInputFacility);
+    const isTreatmentFacility = this.isTreatmentFacility(selectedInputFacility);
+    const isTunnelFacility = this.isTunnelFreezingFacility(selectedInputFacility);
+    const isWashingFacility = this.isWashingAreaFacility(selectedInputFacility);
 
     // Sample number is required when lab section is visible
     const requiredControls = ['sampleNumber'];
@@ -205,6 +285,58 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
       control.updateValueAndValidity({ emitEvent: false });
     });
 
+    const cuttingRequiredControls = this.cuttingFields;
+    cuttingRequiredControls.forEach(fieldName => {
+      const control = tsoGroup.get(fieldName);
+      if (!control) { return; }
+
+      if (isCuttingFacility) {
+        control.setValidators([Validators.required]);
+      } else {
+        control.clearValidators();
+      }
+      control.updateValueAndValidity({ emitEvent: false });
+    });
+
+    const treatmentRequiredControls = this.treatmentFields;
+    treatmentRequiredControls.forEach(fieldName => {
+      const control = tsoGroup.get(fieldName);
+      if (!control) { return; }
+
+      if (isTreatmentFacility) {
+        control.setValidators([Validators.required]);
+      } else {
+        control.clearValidators();
+      }
+      control.updateValueAndValidity({ emitEvent: false });
+    });
+
+    const tunnelRequiredControls = this.tunnelFields;
+    tunnelRequiredControls.forEach(fieldName => {
+      const control = tsoGroup.get(fieldName);
+      if (!control) { return; }
+
+      if (isTunnelFacility) {
+        control.setValidators([Validators.required]);
+      } else {
+        control.clearValidators();
+      }
+      control.updateValueAndValidity({ emitEvent: false });
+    });
+
+    const washingRequiredControls = this.washingFields;
+    washingRequiredControls.forEach(fieldName => {
+      const control = tsoGroup.get(fieldName);
+      if (!control) { return; }
+
+      if (isWashingFacility) {
+        control.setValidators([Validators.required]);
+      } else {
+        control.clearValidators();
+      }
+      control.updateValueAndValidity({ emitEvent: false });
+    });
+
     // Internal lot number: NOT required when input is from laboratory (field is hidden)
     const internalLotControl = tsoGroup.get('internalLotNumber');
     if (internalLotControl) {
@@ -224,6 +356,22 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
   isClassificationMode(selectedInputFacility: ApiFacility | null): boolean {
     // For shrimp product: classification mode when input facility is a classification process facility.
     return selectedInputFacility?.isClassificationProcess === true;
+  }
+
+  isCuttingFacility(selectedInputFacility: ApiFacility | null): boolean {
+    return selectedInputFacility?.isCuttingProcess === true;
+  }
+
+  isTreatmentFacility(selectedInputFacility: ApiFacility | null): boolean {
+    return selectedInputFacility?.isTreatmentProcess === true;
+  }
+
+  isTunnelFreezingFacility(selectedInputFacility: ApiFacility | null): boolean {
+    return selectedInputFacility?.isTunnelFreezing === true;
+  }
+
+  isWashingAreaFacility(selectedInputFacility: ApiFacility | null): boolean {
+    return selectedInputFacility?.isWashingArea === true;
   }
 }
 

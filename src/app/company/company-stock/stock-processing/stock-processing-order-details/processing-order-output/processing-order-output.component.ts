@@ -137,6 +137,22 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
     return this.productStrategy.shouldShowFreezingSection(tsoGroup, this.selectedInputFacility);
   }
 
+  shouldShowCuttingSection(): boolean {
+    return this.productStrategy.isCuttingFacility(this.selectedInputFacility);
+  }
+
+  shouldShowTreatmentSection(): boolean {
+    return this.productStrategy.isTreatmentFacility(this.selectedInputFacility);
+  }
+
+  shouldShowTunnelSection(): boolean {
+    return this.productStrategy.isTunnelFreezingFacility(this.selectedInputFacility);
+  }
+
+  shouldShowWashingSection(): boolean {
+    return this.productStrategy.isWashingAreaFacility(this.selectedInputFacility);
+  }
+
   /**
    * Check if the selected input facility is a classification process facility
    * This determines whether to show the specialized classification form

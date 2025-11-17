@@ -216,6 +216,34 @@
                             </checkbox-input-rich-label>
                         </checkbox-input>
 
+                        <!-- Checkbox específico para SHRIMP: Actividades de cortado -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isCuttingProcess')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isCuttingProcess.label">
+                                Actividades de cortado
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
+                        <!-- Checkbox específico para SHRIMP: Actividades de Tratado -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isTreatmentProcess')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isTreatmentProcess.label">
+                                Actividades de tratado
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
+                        <!-- Checkbox específico para SHRIMP: Túnel de congelación -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isTunnelFreezing')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isTunnelFreezing.label">
+                                Túnel de congelación
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
+                        <!-- Checkbox específico para SHRIMP: Área de lavado -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isWashingArea')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isWashingArea.label">
+                                Área de lavado
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
                     </div>
                 </div>
                 <div class="af-form-block--c6">

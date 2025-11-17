@@ -254,6 +254,10 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
     object.facilityLocation.address = defaultEmptyObject(ApiAddress.formMetadata()) as ApiAddress;
     object.isClassificationProcess = false;
     object.isFreezingProcess = false;
+    object.isCuttingProcess = false;
+    object.isTreatmentProcess = false;
+    object.isTunnelFreezing = false;
+    object.isWashingArea = false;
     return object;
   }
 
