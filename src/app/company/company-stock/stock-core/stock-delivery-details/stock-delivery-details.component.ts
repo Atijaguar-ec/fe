@@ -33,6 +33,7 @@ import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
 import { EnvironmentInfoService } from '../../../../core/environment-info.service';
 import { ChainFieldConfigService } from '../../../../shared-services/chain-field-config.service';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { LaboratoryAnalysisService } from '../../../../core/api/laboratory-analysis.service';
 
 declare const $localize: (messageParts: TemplateStringsArray, ...placeholders: any[]) => string;
 
@@ -96,6 +97,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   private facility: ApiFacility | null = null;
 
   private purchaseOrderId: number | null;
+  private labAnalysisId: number | null = null;
+  private srcStockOrderId: number | null = null;
 
   additionalProofsListManager: ListEditorManager<ApiActivityProof> | null = null;
 
@@ -126,10 +129,14 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     private selUserCompanyService: SelectedUserCompanyService,
     private pdfGeneratorService: PdfGeneratorService,
     private envInfo: EnvironmentInfoService,
+    private laboratoryAnalysisService: LaboratoryAnalysisService,
     public fieldConfig: ChainFieldConfigService  
   ) {
     const purchaseOrderIdParam = this.route.snapshot.params?.purchaseOrderId;
     this.purchaseOrderId = purchaseOrderIdParam != null ? Number(purchaseOrderIdParam) : null;
+    const qp = this.route.snapshot.queryParams || {};
+    this.labAnalysisId = qp.labAnalysisId != null ? Number(qp.labAnalysisId) : null;
+    this.srcStockOrderId = qp.srcStockOrderId != null ? Number(qp.srcStockOrderId) : null;
   }
 
   // Additional proof item factory methods (used when creating ListEditorManger)
@@ -1402,6 +1409,15 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         .toPromise();
 
       if (res && res.status === 'OK') {
+        const createdId = res.data && (res.data as any).id ? (res.data as any).id as number : null;
+        if (!this.update && this.labAnalysisId && createdId) {
+          try {
+            await this.laboratoryAnalysisService
+              .markUsed(this.labAnalysisId, createdId)
+              .pipe(take(1))
+              .toPromise();
+          } catch (_) {}
+        }
         if (close) {
           this.dismiss();
         } else {

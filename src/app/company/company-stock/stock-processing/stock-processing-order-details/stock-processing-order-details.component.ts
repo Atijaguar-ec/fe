@@ -621,6 +621,20 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       // Get the raw value from the form group
       const processingOrder = this.procOrderGroup.getRawValue() as ApiProcessingOrder;
 
+      // Normalize laboratory approval field coming from EnumSifrant ("true"/"false" strings)
+      if (processingOrder.targetStockOrders) {
+        processingOrder.targetStockOrders.forEach(tso => {
+          const anyTso: any = tso as any;
+          if (anyTso && typeof anyTso.approvedForPurchase === 'string') {
+            if (anyTso.approvedForPurchase === 'true') {
+              anyTso.approvedForPurchase = true;
+            } else if (anyTso.approvedForPurchase === 'false') {
+              anyTso.approvedForPurchase = false;
+            }
+          }
+        });
+      }
+
       // Create input transactions from the selected Stock orders
       processingOrder.inputTransactions.push(...this.input.prepInputTransactionsFromStockOrders());
 

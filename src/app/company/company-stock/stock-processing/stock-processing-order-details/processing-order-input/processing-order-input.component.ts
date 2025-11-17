@@ -671,6 +671,27 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
         totalQuantity: selectedStockOrder.availableQuantity
       };
 
+      // Propagate laboratory analysis fields from the temporary output form
+      // so they are preserved in TRANSFER-type processing actions.
+      const labSource: any = sourceStockOrder as any;
+      const labTarget: any = newStockOrder as any;
+      [
+        'sensorialRawOdor',
+        'sensorialRawTaste',
+        'sensorialRawColor',
+        'sensorialCookedOdor',
+        'sensorialCookedTaste',
+        'sensorialCookedColor',
+        'qualityNotes',
+        'metabisulfiteLevelAcceptable',
+        'approvedForPurchase',
+        'qualityDocument'
+      ].forEach(fieldName => {
+        if (labSource[fieldName] !== undefined) {
+          labTarget[fieldName] = labSource[fieldName];
+        }
+      });
+
       // Set the temporary object that holds the processing evidence fields
       newStockOrder['requiredProcEvidenceFieldGroup'] = sourceStockOrder['requiredProcEvidenceFieldGroup'];
 

@@ -17,6 +17,10 @@ import { SelectedUserCompanyService } from '../../../../core/selected-user-compa
 import { StockOrderControllerService } from '../../../../../api/api/stockOrderController.service';
 import { SelfOnboardingService } from '../../../../shared-services/self-onboarding.service';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { EnvironmentInfoService } from '../../../../core/environment-info.service';
+import { NgbModalImproved } from '../../../../core/ngb-modal-improved/ngb-modal-improved.service';
+import { LabApprovalSelectionModalComponent } from '../lab-approval-selection-modal/lab-approval-selection-modal.component';
+import { ApiLaboratoryAnalysis } from '../../../../core/api/laboratory-analysis.service';
 
 declare const $localize: any;
 
@@ -67,7 +71,9 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
       private codebookTranslations: CodebookTranslations,
       private fileSaverService: FileSaverService,
       protected selUserCompanyService: SelectedUserCompanyService,
-      protected selfOnboardingService: SelfOnboardingService
+      protected selfOnboardingService: SelfOnboardingService,
+      private envInfo: EnvironmentInfoService,
+      private modalService: NgbModalImproved
   ) {
     super(router, route, globalEventManager, facilityControllerService, authService, companyController, selUserCompanyService);
   }
@@ -107,7 +113,7 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
     }
   }
 
-  newPurchaseOrder() {
+  async newPurchaseOrder() {
 
     if (!this.facilityForStockOrderForm.value) {
       const title = $localize`:@@productLabelStock.purchase.warning.title:Missing facility`;
@@ -116,10 +122,41 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
       return;
     }
 
-    this.router.navigate(['my-stock', 'deliveries', 'facility', this.selectedFacilityId, 'deliveries', 'new']).then();
+    const facility = this.facilityForStockOrderForm.value as ApiFacility;
+    const requiresLabApproval = this.envInfo.isProductType('shrimp') && !(facility && facility.isLaboratory);
+
+    let selectedAnalysis: ApiLaboratoryAnalysis | null = null;
+
+    if (requiresLabApproval) {
+      const modalRef = this.modalService.open(LabApprovalSelectionModalComponent, {
+        centered: true,
+        backdrop: 'static',
+        keyboard: false
+      }, {
+        companyId: this.companyId
+      });
+
+      const result = await modalRef.result;
+      selectedAnalysis = result as ApiLaboratoryAnalysis | null;
+
+      if (!selectedAnalysis) {
+        // User cancelled or closed modal – abort navigation
+        return;
+      }
+    }
+
+    this.router.navigate(
+      ['my-stock', 'deliveries', 'facility', this.selectedFacilityId, 'deliveries', 'new'],
+      {
+        queryParams: selectedAnalysis ? {
+          labAnalysisId: selectedAnalysis.id,
+          srcStockOrderId: selectedAnalysis.stockOrderId
+        } : {}
+      }
+    ).then();
   }
 
-  newPurchaseOrderBulk() {
+  async newPurchaseOrderBulk() {
 
     if (!this.facilityForStockOrderForm.value) {
       const title = $localize`:@@productLabelStock.purchase.warning.title:Missing facility`;
@@ -128,7 +165,38 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
       return;
     }
 
-    this.router.navigate(['my-stock', 'deliveries', 'facility', this.selectedFacilityId, 'deliveries', 'new-bulk']).then();
+    const facility = this.facilityForStockOrderForm.value as ApiFacility;
+    const requiresLabApproval = this.envInfo.isProductType('shrimp') && !(facility && facility.isLaboratory);
+
+    let selectedAnalysis: ApiLaboratoryAnalysis | null = null;
+
+    if (requiresLabApproval) {
+      const modalRef = this.modalService.open(LabApprovalSelectionModalComponent, {
+        centered: true,
+        backdrop: 'static',
+        keyboard: false
+      }, {
+        companyId: this.companyId
+      });
+
+      const result = await modalRef.result;
+      selectedAnalysis = result as ApiLaboratoryAnalysis | null;
+
+      if (!selectedAnalysis) {
+        // User cancelled or closed modal – abort navigation
+        return;
+      }
+    }
+
+    this.router.navigate(
+      ['my-stock', 'deliveries', 'facility', this.selectedFacilityId, 'deliveries', 'new-bulk'],
+      {
+        queryParams: selectedAnalysis ? {
+          labAnalysisId: selectedAnalysis.id,
+          srcStockOrderId: selectedAnalysis.stockOrderId
+        } : {}
+      }
+    ).then();
   }
 
   async exportDeliveriesExcel(): Promise<void> {
@@ -156,7 +224,6 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
   searchPurchaseInput(event:any) {
     this.searchFarmerNameSurnamePing$.next(event);
   }
-  
   private setFacilitySemiProducts(facilityId: number) {
     if (facilityId !== null && facilityId !== undefined) {
       this.facilitySemiProducts = new FacilitySemiProductsCodebookService(this.facilityControllerService, facilityId, this.codebookTranslations);

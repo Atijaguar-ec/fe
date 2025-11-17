@@ -35,6 +35,7 @@ import { SelectedUserCompanyService } from '../../../../core/selected-user-compa
 import { ApiUserGet } from '../../../../../api/model/apiUserGet';
 import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
 import { Subscription } from 'rxjs';
+import { LaboratoryAnalysisService } from '../../../../core/api/laboratory-analysis.service';
 declare const $localize: (messageParts: TemplateStringsArray, ...placeholders: any[]) => string;
 
 @Component({
@@ -71,6 +72,9 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   private facility: ApiFacility;
 
+  private labAnalysisId: number | null = null;
+  private srcStockOrderId: number | null = null;
+
   updatePOInProgress = false;
 
   selectedCurrency = '-';
@@ -102,8 +106,13 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
       private stockOrderControllerService: StockOrderControllerService,
       private codebookTranslations: CodebookTranslations,
       private authService: AuthService,
-      private selUserCompanyService: SelectedUserCompanyService
-  ) { }
+      private selUserCompanyService: SelectedUserCompanyService,
+      private laboratoryAnalysisService: LaboratoryAnalysisService
+  ) {
+    const qp = this.route.snapshot.queryParams || {};
+    this.labAnalysisId = qp.labAnalysisId != null ? Number(qp.labAnalysisId) : null;
+    this.srcStockOrderId = qp.srcStockOrderId != null ? Number(qp.srcStockOrderId) : null;
+  }
 
   // Additional proof item factory methods (used when creating ListEditorManger)
   static AdditionalProofItemCreateEmptyObject(): ApiActivityProof {
@@ -238,6 +247,7 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.submitted = false;
 
     this.initializeData().then(() => {
+
       this.farmersCodebook = new CompanyUserCustomersByRoleService(this.companyControllerService, this.companyProfile?.id, 'FARMER');
       this.collectorsCodebook = new CompanyUserCustomersByRoleService(this.companyControllerService, this.companyProfile?.id, 'COLLECTOR');
 
@@ -264,7 +274,7 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
       const response = await this.facilityControllerService.getFacility(facilityId).pipe(take(1)).toPromise();
       if (response && response.status === StatusEnum.OK && response.data) {
         this.facility = response.data;
-        for (const item of this.facility.facilitySemiProductList) {
+        for (const item of this.facility.facilitySemiProductList || []) {
           if (item.buyable) {
             item.name = this.translateName(item);
             this.options.push(item);
@@ -276,8 +286,8 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
 
     if (this.companyProfile) {
       const obj = {};
-      for (const user of this.companyProfile.users) {
-        obj[user.id.toString()] = user.name + ' ' + user.surname;
+      for (const user of this.companyProfile.users || []) {
+        obj[user.id?.toString() || ''] = user.name + ' ' + user.surname;
       }
       this.codebookUsers = EnumSifrant.fromObject(obj);
     }
@@ -383,6 +393,19 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
       const res = await this.stockOrderControllerService.createPurchaseOrderBulk(data).pipe(take(1)).toPromise();
 
       if (res && res.status === 'OK') {
+        const po = res.data;
+        const firstFarmer = po && po.farmers && po.farmers.length > 0 ? po.farmers[0] : null;
+        const destId = firstFarmer && firstFarmer.id ? firstFarmer.id : null;
+
+        if (this.labAnalysisId && destId) {
+          try {
+            await this.laboratoryAnalysisService
+              .markUsed(this.labAnalysisId, destId)
+              .pipe(take(1))
+              .toPromise();
+          } catch (_) {}
+        }
+
         if (close) {
           this.dismiss();
         }

@@ -3031,6 +3031,8 @@
     "productLabelStockProcessingOrderDetail.textinput.sensorialCookedTaste.placeholder": "Taste",
     "productLabelStockProcessingOrderDetail.textinput.sensorialCookedColor.label": "Color",
     "productLabelStockProcessingOrderDetail.textinput.sensorialCookedColor.placeholder": "Color",
+    "productLabelStockProcessingOrderDetail.checkbox.metabisulfiteAcceptable.label": "Metabisulfite level acceptable?",
+    "productLabelStockProcessingOrderDetail.checkbox.approvedForPurchase.label": "Analysis approved for purchase",
     "productLabelStockProcessingOrderDetail.section.quality.title": "QUALITY",
     "productLabelStockProcessingOrderDetail.textarea.qualityNotes.label": "Quality Observations",
     "productLabelStockProcessingOrderDetail.textarea.qualityNotes.placeholder": "Enter quality observations",
