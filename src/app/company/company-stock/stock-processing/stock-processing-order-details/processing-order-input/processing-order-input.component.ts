@@ -665,6 +665,11 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
         finalProduct: selectedStockOrder.finalProduct,
         internalLotNumber: `${sourceStockOrder.internalLotNumber}/${index + 1 + 0}`,
         weekNumber: selectedStockOrder.weekNumber ?? sourceStockOrder.weekNumber,
+        // 🦐 Traceability: always inherit shrimp-specific custody fields when transferring
+        numberOfGavetas: selectedStockOrder.numberOfGavetas ?? sourceStockOrder.numberOfGavetas,
+        numberOfBines: selectedStockOrder.numberOfBines ?? sourceStockOrder.numberOfBines,
+        numberOfPiscinas: selectedStockOrder.numberOfPiscinas ?? sourceStockOrder.numberOfPiscinas,
+        guiaRemisionNumber: selectedStockOrder.guiaRemisionNumber ?? sourceStockOrder.guiaRemisionNumber,
         creatorId: this.processingUserId,
         productionDate: selectedStockOrder.productionDate ? selectedStockOrder.productionDate : (dateISOString(new Date()) as any),
         orderType: OrderTypeEnum.TRANSFERORDER,

@@ -1177,7 +1177,12 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       const newStockOrder = {...repackedSacUnit};
       newStockOrder.creatorId = sourceStockOrder.creatorId;
       newStockOrder.internalLotNumber = sourceStockOrder.internalLotNumber;
+      // 🦐 Traceability: inherit week number and shrimp custody fields from the source TSO
       newStockOrder.weekNumber = sourceStockOrder.weekNumber;
+      newStockOrder.numberOfGavetas = sourceStockOrder.numberOfGavetas;
+      newStockOrder.numberOfBines = sourceStockOrder.numberOfBines;
+      newStockOrder.numberOfPiscinas = sourceStockOrder.numberOfPiscinas;
+      newStockOrder.guiaRemisionNumber = sourceStockOrder.guiaRemisionNumber;
       newStockOrder.facility = sourceStockOrder.facility;
       newStockOrder.semiProduct = sourceStockOrder.semiProduct;
       newStockOrder.finalProduct = sourceStockOrder.finalProduct;

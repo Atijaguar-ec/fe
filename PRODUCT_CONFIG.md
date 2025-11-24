@@ -7,7 +7,7 @@ This application supports multi-product configurations (COFFEE, COCOA, SHRIMP) w
 
 ### 1. Environment Variables (Highest Priority)
 - **GitHub Actions**: `.github/workflows/deploy-frontend.yml`
-  - Manual dispatch input: `product_type` (default: `COCOA`)
+  - Manual dispatch input: `ProductType` (default: `COCOA`)
   - Environment variable: `PRIMARY_PRODUCT_TYPE`
   
 - **Runtime Configuration**: `src/assets/env.js` / `env.template.js`
@@ -102,7 +102,7 @@ private updateWeekNumberValidation(): void {
 ```yaml
 workflow_dispatch:
   inputs:
-    product_type:
+    ProductType:
       description: 'Product type configuration'
       required: false
       default: 'COCOA'
@@ -113,7 +113,7 @@ workflow_dispatch:
         - SHRIMP
 
 env:
-  PRIMARY_PRODUCT_TYPE: ${{ github.event.inputs.product_type || 'COCOA' }}
+  PRIMARY_PRODUCT_TYPE: ${{ github.event.inputs.ProductType || 'COCOA' }}
 ```
 
 ### Local Development
