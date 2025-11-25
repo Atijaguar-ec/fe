@@ -332,6 +332,30 @@ export interface ApiStockOrder {
     receptionTime?: LocalTime;
     qualityDocument?: ApiDocument;
     /**
+     * Flavor test result: NORMAL or DEFECT (field inspection)
+     */
+    flavorTestResult?: string;
+    /**
+     * Flavor defect type ID (field inspection)
+     */
+    flavorDefectTypeId?: number;
+    /**
+     * Flavor defect type code (field inspection)
+     */
+    flavorDefectTypeCode?: string;
+    /**
+     * Flavor defect type label (field inspection)
+     */
+    flavorDefectTypeLabel?: string;
+    /**
+     * Purchase recommended by inspector (field inspection)
+     */
+    purchaseRecommended?: boolean;
+    /**
+     * Inspection notes (field inspection)
+     */
+    inspectionNotes?: string;
+    /**
      * Generated UUID tag for this stock order QR code
      */
     qrCodeTag?: string;
@@ -646,6 +670,30 @@ export namespace ApiStockOrder {
         sampleNumber = 'sampleNumber',
         receptionTime = 'receptionTime',
         qualityDocument = 'qualityDocument',
+        /**
+         * Flavor test result: NORMAL or DEFECT (field inspection)
+         */
+        flavorTestResult = 'flavorTestResult',
+        /**
+         * Flavor defect type ID (field inspection)
+         */
+        flavorDefectTypeId = 'flavorDefectTypeId',
+        /**
+         * Flavor defect type code (field inspection)
+         */
+        flavorDefectTypeCode = 'flavorDefectTypeCode',
+        /**
+         * Flavor defect type label (field inspection)
+         */
+        flavorDefectTypeLabel = 'flavorDefectTypeLabel',
+        /**
+         * Purchase recommended by inspector (field inspection)
+         */
+        purchaseRecommended = 'purchaseRecommended',
+        /**
+         * Inspection notes (field inspection)
+         */
+        inspectionNotes = 'inspectionNotes',
         /**
          * Generated UUID tag for this stock order QR code
          */
@@ -1654,6 +1702,72 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'flavorTestResult',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'flavorDefectTypeId',
+                    classname: 'ApiStockOrder',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'flavorDefectTypeCode',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'flavorDefectTypeLabel',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'purchaseRecommended',
+                    classname: 'ApiStockOrder',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'inspectionNotes',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'qrCodeTag',
                     classname: 'ApiStockOrder',
                     dataType: 'string',
@@ -1900,6 +2014,18 @@ export namespace ApiStockOrder {
                 receptionTime: [
                 ],
                 qualityDocument: [
+                ],
+                flavorTestResult: [
+                ],
+                flavorDefectTypeId: [
+                ],
+                flavorDefectTypeCode: [
+                ],
+                flavorDefectTypeLabel: [
+                ],
+                purchaseRecommended: [
+                ],
+                inspectionNotes: [
                 ],
                 qrCodeTag: [
                 ],

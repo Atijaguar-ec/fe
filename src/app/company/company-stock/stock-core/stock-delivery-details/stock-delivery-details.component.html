@@ -484,6 +484,78 @@
 
             </ng-container>
 
+            <!-- 🔍 Campos de Inspección Sensorial en Campo (solo para facility.isFieldInspection) -->
+            <ng-container *ngIf="showFieldInspectionFields$ | async">
+              
+              <h3 i18n="@@productLabelStockPurchaseOrdersModal.section.fieldInspection">Inspección Sensorial en Campo</h3>
+              
+              <div class="af-row">
+                <div class="af-c6">
+                  <single-choice
+                    [formControlInput]="$any(stockOrderForm.get('flavorTestResult'))"
+                    [codebookService]="flavorTestResultOptions"
+                    label="Resultado de Sabor"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.singleChoice.flavorTestResult.label"
+                    style="width: 100%"
+                    [isInvalidChoice]="submitted && stockOrderForm.get('flavorTestResult').invalid">
+                    <ng-container *ngIf="submitted">
+                      <div *ngIf="stockOrderForm.get('flavorTestResult').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockPurchaseOrdersModal.singleChoice.flavorTestResult.error.required">
+                          El resultado de sabor es obligatorio
+                        </div>
+                      </div>
+                    </ng-container>
+                  </single-choice>
+                </div>
+                
+                <div class="af-c6" *ngIf="stockOrderForm.get('flavorTestResult')?.value === 'DEFECT'">
+                  <single-choice
+                    [formControlInput]="$any(stockOrderForm.get('flavorDefectTypeId'))"
+                    [codebookService]="flavorDefectCodebook"
+                    label="Tipo de Defecto"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.singleChoice.flavorDefectType.label"
+                    style="width: 100%">
+                  </single-choice>
+                </div>
+              </div>
+
+              <div class="af-row">
+                <div class="af-c6">
+                  <single-choice
+                    [formControlInput]="$any(stockOrderForm.get('purchaseRecommended'))"
+                    [codebookService]="purchaseRecommendedOptions"
+                    label="Recomendación de Compra"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.singleChoice.purchaseRecommended.label"
+                    style="width: 100%"
+                    [isInvalidChoice]="submitted && stockOrderForm.get('purchaseRecommended').invalid">
+                    <ng-container *ngIf="submitted">
+                      <div *ngIf="stockOrderForm.get('purchaseRecommended').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockPurchaseOrdersModal.singleChoice.purchaseRecommended.error.required">
+                          La recomendación es obligatoria
+                        </div>
+                      </div>
+                    </ng-container>
+                  </single-choice>
+                </div>
+              </div>
+
+              <div class="af-row">
+                <div class="af-c12">
+                  <textinput
+                    [form]="stockOrderForm.get('inspectionNotes')"
+                    label="Notas de Inspección"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.textarea.inspectionNotes.label"
+                    style="width: 100%"
+                    placeholder="Introduzca observaciones de la inspección"
+                    i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textarea.inspectionNotes.placeholder"
+                    [textarea]="true"
+                    rows="3">
+                  </textinput>
+                </div>
+              </div>
+
+            </ng-container>
+
             <!-- Observación (alineada con la segunda columna) -->
             <div class="af-row">
               

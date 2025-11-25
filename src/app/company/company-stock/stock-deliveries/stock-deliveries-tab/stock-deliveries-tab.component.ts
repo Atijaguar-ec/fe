@@ -123,7 +123,8 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
     }
 
     const facility = this.facilityForStockOrderForm.value as ApiFacility;
-    const requiresLabApproval = this.envInfo.isProductType('shrimp') && !(facility && facility.isLaboratory);
+    // Solo requiere aprobación de laboratorio si NO es inspección en campo
+    const requiresLabApproval = this.envInfo.isProductType('shrimp') && !(facility && facility.isFieldInspection);
 
     let selectedAnalysis: ApiLaboratoryAnalysis | null = null;
 
@@ -166,7 +167,8 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
     }
 
     const facility = this.facilityForStockOrderForm.value as ApiFacility;
-    const requiresLabApproval = this.envInfo.isProductType('shrimp') && !(facility && facility.isLaboratory);
+    // Solo requiere aprobación de laboratorio si NO es inspección en campo
+    const requiresLabApproval = this.envInfo.isProductType('shrimp') && !(facility && facility.isFieldInspection);
 
     let selectedAnalysis: ApiLaboratoryAnalysis | null = null;
 

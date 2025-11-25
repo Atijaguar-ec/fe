@@ -109,11 +109,15 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   private _showPaymentFields$ = new BehaviorSubject<boolean>(true);
   private _showMoistureField$ = new BehaviorSubject<boolean>(false);
   private _showShrimpFields$ = new BehaviorSubject<boolean>(false);
+  private _showFieldInspectionFields$ = new BehaviorSubject<boolean>(false);
+  private _showReceptionFields$ = new BehaviorSubject<boolean>(true);
   
   showPriceFields$: Observable<boolean> = this._showPriceFields$.asObservable();
   showPaymentFields$: Observable<boolean> = this._showPaymentFields$.asObservable();
   showMoistureField$: Observable<boolean> = this._showMoistureField$.asObservable();
   showShrimpFields$: Observable<boolean> = this._showShrimpFields$.asObservable();
+  showFieldInspectionFields$: Observable<boolean> = this._showFieldInspectionFields$.asObservable();
+  showReceptionFields$: Observable<boolean> = this._showReceptionFields$.asObservable();
 
   constructor(
     private route: ActivatedRoute,
@@ -311,6 +315,27 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       false: $localize`:@@productLabelStockPurchaseOrdersModal.organic.no:No`
     };
   }
+
+  // 🔍 Opciones para resultado de prueba de sabor
+  get flavorTestResultOptionsData(): Record<string, string> {
+    return {
+      NORMAL: $localize`:@@productLabelStockPurchaseOrdersModal.flavorTestResult.normal:Normal`,
+      DEFECT: $localize`:@@productLabelStockPurchaseOrdersModal.flavorTestResult.defect:Con Defecto`
+    };
+  }
+  flavorTestResultOptions = EnumSifrant.fromObject(this.flavorTestResultOptionsData);
+
+  // 🔍 Opciones para recomendación de compra
+  get purchaseRecommendedOptionsData(): Record<string, string> {
+    return {
+      true: $localize`:@@productLabelStockPurchaseOrdersModal.purchaseRecommended.yes:Sí, Comprar`,
+      false: $localize`:@@productLabelStockPurchaseOrdersModal.purchaseRecommended.no:No Comprar`
+    };
+  }
+  purchaseRecommendedOptions = EnumSifrant.fromObject(this.purchaseRecommendedOptionsData);
+
+  // 🔍 Codebook para tipos de defecto de sabor (se cargará desde el servicio)
+  flavorDefectCodebook: EnumSifrant = EnumSifrant.fromObject({});
 
   async ngOnInit() {
 
@@ -547,6 +572,19 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if (!this.stockOrderForm.get('comments')) {
       this.stockOrderForm.addControl('comments', new FormControl(null));
     }
+    // Add Field Inspection (sensory testing) specific controls
+    if (!this.stockOrderForm.get('flavorTestResult')) {
+      this.stockOrderForm.addControl('flavorTestResult', new FormControl(null));
+    }
+    if (!this.stockOrderForm.get('flavorDefectTypeId')) {
+      this.stockOrderForm.addControl('flavorDefectTypeId', new FormControl(null));
+    }
+    if (!this.stockOrderForm.get('purchaseRecommended')) {
+      this.stockOrderForm.addControl('purchaseRecommended', new FormControl(null));
+    }
+    if (!this.stockOrderForm.get('inspectionNotes')) {
+      this.stockOrderForm.addControl('inspectionNotes', new FormControl(null));
+    }
     this.updateWeekNumberVisibilityAndValidation();
 
     // Aplicar configuración dinámica de campos
@@ -686,6 +724,31 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
     if ((order as any)?.comments != null) {
       this.stockOrderForm.get('comments')?.setValue((order as any).comments);
+    }
+    // Ensure field inspection controls exist and set values
+    if (!this.stockOrderForm.get('flavorTestResult')) {
+      this.stockOrderForm.addControl('flavorTestResult', new FormControl(null));
+    }
+    if ((order as any)?.flavorTestResult != null) {
+      this.stockOrderForm.get('flavorTestResult')?.setValue((order as any).flavorTestResult);
+    }
+    if (!this.stockOrderForm.get('flavorDefectTypeId')) {
+      this.stockOrderForm.addControl('flavorDefectTypeId', new FormControl(null));
+    }
+    if ((order as any)?.flavorDefectTypeId != null) {
+      this.stockOrderForm.get('flavorDefectTypeId')?.setValue((order as any).flavorDefectTypeId);
+    }
+    if (!this.stockOrderForm.get('purchaseRecommended')) {
+      this.stockOrderForm.addControl('purchaseRecommended', new FormControl(null));
+    }
+    if ((order as any)?.purchaseRecommended != null) {
+      this.stockOrderForm.get('purchaseRecommended')?.setValue((order as any).purchaseRecommended);
+    }
+    if (!this.stockOrderForm.get('inspectionNotes')) {
+      this.stockOrderForm.addControl('inspectionNotes', new FormControl(null));
+    }
+    if ((order as any)?.inspectionNotes != null) {
+      this.stockOrderForm.get('inspectionNotes')?.setValue((order as any).inspectionNotes);
     }
     // Aplicar configuración dinámica (por ejemplo, valores por defecto para campos ocultos)
     this.applyFieldConfiguration();
@@ -1213,8 +1276,16 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
    * 🔬 Detecta si el facility actual es un laboratorio
    * Usa la bandera explícita configurada en la instalación
    */
-  private isLaboratoryFacility(): boolean {
+  isLaboratoryFacility(): boolean {
     return this.facility?.isLaboratory === true;
+  }
+
+  /**
+   * 🔍 Detecta si el facility actual es un punto de inspección sensorial en campo
+   * Usa la bandera explícita configurada en la instalación
+   */
+  isFieldInspectionFacility(): boolean {
+    return this.facility?.isFieldInspection === true;
   }
 
   /**
@@ -1223,21 +1294,35 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   private updateFieldVisibilityObservables(): void {
     const productType = this.fieldConfig.getProductType()?.toUpperCase() ?? '';
     const isLaboratory = this.isLaboratoryFacility();
+    const isFieldInspection = this.isFieldInspectionFacility();
 
-    // 🔬 LABORATORIO: Ocultar todos los campos de precio/pago Y campos específicos de camarón
-    if (isLaboratory) {
+    // 🔍 INSPECCIÓN EN CAMPO: Solo mostrar campos de sabor, ocultar todo lo demás
+    if (isFieldInspection) {
       this._showPriceFields$.next(false);
       this._showPaymentFields$.next(false);
       this._showShrimpFields$.next(false);
+      this._showFieldInspectionFields$.next(true);
+      this._showReceptionFields$.next(false);
+      console.log('🔍 Facility is FIELD INSPECTION - Only flavor fields visible');
+    }
+    // 🔬 LABORATORIO: Ocultar todos los campos de precio/pago Y campos específicos de camarón
+    else if (isLaboratory) {
+      this._showPriceFields$.next(false);
+      this._showPaymentFields$.next(false);
+      this._showShrimpFields$.next(false);
+      this._showFieldInspectionFields$.next(false);
+      this._showReceptionFields$.next(true);
       console.log('🔬 Facility is LABORATORY - Price and shrimp fields hidden');
     }
-    // 🦐 CAMARÓN (NO laboratorio): Mostrar campos específicos de camarón
+    // 🦐 CAMARÓN (NO laboratorio, NO inspección): Mostrar campos específicos de camarón
     else if (productType === 'SHRIMP') {
       const showPrice = this.fieldConfig.isFieldVisible('stockOrder', 'pricePerUnit');
       const showPayment = this.fieldConfig.isFieldVisible('stockOrder', 'preferredWayOfPayment');
       this._showPriceFields$.next(showPrice);
       this._showPaymentFields$.next(showPayment);
       this._showShrimpFields$.next(true);  // Mostrar campos específicos de camarón
+      this._showFieldInspectionFields$.next(false);
+      this._showReceptionFields$.next(true);
       console.log('🦐 Facility is NORMAL SHRIMP - Shrimp fields visible');
     }
     // 🍫☕ OTROS PRODUCTOS: Mostrar campos de precio, ocultar campos de camarón
@@ -1245,6 +1330,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this._showPriceFields$.next(true);
       this._showPaymentFields$.next(true);
       this._showShrimpFields$.next(false);
+      this._showFieldInspectionFields$.next(false);
+      this._showReceptionFields$.next(true);
       console.log('🍫 Facility is NORMAL - Price fields visible');
     }
 

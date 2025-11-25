@@ -3366,6 +3366,18 @@
     "productLabelStockFacilityModal.checkbox.isTreatmentProcess.label": "Treatment activities",
     "productLabelStockFacilityModal.checkbox.isTunnelFreezing.label": "Freezing tunnel",
     "productLabelStockFacilityModal.checkbox.isWashingArea.label": "Washing area",
-    "productLabelStockFacilityModal.checkbox.isRestArea.label": "Resting area"
+    "productLabelStockFacilityModal.checkbox.isRestArea.label": "Resting area",
+    "productLabelStockPurchaseOrdersModal.section.fieldInspection": "Field Sensory Inspection",
+    "productLabelStockPurchaseOrdersModal.singleChoice.flavorTestResult.label": "Flavor Test Result",
+    "productLabelStockPurchaseOrdersModal.flavorTestResult.normal": "Normal",
+    "productLabelStockPurchaseOrdersModal.flavorTestResult.defect": "With Defect",
+    "productLabelStockPurchaseOrdersModal.singleChoice.flavorTestResult.error.required": "Flavor test result is required",
+    "productLabelStockPurchaseOrdersModal.singleChoice.flavorDefectType.label": "Defect Type",
+    "productLabelStockPurchaseOrdersModal.singleChoice.purchaseRecommended.label": "Purchase Recommendation",
+    "productLabelStockPurchaseOrdersModal.purchaseRecommended.yes": "Yes, Buy",
+    "productLabelStockPurchaseOrdersModal.purchaseRecommended.no": "Do Not Buy",
+    "productLabelStockPurchaseOrdersModal.singleChoice.purchaseRecommended.error.required": "Recommendation is required",
+    "productLabelStockPurchaseOrdersModal.textarea.inspectionNotes.label": "Inspection Notes",
+    "productLabelStockPurchaseOrdersModal.textarea.inspectionNotes.placeholder": "Enter inspection observations"
   }
 }
