@@ -3358,6 +3358,14 @@
     "collectorDetail.textinput.maxProductionQuantity.label": "Max production quantity (qq)",
     "productLabelPurchaseOrder.aggregated.organicBalance": "Organic Balance (qq)",
     "collectorDetail.textinput.numberOfTrees.label": "Total number of ponds",
-    "collectorDetail.textinput.numberOfTrees.placeholder": "Enter the number of ponds"
+    "collectorDetail.textinput.numberOfTrees.placeholder": "Enter the number of ponds",
+    "productLabelStockFacilityModal.checkbox.isFieldInspection.label": "Field sensory inspection",
+    "productLabelStockFacilityModal.checkbox.isClassificationProcess.label": "Classification activities",
+    "productLabelStockFacilityModal.checkbox.isFreezingProcess.label": "Freezing",
+    "productLabelStockFacilityModal.checkbox.isCuttingProcess.label": "Cutting activities",
+    "productLabelStockFacilityModal.checkbox.isTreatmentProcess.label": "Treatment activities",
+    "productLabelStockFacilityModal.checkbox.isTunnelFreezing.label": "Freezing tunnel",
+    "productLabelStockFacilityModal.checkbox.isWashingArea.label": "Washing area",
+    "productLabelStockFacilityModal.checkbox.isRestArea.label": "Resting area"
   }
 }

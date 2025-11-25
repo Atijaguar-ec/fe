@@ -251,6 +251,13 @@
                             </checkbox-input-rich-label>
                         </checkbox-input>
 
+                        <!-- Checkbox específico para SHRIMP: Área de reposo -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isRestArea')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isRestArea.label">
+                                Área de reposo
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
                     </div>
                 </div>
                 <div class="af-form-block--c6">

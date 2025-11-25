@@ -259,6 +259,7 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
     object.isTreatmentProcess = false;
     object.isTunnelFreezing = false;
     object.isWashingArea = false;
+    object.isRestArea = false;
     return object;
   }
 
