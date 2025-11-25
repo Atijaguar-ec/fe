@@ -195,10 +195,17 @@
                             </checkbox-input-rich-label>
                         </checkbox-input>
 
-                        <!-- Checkbox específico para SHRIMP: Es laboratorio -->
+                        <!-- Checkbox específico para SHRIMP: Inspección sensorial en campo -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isFieldInspection')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isFieldInspection.label">
+                                Inspección sensorial en campo
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
+                        <!-- Checkbox específico para SHRIMP: Laboratorio de calidad -->
                         <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isLaboratory')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isLaboratory.label">
-                                Es laboratorio
+                                Laboratorio de calidad
                             </checkbox-input-rich-label>
                         </checkbox-input>
 

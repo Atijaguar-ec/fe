@@ -252,6 +252,7 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
     object.company = defaultEmptyObject(ApiCompanyBase.formMetadata()) as ApiCompanyBase;
     object.facilityLocation = defaultEmptyObject(ApiFacilityLocation.formMetadata()) as ApiFacilityLocation;
     object.facilityLocation.address = defaultEmptyObject(ApiAddress.formMetadata()) as ApiAddress;
+    object.isFieldInspection = false;
     object.isClassificationProcess = false;
     object.isFreezingProcess = false;
     object.isCuttingProcess = false;

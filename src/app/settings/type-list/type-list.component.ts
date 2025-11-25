@@ -15,6 +15,14 @@ import { SemiProductControllerService } from '../../../api/api/semiProductContro
 import { ProcessingEvidenceFieldControllerService } from '../../../api/api/processingEvidenceFieldController.service';
 import { ProductTypeControllerService } from '../../../api/api/productTypeController.service';
 import { CertificationTypeControllerService } from '../../../api/api/certificationTypeController.service';
+import { ShrimpFlavorDefectControllerService } from '../../../api/api/shrimpFlavorDefectController.service';
+import { ShrimpColorGradeControllerService } from '../../../api/api/shrimpColorGradeController.service';
+import { ShrimpSizeGradeControllerService } from '../../../api/api/shrimpSizeGradeController.service';
+import { ShrimpProcessTypeControllerService } from '../../../api/api/shrimpProcessTypeController.service';
+import { ShrimpPresentationTypeControllerService } from '../../../api/api/shrimpPresentationTypeController.service';
+// TODO: Uncomment after regenerating API TypeScript
+// import { ShrimpQualityGradeControllerService } from '../../../api/api/shrimpQualityGradeController.service';
+// import { ShrimpTreatmentTypeControllerService } from '../../../api/api/shrimpTreatmentTypeController.service';
 import { AuthService } from '../../core/auth.service';
 
 @Component({
@@ -32,6 +40,14 @@ export class TypeListComponent implements OnInit, OnChanges {
     private semiProductsService: SemiProductControllerService,
     private productTypesService: ProductTypeControllerService,
     private certificationTypeService: CertificationTypeControllerService,
+    private shrimpFlavorDefectService: ShrimpFlavorDefectControllerService,
+    private shrimpColorGradeService: ShrimpColorGradeControllerService,
+    private shrimpSizeGradeService: ShrimpSizeGradeControllerService,
+    private shrimpProcessTypeService: ShrimpProcessTypeControllerService,
+    private shrimpPresentationTypeService: ShrimpPresentationTypeControllerService,
+    // TODO: Uncomment after regenerating API TypeScript
+    // private shrimpQualityGradeService: ShrimpQualityGradeControllerService,
+    // private shrimpTreatmentTypeService: ShrimpTreatmentTypeControllerService,
     private route: ActivatedRoute,
     private modalService: NgbModalImproved,
     protected globalEventsManager: GlobalEventManagerService,
@@ -262,6 +278,89 @@ export class TypeListComponent implements OnInit, OnChanges {
     }
   ];
 
+  sortOptionsShrimpSizeGrades: SortOption[] = [
+    {
+      key: 'code',
+      name: $localize`:@@settingsTypes.sortOptions.code.name:Código`
+    },
+    {
+      key: 'sizeType',
+      name: $localize`:@@settingsTypes.sortOptions.sizeType.name:Tipo`
+    },
+    {
+      key: 'displayOrder',
+      name: $localize`:@@settingsTypes.sortOptions.displayOrder.name:Orden`,
+      defaultSortOrder: 'ASC'
+    },
+    {
+      key: 'label',
+      name: $localize`:@@settingsTypes.sortOptions.label.name:Etiqueta`
+    },
+    {
+      key: 'status',
+      name: $localize`:@@settingsTypes.sortOptions.status.name:Estado`
+    },
+    {
+      key: 'actions',
+      name: $localize`:@@settingsTypes.sortOptions.actions.name:Comportamiento`,
+      inactive: true
+    }
+  ];
+
+  sortOptionsShrimpCatalogs: SortOption[] = [
+    {
+      key: 'code',
+      name: $localize`:@@settingsTypes.sortOptions.code.name:Código`
+    },
+    {
+      key: 'displayOrder',
+      name: $localize`:@@settingsTypes.sortOptions.displayOrder.name:Orden`,
+      defaultSortOrder: 'ASC'
+    },
+    {
+      key: 'label',
+      name: $localize`:@@settingsTypes.sortOptions.label.name:Etiqueta`
+    },
+    {
+      key: 'status',
+      name: $localize`:@@settingsTypes.sortOptions.status.name:Estado`
+    },
+    {
+      key: 'actions',
+      name: $localize`:@@settingsTypes.sortOptions.actions.name:Comportamiento`,
+      inactive: true
+    }
+  ];
+
+  sortOptionsShrimpPresentationTypes: SortOption[] = [
+    {
+      key: 'code',
+      name: $localize`:@@settingsTypes.sortOptions.code.name:Código`
+    },
+    {
+      key: 'category',
+      name: $localize`:@@settingsTypes.sortOptions.category.name:Categoría`
+    },
+    {
+      key: 'displayOrder',
+      name: $localize`:@@settingsTypes.sortOptions.displayOrder.name:Orden`,
+      defaultSortOrder: 'ASC'
+    },
+    {
+      key: 'label',
+      name: $localize`:@@settingsTypes.sortOptions.label.name:Etiqueta`
+    },
+    {
+      key: 'status',
+      name: $localize`:@@settingsTypes.sortOptions.status.name:Estado`
+    },
+    {
+      key: 'actions',
+      name: $localize`:@@settingsTypes.sortOptions.actions.name:Comportamiento`,
+      inactive: true
+    }
+  ];
+
   isRegionalAdmin = false;
 
   ngOnInit(): void {
@@ -278,6 +377,11 @@ export class TypeListComponent implements OnInit, OnChanges {
     if (this.type === 'processing-evidence-fields') { this.title = $localize`:@@settingsTypes.typeList.title.processingEvidenceFields:Processing evidence fields`; }
     if (this.type === 'semi-products') { this.title = $localize`:@@settingsTypes.typeList.title.semiProducts:Semi-products`; }
     if (this.type === 'product-types') { this.title = $localize`:@@settingsTypes.typeList.title.productTypes:Product types`; }
+    if (this.type === 'shrimp-flavor-defects') { this.title = $localize`:@@settingsTypes.typeList.title.shrimpFlavorDefects:Shrimp flavor defects`; }
+    if (this.type === 'shrimp-size-grades') { this.title = $localize`:@@settingsTypes.typeList.title.shrimpSizeGrades:Shrimp size grades`; }
+    if (this.type === 'shrimp-color-grades') { this.title = $localize`:@@settingsTypes.typeList.title.shrimpColorGrades:Shrimp color grades`; }
+    if (this.type === 'shrimp-process-types') { this.title = $localize`:@@settingsTypes.typeList.title.shrimpProcessTypes:Shrimp process types`; }
+    if (this.type === 'shrimp-presentation-types') { this.title = $localize`:@@settingsTypes.typeList.title.shrimpPresentationTypes:Tipos de presentación`; }
   }
 
   ngOnChanges() {
@@ -326,6 +430,28 @@ export class TypeListComponent implements OnInit, OnChanges {
     if (this.type === 'certification-types') {
       return this.certificationTypeService.getCertificationTypeListByMap({ ...params });
     }
+    if (this.type === 'shrimp-flavor-defects') {
+      return this.shrimpFlavorDefectService.getShrimpFlavorDefectListByMap({ ...params, language: 'ES' });
+    }
+    if (this.type === 'shrimp-color-grades') {
+      return this.shrimpColorGradeService.getShrimpColorGradeListByMap({ ...params });
+    }
+    if (this.type === 'shrimp-size-grades') {
+      return this.shrimpSizeGradeService.getShrimpSizeGradeListByMap({ ...params });
+    }
+    if (this.type === 'shrimp-process-types') {
+      return this.shrimpProcessTypeService.getShrimpProcessTypeListByMap({ ...params, language: 'ES' });
+    }
+    if (this.type === 'shrimp-presentation-types') {
+      return this.shrimpPresentationTypeService.getShrimpPresentationTypeListByMap({ ...params, language: 'ES' });
+    }
+    // TODO: Uncomment after regenerating API TypeScript
+    // if (this.type === 'shrimp-quality-grades') {
+    //   return this.shrimpQualityGradeService.getShrimpQualityGradeListByMap({ ...params, language: 'ES' });
+    // }
+    // if (this.type === 'shrimp-treatment-types') {
+    //   return this.shrimpTreatmentTypeService.getShrimpTreatmentTypeListByMap({ ...params, language: 'ES' });
+    // }
   }
 
   edit(type) {
@@ -353,6 +479,27 @@ export class TypeListComponent implements OnInit, OnChanges {
     }
     if (this.type === 'certification-types') {
       editTitle = $localize`:@@settingsTypes.editCertificationType.editTitle:Edit certification type`;
+    }
+    if (this.type === 'shrimp-flavor-defects') {
+      editTitle = $localize`:@@settingsTypes.editShrimpFlavorDefect.editTitle:Edit shrimp flavor defect`;
+    }
+    if (this.type === 'shrimp-size-grades') {
+      editTitle = $localize`:@@settingsTypes.editShrimpSizeGrade.editTitle:Edit shrimp size grade`;
+    }
+    if (this.type === 'shrimp-color-grades') {
+      editTitle = $localize`:@@settingsTypes.editShrimpColorGrade.editTitle:Edit shrimp color grade`;
+    }
+    if (this.type === 'shrimp-process-types') {
+      editTitle = $localize`:@@settingsTypes.editShrimpProcessType.editTitle:Edit shrimp process type`;
+    }
+    if (this.type === 'shrimp-presentation-types') {
+      editTitle = $localize`:@@settingsTypes.editShrimpPresentationType.editTitle:Editar tipo de presentación`;
+    }
+    if (this.type === 'shrimp-quality-grades') {
+      editTitle = $localize`:@@settingsTypes.editShrimpQualityGrade.editTitle:Editar grado de calidad`;
+    }
+    if (this.type === 'shrimp-treatment-types') {
+      editTitle = $localize`:@@settingsTypes.editShrimpTreatmentType.editTitle:Editar tipo de tratamiento`;
     }
 
     this.modalService.open(TypeDetailModalComponent, {
@@ -419,6 +566,49 @@ export class TypeListComponent implements OnInit, OnChanges {
           this.reloadPage();
         }
       }
+      if (this.type === 'shrimp-flavor-defects') {
+        const res = await this.shrimpFlavorDefectService.deleteShrimpFlavorDefect(type.id).pipe(take(1)).toPromise();
+        if (res && res.status === 'OK') {
+          this.reloadPage();
+        }
+      }
+      if (this.type === 'shrimp-color-grades') {
+        const res = await this.shrimpColorGradeService.deleteShrimpColorGrade(type.id).pipe(take(1)).toPromise();
+        if (res && res.status === 'OK') {
+          this.reloadPage();
+        }
+      }
+      if (this.type === 'shrimp-size-grades') {
+        const res = await this.shrimpSizeGradeService.deleteShrimpSizeGrade(type.id).pipe(take(1)).toPromise();
+        if (res && res.status === 'OK') {
+          this.reloadPage();
+        }
+      }
+      if (this.type === 'shrimp-process-types') {
+        const res = await this.shrimpProcessTypeService.deleteShrimpProcessType(type.id).pipe(take(1)).toPromise();
+        if (res && res.status === 'OK') {
+          this.reloadPage();
+        }
+      }
+      if (this.type === 'shrimp-presentation-types') {
+        const res = await this.shrimpPresentationTypeService.deleteShrimpPresentationType(type.id).pipe(take(1)).toPromise();
+        if (res && res.status === 'OK') {
+          this.reloadPage();
+        }
+      }
+      // TODO: Uncomment after regenerating API TypeScript
+      // if (this.type === 'shrimp-quality-grades') {
+      //   const res = await this.shrimpQualityGradeService.deleteShrimpQualityGrade(type.id).pipe(take(1)).toPromise();
+      //   if (res && res.status === 'OK') {
+      //     this.reloadPage();
+      //   }
+      // }
+      // if (this.type === 'shrimp-treatment-types') {
+      //   const res = await this.shrimpTreatmentTypeService.deleteShrimpTreatmentType(type.id).pipe(take(1)).toPromise();
+      //   if (res && res.status === 'OK') {
+      //     this.reloadPage();
+      //   }
+      // }
     } catch (e) {
     } finally {
       this.globalEventsManager.showLoading(false);
@@ -449,6 +639,27 @@ export class TypeListComponent implements OnInit, OnChanges {
       INACTIVE: $localize`:@@certificationType.status.inactive:Inactivo`
     } as Record<string, string>;
     return map[status] || status;
+  }
+
+  translateShrimpSizeType(sizeType?: string): string {
+    if (!sizeType) {
+      return '';
+    }
+    const map = {
+      WHOLE: $localize`:@@shrimpSizeGrade.sizeType.whole:Entero`,
+      TAIL: $localize`:@@shrimpSizeGrade.sizeType.tail:Cola`
+    } as Record<string, string>;
+    return map[sizeType] || sizeType;
+  }
+
+  translateShrimpPresentationCategory(category?: string): string {
+    if (!category) return '';
+    switch (category) {
+      case 'SHELL_ON': return $localize`:@@shrimpPresentationType.category.shellOn:Shell-On (Cola)`;
+      case 'BROKEN': return $localize`:@@shrimpPresentationType.category.broken:Quebrado`;
+      case 'OTHER': return $localize`:@@shrimpPresentationType.category.other:Otros`;
+      default: return category;
+    }
   }
 
   async setAll() {
@@ -495,6 +706,56 @@ export class TypeListComponent implements OnInit, OnChanges {
         this.countAll.emit(res.data.count);
       }
     }
+    if (this.type === 'shrimp-flavor-defects') {
+      const res = await this.shrimpFlavorDefectService.getShrimpFlavorDefectList().pipe(take(1)).toPromise();
+      if (res && res.status === 'OK' && res.data && res.data.count >= 0) {
+        this.all = res.data.count;
+        this.countAll.emit(res.data.count);
+      }
+    }
+    if (this.type === 'shrimp-color-grades') {
+      const res = await this.shrimpColorGradeService.getShrimpColorGradeList().pipe(take(1)).toPromise();
+      if (res && res.status === 'OK' && res.data && res.data.count >= 0) {
+        this.all = res.data.count;
+        this.countAll.emit(res.data.count);
+      }
+    }
+    if (this.type === 'shrimp-size-grades') {
+      const res = await this.shrimpSizeGradeService.getShrimpSizeGradeList().pipe(take(1)).toPromise();
+      if (res && res.status === 'OK' && res.data && res.data.count >= 0) {
+        this.all = res.data.count;
+        this.countAll.emit(res.data.count);
+      }
+    }
+    if (this.type === 'shrimp-process-types') {
+      const res = await this.shrimpProcessTypeService.getShrimpProcessTypeList().pipe(take(1)).toPromise();
+      if (res && res.status === 'OK' && res.data && res.data.count >= 0) {
+        this.all = res.data.count;
+        this.countAll.emit(res.data.count);
+      }
+    }
+    if (this.type === 'shrimp-presentation-types') {
+      const res = await this.shrimpPresentationTypeService.getShrimpPresentationTypeList().pipe(take(1)).toPromise();
+      if (res && res.status === 'OK' && res.data && res.data.count >= 0) {
+        this.all = res.data.count;
+        this.countAll.emit(res.data.count);
+      }
+    }
+    // TODO: Uncomment after regenerating API TypeScript
+    // if (this.type === 'shrimp-quality-grades') {
+    //   const res = await this.shrimpQualityGradeService.getShrimpQualityGradeList().pipe(take(1)).toPromise();
+    //   if (res && res.status === 'OK' && res.data && res.data.count >= 0) {
+    //     this.all = res.data.count;
+    //     this.countAll.emit(res.data.count);
+    //   }
+    // }
+    // if (this.type === 'shrimp-treatment-types') {
+    //   const res = await this.shrimpTreatmentTypeService.getShrimpTreatmentTypeList().pipe(take(1)).toPromise();
+    //   if (res && res.status === 'OK' && res.data && res.data.count >= 0) {
+    //     this.all = res.data.count;
+    //     this.countAll.emit(res.data.count);
+    //   }
+    // }
   }
 
   getBooleanSign(value: boolean) {

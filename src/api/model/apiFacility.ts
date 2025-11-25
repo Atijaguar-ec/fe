@@ -85,7 +85,11 @@ export interface ApiFacility {
      */
     displayPriceDeterminedLater?: boolean;
     /**
-     * Facility is a laboratory (specific for shrimp value chain)
+     * Facility is a field inspection point for shrimp sensory testing (specific for shrimp value chain)
+     */
+    isFieldInspection?: boolean;
+    /**
+     * Facility is a quality laboratory (specific for shrimp value chain)
      */
     isLaboratory?: boolean;
     /**
@@ -112,6 +116,10 @@ export interface ApiFacility {
      * Facility has a shrimp washing area (specific for shrimp value chain)
      */
     isWashingArea?: boolean;
+    /**
+     * Facility has a shrimp resting area (specific for shrimp value chain)
+     */
+    isRestArea?: boolean;
     /**
      * Custom facility level overriding facility type order
      */
@@ -199,7 +207,11 @@ export namespace ApiFacility {
          */
         displayPriceDeterminedLater = 'displayPriceDeterminedLater',
         /**
-         * Facility is a laboratory (specific for shrimp value chain)
+         * Facility is a field inspection point for shrimp sensory testing (specific for shrimp value chain)
+         */
+        isFieldInspection = 'isFieldInspection',
+        /**
+         * Facility is a quality laboratory (specific for shrimp value chain)
          */
         isLaboratory = 'isLaboratory',
         /**
@@ -226,6 +238,10 @@ export namespace ApiFacility {
          * Facility has a shrimp washing area (specific for shrimp value chain)
          */
         isWashingArea = 'isWashingArea',
+        /**
+         * Facility has a shrimp resting area (specific for shrimp value chain)
+         */
+        isRestArea = 'isRestArea',
         /**
          * Custom facility level overriding facility type order
          */
@@ -405,6 +421,17 @@ export namespace ApiFacility {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'isFieldInspection',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'isLaboratory',
                     classname: 'ApiFacility',
                     dataType: 'boolean',
@@ -472,6 +499,17 @@ export namespace ApiFacility {
                     isEnum: false,
                     required: false,
                     name: 'isWashingArea',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'isRestArea',
                     classname: 'ApiFacility',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -612,6 +650,8 @@ export namespace ApiFacility {
                 ],
                 displayPriceDeterminedLater: [
                 ],
+                isFieldInspection: [
+                ],
                 isLaboratory: [
                 ],
                 isClassificationProcess: [
@@ -625,6 +665,8 @@ export namespace ApiFacility {
                 isTunnelFreezing: [
                 ],
                 isWashingArea: [
+                ],
+                isRestArea: [
                 ],
                 level: [
                 ],
@@ -690,6 +732,9 @@ export namespace ApiFacility {
   //               displayPriceDeterminedLater: {
   //                   validators: []
   //               },
+  //               isFieldInspection: {
+  //                   validators: []
+  //               },
   //               isLaboratory: {
   //                   validators: []
   //               },
@@ -709,6 +754,9 @@ export namespace ApiFacility {
   //                   validators: []
   //               },
   //               isWashingArea: {
+  //                   validators: []
+  //               },
+  //               isRestArea: {
   //                   validators: []
   //               },
   //               level: {
