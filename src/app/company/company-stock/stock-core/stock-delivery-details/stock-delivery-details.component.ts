@@ -34,6 +34,7 @@ import { EnvironmentInfoService } from '../../../../core/environment-info.servic
 import { ChainFieldConfigService } from '../../../../shared-services/chain-field-config.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { LaboratoryAnalysisService } from '../../../../core/api/laboratory-analysis.service';
+import { ShrimpFlavorDefectControllerService } from '../../../../../api/api/shrimpFlavorDefectController.service';
 
 declare const $localize: (messageParts: TemplateStringsArray, ...placeholders: any[]) => string;
 
@@ -134,6 +135,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     private pdfGeneratorService: PdfGeneratorService,
     private envInfo: EnvironmentInfoService,
     private laboratoryAnalysisService: LaboratoryAnalysisService,
+    private shrimpFlavorDefectService: ShrimpFlavorDefectControllerService,
     public fieldConfig: ChainFieldConfigService  
   ) {
     const purchaseOrderIdParam = this.route.snapshot.params?.purchaseOrderId;
@@ -209,7 +211,32 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     return obj;
   }
 
+  get inspectionDateLabel() {
+    const productType = this.fieldConfig.getProductType()?.toUpperCase() ?? '';
+    const isShrimp = productType === 'SHRIMP';
+
+    if (isShrimp && this.isFieldInspectionFacility()) {
+      return $localize`:@@productLabelStockPurchaseOrdersModal.datepicker.inspectionDate.label:Fecha de inspección`;
+    }
+
+    return $localize`:@@productLabelStockPurchaseOrdersModal.datepicker.date.label:Delivery date`;
+  }
+
+  get inspectionTimeLabel() {
+    const productType = this.fieldConfig.getProductType()?.toUpperCase() ?? '';
+    const isShrimp = productType === 'SHRIMP';
+
+    if (isShrimp && this.isFieldInspectionFacility()) {
+      return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.inspectionTime.label:Hora de inspección`;
+    }
+
+    return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.receptionTime.label:Reception time`;
+  }
+
   get quantityLabel() {
+    if (this.isFieldInspectionFacility()) {
+      return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.quantity.label:Quantity (units)`;
+    }
     if (this.orderType === 'PURCHASE_ORDER') {
       return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.quantityDelievered.label:Quantity` + ` (${this.measureUnit})`;
     } else {
@@ -255,6 +282,32 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       // keep empty codebook on error
       this.certificationTypeMap = {};
       this.refreshCertificationTypeOptions();
+    }
+  }
+
+  private async loadShrimpFlavorDefects() {
+    const productType = this.fieldConfig.getProductType()?.toUpperCase() ?? '';
+    if (productType !== 'SHRIMP') {
+      this.flavorDefectCodebook = EnumSifrant.fromObject({});
+      return;
+    }
+
+    try {
+      const res = await this.shrimpFlavorDefectService
+        .getActiveShrimpFlavorDefects('ES')
+        .pipe(take(1))
+        .toPromise();
+      const items = res?.data || [];
+      const map: Record<string, string> = {};
+      items.forEach(defect => {
+        if (defect && defect.id != null) {
+          map[String(defect.id)] = defect.label || defect.code;
+        }
+      });
+      this.flavorDefectCodebook = EnumSifrant.fromObject(map);
+      this.flavorDefectCodebook.setPlaceholder($localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.flavorDefectType.placeholder:Seleccionar opción ...`);
+    } catch (_) {
+      this.flavorDefectCodebook = EnumSifrant.fromObject({});
     }
   }
 
@@ -357,6 +410,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.initializeVarietyOptions();
     // Load organic certification types for the combo (active only)
     this.loadCertificationTypes().then();
+    this.loadShrimpFlavorDefects().then();
   }
 
   ngOnDestroy(): void {

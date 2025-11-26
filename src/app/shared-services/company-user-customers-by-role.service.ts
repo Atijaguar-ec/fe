@@ -26,17 +26,33 @@ export class CompanyUserCustomersByRoleService extends GeneralSifrantService<Api
   }
 
   textRepresentation(el: ApiUserCustomer): string {
+    const isLegal = el.personType === ApiUserCustomer.PersonTypeEnum.LEGAL || (el as any).personType === 'LEGAL';
+
+    // Nombre base según tipo de persona
+    const baseName = ((): string => {
+      if (isLegal) {
+        // Para personas jurídicas priorizamos el nombre de la empresa
+        if (el.companyName && el.companyName.trim().length > 0) {
+          return el.companyName.trim();
+        }
+      }
+
+      const namePart = el.name ? el.name.trim() : '';
+      const surnamePart = el.surname ? el.surname.trim() : '';
+      return `${namePart} ${surnamePart}`.trim();
+    })();
+
     if (el.location?.address?.country?.code === 'RW') {
       const cell = el.location.address.cell ? el.location.address.cell.substring(0, 2).toLocaleUpperCase() : '--';
       const village = el.location.address.village ? el.location.address.village.substring(0, 2).toLocaleUpperCase() : '--';
-      return el.name + ' ' + el.surname + ' (' + el.id + ', ' + village + '-' + cell + ')';
+      return `${baseName} (${el.id}, ${village}-${cell})`;
     } else if (el.location?.address?.country?.code === 'HN') {
       const municipality = el.location.address.hondurasMunicipality ? el.location.address.hondurasMunicipality : '--';
       const village = el.location.address.hondurasVillage ? el.location.address.hondurasVillage : '--';
-      return el.name + ' ' + el.surname + ' (' + el.id + ', ' + municipality + '-' + village + ')';
+      return `${baseName} (${el.id}, ${municipality}-${village})`;
     }
 
-    return `${el.name} ${el.surname} (${el.id})`;
+    return `${baseName} (${el.id})`;
   }
 
   makeQuery(key: string, params?: any): Observable<PagedSearchResults<ApiUserCustomer>> {

@@ -3330,27 +3330,6 @@
     "quoteOrdersOnOrganization.input.placehoder": "Introduce un valor",
     "companyDashboardComponent.graph.values.trunked": "Truncado",
     "collectorDetail.textinput.maxProductionQuantity.label": "Cantidad máxima de producción (qq)",
-    "productLabelPurchaseOrder.aggregated.organicBalance": "Saldo Orgánico (qq)",
-    "productLabelStockFacilityModal.checkbox.isFieldInspection.label": "Inspección sensorial en campo",
-    "productLabelStockFacilityModal.checkbox.isLaboratory.label": "Es laboratorio",
-    "productLabelStockFacilityModal.checkbox.isClassificationProcess.label": "Actividades de clasificado",
-    "productLabelStockFacilityModal.checkbox.isFreezingProcess.label": "Congelación",
-    "productLabelStockFacilityModal.checkbox.isCuttingProcess.label": "Actividades de cortado",
-    "productLabelStockFacilityModal.checkbox.isTreatmentProcess.label": "Actividades de tratado",
-    "productLabelStockFacilityModal.checkbox.isTunnelFreezing.label": "Túnel de congelación",
-    "productLabelStockFacilityModal.checkbox.isWashingArea.label": "Área de lavado",
-    "productLabelStockFacilityModal.checkbox.isRestArea.label": "Área de reposo",
-    "productLabelStockPurchaseOrdersModal.section.fieldInspection": "Inspección Sensorial en Campo",
-    "productLabelStockPurchaseOrdersModal.singleChoice.flavorTestResult.label": "Resultado de Sabor",
-    "productLabelStockPurchaseOrdersModal.flavorTestResult.normal": "Normal",
-    "productLabelStockPurchaseOrdersModal.flavorTestResult.defect": "Con Defecto",
-    "productLabelStockPurchaseOrdersModal.singleChoice.flavorTestResult.error.required": "El resultado de sabor es obligatorio",
-    "productLabelStockPurchaseOrdersModal.singleChoice.flavorDefectType.label": "Tipo de Defecto",
-    "productLabelStockPurchaseOrdersModal.singleChoice.purchaseRecommended.label": "Recomendación de Compra",
-    "productLabelStockPurchaseOrdersModal.purchaseRecommended.yes": "Sí, Comprar",
-    "productLabelStockPurchaseOrdersModal.purchaseRecommended.no": "No Comprar",
-    "productLabelStockPurchaseOrdersModal.singleChoice.purchaseRecommended.error.required": "La recomendación es obligatoria",
-    "productLabelStockPurchaseOrdersModal.textarea.inspectionNotes.label": "Notas de Inspección",
-    "productLabelStockPurchaseOrdersModal.textarea.inspectionNotes.placeholder": "Introduzca observaciones de la inspección"
+    "productLabelPurchaseOrder.aggregated.organicBalance": "Saldo Orgánico (qq)"
   }
 }

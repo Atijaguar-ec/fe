@@ -2303,6 +2303,24 @@ export namespace ApiStockOrder {
   //               qualityDocument: {
   //                   validators: []
   //               },
+  //               flavorTestResult: {
+  //                   validators: []
+  //               },
+  //               flavorDefectTypeId: {
+  //                   validators: []
+  //               },
+  //               flavorDefectTypeCode: {
+  //                   validators: []
+  //               },
+  //               flavorDefectTypeLabel: {
+  //                   validators: []
+  //               },
+  //               purchaseRecommended: {
+  //                   validators: []
+  //               },
+  //               inspectionNotes: {
+  //                   validators: []
+  //               },
   //               qrCodeTag: {
   //                   validators: []
   //               },

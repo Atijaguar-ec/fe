@@ -236,3 +236,32 @@ $casovnica-circle-radius: 22px;
   display: flex;
   gap: 0.5rem;
 }
+
+// Estilos específicos para camarón
+.section-header {
+  background-color: rgba($theme-primary, 0.08);
+  padding: 0.5rem !important;
+  text-align: left;
+  
+  strong {
+    color: $theme-primary;
+    font-size: 0.95rem;
+  }
+}
+
+.text-success {
+  color: $darker-green !important;
+  font-weight: 600;
+}
+
+.text-danger {
+  color: $danger !important;
+  font-weight: 600;
+}
+
+// Tabla de inspección sensorial
+.af-table--divider {
+  tr:first-child th.section-header {
+    border-top: none;
+  }
+}

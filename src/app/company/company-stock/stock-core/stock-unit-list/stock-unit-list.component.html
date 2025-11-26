@@ -42,13 +42,13 @@
           <td *ngIf="!sortOptions[6].hide" [attr.data-label]="sortOptions[6].name">
             {{ order.weekNumber != null ? order.weekNumber : '-' }}
           </td>
-          <td *ngIf="!sortOptions[7].hide" [attr.data-label]="sortOptions[7].name">{{ (order.totalGrossQuantity || order.totalQuantity) | number : '1.0-2' }} {{ order.measureUnitType.label }}</td>
+          <td *ngIf="!sortOptions[7].hide" [attr.data-label]="sortOptions[7].name">{{ (order.totalGrossQuantity || order.totalQuantity) | number : '1.0-2' }} {{ getDisplayMeasureUnit(order) }}</td>
           <td *ngIf="!sortOptions[8].hide" [attr.data-label]="sortOptions[8].name" class="text-muted small">{{ getDeductionsSummary(order) }}</td>
-          <td *ngIf="!sortOptions[9].hide" [attr.data-label]="sortOptions[9].name">{{ (order.netQuantity || order.totalQuantity) | number : '1.0-2' }} {{ order.measureUnitType.label }}</td>
+          <td *ngIf="!sortOptions[9].hide" [attr.data-label]="sortOptions[9].name">{{ (order.netQuantity || order.totalQuantity) | number : '1.0-2' }} {{ getDisplayMeasureUnit(order) }}</td>
           <td *ngIf="!sortOptions[10].hide" [attr.data-label]="sortOptions[10].name">
             {{ (order.netQuantity || order.totalQuantity) ? ((order.netQuantity || order.totalQuantity) | number : '1.0-2') : 0 }} / {{ order.fulfilledQuantity ? (order.fulfilledQuantity | number : '1.0-2') : 0 }} / {{ order.availableQuantity ? (order.availableQuantity | number : '1.0-2') : 0 }}
           </td>
-          <td *ngIf="!sortOptions[11].hide" [attr.data-label]="sortOptions[11].name">{{ order.measureUnitType?.label }}</td>
+          <td *ngIf="!sortOptions[11].hide" [attr.data-label]="sortOptions[11].name">{{ getDisplayMeasureUnit(order) }}</td>
           <td *ngIf="!sortOptions[12].hide" [attr.data-label]="sortOptions[12].name">
             <ng-container *ngIf="order.priceDeterminedLater; else priceAvailable">
               TBD

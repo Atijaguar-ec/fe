@@ -37,7 +37,8 @@
                   <th i18n="@@orderHistoryView.tableCol.identifier">Identifier</th>
                   <td>{{ stockOrder.identifier }}</td>
                 </tr>
-                <tr *ngIf="stockOrder.weekNumber != null">
+                <!-- Campos de CACAO (ocultos para camarón) -->
+                <tr *ngIf="stockOrder.weekNumber != null && !isShrimp">
                   <th i18n="@@orderHistoryView.tableCol.weekNumber">N° de Semana</th>
                   <td>{{ stockOrder.weekNumber }}</td>
                 </tr>
@@ -70,38 +71,114 @@
                 </tbody>
               </table>
 
+              <!-- SECCIÓN ESPECÍFICA CAMARÓN: Datos de Recepción -->
+              <ng-container *ngIf="isShrimp && stockOrder.purchaseOrder">
+                <table class="af-table af-table--200 table-striped af-table--divider">
+                  <tbody>
+                    <tr *ngIf="stockOrder.guiaRemisionNumber">
+                      <th i18n="@@batchHistory.tableCol.guiaRemision">N° Guía de Remisión</th>
+                      <td>{{ stockOrder.guiaRemisionNumber }}</td>
+                    </tr>
+                    <tr *ngIf="stockOrder.numberOfPiscinas">
+                      <th i18n="@@batchHistory.tableCol.piscinas">Piscinas</th>
+                      <td>{{ stockOrder.numberOfPiscinas }}</td>
+                    </tr>
+                    <tr *ngIf="stockOrder.numberOfGavetas">
+                      <th i18n="@@batchHistory.tableCol.gavetas">N° de Gavetas</th>
+                      <td>{{ stockOrder.numberOfGavetas }}</td>
+                    </tr>
+                    <tr *ngIf="stockOrder.numberOfBines">
+                      <th i18n="@@batchHistory.tableCol.bines">N° de Bines</th>
+                      <td>{{ stockOrder.numberOfBines }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ng-container>
+
+              <!-- SECCIÓN ESPECÍFICA CAMARÓN: Inspección Sensorial en Campo -->
+              <ng-container *ngIf="isShrimp && isFieldInspectionOrder(stockOrder)">
+                <table class="af-table af-table--200 table-striped af-table--divider">
+                  <tbody>
+                    <tr>
+                      <th colspan="2" class="section-header" i18n="@@batchHistory.section.fieldInspection">
+                        <strong>🔍 Inspección Sensorial en Campo</strong>
+                      </th>
+                    </tr>
+                    <tr>
+                      <th i18n="@@batchHistory.tableCol.flavorTestResult">Resultado de Sabor</th>
+                      <td>
+                        <span [ngClass]="{'text-success': stockOrder.flavorTestResult === 'NORMAL', 'text-danger': stockOrder.flavorTestResult === 'DEFECT'}">
+                          {{ getFlavorTestResultLabel(stockOrder.flavorTestResult) }}
+                        </span>
+                      </td>
+                    </tr>
+                    <tr *ngIf="stockOrder.flavorDefectTypeLabel">
+                      <th i18n="@@batchHistory.tableCol.flavorDefectType">Tipo de Defecto</th>
+                      <td>{{ stockOrder.flavorDefectTypeLabel }}</td>
+                    </tr>
+                    <tr>
+                      <th i18n="@@batchHistory.tableCol.purchaseRecommended">Recomendación de Compra</th>
+                      <td>
+                        <span [ngClass]="{'text-success': stockOrder.purchaseRecommended === true, 'text-danger': stockOrder.purchaseRecommended === false}">
+                          {{ getPurchaseRecommendedLabel(stockOrder.purchaseRecommended) }}
+                        </span>
+                      </td>
+                    </tr>
+                    <tr *ngIf="stockOrder.inspectionNotes">
+                      <th i18n="@@batchHistory.tableCol.inspectionNotes">Notas de Inspección</th>
+                      <td>{{ stockOrder.inspectionNotes }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ng-container>
+
+              <!-- Cantidades y Pesos -->
               <table class="af-table af-table--200 table-striped af-table--divider">
                 <tbody>
                   <ng-container *ngIf="stockOrder.totalGrossQuantity">
                   <tr>
-                    <th>Total bruto</th>
-                    <td>{{ stockOrder.totalGrossQuantity }} {{ stockOrder.measureUnitType?.label }} </td>
+                    <th i18n="@@batchHistory.tableCol.totalGross">Total bruto</th>
+                    <td>{{ stockOrder.totalGrossQuantity }} {{ getDisplayMeasureUnit(stockOrder) }} </td>
                   </tr>
                   </ng-container>
 
-                <ng-container *ngIf="stockOrder.moisturePercentage">
-                  <tr>
-                    <th>Descuento de peso</th>
-                    <td> {{ stockOrder.damagedWeightDeduction }} {{ stockOrder.measureUnitType?.label  }} </td>
-                  </tr>
+                  <!-- Tara (específico camarón) -->
+                  <ng-container *ngIf="isShrimp && stockOrder.tare">
+                    <tr>
+                      <th i18n="@@batchHistory.tableCol.tare">Tara</th>
+                      <td>{{ stockOrder.tare }} {{ getDisplayMeasureUnit(stockOrder) }}</td>
+                    </tr>
                   </ng-container>
 
-
-                   <ng-container *ngIf="stockOrder.moisturePercentage">
-                  <tr>
-                    <th>% Descuento por humedad (peso)'</th>
-                    <td>{{ stockOrder.moisturePercentage }}% =>  {{ stockOrder.moistureWeightDeduction }} </td>
-                  </tr>
+                  <!-- Descuentos de peso (solo cacao) -->
+                  <ng-container *ngIf="!isShrimp && stockOrder.damagedWeightDeduction">
+                    <tr>
+                      <th i18n="@@batchHistory.tableCol.damagedWeight">Descuento de peso</th>
+                      <td>{{ stockOrder.damagedWeightDeduction }} {{ stockOrder.measureUnitType?.label }}</td>
+                    </tr>
                   </ng-container>
 
+                  <!-- Humedad (solo cacao) -->
+                  <ng-container *ngIf="!isShrimp && stockOrder.moisturePercentage">
+                    <tr>
+                      <th i18n="@@batchHistory.tableCol.moisturePercentage">% Descuento por humedad</th>
+                      <td>{{ stockOrder.moisturePercentage }}% => {{ stockOrder.moistureWeightDeduction }} {{ stockOrder.measureUnitType?.label }}</td>
+                    </tr>
+                  </ng-container>
 
-                 
+                  <!-- Peso Neto (prominente para camarón) -->
+                  <ng-container *ngIf="stockOrder.netQuantity">
+                    <tr>
+                      <th i18n="@@batchHistory.tableCol.netQuantity"><strong>Peso Neto</strong></th>
+                      <td><strong>{{ stockOrder.netQuantity }} {{ getDisplayMeasureUnit(stockOrder) }}</strong></td>
+                    </tr>
+                  </ng-container>
+
                 <tr>
                   <th i18n="@@orderHistoryView.tableCol.measurementUnitType">Total</th>
-                  <td>{{ stockOrder.totalQuantity }} {{ stockOrder.measureUnitType?.label }} </td>
+                  <td>{{ stockOrder.totalQuantity }} {{ getDisplayMeasureUnit(stockOrder) }}</td>
                 </tr>
 
-                 
                 <tr>
                   <th i18n="@@orderHistoryView.tableCol.fulfilled">Cumplido</th>
                   <td>{{ formatQuantity(stockOrder, stockOrder.fulfilledQuantity) }}</td>
@@ -173,11 +250,11 @@
                 <ng-container *ngIf="stockOrder.purchaseOrder">
                   <tr>
                     <th i18n="@@orderHistoryView.tableCol.semiProductName">Farmer</th>
-                    <td>{{ stockOrder.producerUserCustomer?.name }} {{ stockOrder.producerUserCustomer?.surname }}</td>
+                    <td>{{ getUserCustomerDisplayName(stockOrder.producerUserCustomer) }}</td>
                   </tr>
                   <tr>
                     <th i18n="@@orderHistoryView.tableCol.farmerRepresentative">Farmer representative</th>
-                    <td>{{ stockOrder.representativeOfProducerUserCustomer?.name }} {{ stockOrder.representativeOfProducerUserCustomer?.surname }}</td>
+                    <td>{{ getUserCustomerDisplayName(stockOrder.representativeOfProducerUserCustomer) }}</td>
                   </tr>
                   <tr>
                     <th i18n="@@orderHistoryView.tableCol.finalPriceDiscount">Final price discount</th>

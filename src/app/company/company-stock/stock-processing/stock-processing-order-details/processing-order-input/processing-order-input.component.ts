@@ -22,6 +22,8 @@ import { ApiSemiProduct } from '../../../../../../api/model/apiSemiProduct';
 import { ApiFinalProduct } from '../../../../../../api/model/apiFinalProduct';
 import StatusEnum = ApiTransaction.StatusEnum;
 import OrderTypeEnum = ApiStockOrder.OrderTypeEnum;
+import { ApiUserCustomer } from '../../../../../../api/model/apiUserCustomer';
+import { formatUserCustomerDisplayName } from '../../../../../../shared/utils';
 
 @Component({
   selector: 'app-processing-order-input',
@@ -123,6 +125,10 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
         return $localize`:@@productLabelStockProcessingOrderDetail.organicOnlyStatus.nonOrganicProduct:Non-organic`;
       }
     }
+  }
+
+  formatUserCustomer(user: ApiUserCustomer | null | undefined): string {
+    return formatUserCustomerDisplayName(user ?? null);
   }
 
   get leftSideEnabled() {

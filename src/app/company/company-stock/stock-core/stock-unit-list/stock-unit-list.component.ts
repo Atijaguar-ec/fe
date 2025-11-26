@@ -667,6 +667,22 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
     }
     return '';
   }
+
+  private isFieldInspectionOrder(order: ApiStockOrder | null | undefined): boolean {
+    return !!order?.facility?.isFieldInspection;
+  }
+
+  getDisplayMeasureUnit(order: ApiStockOrder | null | undefined): string {
+    if (!order) {
+      return '';
+    }
+
+    if (this.envInfo.isProductType('shrimp') && this.isFieldInspectionOrder(order)) {
+      return $localize`:@@stockUnitList.measureUnit.units:Unidades`;
+    }
+
+    return order.measureUnitType?.label || '';
+  }
   
   aggregateOrderItems(items: ApiStockOrder[]): AggregatedStockItem[] {
 
@@ -686,7 +702,7 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
         } else {
           acc.set(item.semiProduct.id, {
             amount: nextTotalQuantity,
-            measureUnit: item.measureUnitType.label,
+            measureUnit: this.getDisplayMeasureUnit(item),
             stockUnitName: item.semiProduct.name
           });
         }
@@ -709,7 +725,7 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
         } else {
           acc.set(item.finalProduct.id, {
             amount: nextTotalQuantity,
-            measureUnit: item.measureUnitType.label,
+            measureUnit: this.getDisplayMeasureUnit(item),
             stockUnitName: `${item.finalProduct.name} (${item.finalProduct.product.name})`
           });
         }
@@ -726,19 +742,31 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
   farmerName(farmer: ApiUserCustomer) {
 
     if (farmer) {
+      const isLegal = farmer.personType === ApiUserCustomer.PersonTypeEnum.LEGAL || (farmer as any).personType === 'LEGAL';
+
+      const baseName = ((): string => {
+        if (isLegal && farmer.companyName && farmer.companyName.trim().length > 0) {
+          return farmer.companyName.trim();
+        }
+
+        const namePart = farmer.name ? farmer.name.trim() : '';
+        const surnamePart = farmer.surname ? farmer.surname.trim() : '';
+        return `${namePart} ${surnamePart}`.trim();
+      })();
+
       if (farmer.location?.address?.country?.code === 'RW') {
 
         const cell = farmer.location.address.cell ? farmer.location.address.cell.substring(0, 2).toLocaleUpperCase() : '--';
         const village = farmer.location.address.village ? farmer.location.address.village.substring(0, 2).toLocaleUpperCase() : '--';
-        return farmer.name + ' ' + farmer.surname + ' (' + farmer.id + ', ' + village + '-' + cell + ')';
+        return `${baseName} (${farmer.id}, ${village}-${cell})`;
 
       } else if (farmer.location?.address?.country?.code === 'HN') {
         const municipality = farmer.location.address.hondurasMunicipality ? farmer.location.address.hondurasMunicipality : '--';
         const village = farmer.location.address.hondurasVillage ? farmer.location.address.hondurasVillage : '--';
-        return farmer.name + ' ' + farmer.surname + ' (' + farmer.id + ', ' + municipality + '-' + village + ')';
+        return `${baseName} (${farmer.id}, ${municipality}-${village})`;
       }
 
-      return farmer.name + ' ' + farmer.surname;
+      return baseName;
     }
 
     return '';

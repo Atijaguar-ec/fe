@@ -182,7 +182,7 @@
                         <div class="af-c8">
                             <ng-container *ngIf="item.orderType === 'PURCHASE_ORDER'">
                                 <div>
-                                    <span>{{ item.identifier }} ({{ item.producerUserCustomer.name }} {{ item.producerUserCustomer.surname }})</span>
+                                    <span>{{ item.identifier }} ({{ formatUserCustomer(item.producerUserCustomer) }})</span>
                                     <span *ngIf="item.sampleNumber" class="ml-2 badge badge-info" i18n="@@productLabelStockProcessingOrderDetail.list.sampleNumber">🔬 Muestra {{ item.sampleNumber }}</span>
                                     <span *ngIf="item.weekNumber" class="ml-2 text-muted" i18n="@@productLabelStockProcessingOrderDetail.list.weekNumber">Semana {{ item.weekNumber }}</span>
                                     <span *ngIf="item.productionDate" class="ml-2 text-muted">{{ item.productionDate | date:'dd/MM/yyyy' }}</span>

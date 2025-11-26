@@ -47,8 +47,7 @@
             <div class="af-row">
               <div class="af-c6">
                 <app-datepicker
-                        label="Delivery date"
-                        i18n-label="@@productLabelStockPurchaseOrdersModal.datepicker.date.label"
+                        [label]="inspectionDateLabel"
                         [form]="stockOrderForm.get('productionDate')"
                         [invalid]="submitted && stockOrderForm.get('productionDate').invalid">
                   <ng-container *ngIf="submitted">
@@ -66,8 +65,7 @@
               <div class="af-c4">
                 <textinput
                   [form]="stockOrderForm.get('receptionTime')"
-                  label="Hora de recepción"
-                  i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.receptionTime.label"
+                  [label]="inspectionTimeLabel"
                   style="width: 100%"
                   type="time"
                   placeholder="Introduzca la hora de recepción"
@@ -431,7 +429,7 @@
               </div>
             </div>
 
-            <!-- 🦐 Campos específicos de camarón (solo NO laboratorio) -->
+            <!-- 🦐 Campos específicos de camarón (ingreso de camarón a la planta enpacadora) -->
             <ng-container *ngIf="showShrimpFields$ | async">
               
               <div class="af-row">
@@ -557,7 +555,7 @@
             </ng-container>
 
             <!-- Observación (alineada con la segunda columna) -->
-            <div class="af-row">
+            <div class="af-row" *ngIf="showReceptionFields$ | async">
               
               <div class="af-c12">
                 <textinput

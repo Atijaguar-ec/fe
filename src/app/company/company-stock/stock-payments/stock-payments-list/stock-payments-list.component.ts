@@ -9,7 +9,7 @@ import { ApiPayment } from '../../../../../api/model/apiPayment';
 import { PaymentControllerService } from '../../../../../api/api/paymentController.service';
 import { SortOption } from '../../../../shared/result-sorter/result-sorter-types';
 import { ApiPaginatedResponseApiPayment } from '../../../../../api/model/apiPaginatedResponseApiPayment';
-import { formatDateWithDots } from '../../../../../shared/utils';
+import { formatDateWithDots, formatUserCustomerDisplayName } from '../../../../../shared/utils';
 import { DeliveryDates } from '../../stock-core/stock-core-tab/stock-core-tab.component';
 import { ModeEnum } from '../stock-payments-form/stock-payments-form.component';
 import PaymentStatusEnum = ApiPayment.PaymentStatusEnum;
@@ -342,17 +342,8 @@ export class StockPaymentsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  showPagination() {
-    return ((this.showedPayments - this.pageSize) === 0 && this.allPayments > this.pageSize) || this.page > 1;
-  }
-
-  formatDate(productionDate) {
-    if (productionDate) { return formatDateWithDots(productionDate); }
-    return '';
-  }
-
-  readablePaymentPurpose(id) {
-    return this.paymentPurposeTypes[id];
+  getRecipientUserName(payment: ApiPayment): string {
+    return formatUserCustomerDisplayName(payment?.recipientUserCustomer ?? null);
   }
 
   get paymentPurposeTypes() {
