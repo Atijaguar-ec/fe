@@ -1,0 +1,167 @@
+<div class="modal-header">
+  <h4 class="modal-title">
+    {{ titleLabel }}
+  </h4>
+  <button type="button" class="close" aria-label="Close" (click)="cancel()">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<div class="modal-body" *ngIf="!loading; else loadingTpl">
+  <div *ngIf="loadError" class="alert alert-danger mb-3">
+    {{ loadError }}
+  </div>
+
+  <ng-container *ngIf="!loadError">
+    <!-- Empty state -->
+    <div *ngIf="!inspections || inspections.length === 0" class="alert alert-info mb-0">
+      {{ emptyMessage }}
+    </div>
+
+    <!-- Inspections table -->
+    <table *ngIf="inspections && inspections.length > 0" class="table table-hover table-sm mb-0">
+      <thead>
+        <tr>
+          <th style="width: 40px;"></th>
+          <th>{{ dateLabel }}</th>
+          <th>{{ producerLabel }}</th>
+          <th>{{ quantityLabel }}</th>
+          <th>{{ flavorLabel }}</th>
+          <th>{{ recommendedLabel }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let i of inspections" 
+            (click)="select(i)" 
+            [class.table-active]="isSelected(i)"
+            [class.table-warning]="!i.purchaseRecommended">
+          <td>
+            <input
+              type="radio"
+              name="selectedInspection"
+              [value]="i.id"
+              [checked]="isSelected(i)"
+              (click)="$event.stopPropagation(); select(i)"
+            />
+          </td>
+          <td>{{ formatDate(i.inspectionDate) }}</td>
+          <td>{{ i.producerName || 'N/A' }}</td>
+          <td>{{ i.totalQuantity }} Unidades</td>
+          <td [class]="getFlavorResultClass(i.flavorTestResult)">
+            {{ getFlavorResultLabel(i.flavorTestResult) }}
+          </td>
+          <td [class]="getRecommendedClass(i.purchaseRecommended)">
+            {{ getRecommendedLabel(i.purchaseRecommended) }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Selected inspection details -->
+    <div *ngIf="selectedInspection" class="mt-3">
+      <h6 class="mb-2">{{ detailsTitleLabel }}</h6>
+
+      <!-- Inspection info -->
+      <div class="row mb-2">
+        <div class="col-6">
+          <strong>{{ dateLabel }}:</strong> {{ formatDate(selectedInspection.inspectionDate) }}
+        </div>
+        <div class="col-6">
+          <strong>{{ timeLabel }}:</strong> {{ selectedInspection.inspectionTime || '-' }}
+        </div>
+      </div>
+
+      <!-- Flavor result -->
+      <div class="row mb-2">
+        <div class="col-6">
+          <strong>{{ flavorLabel }}:</strong>
+          <span [class]="getFlavorResultClass(selectedInspection.flavorTestResult)">
+            {{ getFlavorResultLabel(selectedInspection.flavorTestResult) }}
+          </span>
+        </div>
+        <div class="col-6" *ngIf="selectedInspection.flavorTestResult === 'DEFECT'">
+          <strong>Defecto:</strong> {{ selectedInspection.flavorDefectTypeLabel || '-' }}
+        </div>
+      </div>
+
+      <!-- Recommendation -->
+      <div class="row mb-2">
+        <div class="col-12">
+          <strong>{{ recommendedLabel }}:</strong>
+          <span [class]="getRecommendedClass(selectedInspection.purchaseRecommended)">
+            {{ getRecommendedLabel(selectedInspection.purchaseRecommended) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Reception data (only show if any data exists) -->
+      <div class="mt-2 mb-2" *ngIf="hasReceptionData(selectedInspection)">
+        <strong>{{ receptionDataLabel }}:</strong>
+        <div class="row mt-1">
+          <div class="col-3" *ngIf="selectedInspection.numberOfGavetas">
+            <small class="text-muted">{{ gavetasLabel }}:</small>
+            <br>{{ selectedInspection.numberOfGavetas }}
+          </div>
+          <div class="col-3" *ngIf="selectedInspection.numberOfBines">
+            <small class="text-muted">{{ binesLabel }}:</small>
+            <br>{{ selectedInspection.numberOfBines }}
+          </div>
+          <div class="col-3" *ngIf="selectedInspection.numberOfPiscinas">
+            <small class="text-muted">{{ piscinasLabel }}:</small>
+            <br>{{ selectedInspection.numberOfPiscinas }}
+          </div>
+          <div class="col-3" *ngIf="selectedInspection.guiaRemisionNumber">
+            <small class="text-muted">{{ guiaRemisionLabel }}:</small>
+            <br>{{ selectedInspection.guiaRemisionNumber }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="form-group mb-0">
+        <label class="font-weight-bold d-block mb-1">{{ notesLabel }}</label>
+        <div class="border rounded p-2 bg-light" style="min-height: 3rem; white-space: pre-wrap;">
+          {{ selectedInspection.inspectionNotes || notesEmptyLabel }}
+        </div>
+      </div>
+
+      <!-- Warning if not recommended -->
+      <div *ngIf="selectedInspection.purchaseRecommended === false" class="alert alert-warning mt-2 mb-0">
+        <strong>⚠️</strong> Esta inspección NO recomienda la compra del producto.
+      </div>
+    </div>
+  </ng-container>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="modal-body text-center">
+    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+    <span class="ml-2">{{ loadingLabel }}</span>
+  </div>
+</ng-template>
+
+<div class="modal-footer" *ngIf="!loading">
+  <button type="button" class="btn btn-outline-secondary" (click)="cancel()">
+    {{ cancelLabel }}
+  </button>
+  <button type="button" 
+          class="btn btn-outline-primary" 
+          (click)="skip()"
+          *ngIf="inspections && inspections.length > 0">
+    {{ skipLabel }}
+  </button>
+  <button type="button" 
+          class="btn btn-primary" 
+          [disabled]="!selectedId" 
+          (click)="continue()"
+          *ngIf="inspections && inspections.length > 0">
+    {{ continueLabel }}
+  </button>
+  <!-- Only skip button if no inspections -->
+  <button type="button" 
+          class="btn btn-primary" 
+          (click)="skip()"
+          *ngIf="!inspections || inspections.length === 0">
+    {{ skipLabel }}
+  </button>
+</div>

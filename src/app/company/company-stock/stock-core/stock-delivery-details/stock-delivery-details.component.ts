@@ -34,6 +34,7 @@ import { EnvironmentInfoService } from '../../../../core/environment-info.servic
 import { ChainFieldConfigService } from '../../../../shared-services/chain-field-config.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { LaboratoryAnalysisService } from '../../../../core/api/laboratory-analysis.service';
+import { FieldInspectionService } from '../../../../core/api/field-inspection.service';
 import { ShrimpFlavorDefectControllerService } from '../../../../../api/api/shrimpFlavorDefectController.service';
 
 declare const $localize: (messageParts: TemplateStringsArray, ...placeholders: any[]) => string;
@@ -100,6 +101,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   private purchaseOrderId: number | null;
   private labAnalysisId: number | null = null;
   private srcStockOrderId: number | null = null;
+  private fieldInspectionId: number | null = null;
 
   additionalProofsListManager: ListEditorManager<ApiActivityProof> | null = null;
 
@@ -135,6 +137,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     private pdfGeneratorService: PdfGeneratorService,
     private envInfo: EnvironmentInfoService,
     private laboratoryAnalysisService: LaboratoryAnalysisService,
+    private fieldInspectionService: FieldInspectionService,
     private shrimpFlavorDefectService: ShrimpFlavorDefectControllerService,
     public fieldConfig: ChainFieldConfigService  
   ) {
@@ -143,6 +146,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     const qp = this.route.snapshot.queryParams || {};
     this.labAnalysisId = qp.labAnalysisId != null ? Number(qp.labAnalysisId) : null;
     this.srcStockOrderId = qp.srcStockOrderId != null ? Number(qp.srcStockOrderId) : null;
+    this.fieldInspectionId = qp.fieldInspectionId != null ? Number(qp.fieldInspectionId) : null;
   }
 
   // Additional proof item factory methods (used when creating ListEditorManger)
@@ -832,13 +836,70 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         });
       }
     });
+
+    // 🔍 Listener para resultado de sabor: actualiza validador de tipo de defecto
+    const flavorResultControl = this.stockOrderForm?.get('flavorTestResult');
+    if (flavorResultControl) {
+      flavorResultControl.valueChanges.subscribe((value) => {
+        const flavorDefectControl = this.stockOrderForm?.get('flavorDefectTypeId');
+        if (flavorDefectControl) {
+          if (value === 'DEFECT' && this.isFieldInspectionFacility()) {
+            flavorDefectControl.setValidators([Validators.required]);
+          } else {
+            flavorDefectControl.clearValidators();
+            if (value !== 'DEFECT') {
+              flavorDefectControl.setValue(null, { emitEvent: false });
+            }
+          }
+          flavorDefectControl.updateValueAndValidity({ emitEvent: false });
+        }
+      });
+    }
   }
 
   private cannotUpdatePO() {
     this.prepareData();
-    return (this.stockOrderForm.invalid || this.searchFarmers.invalid ||
+    
+    // Validación base
+    const baseInvalid = this.stockOrderForm.invalid || this.searchFarmers.invalid ||
       this.employeeForm.invalid || !this.modelChoice ||
-      this.tareInvalidCheck || this.damagedPriceDeductionInvalidCheck);
+      this.tareInvalidCheck || this.damagedPriceDeductionInvalidCheck;
+    
+    // Validación adicional para inspección de campo (camarón)
+    if (this.isFieldInspectionFacility() && this.fieldConfig.getProductType()?.toUpperCase() === 'SHRIMP') {
+      const fieldInspectionInvalid = this.isFieldInspectionInvalid();
+      return baseInvalid || fieldInspectionInvalid;
+    }
+    
+    return baseInvalid;
+  }
+
+  /**
+   * 🔍 Valida campos requeridos para inspección de campo de camarón
+   */
+  private isFieldInspectionInvalid(): boolean {
+    const flavorResult = this.stockOrderForm?.get('flavorTestResult')?.value;
+    const purchaseRecommended = this.stockOrderForm?.get('purchaseRecommended')?.value;
+    
+    // Resultado de sabor es obligatorio
+    if (!flavorResult) {
+      return true;
+    }
+    
+    // Recomendación de compra es obligatoria
+    if (purchaseRecommended === null || purchaseRecommended === undefined || purchaseRecommended === '') {
+      return true;
+    }
+    
+    // Si hay defecto, el tipo de defecto es obligatorio
+    if (flavorResult === 'DEFECT') {
+      const defectType = this.stockOrderForm?.get('flavorDefectTypeId')?.value;
+      if (!defectType) {
+        return true;
+      }
+    }
+    
+    return false;
   }
 
   onSelectedType(type: StockOrderType) {
@@ -1184,6 +1245,60 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       }
       moistureControl.updateValueAndValidity();
     }
+
+    // 🔍 Validadores para campos de inspección de campo (camarón)
+    this.updateFieldInspectionValidators();
+  }
+
+  /**
+   * 🔍 Actualiza validadores para campos de inspección sensorial en campo
+   */
+  private updateFieldInspectionValidators(): void {
+    const isFieldInspection = this.isFieldInspectionFacility();
+    const isShrimp = this.fieldConfig.getProductType()?.toUpperCase() === 'SHRIMP';
+    
+    const flavorResultControl = this.stockOrderForm?.get('flavorTestResult');
+    const purchaseRecommendedControl = this.stockOrderForm?.get('purchaseRecommended');
+    const flavorDefectControl = this.stockOrderForm?.get('flavorDefectTypeId');
+    
+    if (isFieldInspection && isShrimp) {
+      // Resultado de sabor es obligatorio
+      if (flavorResultControl) {
+        flavorResultControl.setValidators([Validators.required]);
+        flavorResultControl.updateValueAndValidity({ emitEvent: false });
+      }
+      
+      // Recomendación de compra es obligatoria
+      if (purchaseRecommendedControl) {
+        purchaseRecommendedControl.setValidators([Validators.required]);
+        purchaseRecommendedControl.updateValueAndValidity({ emitEvent: false });
+      }
+      
+      // Defecto condicional: obligatorio solo si flavorTestResult = 'DEFECT'
+      if (flavorDefectControl) {
+        const flavorResult = flavorResultControl?.value;
+        if (flavorResult === 'DEFECT') {
+          flavorDefectControl.setValidators([Validators.required]);
+        } else {
+          flavorDefectControl.clearValidators();
+        }
+        flavorDefectControl.updateValueAndValidity({ emitEvent: false });
+      }
+    } else {
+      // Limpiar validadores si no es inspección de campo
+      if (flavorResultControl) {
+        flavorResultControl.clearValidators();
+        flavorResultControl.updateValueAndValidity({ emitEvent: false });
+      }
+      if (purchaseRecommendedControl) {
+        purchaseRecommendedControl.clearValidators();
+        purchaseRecommendedControl.updateValueAndValidity({ emitEvent: false });
+      }
+      if (flavorDefectControl) {
+        flavorDefectControl.clearValidators();
+        flavorDefectControl.updateValueAndValidity({ emitEvent: false });
+      }
+    }
   }
 
   get tareInvalidCheck() {
@@ -1202,6 +1317,24 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     const damagedWeightDeduction = Number(this.stockOrderForm?.get('damagedWeightDeduction')?.value ?? 0);
     const totalQuantity = Number(this.stockOrderForm?.get('totalQuantity')?.value ?? 0);
     return damagedWeightDeduction && totalQuantity && (damagedWeightDeduction > totalQuantity);
+  }
+
+  /**
+   * 🔍 Verifica si los campos de inspección de campo son inválidos (para feedback visual)
+   */
+  get fieldInspectionInvalidCheck(): boolean {
+    if (!this.isFieldInspectionFacility()) {
+      return false;
+    }
+    return this.isFieldInspectionInvalid();
+  }
+
+  /**
+   * 🔍 Verifica si la recomendación de compra es negativa
+   */
+  get isPurchaseNotRecommended(): boolean {
+    const value = this.stockOrderForm?.get('purchaseRecommended')?.value;
+    return value === 'false' || value === false;
   }
 
   async printDeliveryPdf() {
@@ -1551,6 +1684,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
       if (res && res.status === 'OK') {
         const createdId = res.data && (res.data as any).id ? (res.data as any).id as number : null;
+        
+        // 🔬 Marcar análisis de laboratorio como usado
         if (!this.update && this.labAnalysisId && createdId) {
           try {
             await this.laboratoryAnalysisService
@@ -1559,6 +1694,17 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
               .toPromise();
           } catch (_) {}
         }
+        
+        // 🔍 Marcar inspección de campo como usada
+        if (!this.update && this.fieldInspectionId && createdId) {
+          try {
+            await this.fieldInspectionService
+              .markUsed(this.fieldInspectionId, createdId)
+              .pipe(take(1))
+              .toPromise();
+          } catch (_) {}
+        }
+        
         if (close) {
           this.dismiss();
         } else {

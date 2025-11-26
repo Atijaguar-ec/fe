@@ -512,7 +512,15 @@
                     [codebookService]="flavorDefectCodebook"
                     label="Tipo de Defecto"
                     i18n-label="@@productLabelStockPurchaseOrdersModal.singleChoice.flavorDefectType.label"
-                    style="width: 100%">
+                    style="width: 100%"
+                    [isInvalidChoice]="submitted && stockOrderForm.get('flavorDefectTypeId').invalid">
+                    <ng-container *ngIf="submitted">
+                      <div *ngIf="stockOrderForm.get('flavorDefectTypeId').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockPurchaseOrdersModal.singleChoice.flavorDefectType.error.required">
+                          El tipo de defecto es obligatorio cuando hay defecto
+                        </div>
+                      </div>
+                    </ng-container>
                   </single-choice>
                 </div>
               </div>
@@ -549,6 +557,18 @@
                     [textarea]="true"
                     rows="3">
                   </textinput>
+                </div>
+              </div>
+
+              <!-- 🔍 Alerta visual cuando NO se recomienda la compra -->
+              <div class="af-row" *ngIf="isPurchaseNotRecommended">
+                <div class="af-c12">
+                  <div class="alert alert-warning" role="alert">
+                    <strong>⚠️</strong>
+                    <span i18n="@@productLabelStockPurchaseOrdersModal.alert.purchaseNotRecommended">
+                      La compra NO está recomendada según la inspección sensorial en campo.
+                    </span>
+                  </div>
                 </div>
               </div>
 
