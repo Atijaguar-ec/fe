@@ -114,6 +114,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   private _showShrimpFields$ = new BehaviorSubject<boolean>(false);
   private _showFieldInspectionFields$ = new BehaviorSubject<boolean>(false);
   private _showReceptionFields$ = new BehaviorSubject<boolean>(true);
+  private _showSensorialQualityFields$ = new BehaviorSubject<boolean>(false);
   
   showPriceFields$: Observable<boolean> = this._showPriceFields$.asObservable();
   showPaymentFields$: Observable<boolean> = this._showPaymentFields$.asObservable();
@@ -121,6 +122,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   showShrimpFields$: Observable<boolean> = this._showShrimpFields$.asObservable();
   showFieldInspectionFields$: Observable<boolean> = this._showFieldInspectionFields$.asObservable();
   showReceptionFields$: Observable<boolean> = this._showReceptionFields$.asObservable();
+  showSensorialQualityFields$: Observable<boolean> = this._showSensorialQualityFields$.asObservable();
 
   constructor(
     private route: ActivatedRoute,
@@ -1476,6 +1478,63 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * 🏭 Detecta si el facility actual es un centro de acopio de camarón
+   * (isCollectionFacility = true Y NO es inspección de campo)
+   */
+  isCollectionFacilityForShrimp(): boolean {
+    const productType = this.fieldConfig.getProductType()?.toUpperCase() ?? '';
+    const isShrimp = productType === 'SHRIMP';
+    const isCollection = this.facility?.isCollectionFacility === true;
+    const isFieldInspection = this.facility?.isFieldInspection === true;
+    
+    return isShrimp && isCollection && !isFieldInspection;
+  }
+
+  /**
+   * 🧪 Asegura que los controles de análisis sensorial y calidad existan en el formulario
+   * Se llama cuando el facility es centro de acopio de camarón
+   */
+  private ensureSensorialQualityControls(): void {
+    if (!this.stockOrderForm) {
+      return;
+    }
+
+    // Campos de análisis sensorial
+    const sensorialFields = [
+      'sampleNumber',
+      'sensorialRawOdor',
+      'sensorialRawTaste', 
+      'sensorialRawColor',
+      'sensorialCookedOdor',
+      'sensorialCookedTaste',
+      'sensorialCookedColor',
+      'qualityNotes'
+    ];
+
+    sensorialFields.forEach(fieldName => {
+      if (!this.stockOrderForm.get(fieldName)) {
+        this.stockOrderForm.addControl(fieldName, new FormControl(null));
+      }
+    });
+
+    // Campos booleanos/especiales
+    if (!this.stockOrderForm.get('metabisulfiteLevelAcceptable')) {
+      this.stockOrderForm.addControl('metabisulfiteLevelAcceptable', new FormControl(null));
+    }
+
+    if (!this.stockOrderForm.get('approvedForPurchase')) {
+      this.stockOrderForm.addControl('approvedForPurchase', new FormControl(null));
+    }
+
+    // Documento de calidad (objeto)
+    if (!this.stockOrderForm.get('qualityDocument')) {
+      this.stockOrderForm.addControl('qualityDocument', new FormControl(null));
+    }
+
+    console.log('🧪 Sensorial quality controls ensured in stockOrderForm');
+  }
+
+  /**
    * 🔄 Actualiza los observables de visibilidad de campos según facility y tipo de producto
    */
   private updateFieldVisibilityObservables(): void {
@@ -1505,12 +1564,24 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     else if (productType === 'SHRIMP') {
       const showPrice = this.fieldConfig.isFieldVisible('stockOrder', 'pricePerUnit');
       const showPayment = this.fieldConfig.isFieldVisible('stockOrder', 'preferredWayOfPayment');
+      const isCollectionFacility = this.isCollectionFacilityForShrimp();
+      
       this._showPriceFields$.next(showPrice);
       this._showPaymentFields$.next(showPayment);
       this._showShrimpFields$.next(true);  // Mostrar campos específicos de camarón
       this._showFieldInspectionFields$.next(false);
       this._showReceptionFields$.next(true);
-      console.log('🦐 Facility is NORMAL SHRIMP - Shrimp fields visible');
+      
+      // 🏭 CENTRO DE ACOPIO: Mostrar campos de análisis sensorial y calidad
+      this._showSensorialQualityFields$.next(isCollectionFacility);
+      
+      if (isCollectionFacility) {
+        console.log('🏭 Facility is SHRIMP COLLECTION - Sensorial quality fields visible');
+        // Asegurar que los controles existan en el formulario
+        this.ensureSensorialQualityControls();
+      } else {
+        console.log('🦐 Facility is NORMAL SHRIMP - Shrimp fields visible');
+      }
     }
     // 🍫☕ OTROS PRODUCTOS: Mostrar campos de precio, ocultar campos de camarón
     else {

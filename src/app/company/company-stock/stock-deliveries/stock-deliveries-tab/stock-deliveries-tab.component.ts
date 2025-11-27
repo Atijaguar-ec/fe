@@ -160,19 +160,20 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
     // 🔬 Paso 2: Mostrar modal de laboratorio SOLO si no se seleccionó inspección de campo
     // Si ya hay inspección de campo vinculada, no se necesita análisis de laboratorio
     if (requiresLabApproval && !selectedFieldInspection) {
-      const modalRef = this.modalService.open(LabApprovalSelectionModalComponent, {
-        centered: true,
-        backdrop: 'static',
-        keyboard: false
-      }, {
-        companyId: this.companyId
-      });
+      try {
+        const modalRef = this.modalService.open(LabApprovalSelectionModalComponent, {
+          centered: true,
+          backdrop: 'static',
+          keyboard: false
+        }, {
+          companyId: this.companyId
+        });
 
-      const result = await modalRef.result;
-      selectedAnalysis = result as ApiLaboratoryAnalysis | null;
-
-      if (!selectedAnalysis) {
-        // User cancelled or closed modal – abort navigation
+        const result = await modalRef.result;
+        selectedAnalysis = result as ApiLaboratoryAnalysis | null;
+        // selectedAnalysis === null significa "continuar sin análisis"
+      } catch (e) {
+        // Usuario canceló el modal (dismiss) → abortar navegación
         return;
       }
     }
@@ -234,18 +235,19 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
 
     // 🔬 Paso 2: Mostrar modal de laboratorio SOLO si no se seleccionó inspección de campo
     if (requiresLabApproval && !selectedFieldInspection) {
-      const modalRef = this.modalService.open(LabApprovalSelectionModalComponent, {
-        centered: true,
-        backdrop: 'static',
-        keyboard: false
-      }, {
-        companyId: this.companyId
-      });
+      try {
+        const modalRef = this.modalService.open(LabApprovalSelectionModalComponent, {
+          centered: true,
+          backdrop: 'static',
+          keyboard: false
+        }, {
+          companyId: this.companyId
+        });
 
-      const result = await modalRef.result;
-      selectedAnalysis = result as ApiLaboratoryAnalysis | null;
-
-      if (!selectedAnalysis) {
+        const result = await modalRef.result;
+        selectedAnalysis = result as ApiLaboratoryAnalysis | null;
+      } catch (e) {
+        // Usuario canceló el modal → abortar navegación
         return;
       }
     }

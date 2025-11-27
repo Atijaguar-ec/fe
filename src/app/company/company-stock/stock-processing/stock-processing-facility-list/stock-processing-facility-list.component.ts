@@ -60,10 +60,22 @@ export class StockProcessingFacilityListComponent implements OnInit {
         switchMap(() => this.loadEntityList()),
         map((res: ApiPaginatedResponseApiFacility) => {
           const data = (res?.data ?? { items: [], count: 0 }) as ApiPaginatedListApiFacility;
-          this.showedFacilities = data.count ?? 0;
+
+          // Filtrar instalaciones que son solo puntos de inspección de campo
+          // Estas áreas no realizan procesos de transformación
+          const filteredItems: ApiFacility[] = (data.items ?? []).filter(f => f.isFieldInspection !== true);
+
+          const filteredCount = filteredItems.length;
+          this.showedFacilities = filteredCount;
           this.showing.emit(this.showedFacilities);
-          this.arrangeFacilities(data.items ?? []);
-          return data;
+
+          this.arrangeFacilities(filteredItems);
+
+          return {
+            ...data,
+            items: filteredItems,
+            count: filteredCount
+          } as ApiPaginatedListApiFacility;
         }),
         tap((res: ApiPaginatedListApiFacility) => {
           this.allFacilities = res?.count ?? 0;

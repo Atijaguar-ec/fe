@@ -64,6 +64,12 @@ export class LabApprovalSelectionModalComponent implements OnInit {
         next: res => {
           this.analyses = res?.data || [];
           this.loading = false;
+
+          // Si no hay análisis disponibles, cerrar automáticamente el modal
+          // para que el flujo continúe sin análisis de laboratorio
+          if (this.analyses.length === 0) {
+            this.activeModal.close(null);
+          }
         },
         error: () => {
           this.loadError = $localize`:@@labApprovalSelectionModal.error.loadFailed:No se pudieron cargar los análisis de laboratorio.`;

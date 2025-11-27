@@ -73,6 +73,7 @@ import { ColorInputComponent } from './color-input/color-input.component';
 import { DocumentPreviewComponent } from './document-preview/document-preview.component';
 import { ToggleSwitchComponent } from './toggle-switch/toggle-switch.component';
 import { MapComponent } from './map/map.component';
+import { SensorialQualityFieldsComponent } from './sensorial-quality-fields/sensorial-quality-fields.component';
 
 @NgModule({
     declarations: [
@@ -133,7 +134,8 @@ import { MapComponent } from './map/map.component';
         GeoaddressFormComponent,
         ColorInputComponent,
         DocumentPreviewComponent,
-        ToggleSwitchComponent
+        ToggleSwitchComponent,
+        SensorialQualityFieldsComponent
     ],
     entryComponents: [
         TextinputModalComponent,
@@ -208,6 +210,7 @@ import { MapComponent } from './map/map.component';
         ColorInputComponent,
         DocumentPreviewComponent,
         ToggleSwitchComponent,
+        SensorialQualityFieldsComponent,
         NgSelectModule
     ]
 })

@@ -92,6 +92,21 @@ export class CompanyDetailProcessingActionsListComponent implements OnInit {
       }),
       map((resp: ApiPaginatedResponseApiProcessingAction) => {
         if (resp) {
+          // Filtrar processing actions que solo tienen facilities de inspección en campo
+          // Estas áreas no realizan procesos, solo inspección sensorial
+          if (resp.data && resp.data.items) {
+            resp.data.items = resp.data.items.filter(pa => {
+              // Si no tiene facilities, lo mostramos
+              if (!pa.supportedFacilities || pa.supportedFacilities.length === 0) {
+                return true;
+              }
+              // Excluir si TODOS los facilities son de inspección en campo
+              const allFieldInspection = pa.supportedFacilities.every(f => f.isFieldInspection === true);
+              return !allFieldInspection;
+            });
+            // Recalcular conteo después de filtrar
+            resp.data.count = resp.data.items.length;
+          }
 
           if (resp.data && resp.data.count && (this.pageSize - resp.data.count > 0)) {
             this.showed = resp.data.count;

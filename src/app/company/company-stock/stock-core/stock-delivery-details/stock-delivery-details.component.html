@@ -574,6 +574,17 @@
 
             </ng-container>
 
+            <!-- 🏭 Campos de Análisis Sensorial y Calidad (solo para centro de acopio de camarón) -->
+            <ng-container *ngIf="showSensorialQualityFields$ | async">
+              <app-sensorial-quality-fields
+                [formGroup]="stockOrderForm"
+                [submitted]="submitted"
+                [fieldIndex]="0"
+                [showSampleNumber]="true"
+                [sampleNumberRequired]="true">
+              </app-sensorial-quality-fields>
+            </ng-container>
+
             <!-- Observación (alineada con la segunda columna) -->
             <div class="af-row" *ngIf="showReceptionFields$ | async">
               

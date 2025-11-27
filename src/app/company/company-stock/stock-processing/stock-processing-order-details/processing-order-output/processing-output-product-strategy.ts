@@ -144,10 +144,12 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
   ];
 
   shouldShowLaboratorySection(_tsoGroup: AbstractControl, selectedInputFacility: ApiFacility | null): boolean {
-    // For shrimp product: decide visibility based on the INPUT facility
-    // (area from which the product comes), not the output facility.
+    // For shrimp product: Laboratory section is now captured at DELIVERY time
+    // in the collection facility, not in the processing output.
+    // So we no longer show it here when input comes from collection facility.
+    // Only show if input comes from a laboratory facility (isLaboratory=true).
     const facility = selectedInputFacility;
-    return facility?.isCollectionFacility === true;
+    return facility?.isLaboratory === true;
   }
 
   shouldShowFreezingSection(_tsoGroup: AbstractControl, selectedInputFacility: ApiFacility | null): boolean {
