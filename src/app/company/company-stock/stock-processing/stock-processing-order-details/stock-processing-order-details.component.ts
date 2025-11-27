@@ -354,9 +354,6 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     const sameProductionDate = selected.every(s => s.productionDate === ref.productionDate);
     const sameSampleNumber = selected.every(s => s.sampleNumber === ref.sampleNumber);
     
-    // Check if input facility is laboratory (for shrimp, lot is assigned AFTER lab tests)
-    const isInputFromLab = this.input?.selectedInputFacility?.isLaboratory === true;
-    
     // Check if all inputs share same shrimp-specific fields for custody/traceability
     const sameGavetas = selected.every(s => s.numberOfGavetas === ref.numberOfGavetas);
     const sameBines = selected.every(s => s.numberOfBines === ref.numberOfBines);
@@ -364,21 +361,13 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     const sameGuia = selected.every(s => s.guiaRemisionNumber === ref.guiaRemisionNumber);
 
     this.targetStockOrdersArray.controls.forEach(group => {
-      // Handle internal lot number
-      // For normal entry (not laboratory), keep lot field unlocked for manual assignment
+      // 🦐 Handle internal lot number - propagate and lock if all inputs share the same lot
       const iln = group.get('internalLotNumber');
-      if (!isInputFromLab && sameLot && ref.internalLotNumber && iln) {
-        // Only propagate and lock if NOT from laboratory
+      if (sameLot && ref.internalLotNumber && iln) {
         iln.setValue(ref.internalLotNumber, { emitEvent: false });
         iln.disable({ emitEvent: false });
       } else if (iln && iln.disabled) {
         iln.enable({ emitEvent: false });
-      }
-      
-      // For normal entry (not from lab), ensure lot field is enabled for manual input
-      if (!isInputFromLab && iln && iln.disabled) {
-        iln.enable({ emitEvent: false });
-        console.log('🦐 Normal entry: lot field enabled for manual assignment');
       }
 
       // Handle week number

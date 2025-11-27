@@ -184,8 +184,8 @@
               </div>
             </div>
 
-            <!-- 🔬 N° de Muestra (solo laboratorio) -->
-            <div class="af-row" *ngIf="isLaboratoryFacility()">
+            <!-- 🦐 N° de Muestra (centro de acopio de camarón) -->
+            <div class="af-row" *ngIf="showSensorialQualityFields$ | async">
               <div class="af-c6">
                 <textinput
                   [form]="stockOrderForm.get('sampleNumber')"

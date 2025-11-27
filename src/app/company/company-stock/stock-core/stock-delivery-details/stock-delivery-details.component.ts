@@ -1462,14 +1462,6 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * 🔬 Detecta si el facility actual es un laboratorio
-   * Usa la bandera explícita configurada en la instalación
-   */
-  isLaboratoryFacility(): boolean {
-    return this.facility?.isLaboratory === true;
-  }
-
-  /**
    * 🔍 Detecta si el facility actual es un punto de inspección sensorial en campo
    * Usa la bandera explícita configurada en la instalación
    */
@@ -1536,10 +1528,10 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   /**
    * 🔄 Actualiza los observables de visibilidad de campos según facility y tipo de producto
+   * 🦐 NOTA: Ya no se usa isLaboratory - la lógica se basa en isFieldInspection y isCollectionFacility
    */
   private updateFieldVisibilityObservables(): void {
     const productType = this.fieldConfig.getProductType()?.toUpperCase() ?? '';
-    const isLaboratory = this.isLaboratoryFacility();
     const isFieldInspection = this.isFieldInspectionFacility();
 
     // 🔍 INSPECCIÓN EN CAMPO: Solo mostrar campos de sabor, ocultar todo lo demás
@@ -1551,16 +1543,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this._showReceptionFields$.next(false);
       console.log('🔍 Facility is FIELD INSPECTION - Only flavor fields visible');
     }
-    // 🔬 LABORATORIO: Ocultar todos los campos de precio/pago Y campos específicos de camarón
-    else if (isLaboratory) {
-      this._showPriceFields$.next(false);
-      this._showPaymentFields$.next(false);
-      this._showShrimpFields$.next(false);
-      this._showFieldInspectionFields$.next(false);
-      this._showReceptionFields$.next(true);
-      console.log('🔬 Facility is LABORATORY - Price and shrimp fields hidden');
-    }
-    // 🦐 CAMARÓN (NO laboratorio, NO inspección): Mostrar campos específicos de camarón
+    // 🦐 CAMARÓN: Mostrar campos específicos de camarón
     else if (productType === 'SHRIMP') {
       const showPrice = this.fieldConfig.isFieldVisible('stockOrder', 'pricePerUnit');
       const showPayment = this.fieldConfig.isFieldVisible('stockOrder', 'preferredWayOfPayment');
@@ -1600,6 +1583,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   /**
    * 🎯 Aplica configuración dinámica de campos según el tipo de producto Y facility
+   * 🦐 NOTA: Ya no se usa isLaboratory - la lógica se basa en ChainFieldConfigService
    */
   private applyFieldConfiguration(): void {
     if (!this.stockOrderForm) {
@@ -1607,11 +1591,10 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
 
     const productType = this.fieldConfig.getProductType()?.toUpperCase() ?? '';
-    const isLaboratory = this.isLaboratoryFacility();
 
-    // 🔬 LABORATORIO: Forzar ocultación de campos de precio
-    const shouldHidePriceFields = isLaboratory || 
-      (productType === 'SHRIMP' && !isLaboratory && !this.fieldConfig.isFieldVisible('stockOrder', 'pricePerUnit'));
+    // Para SHRIMP: siempre ocultar campos de precio según configuración
+    const shouldHidePriceFields = productType === 'SHRIMP' || 
+      !this.fieldConfig.isFieldVisible('stockOrder', 'pricePerUnit');
 
     // Campos de precio con configuración dinámica
     const priceConfig = shouldHidePriceFields 
@@ -1685,8 +1668,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Valores por defecto específicos para CAMARÓN o LABORATORIO
-    if (productType === 'SHRIMP' || isLaboratory) {
+    // Valores por defecto específicos para CAMARÓN
+    if (productType === 'SHRIMP') {
       const priceLaterControl = this.stockOrderForm.get('priceDeterminedLater');
       if (priceLaterControl && priceLaterControl.value !== true) {
         priceLaterControl.setValue(true, { emitEvent: false });
@@ -1697,7 +1680,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       }
     }
 
-    console.log(`🎯 Field config applied - Laboratory: ${isLaboratory}, Product: ${productType}, Hide prices: ${shouldHidePriceFields}`);
+    console.log(`🎯 Field config applied - Product: ${productType}, Hide prices: ${shouldHidePriceFields}`);
   }
 
   priceDeterminedLaterChanged() {

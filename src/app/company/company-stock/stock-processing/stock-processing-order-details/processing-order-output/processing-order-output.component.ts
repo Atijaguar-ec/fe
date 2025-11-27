@@ -105,25 +105,8 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Check if the selected facility is a laboratory
-   */
-  isFacilityLaboratory(tsoGroup: AbstractControl): boolean {
-    const facility = tsoGroup?.get('facility')?.value as ApiFacility;
-    return facility?.isLaboratory === true;
-  }
-
-  /**
-   * Check if we should show laboratory-specific fields
-   * For SHRIMP product: show sensorial analysis and quality fields for ALL entries
-   * (both laboratory and normal production entries)
-   */
-  shouldShowLaboratoryFields(tsoGroup: AbstractControl): boolean {
-    return this.productStrategy.shouldShowLaboratorySection(tsoGroup, this.selectedInputFacility);
-  }
-
-  /**
-   * Check if lot fields should be hidden
-   * When input facility is laboratory, lot is assigned AFTER lab tests, not before
+   * Check if lot fields should be hidden.
+   * For shrimp: lot fields are always visible (no special lab hiding logic).
    */
   shouldHideLotFields(): boolean {
     return this.productStrategy.shouldHideLotFields(this.selectedInputFacility);

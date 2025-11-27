@@ -138,6 +138,41 @@ export namespace DownloadClassificationLiquidacion {
 }
 
 /**
+ * Namespace for downloadLiquidacionCompra.
+ */
+export namespace DownloadLiquidacionCompra {
+    /**
+     * Parameter map for downloadLiquidacionCompra.
+     */
+    export interface PartialParamMap {
+      /**
+       * Stock Order ID (target output)
+       */
+      id: number;
+    }
+
+    /**
+     * Enumeration of all parameters for downloadLiquidacionCompra.
+     */
+    export enum Parameters {
+      /**
+       * Stock Order ID (target output)
+       */
+      id = 'id'
+    }
+
+    /**
+     * A map of tuples with error name and `ValidatorFn` for each parameter of downloadLiquidacionCompra
+     * that does not have an own model.
+     */
+    export const ParamValidators: {[K in keyof DownloadLiquidacionCompra.PartialParamMap]?: [string, ValidatorFn][]} = {
+      id: [
+              ['required', Validators.required],
+      ],
+    };
+}
+
+/**
  * Namespace for getProcessingOrder.
  */
 export namespace GetProcessingOrder {
@@ -466,6 +501,89 @@ export class ProcessingOrderControllerService {
         );
         if(typeof this.configuration.errorHandler === 'function') {
           return handle.pipe(catchError(err => this.configuration.errorHandler(err, 'downloadClassificationLiquidacion')));
+        }
+        return handle;
+    }
+
+
+  /**
+   * Export &#39;Liquidación de Compra&#39; Excel for the provided stock order ID - includes pricing and monetary totals by map.
+   * 
+   * @param map parameters map to set partial amount of parameters easily
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   */
+  public downloadLiquidacionCompraByMap(
+    map: DownloadLiquidacionCompra.PartialParamMap,
+    observe?: 'body',
+    reportProgress?: boolean): Observable<Blob>;
+  public downloadLiquidacionCompraByMap(
+    map: DownloadLiquidacionCompra.PartialParamMap,
+    observe?: 'response',
+    reportProgress?: boolean): Observable<HttpResponse<Blob>>;
+  public downloadLiquidacionCompraByMap(
+    map: DownloadLiquidacionCompra.PartialParamMap,
+    observe?: 'events',
+    reportProgress?: boolean): Observable<HttpEvent<Blob>>;
+  public downloadLiquidacionCompraByMap(
+    map: DownloadLiquidacionCompra.PartialParamMap,
+    observe: any = 'body',
+    reportProgress: boolean = false): Observable<any> {
+    return this.downloadLiquidacionCompra(
+      map.id,
+      observe,
+      reportProgress
+    );
+  }
+
+
+    /**
+     * Export &#39;Liquidación de Compra&#39; Excel for the provided stock order ID - includes pricing and monetary totals
+     * 
+     * @param id Stock Order ID (target output)
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public downloadLiquidacionCompra(id: number, observe?: 'body', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<Blob>;
+    public downloadLiquidacionCompra(id: number, observe?: 'response', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpResponse<Blob>>;
+    public downloadLiquidacionCompra(id: number, observe?: 'events', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpEvent<Blob>>;
+    public downloadLiquidacionCompra(id: number, observe: any = 'body', reportProgress: boolean = false, additionalHeaders?: Array<Array<string>>): Observable<any> {
+        if (id === null || id === undefined) {
+            throw new Error('Required parameter id was null or undefined when calling downloadLiquidacionCompra.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        // to determine the Accept header
+        let httpHeaderAccepts: string[] = [
+            'application/octet-stream'
+        ];
+        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+        ];
+
+            if (additionalHeaders) {
+                for(let pair of additionalHeaders) {
+                    headers = headers.set(pair[0], pair[1]);
+                }
+            }
+
+        const handle = this.httpClient.get(`${this.configuration.basePath}/api/chain/processing-order/${encodeURIComponent(String(id))}/classification/liquidacion-compra`,
+            {
+                responseType: "blob",
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+        if(typeof this.configuration.errorHandler === 'function') {
+          return handle.pipe(catchError(err => this.configuration.errorHandler(err, 'downloadLiquidacionCompra')));
         }
         return handle;
     }

@@ -290,13 +290,8 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
             filtered = availableStockOrders.filter(apiStockOrder => !apiStockOrder.qrCodeTag || apiStockOrder.qrCodeTagFinalProduct.id === finalProduct.id);
           }
 
-          // Business rule (shrimp / laboratory): when the selected input facility is NOT a
-          // collection facility, hide laboratory test samples from the list of inputs.
-          const inputFacility = this.selectedInputFacility;
-          if (inputFacility && inputFacility.isCollectionFacility !== true) {
-            filtered = filtered.filter(so => !(so.facility?.isLaboratory === true && !!so.sampleNumber));
-          }
-
+          // 🦐 All available stock orders are shown without special laboratory filtering
+          // The isLaboratory flag is no longer used for filtering inputs
           return filtered;
         })
       )

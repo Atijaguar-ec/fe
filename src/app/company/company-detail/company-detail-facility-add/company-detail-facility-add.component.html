@@ -201,14 +201,6 @@
                                 Inspección sensorial en campo
                             </checkbox-input-rich-label>
                         </checkbox-input>
-
-                        <!-- Checkbox específico para SHRIMP: Laboratorio de calidad -->
-                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isLaboratory')">
-                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isLaboratory.label">
-                                Laboratorio de calidad
-                            </checkbox-input-rich-label>
-                        </checkbox-input>
-
                         <!-- Checkbox específico para SHRIMP: Actividades de clasificado -->
                         <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isClassificationProcess')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isClassificationProcess.label">

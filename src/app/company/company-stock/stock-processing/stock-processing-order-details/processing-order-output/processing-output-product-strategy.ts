@@ -26,7 +26,7 @@ export abstract class ProcessingOutputProductStrategy {
 }
 
 /**
- * Default strategy for products without special laboratory behavior (e.g. cocoa, coffee).
+ * Default strategy for products without special shrimp behavior (e.g. cocoa, coffee).
  */
 class DefaultProcessingOutputStrategy extends ProcessingOutputProductStrategy {
   shouldShowLaboratorySection(_tsoGroup: AbstractControl, _selectedInputFacility: ApiFacility | null): boolean {
@@ -49,17 +49,11 @@ class DefaultProcessingOutputStrategy extends ProcessingOutputProductStrategy {
     // No additional controls for default products.
   }
 
-  updateValidators(tsoGroup: FormGroup, selectedInputFacility: ApiFacility | null): void {
-    // Replicate existing behavior for non-shrimp products:
-    // internalLotNumber is required unless input comes from a laboratory facility.
+  updateValidators(tsoGroup: FormGroup, _selectedInputFacility: ApiFacility | null): void {
+    // For non-shrimp products: internalLotNumber is always required
     const internalLotControl = tsoGroup.get('internalLotNumber');
     if (internalLotControl) {
-      const isInputFromLab = selectedInputFacility?.isLaboratory === true;
-      if (isInputFromLab) {
-        internalLotControl.clearValidators();
-      } else {
-        internalLotControl.setValidators([Validators.required]);
-      }
+      internalLotControl.setValidators([Validators.required]);
       internalLotControl.updateValueAndValidity({ emitEvent: false });
     }
   }
@@ -86,19 +80,29 @@ class DefaultProcessingOutputStrategy extends ProcessingOutputProductStrategy {
 }
 
 /**
- * Strategy for shrimp-specific behavior (laboratory, sensorial analysis, quality, classification).
+ * Strategy for shrimp-specific behavior (sensorial analysis, quality, classification, processing areas).
+ * 
+ * 🦐 SHRIMP PROCESSING OUTPUT STRATEGY
+ * 
+ * This strategy controls the visibility and validation of shrimp-specific fields
+ * in the processing output form. Key principles:
+ * 
+ * 1. NO dependency on isLaboratory - laboratory analysis is captured at DELIVERY time
+ * 2. Lot fields are ALWAYS visible for shrimp (no special hiding logic)
+ * 3. Sensorial analysis section is NOT shown in processing output (it's in delivery)
+ * 4. Processing-specific sections shown based on facility capabilities:
+ *    - isFreezingProcess → Freezing section
+ *    - isCuttingProcess → Cutting section  
+ *    - isTreatmentProcess → Treatment section
+ *    - isTunnelFreezing → Tunnel freezing section
+ *    - isWashingArea → Washing area section
+ *    - isClassificationProcess → Classification mode (uses specialized component)
+ * 
+ * 5. Traceability fields (gavetas, bines, piscinas, guía) are always inherited from inputs
  */
 class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
-  private readonly labTextFields = [
-    'sensorialRawOdor',
-    'sensorialRawTaste',
-    'sensorialRawColor',
-    'sensorialCookedOdor',
-    'sensorialCookedTaste',
-    'sensorialCookedColor',
-    'qualityNotes'
-  ];
-
+  
+  // Shrimp traceability/custody fields - inherited from input
   private readonly shrimpTraceabilityFields = [
     'numberOfGavetas',
     'numberOfBines',
@@ -106,6 +110,7 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
     'guiaRemisionNumber'
   ];
 
+  // Freezing process fields
   private readonly freezingFields = [
     'freezingType',
     'freezingEntryDate',
@@ -113,6 +118,7 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
     'freezingTemperatureControl'
   ];
 
+  // Cutting process fields
   private readonly cuttingFields = [
     'cuttingType',
     'cuttingEntryDate',
@@ -120,6 +126,7 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
     'cuttingTemperatureControl'
   ];
 
+  // Treatment process fields
   private readonly treatmentFields = [
     'treatmentType',
     'treatmentEntryDate',
@@ -128,6 +135,7 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
     'treatmentChemicalUsed'
   ];
 
+  // Tunnel freezing fields
   private readonly tunnelFields = [
     'tunnelProductionDate',
     'tunnelExpirationDate',
@@ -138,95 +146,74 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
     'tunnelExitDate'
   ];
 
+  // Washing area fields
   private readonly washingFields = [
     'washingWaterTemperature',
     'washingShrimpTemperatureControl'
   ];
 
-  shouldShowLaboratorySection(_tsoGroup: AbstractControl, selectedInputFacility: ApiFacility | null): boolean {
-    // For shrimp product: Laboratory section is now captured at DELIVERY time
-    // in the collection facility, not in the processing output.
-    // So we no longer show it here when input comes from collection facility.
-    // Only show if input comes from a laboratory facility (isLaboratory=true).
-    const facility = selectedInputFacility;
-    return facility?.isLaboratory === true;
+  shouldShowLaboratorySection(_tsoGroup: AbstractControl, _selectedInputFacility: ApiFacility | null): boolean {
+    // 🦐 For shrimp: Laboratory/sensorial analysis is captured at DELIVERY time
+    // in the collection facility, NOT in the processing output.
+    // Always return false - no lab section in processing output for shrimp.
+    return false;
   }
 
   shouldShowFreezingSection(_tsoGroup: AbstractControl, selectedInputFacility: ApiFacility | null): boolean {
-    // For shrimp product: show freezing-specific fields when the INPUT facility
-    // is marked as freezing process.
-    const facility = selectedInputFacility;
-    return facility?.isFreezingProcess === true;
+    // Show freezing-specific fields when the INPUT facility is marked as freezing process
+    return selectedInputFacility?.isFreezingProcess === true;
   }
 
-  shouldHideLotFields(selectedInputFacility: ApiFacility | null): boolean {
-    // When input facility is laboratory, lot is assigned AFTER lab tests, not before.
-    return selectedInputFacility?.isLaboratory === true;
+  shouldHideLotFields(_selectedInputFacility: ApiFacility | null): boolean {
+    // 🦐 For shrimp: Lot fields are ALWAYS visible
+    // There's no special "laboratory" hiding logic anymore
+    return false;
   }
 
   shouldShowOutputQuantityField(actionType: ProcessingActionType | null): boolean {
-    // For shrimp product: show quantity for all actions except QR code generation.
+    // For shrimp product: show quantity for all actions except QR code generation
     return actionType !== 'GENERATE_QR_CODE';
   }
 
   ensureExtraControls(tsoGroup: FormGroup): void {
-    if (!tsoGroup.get('sampleNumber')) {
-      tsoGroup.addControl('sampleNumber', new FormControl(null));
-    }
-    if (!tsoGroup.get('receptionTime')) {
-      tsoGroup.addControl('receptionTime', new FormControl(null));
-    }
-    if (!tsoGroup.get('qualityDocument')) {
-      tsoGroup.addControl('qualityDocument', new FormControl(null));
-    }
-
-    // Sensory analysis: metabisulfite acceptance (yes/no)
-    if (!tsoGroup.get('metabisulfiteLevelAcceptable')) {
-      tsoGroup.addControl('metabisulfiteLevelAcceptable', new FormControl(null));
-    }
-
-    if (!tsoGroup.get('approvedForPurchase')) {
-      tsoGroup.addControl('approvedForPurchase', new FormControl(null));
-    }
-
-    this.labTextFields.forEach(fieldName => {
+    // 🦐 Ensure shrimp-specific traceability/custody controls exist
+    // These are inherited from input and preserved through the chain
+    this.shrimpTraceabilityFields.forEach(fieldName => {
       if (!tsoGroup.get(fieldName)) {
         tsoGroup.addControl(fieldName, new FormControl(null));
       }
     });
 
+    // Freezing process controls
     this.freezingFields.forEach(fieldName => {
       if (!tsoGroup.get(fieldName)) {
         tsoGroup.addControl(fieldName, new FormControl(null));
       }
     });
 
+    // Cutting process controls
     this.cuttingFields.forEach(fieldName => {
       if (!tsoGroup.get(fieldName)) {
         tsoGroup.addControl(fieldName, new FormControl(null));
       }
     });
 
+    // Treatment process controls
     this.treatmentFields.forEach(fieldName => {
       if (!tsoGroup.get(fieldName)) {
         tsoGroup.addControl(fieldName, new FormControl(null));
       }
     });
 
+    // Tunnel freezing controls
     this.tunnelFields.forEach(fieldName => {
       if (!tsoGroup.get(fieldName)) {
         tsoGroup.addControl(fieldName, new FormControl(null));
       }
     });
 
+    // Washing area controls
     this.washingFields.forEach(fieldName => {
-      if (!tsoGroup.get(fieldName)) {
-        tsoGroup.addControl(fieldName, new FormControl(null));
-      }
-    });
-
-    // Ensure shrimp-specific traceability controls exist for custody
-    this.shrimpTraceabilityFields.forEach(fieldName => {
       if (!tsoGroup.get(fieldName)) {
         tsoGroup.addControl(fieldName, new FormControl(null));
       }
@@ -234,8 +221,7 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
   }
 
   updateValidators(tsoGroup: FormGroup, selectedInputFacility: ApiFacility | null): void {
-    const isLabSectionVisible = this.shouldShowLaboratorySection(tsoGroup, selectedInputFacility);
-    const isInputFromLab = selectedInputFacility?.isLaboratory === true;
+    // 🦐 SHRIMP VALIDATORS - No dependency on isLaboratory
     const isFreezingFacility = this.shouldShowFreezingSection(tsoGroup, selectedInputFacility);
     const isClassification = this.isClassificationMode(selectedInputFacility);
     const isCuttingFacility = this.isCuttingFacility(selectedInputFacility);
@@ -243,37 +229,7 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
     const isTunnelFacility = this.isTunnelFreezingFacility(selectedInputFacility);
     const isWashingFacility = this.isWashingAreaFacility(selectedInputFacility);
 
-    // Sample number is required when lab section is visible
-    const requiredControls = ['sampleNumber'];
-
-    requiredControls.forEach(fieldName => {
-      const control = tsoGroup.get(fieldName);
-      if (!control) { return; }
-
-      if (isLabSectionVisible) {
-        control.setValidators([Validators.required]);
-      } else {
-        control.clearValidators();
-      }
-      control.updateValueAndValidity({ emitEvent: false });
-    });
-
-    // Analysis approval must be explicitly answered (cannot stay null),
-    // but both true (yes) and false (no) are valid values.
-    const approvalControl = tsoGroup.get('approvedForPurchase');
-    if (approvalControl) {
-      if (isLabSectionVisible) {
-        approvalControl.setValidators([
-          (ctrl: AbstractControl) =>
-            ctrl.value === null || ctrl.value === undefined ? { required: true } : null
-        ]);
-      } else {
-        approvalControl.clearValidators();
-      }
-      approvalControl.updateValueAndValidity({ emitEvent: false });
-    }
-
-    // Freezing fields: in standard mode require all; in classification mode only the shared freezingType
+    // Freezing fields: in standard mode require all; in classification mode only freezingType
     const freezingRequiredControls = isClassification ? ['freezingType'] : this.freezingFields;
     freezingRequiredControls.forEach(fieldName => {
       const control = tsoGroup.get(fieldName);
@@ -287,8 +243,8 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
       control.updateValueAndValidity({ emitEvent: false });
     });
 
-    const cuttingRequiredControls = this.cuttingFields;
-    cuttingRequiredControls.forEach(fieldName => {
+    // Cutting fields
+    this.cuttingFields.forEach(fieldName => {
       const control = tsoGroup.get(fieldName);
       if (!control) { return; }
 
@@ -300,8 +256,8 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
       control.updateValueAndValidity({ emitEvent: false });
     });
 
-    const treatmentRequiredControls = this.treatmentFields;
-    treatmentRequiredControls.forEach(fieldName => {
+    // Treatment fields
+    this.treatmentFields.forEach(fieldName => {
       const control = tsoGroup.get(fieldName);
       if (!control) { return; }
 
@@ -313,8 +269,8 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
       control.updateValueAndValidity({ emitEvent: false });
     });
 
-    const tunnelRequiredControls = this.tunnelFields;
-    tunnelRequiredControls.forEach(fieldName => {
+    // Tunnel freezing fields
+    this.tunnelFields.forEach(fieldName => {
       const control = tsoGroup.get(fieldName);
       if (!control) { return; }
 
@@ -326,8 +282,8 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
       control.updateValueAndValidity({ emitEvent: false });
     });
 
-    const washingRequiredControls = this.washingFields;
-    washingRequiredControls.forEach(fieldName => {
+    // Washing area fields
+    this.washingFields.forEach(fieldName => {
       const control = tsoGroup.get(fieldName);
       if (!control) { return; }
 
@@ -339,18 +295,10 @@ class ShrimpProcessingOutputStrategy extends ProcessingOutputProductStrategy {
       control.updateValueAndValidity({ emitEvent: false });
     });
 
-    // Internal lot number: NOT required when input is from laboratory (field is hidden)
+    // 🦐 Internal lot number: ALWAYS required for shrimp (no special lab hiding)
     const internalLotControl = tsoGroup.get('internalLotNumber');
     if (internalLotControl) {
-      if (isInputFromLab) {
-        // Laboratory input: lot field is hidden, so NOT required
-        internalLotControl.clearValidators();
-        // console.log('🔬 Laboratory input: internalLotNumber NOT required (field hidden)');
-      } else {
-        // Normal input: lot field is visible, so required
-        internalLotControl.setValidators([Validators.required]);
-        // console.log('🦐 Normal input: internalLotNumber required');
-      }
+      internalLotControl.setValidators([Validators.required]);
       internalLotControl.updateValueAndValidity({ emitEvent: false });
     }
   }

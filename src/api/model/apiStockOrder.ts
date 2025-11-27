@@ -290,6 +290,22 @@ export interface ApiStockOrder {
      */
     treatmentChemicalUsed?: string;
     /**
+     * Freezing type (shrimp processing)
+     */
+    freezingType?: string;
+    /**
+     * Freezing entry date (shrimp processing)
+     */
+    freezingEntryDate?: string;
+    /**
+     * Freezing exit date (shrimp processing)
+     */
+    freezingExitDate?: string;
+    /**
+     * Temperature control during freezing (shrimp processing)
+     */
+    freezingTemperatureControl?: string;
+    /**
      * Tunnel production date (shrimp processing)
      */
     tunnelProductionDate?: string;
@@ -369,8 +385,8 @@ export interface ApiStockOrder {
      */
     repackedOriginStockOrderId?: string;
     purchaseOrder?: boolean;
-    available?: boolean;
     openOrder?: boolean;
+    available?: boolean;
 }
 
 /**
@@ -629,6 +645,22 @@ export namespace ApiStockOrder {
          */
         treatmentChemicalUsed = 'treatmentChemicalUsed',
         /**
+         * Freezing type (shrimp processing)
+         */
+        freezingType = 'freezingType',
+        /**
+         * Freezing entry date (shrimp processing)
+         */
+        freezingEntryDate = 'freezingEntryDate',
+        /**
+         * Freezing exit date (shrimp processing)
+         */
+        freezingExitDate = 'freezingExitDate',
+        /**
+         * Temperature control during freezing (shrimp processing)
+         */
+        freezingTemperatureControl = 'freezingTemperatureControl',
+        /**
          * Tunnel production date (shrimp processing)
          */
         tunnelProductionDate = 'tunnelProductionDate',
@@ -708,8 +740,8 @@ export namespace ApiStockOrder {
          */
         repackedOriginStockOrderId = 'repackedOriginStockOrderId',
         purchaseOrder = 'purchaseOrder',
-        available = 'available',
-        openOrder = 'openOrder'
+        openOrder = 'openOrder',
+        available = 'available'
     }
 
     /**
@@ -1568,6 +1600,50 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'freezingType',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'freezingEntryDate',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'freezingExitDate',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'freezingTemperatureControl',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'tunnelProductionDate',
                     classname: 'ApiStockOrder',
                     dataType: 'string',
@@ -1825,7 +1901,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'available',
+                    name: 'openOrder',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1836,7 +1912,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'openOrder',
+                    name: 'available',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1991,6 +2067,14 @@ export namespace ApiStockOrder {
                 ],
                 treatmentChemicalUsed: [
                 ],
+                freezingType: [
+                ],
+                freezingEntryDate: [
+                ],
+                freezingExitDate: [
+                ],
+                freezingTemperatureControl: [
+                ],
                 tunnelProductionDate: [
                 ],
                 tunnelExpirationDate: [
@@ -2037,9 +2121,9 @@ export namespace ApiStockOrder {
                 ],
                 purchaseOrder: [
                 ],
-                available: [
-                ],
                 openOrder: [
+                ],
+                available: [
                 ],
             }
         }
@@ -2267,6 +2351,18 @@ export namespace ApiStockOrder {
   //               treatmentChemicalUsed: {
   //                   validators: []
   //               },
+  //               freezingType: {
+  //                   validators: []
+  //               },
+  //               freezingEntryDate: {
+  //                   validators: []
+  //               },
+  //               freezingExitDate: {
+  //                   validators: []
+  //               },
+  //               freezingTemperatureControl: {
+  //                   validators: []
+  //               },
   //               tunnelProductionDate: {
   //                   validators: []
   //               },
@@ -2336,10 +2432,10 @@ export namespace ApiStockOrder {
   //               purchaseOrder: {
   //                   validators: []
   //               },
-  //               available: {
+  //               openOrder: {
   //                   validators: []
   //               },
-  //               openOrder: {
+  //               available: {
   //                   validators: []
   //               },
   //     }
