@@ -319,17 +319,27 @@ export function formatUserCustomerDisplayName(user?: ApiUserCustomer | null): st
     return '';
   }
 
+  const isLegal = user.personType === (ApiUserCustomer as any).PersonTypeEnum?.LEGAL
+    || (user as any).personType === 'LEGAL';
+
   const companyName = (user.companyName || '').trim();
-  if (companyName.length > 0) {
+  if (isLegal && companyName.length > 0) {
     return companyName;
   }
 
   const namePart = (user.name || '').trim();
-  const surnamePart = (user.surname || '').trim();
+  let surnamePart = (user.surname || '').trim();
+  if (surnamePart.toUpperCase() === 'N/A') {
+    surnamePart = '';
+  }
   const fullName = `${namePart} ${surnamePart}`.trim();
 
   if (fullName.length > 0) {
     return fullName;
+  }
+
+  if (!isLegal && companyName.length > 0) {
+    return companyName;
   }
 
   if (user.id != null) {

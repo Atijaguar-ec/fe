@@ -2945,7 +2945,7 @@
     "productLabelStockProcessingOrderDetail.textinput.receptionTime.label": "Hora de recepción",
     "productLabelStockProcessingOrderDetail.textinput.receptionTime.placeholder": "HH:MM",
     "productLabelStockProcessingOrderDetail.textinput.receptionTime.error": "Hora de recepción es requerida",
-    "productLabelStockProcessingOrderDetail.textinput.inspectionTime.label": "Hora de inspección",
+    "productLabelStockProcessingOrderDetail.textinput.inspectionTime.label": "Hora",
     "productLabelStockProcessingOrderDetail.textinput.inspectionTime.placeholder": "HH:MM",
     "productLabelStockProcessingOrderDetail.attachment-uploader.qualityDocument.label": "Documento de Calidad (PDF)",
     "productLabelStockProcessingOrderDetail.attachment-uploader.qualityDocument.allowedMimeTypeErrorMessage": "Solo se permiten archivos PDF.",

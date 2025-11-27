@@ -93,14 +93,26 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
     this.subs = this.selfOnboardingService.guidedTourStep$.subscribe(step => {
 
       setTimeout(() => {
-        this.deliveriesTitleTooltip.close();
-        this.addDeliveryButtonTooltip.close();
+        if (this.deliveriesTitleTooltip) {
+          this.deliveriesTitleTooltip.close();
+        }
+        if (this.addDeliveryButtonTooltip) {
+          this.addDeliveryButtonTooltip.close();
+        }
       }, 50);
 
       if (step === 2) {
-        setTimeout(() => this.deliveriesTitleTooltip.open(), 50);
+        setTimeout(() => {
+          if (this.deliveriesTitleTooltip) {
+            this.deliveriesTitleTooltip.open();
+          }
+        }, 50);
       } else if (step === 3) {
-        setTimeout(() => this.addDeliveryButtonTooltip.open(), 50);
+        setTimeout(() => {
+          if (this.addDeliveryButtonTooltip) {
+            this.addDeliveryButtonTooltip.open();
+          }
+        }, 50);
       }
     });
   }

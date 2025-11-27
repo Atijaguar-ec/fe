@@ -60,7 +60,8 @@
           <td *ngIf="!sortOptions[13].hide" [attr.data-label]="sortOptions[13].name">{{ formatDate(order.deliveryTime) }}</td>
           <td *ngIf="!sortOptions[14].hide" [attr.data-label]="sortOptions[14].name">{{ order.updateTimestamp | date: 'yyyy-MM-dd hh:mm' }}</td>
           <td *ngIf="!sortOptions[15].hide" [attr.data-label]="sortOptions[15].name">{{ order.isAvailable | formatAvailability }}</td>
-          <td [attr.data-label]="sortOptions[16].name">
+          <td *ngIf="!sortOptions[16].hide" [attr.data-label]="sortOptions[16].name">{{ getApprovalLabel(order) }}</td>
+          <td [attr.data-label]="sortOptions[17].name">
             <span>
               <a i18n="@@productLabelPurchaseOrder.tableCol.edit"
                  (click)="edit(order)"

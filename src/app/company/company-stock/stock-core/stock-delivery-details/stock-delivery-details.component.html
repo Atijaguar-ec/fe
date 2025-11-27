@@ -184,22 +184,6 @@
               </div>
             </div>
 
-            <!-- 🦐 N° de Muestra (centro de acopio de camarón) -->
-            <div class="af-row" *ngIf="showSensorialQualityFields$ | async">
-              <div class="af-c6">
-                <textinput
-                  [form]="stockOrderForm.get('sampleNumber')"
-                  label="N° de Muestra"
-                  i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.sampleNumber.label"
-                  style="width: 100%"
-                  placeholder="Introduzca el número de muestra"
-                  i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.sampleNumber.placeholder">
-                </textinput>
-              </div>
-            </div>
-
-           
-
             <div class="af-row">
               <div class="af-c12">
                 <single-choice

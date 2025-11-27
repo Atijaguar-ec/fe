@@ -339,6 +339,12 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
         hide: ['PURCHASE_ORDERS'].indexOf(this.pageListingMode) >= 0,
       },
       {
+        key: 'approvedForPurchase',
+        name: $localize`:@@productLabelStockProcessingOrderDetail.checkbox.approvedForPurchase.label:Análisis aprobado para compra`,
+        inactive: true,
+        hide: !this.envInfo.isProductType('shrimp'),
+      },
+      {
         key: 'actions',
         name: $localize`:@@productLabelPurchaseOrder.sortOptions.actions.name:Actions`,
         inactive: true
@@ -683,6 +689,34 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
 
     return order.measureUnitType?.label || '';
   }
+
+  getApprovalLabel(order: ApiStockOrder | null | undefined): string {
+    if (!order) {
+      return '';
+    }
+
+    // 1. Primero verificar si hay análisis de laboratorio (approvedForPurchase)
+    const labApproval = (order as any).approvedForPurchase;
+    if (labApproval === true) {
+      return $localize`:@@productLabelStockProcessingOrderDetail.singleChoice.approvedForPurchase.yes:Sí`;
+    }
+    if (labApproval === false) {
+      return $localize`:@@productLabelStockProcessingOrderDetail.singleChoice.approvedForPurchase.no:No`;
+    }
+
+    // 2. Si no hay laboratorio, verificar inspección de campo (purchaseRecommended)
+    if (this.isFieldInspectionOrder(order)) {
+      const fieldApproval = order.purchaseRecommended;
+      if (fieldApproval === true) {
+        return $localize`:@@productLabelStockProcessingOrderDetail.singleChoice.approvedForPurchase.yes:Sí`;
+      }
+      if (fieldApproval === false) {
+        return $localize`:@@productLabelStockProcessingOrderDetail.singleChoice.approvedForPurchase.no:No`;
+      }
+    }
+
+    return '-';
+  }
   
   aggregateOrderItems(items: ApiStockOrder[]): AggregatedStockItem[] {
 
@@ -741,16 +775,32 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
 
   farmerName(farmer: ApiUserCustomer) {
 
+    
+
     if (farmer) {
       const isLegal = farmer.personType === ApiUserCustomer.PersonTypeEnum.LEGAL || (farmer as any).personType === 'LEGAL';
 
       const baseName = ((): string => {
-        if (isLegal && farmer.companyName && farmer.companyName.trim().length > 0) {
-          return farmer.companyName.trim();
+        if (isLegal) {
+          const companyName = farmer.companyName ? farmer.companyName.trim() : '';
+          if (companyName.length > 0) {
+            return companyName;
+          }
+
+          const legalName = farmer.name ? farmer.name.trim() : '';
+          if (legalName.length > 0 && legalName.toUpperCase() !== 'N/A') {
+            return legalName;
+          }
+
+          const legalSurname = farmer.surname ? farmer.surname.trim() : '';
+          if (legalSurname.length > 0 && legalSurname.toUpperCase() !== 'N/A') {
+            return legalSurname;
+          }
         }
 
         const namePart = farmer.name ? farmer.name.trim() : '';
-        const surnamePart = farmer.surname ? farmer.surname.trim() : '';
+        const surnameRaw = farmer.surname ? farmer.surname.trim() : '';
+        const surnamePart = surnameRaw.toUpperCase() === 'N/A' ? '' : surnameRaw;
         return `${namePart} ${surnamePart}`.trim();
       })();
 

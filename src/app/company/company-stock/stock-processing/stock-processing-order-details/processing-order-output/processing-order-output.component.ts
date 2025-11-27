@@ -144,6 +144,13 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
     return this.productStrategy.isClassificationMode(this.selectedInputFacility);
   }
 
+  // Backwards-compatible wrapper for legacy template binding
+  // The template still uses shouldShowLaboratoryFields(tsoGroup),
+  // so delegate to the new strategy method shouldShowLaboratorySection.
+  shouldShowLaboratoryFields(tsoGroup: AbstractControl): boolean {
+    return this.productStrategy.shouldShowLaboratorySection(tsoGroup, this.selectedInputFacility);
+  }
+
   getTSOGroupRepackedOutputsArray(tsoGroup: AbstractControl): FormArray {
     return tsoGroup.get('repackedOutputsArray') as FormArray;
   }
