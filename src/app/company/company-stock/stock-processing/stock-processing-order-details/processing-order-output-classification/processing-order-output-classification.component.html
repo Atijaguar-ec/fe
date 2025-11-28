@@ -53,7 +53,7 @@
     </div>
 
 
-    <!-- INTERNAL LOT NUMBER -->
+    <!-- 🦐 CUSTODIA: NÚMERO DE LOTE INTERNO (propagado desde entradas) -->
     <div class="af-row">
         <div class="af-c3">
             <textinput
@@ -66,22 +66,27 @@
         <div class="af-c9">
             <textinput
                 [form]="$any(tsoGroup.get('internalLotNumber'))"
-                label="Nombre de lote interno"
+                label="Número de Lote"
                 style="width: 100%" 
-                placeholder="Ingrese nombre de lote interno"
+                placeholder="Heredado de la entrada"
                 i18n-label="@@productLabelStockProcessingOrderDetail.classification.internalLotNumber.label"
                 i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.internalLotNumber.placeholder"
                 [isInvalid]="submitted && tsoGroup.get('internalLotNumber').invalid">
                 <ng-container *ngIf="submitted">
                     <div *ngIf="tsoGroup.get('internalLotNumber').errors as errors" class="sc-invalid-feedback">
                         <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.internalLotNumber.error">
-                            El nombre de lote interno es requerido
+                            El número de lote es requerido
                         </div>
                     </div>
                 </ng-container>
             </textinput>
         </div>
     </div>
+
+    <!-- 🦐 CUSTODIA: Campos de trazabilidad ocultos (se mantienen en el modelo pero no se muestran en UI)
+         Campos eliminados de visualización: N° Gavetas, N° Bines, Guía Remisión
+         Los valores se preservan internamente para trazabilidad -->
+    <!-- OCULTO: Esta sección fue removida por solicitud del usuario -->
 
     <!-- OUTPUT QUANTITY -->
     <div class="af-row">
@@ -110,6 +115,41 @@
             <h3 class="classification-section-title" i18n="@@productLabelStockProcessingOrderDetail.classification.header.title">
                 Detalles de Clasificación
             </h3>
+        </div>
+    </div>
+
+    <!-- 🦐 SECCIONES DE LIQUIDACIÓN - Un lote puede tener DOS liquidaciones -->
+    <div class="af-row">
+        <div class="af-c12">
+            <div class="process-type-selector">
+                <label class="form-label" i18n="@@productLabelStockProcessingOrderDetail.classification.processType.label">
+                    Secciones de Liquidación (puede activar ambas)
+                </label>
+                <div class="d-flex gap-3">
+                    <!-- HEAD_ON Toggle -->
+                    <div class="form-check form-switch flex-fill">
+                        <input class="form-check-input" type="checkbox" role="switch" 
+                               id="headOnToggle"
+                               [checked]="activeProcessTypes.has('HEAD_ON')"
+                               (change)="toggleProcessType('HEAD_ON')">
+                        <label class="form-check-label" for="headOnToggle">
+                            <strong>🦐 CON CABEZA (Entero)</strong>
+                            <small class="d-block text-muted">Tallas: 20-30 a Pomada</small>
+                        </label>
+                    </div>
+                    <!-- SHELL_ON Toggle -->
+                    <div class="form-check form-switch flex-fill">
+                        <input class="form-check-input" type="checkbox" role="switch" 
+                               id="shellOnToggle"
+                               [checked]="activeProcessTypes.has('SHELL_ON')"
+                               (change)="toggleProcessType('SHELL_ON')">
+                        <label class="form-check-label" for="shellOnToggle">
+                            <strong>🦐 EN COLA (Shell-On)</strong>
+                            <small class="d-block text-muted">Tallas: U-7 a 150+, con Clase A/B</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -204,7 +244,7 @@
 
     <!-- BRAND HEADER -->
     <div class="af-row">
-        <div class="af-c12">
+        <div class="af-c6">
             <textinput
                 [form]="$any(tsoGroup.get('brandHeader'))"
                 label="Marca"
@@ -212,169 +252,256 @@
                 i18n-label="@@productLabelStockProcessingOrderDetail.classification.brandHeader.label"
                 i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.brandHeader.placeholder"
                 [isInvalid]="submitted && tsoGroup.get('brandHeader').invalid">
-                <ng-container *ngIf="submitted">
-                    <div *ngIf="tsoGroup.get('brandHeader').errors as errors" class="sc-invalid-feedback">
-                        <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.brandHeader.error">
-                            La marca es requerida
-                        </div>
-                    </div>
-                </ng-container>
+            </textinput>
+        </div>
+        <div class="af-c6">
+            <textinput
+                [form]="$any(tsoGroup.get('providerName'))"
+                label="Proveedor"
+                placeholder="Nombre del proveedor"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.providerName.label">
             </textinput>
         </div>
     </div>
 
-    <!-- CLASSIFICATION DETAILS TABLE -->
-    <div class="af-row mt-4">
+    <!-- 🦐 PESOS DE LIQUIDACIÓN (Formato DUFER) -->
+    <div class="af-row">
+        <div class="af-c3">
+            <textinput
+                [form]="$any(tsoGroup.get('receivedWeight'))"
+                label="Peso Recibido (lb)"
+                type="number"
+                placeholder="0.00"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.receivedWeight.label">
+            </textinput>
+        </div>
+        <div class="af-c3">
+            <textinput
+                [form]="$any(tsoGroup.get('wasteWeight'))"
+                label="Basura (lb)"
+                type="number"
+                placeholder="0.00"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.wasteWeight.label">
+            </textinput>
+        </div>
+        <div class="af-c3">
+            <textinput
+                [form]="$any(tsoGroup.get('totalWeight'))"
+                label="Peso Total (lb)"
+                type="number"
+                placeholder="0.00"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.totalWeight.label">
+            </textinput>
+        </div>
+        <div class="af-c3">
+            <textinput
+                [form]="$any(tsoGroup.get('processedWeight'))"
+                label="Peso Procesado (lb)"
+                type="number"
+                placeholder="0.00"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.processedWeight.label">
+            </textinput>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- 🦐 SECCIÓN 1: LIQUIDACIÓN CON CABEZA (HEAD_ON) - Camarón Entero        -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <div class="af-row mt-4" *ngIf="activeProcessTypes.has('HEAD_ON')">
         <div class="af-c12">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="classification-table-title" i18n="@@productLabelStockProcessingOrderDetail.classification.detailsTable.title">
-                    Clasificación por Talla
-                </h4>
-                <button class="btn btn-solid round" type="button" (click)="addClassificationDetail()">
-                    <fa-icon [icon]="faPlus"></fa-icon>
-                    <span class="ml-2" i18n="@@productLabelStockProcessingOrderDetail.classification.addDetail.button">Agregar talla</span>
-                </button>
-            </div>
-
-            <!-- TABLE HEADER -->
-            <div class="classification-table">
-                <div class="classification-table-header">
-                    <div class="classification-col col-brand" *ngIf="false" i18n="@@productLabelStockProcessingOrderDetail.classification.table.brand">Marca</div>
-                    <div class="classification-col col-size" *ngIf="false" i18n="@@productLabelStockProcessingOrderDetail.classification.table.size">Talla</div>
-                    <div class="classification-col col-boxes" i18n="@@productLabelStockProcessingOrderDetail.classification.table.boxes">Cajas</div>
-                    <div class="classification-col col-classification-u" i18n="@@productLabelStockProcessingOrderDetail.classification.table.classificationU">Clasif. U</div>
-                    <div class="classification-col col-classification-num" i18n="@@productLabelStockProcessingOrderDetail.classification.table.classificationNumber">Clasif. #</div>
-                    <div class="classification-col col-weight-box" i18n="@@productLabelStockProcessingOrderDetail.classification.table.weightPerBox">Peso/Caja</div>
-                    <div class="classification-col col-format" i18n="@@productLabelStockProcessingOrderDetail.classification.table.format">Formato</div>
-                    <div class="classification-col col-total-weight" i18n="@@productLabelStockProcessingOrderDetail.classification.table.totalWeight">Peso Total</div>
-                    <div class="classification-col col-pounds" i18n="@@productLabelStockProcessingOrderDetail.classification.table.poundsPerSize">Lb/Talla</div>
-                    <div class="classification-col col-actions"></div>
+            <div class="classification-section-box head-on-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="classification-table-title">
+                        🦐 LIQUIDACIÓN CON CABEZA (Entero)
+                        <small class="text-muted d-block">Tallas: 20-30 a Pomada</small>
+                    </h4>
+                    <button class="btn btn-solid round" type="button" (click)="addClassificationDetailForType('HEAD_ON')">
+                        <fa-icon [icon]="faPlus"></fa-icon>
+                        <span class="ml-2">Agregar talla</span>
+                    </button>
                 </div>
 
-                <!-- TABLE ROWS -->
-                <div *ngFor="let detailGroup of classificationDetailsArray.controls; index as detailIndex" 
-                     class="classification-table-row">
-                    
-                    <!-- Brand Detail (Hidden) -->
-                    <div class="classification-col col-brand" *ngIf="false">
-                        <textinput
-                            [form]="$any(detailGroup.get('brandDetail'))"
-                            placeholder="Marca"
-                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.brandDetail.placeholder"
-                            [isInvalid]="submitted && detailGroup.get('brandDetail').invalid">
-                        </textinput>
+                <div class="classification-table">
+                    <div class="classification-table-header">
+                        <div class="classification-col col-size">Talla</div>
+                        <div class="classification-col col-boxes">Cajas</div>
+                        <div class="classification-col col-weight-box">Peso/Caja</div>
+                        <div class="classification-col col-format">Formato</div>
+                        <div class="classification-col col-total-weight">Peso Total</div>
+                        <div class="classification-col col-pounds">Libras</div>
+                        <div class="classification-col col-actions"></div>
                     </div>
 
-                    <!-- Size (Hidden) -->
-                    <div class="classification-col col-size" *ngIf="false">
-                        <textinput
-                            [form]="$any(detailGroup.get('size'))"
-                            placeholder="Talla"
-                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.size.placeholder"
-                            [isInvalid]="submitted && detailGroup.get('size').invalid">
-                        </textinput>
-                    </div>
-
-                    <!-- Boxes -->
-                    <div class="classification-col col-boxes">
-                        <textinput
-                            [form]="$any(detailGroup.get('boxes'))"
-                            type="number"
-                            min="0"
-                            step="1"
-                            placeholder="0"
-                            [isInvalid]="submitted && detailGroup.get('boxes').invalid">
-                        </textinput>
-                    </div>
-
-                    <!-- Classification U -->
-                    <div class="classification-col col-classification-u">
-                        <textinput
-                            [form]="$any(detailGroup.get('classificationU'))"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="0"
-                            [isInvalid]="submitted && detailGroup.get('classificationU').invalid">
-                        </textinput>
-                    </div>
-
-                    <!-- Classification Number -->
-                    <div class="classification-col col-classification-num">
-                        <textinput
-                            [form]="$any(detailGroup.get('classificationNumber'))"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="0"
-                            [isInvalid]="submitted && detailGroup.get('classificationNumber').invalid">
-                        </textinput>
-                    </div>
-
-                    <!-- Weight Per Box -->
-                    <div class="classification-col col-weight-box">
-                        <textinput
-                            [form]="$any(detailGroup.get('weightPerBox'))"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="0.00"
-                            [isInvalid]="submitted && detailGroup.get('weightPerBox').invalid">
-                        </textinput>
-                    </div>
-
-                    <!-- Weight Format -->
-                    <div class="classification-col col-format">
-                        <select class="form-control" [formControl]="$any(detailGroup.get('weightFormat'))">
-                            <option value="KG">KG</option>
-                            <option value="LB">LB</option>
-                        </select>
-                    </div>
-
-                    <!-- Total Weight (Calculated) -->
-                    <div class="classification-col col-total-weight">
-                        <span class="calculated-value">{{ calculateTotalWeight(detailGroup) | number:'1.2-2' }}</span>
-                    </div>
-
-                    <!-- Pounds Per Size (Calculated) -->
-                    <div class="classification-col col-pounds">
-                        <span class="calculated-value">{{ calculatePoundsPerSize(detailGroup) | number:'1.2-2' }}</span>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="classification-col col-actions">
-                        <div class="delete-row-icon" 
-                             [class.disabled]="classificationDetailsArray.length <= 1"
-                             (click)="removeClassificationDetail(detailIndex)">
-                            <fa-icon class="del-icon" [icon]="faTrashAlt"></fa-icon>
+                    <ng-container *ngFor="let detailGroup of classificationDetailsArray.controls; index as detailIndex">
+                        <div *ngIf="detailGroup.get('processType')?.value === 'HEAD_ON'" class="classification-table-row">
+                            <div class="classification-col col-size">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('size'))">
+                                    <option value="" disabled selected>Talla</option>
+                                    <option *ngFor="let size of wholeSizeCatalog" [value]="size.code">{{ size.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-boxes">
+                                <textinput [form]="$any(detailGroup.get('boxes'))" type="number" min="0" step="1" placeholder="0"></textinput>
+                            </div>
+                            <div class="classification-col col-weight-box">
+                                <textinput [form]="$any(detailGroup.get('weightPerBox'))" type="number" min="0" step="0.01" placeholder="0.00"></textinput>
+                            </div>
+                            <div class="classification-col col-format">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('weightFormat'))">
+                                    <option value="KG">KG</option>
+                                    <option value="LB">LB</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-total-weight">
+                                <span class="calculated-value">{{ calculateTotalWeight(detailGroup) | number:'1.2-2' }}</span>
+                            </div>
+                            <div class="classification-col col-pounds">
+                                <span class="calculated-value">{{ calculatePoundsPerSize(detailGroup) | number:'1.2-2' }}</span>
+                            </div>
+                            <div class="classification-col col-actions">
+                                <div class="delete-row-icon" (click)="removeClassificationDetail(detailIndex)">
+                                    <fa-icon class="del-icon" [icon]="faTrashAlt"></fa-icon>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    </ng-container>
 
-                <!-- TOTALS ROW -->
-                <div class="classification-table-row classification-totals-row">
-                    <div class="classification-col col-brand" *ngIf="false"></div>
-                    <div class="classification-col col-size" *ngIf="false"></div>
-                    <div class="classification-col col-boxes">
-                        <strong i18n="@@productLabelStockProcessingOrderDetail.classification.table.totals">TOTALES {{ calculateGrandTotalBoxes() }}</strong>
+                    <!-- Totals HEAD_ON -->
+                    <div class="classification-table-row classification-totals-row">
+                        <div class="classification-col col-size"><strong>TOTAL ENTERO</strong></div>
+                        <div class="classification-col col-boxes"><strong>{{ calculateTotalBoxesForType('HEAD_ON') }}</strong></div>
+                        <div class="classification-col col-weight-box"></div>
+                        <div class="classification-col col-format"></div>
+                        <div class="classification-col col-total-weight"><strong>{{ calculateTotalWeightForType('HEAD_ON') | number:'1.2-2' }}</strong></div>
+                        <div class="classification-col col-pounds"><strong>{{ calculateTotalPoundsForType('HEAD_ON') | number:'1.2-2' }}</strong></div>
+                        <div class="classification-col col-actions"></div>
                     </div>
-                    <div class="classification-col col-classification-u"></div>
-                    <div class="classification-col col-classification-num"></div>
-                    <div class="classification-col col-weight-box"></div>
-                    <div class="classification-col col-format"></div>
-                    <div class="classification-col col-total-weight">
-                        <strong>{{ calculateGrandTotalWeight() | number:'1.2-2' }}</strong>
-                    </div>
-                    <div class="classification-col col-pounds"></div>
-                    <div class="classification-col col-actions"></div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Validation Messages -->
-            <div *ngIf="submitted && classificationDetailsArray.length === 0" class="sc-invalid-feedback mt-2">
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- 🦐 SECCIÓN 2: LIQUIDACIÓN EN COLA (SHELL_ON) - Camarón Descabezado      -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <div class="af-row mt-4" *ngIf="activeProcessTypes.has('SHELL_ON')">
+        <div class="af-c12">
+            <div class="classification-section-box shell-on-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="classification-table-title">
+                        🦐 LIQUIDACIÓN EN COLA (Shell-On)
+                        <small class="text-muted d-block">Tallas: U-7 a 150+ | Con Clase A/B y Aspecto</small>
+                    </h4>
+                    <button class="btn btn-solid round" type="button" (click)="addClassificationDetailForType('SHELL_ON')">
+                        <fa-icon [icon]="faPlus"></fa-icon>
+                        <span class="ml-2">Agregar talla</span>
+                    </button>
+                </div>
+
+                <div class="classification-table">
+                    <div class="classification-table-header">
+                        <div class="classification-col col-size">Talla</div>
+                        <div class="classification-col col-presentation">Aspecto</div>
+                        <div class="classification-col col-quality">Clase</div>
+                        <div class="classification-col col-boxes">Cajas</div>
+                        <div class="classification-col col-weight-box">Peso/Caja</div>
+                        <div class="classification-col col-format">Formato</div>
+                        <div class="classification-col col-total-weight">Peso Total</div>
+                        <div class="classification-col col-pounds">Libras</div>
+                        <div class="classification-col col-actions"></div>
+                    </div>
+
+                    <ng-container *ngFor="let detailGroup of classificationDetailsArray.controls; index as detailIndex">
+                        <div *ngIf="detailGroup.get('processType')?.value === 'SHELL_ON'" class="classification-table-row">
+                            <div class="classification-col col-size">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('size'))">
+                                    <option value="" disabled selected>Talla</option>
+                                    <option *ngFor="let size of tailSizeCatalog" [value]="size.code">{{ size.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-presentation">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('presentationType'))">
+                                    <option value="" disabled selected>Aspecto</option>
+                                    <option *ngFor="let pres of presentationTypeCatalog" [value]="pres.code">{{ pres.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-quality">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('qualityGrade'))">
+                                    <option *ngFor="let grade of qualityGradeCatalog" [value]="grade.code">{{ grade.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-boxes">
+                                <textinput [form]="$any(detailGroup.get('boxes'))" type="number" min="0" step="1" placeholder="0"></textinput>
+                            </div>
+                            <div class="classification-col col-weight-box">
+                                <textinput [form]="$any(detailGroup.get('weightPerBox'))" type="number" min="0" step="0.01" placeholder="0.00"></textinput>
+                            </div>
+                            <div class="classification-col col-format">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('weightFormat'))">
+                                    <option value="KG">KG</option>
+                                    <option value="LB">LB</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-total-weight">
+                                <span class="calculated-value">{{ calculateTotalWeight(detailGroup) | number:'1.2-2' }}</span>
+                            </div>
+                            <div class="classification-col col-pounds">
+                                <span class="calculated-value">{{ calculatePoundsPerSize(detailGroup) | number:'1.2-2' }}</span>
+                            </div>
+                            <div class="classification-col col-actions">
+                                <div class="delete-row-icon" (click)="removeClassificationDetail(detailIndex)">
+                                    <fa-icon class="del-icon" [icon]="faTrashAlt"></fa-icon>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-container>
+
+                    <!-- Totals SHELL_ON -->
+                    <div class="classification-table-row classification-totals-row">
+                        <div class="classification-col col-size"><strong>TOTAL COLA</strong></div>
+                        <div class="classification-col col-presentation"></div>
+                        <div class="classification-col col-quality"></div>
+                        <div class="classification-col col-boxes"><strong>{{ calculateTotalBoxesForType('SHELL_ON') }}</strong></div>
+                        <div class="classification-col col-weight-box"></div>
+                        <div class="classification-col col-format"></div>
+                        <div class="classification-col col-total-weight"><strong>{{ calculateTotalWeightForType('SHELL_ON') | number:'1.2-2' }}</strong></div>
+                        <div class="classification-col col-pounds"><strong>{{ calculateTotalPoundsForType('SHELL_ON') | number:'1.2-2' }}</strong></div>
+                        <div class="classification-col col-actions"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Validation Messages -->
+    <div class="af-row" *ngIf="submitted && classificationDetailsArray.length === 0">
+        <div class="af-c12">
+            <div class="sc-invalid-feedback mt-2">
                 <span i18n="@@productLabelStockProcessingOrderDetail.classification.detailsRequired.error">
-                    Se requiere al menos una clasificación por talla
+                    Se requiere al menos una clasificación por talla. Active una sección arriba.
                 </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🦐 EXPORTAR LIQUIDACIONES - Solo visible después de guardar -->
+    <div class="af-row mt-4" *ngIf="tsoGroup.get('id')?.value">
+        <div class="af-c12">
+            <div class="d-flex justify-content-end gap-2">
+                <button class="btn btn-outline-primary" 
+                        type="button" 
+                        [disabled]="exportingLiquidacion"
+                        (click)="exportLiquidacionPesca()">
+                    <span *ngIf="!exportingLiquidacion" i18n="@@productLabelStockProcessingOrderDetail.classification.exportLiquidacionPesca">Exportar Liquidación de Pesca</span>
+                    <span *ngIf="exportingLiquidacion">Exportando...</span>
+                </button>
+                <button class="btn btn-outline-success" 
+                        type="button" 
+                        [disabled]="exportingLiquidacion"
+                        (click)="exportLiquidacionCompra()">
+                    <span *ngIf="!exportingLiquidacion" i18n="@@productLabelStockProcessingOrderDetail.classification.exportLiquidacionCompra">Exportar Liquidación de Compra</span>
+                    <span *ngIf="exportingLiquidacion">Exportando...</span>
+                </button>
             </div>
         </div>
     </div>

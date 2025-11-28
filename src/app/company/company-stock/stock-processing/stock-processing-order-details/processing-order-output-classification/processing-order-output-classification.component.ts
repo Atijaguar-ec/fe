@@ -1,5 +1,7 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { AbstractControl, FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ProcessingOrderControllerService } from '../../../../../../api/api/processingOrderController.service';
+import { take } from 'rxjs/operators';
 import { faTrashAlt, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { Subscription } from 'rxjs';
 import { ApiSemiProduct } from '../../../../../../api/model/apiSemiProduct';
@@ -24,6 +26,87 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
 
   private subscriptions: Subscription[] = [];
   private readonly KG_TO_LB_FACTOR = 2.20462;
+  
+  // 🦐 Catálogos para camarón basados en documentación DUFER
+  // Referencia: docs/requerimientos/catalogos-camaron.md
+  
+  // Tipos de proceso (determina qué tallas y presentaciones mostrar)
+  readonly processTypeCatalog = [
+    { code: 'HEAD_ON', label: 'Con Cabeza (Entero)', sizeType: 'WHOLE' },
+    { code: 'SHELL_ON', label: 'Cola (Shell-On)', sizeType: 'TAIL' },
+    { code: 'VALUE_ADDED', label: 'Valor Agregado', sizeType: 'TAIL' }
+  ];
+
+  // Tallas para ENTERO (HEAD_ON) - Camarón con cabeza
+  readonly wholeSizeCatalog = [
+    { code: 'WHOLE_20_30', label: '20-30', order: 1 },
+    { code: 'WHOLE_30_40', label: '30-40', order: 2 },
+    { code: 'WHOLE_40_50', label: '40-50', order: 3 },
+    { code: 'WHOLE_50_60', label: '50-60', order: 4 },
+    { code: 'WHOLE_60_70', label: '60-70', order: 5 },
+    { code: 'WHOLE_70_80', label: '70-80', order: 6 },
+    { code: 'WHOLE_80_100', label: '80-100', order: 7 },
+    { code: 'WHOLE_100_120', label: '100-120', order: 8 },
+    { code: 'WHOLE_120_150', label: '120-150', order: 9 },
+    { code: 'WHOLE_POMADA', label: 'Pomada', order: 10 },
+    { code: 'WHOLE_BASURA', label: 'Basura', order: 99 }
+  ];
+
+  // Tallas para COLA (SHELL_ON) - Formato DUFER exacto
+  readonly tailSizeCatalog = [
+    { code: 'TAIL_U_7', label: 'U-7', order: 1 },
+    { code: 'TAIL_U_10', label: 'U-10', order: 2 },
+    { code: 'TAIL_U_12', label: 'U-12', order: 3 },
+    { code: 'TAIL_U_15', label: 'U-15', order: 4 },
+    { code: 'TAIL_21_25', label: '21-25', order: 5 },
+    { code: 'TAIL_26_30', label: '26-30', order: 6 },
+    { code: 'TAIL_31_35', label: '31-35', order: 7 },
+    { code: 'TAIL_41_50', label: '41-50', order: 8 },
+    { code: 'TAIL_61_70', label: '61-70', order: 9 },
+    { code: 'TAIL_91_110', label: '91-110', order: 10 },
+    { code: 'TAIL_110_130', label: '110-130', order: 11 },
+    { code: 'TAIL_130', label: '130', order: 12 },
+    { code: 'TAIL_150', label: '150', order: 13 }
+  ];
+
+  // Categorías de Broken (B VS, B SMALL, B MEDIUM, B LARGE)
+  readonly brokenCatalog = [
+    { code: 'B_VS', label: 'B VS', order: 1 },
+    { code: 'B_SMALL', label: 'B Small', order: 2 },
+    { code: 'B_MEDIUM', label: 'B Medium', order: 3 },
+    { code: 'B_LARGE', label: 'B Large', order: 4 }
+  ];
+  
+  // Grados de calidad (A, B, C)
+  readonly qualityGradeCatalog = [
+    { code: 'A', label: 'Clase A (Primera)' },
+    { code: 'B', label: 'Clase B (Segunda)' },
+    { code: 'C', label: 'Clase C (Otros)' }
+  ];
+  
+  // Tipos de presentación (solo para COLA - SHELL_ON)
+  readonly presentationTypeCatalog = [
+    { code: 'SHELL_ON_A', label: 'Shell-On A', category: 'SHELL_ON' },
+    { code: 'SHELL_ON_B', label: 'Shell-On B', category: 'SHELL_ON' },
+    { code: 'BROKEN_VS', label: 'Broken VS', category: 'BROKEN' },
+    { code: 'BROKEN_SMALL', label: 'Broken Small', category: 'BROKEN' },
+    { code: 'BROKEN_MEDIUM', label: 'Broken Medium', category: 'BROKEN' },
+    { code: 'BROKEN_LARGE', label: 'Broken Large', category: 'BROKEN' },
+    { code: 'TITI', label: 'TITI', category: 'OTHER' },
+    { code: 'ROJO', label: 'ROJO', category: 'OTHER' },
+    { code: 'BVS', label: 'BVS', category: 'OTHER' }
+  ];
+
+  // 🦐 Secciones de clasificación activas (Entero y/o Cola)
+  // Un lote puede tener DOS liquidaciones: HEAD_ON (Entero) y SHELL_ON (Cola)
+  activeProcessTypes: Set<string> = new Set(['SHELL_ON']);
+  
+  // Tipo de proceso actualmente visible para agregar detalles
+  currentAddingProcessType: string = 'SHELL_ON';
+
+  exportingLiquidacion = false;
+  exportingHeadOn = false;
+  exportingShellOn = false;
 
   @Input()
   tsoGroup!: FormGroup;
@@ -52,7 +135,7 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
   @Output()
   removeOutputEvent = new EventEmitter<number>();
 
-  constructor() { }
+  constructor(private processingOrderController: ProcessingOrderControllerService) { }
 
   ngOnInit(): void {
     this.ensureClassificationControls();
@@ -74,7 +157,13 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
       'productionOrder',
       'freezingType',
       'machine',
-      'brandHeader'
+      'brandHeader',
+      // 🦐 Campos adicionales formato DUFER
+      'providerName',
+      'receivedWeight',
+      'wasteWeight',
+      'totalWeight',
+      'processedWeight'
     ];
 
     headerFields.forEach(fieldName => {
@@ -91,15 +180,14 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
 
   /**
    * Setup validators for classification fields
+   * 🦐 Solo campos mínimos requeridos para guardar
    */
   private setupValidators(): void {
+    // Solo los campos esenciales son requeridos
+    // Los demás son opcionales para permitir guardado parcial
     const requiredFields = [
       'classificationStartTime',
-      'classificationEndTime',
-      'productionOrder',
-      'freezingType',
-      'machine',
-      'brandHeader'
+      'classificationEndTime'
     ];
 
     requiredFields.forEach(fieldName => {
@@ -119,6 +207,56 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
   }
 
   /**
+   * 🦐 Get filtered size catalog for a specific process type
+   */
+  getSizeCatalogForType(processType: string): Array<{code: string, label: string, order: number}> {
+    if (processType === 'HEAD_ON') {
+      return this.wholeSizeCatalog;
+    }
+    return this.tailSizeCatalog;
+  }
+
+  /**
+   * 🦐 Get details filtered by process type
+   */
+  getDetailsByProcessType(processType: string): AbstractControl[] {
+    return this.classificationDetailsArray.controls.filter(
+      control => control.get('processType')?.value === processType
+    );
+  }
+
+  /**
+   * 🦐 Check if a process type section has any details
+   */
+  hasDetailsForType(processType: string): boolean {
+    return this.getDetailsByProcessType(processType).length > 0;
+  }
+
+  /**
+   * 🦐 Toggle a process type section (add/remove)
+   */
+  toggleProcessType(processType: string): void {
+    if (this.activeProcessTypes.has(processType)) {
+      // Remove all details of this type
+      const indicesToRemove: number[] = [];
+      this.classificationDetailsArray.controls.forEach((control, index) => {
+        if (control.get('processType')?.value === processType) {
+          indicesToRemove.push(index);
+        }
+      });
+      // Remove in reverse order to maintain indices
+      indicesToRemove.reverse().forEach(index => {
+        this.classificationDetailsArray.removeAt(index);
+      });
+      this.activeProcessTypes.delete(processType);
+    } else {
+      // Add the process type and one empty detail
+      this.activeProcessTypes.add(processType);
+      this.addClassificationDetailForType(processType);
+    }
+  }
+
+  /**
    * Get output facility codebook based on selected semi-product
    */
   getOutputFacilityCodebook(): CompanyFacilitiesForStockUnitProductService | null {
@@ -130,20 +268,32 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
   }
 
   /**
-   * Add a new classification detail row
+   * 🦐 Add a new classification detail row for a specific process type
    */
-  addClassificationDetail(): void {
+  addClassificationDetailForType(processType: string): void {
+    const isHeadOn = processType === 'HEAD_ON';
+    
     const detailGroup = new FormGroup({
-      brandDetail: new FormControl(null), // Optional
-      size: new FormControl(null), // Optional
-      boxes: new FormControl(null, [Validators.required, Validators.min(0)]),
-      classificationU: new FormControl(null, [Validators.required, Validators.min(0)]),
-      classificationNumber: new FormControl(null, [Validators.required, Validators.min(0)]),
-      weightPerBox: new FormControl(null, [Validators.required, Validators.min(0)]),
-      weightFormat: new FormControl('KG', [Validators.required])
+      processType: new FormControl(processType), // 🦐 HEAD_ON o SHELL_ON
+      brandDetail: new FormControl(null),
+      size: new FormControl(null), // 🦐 Talla (filtrada por tipo de proceso)
+      presentationType: new FormControl(isHeadOn ? null : 'SHELL_ON_A'), // 🦐 Solo para COLA
+      qualityGrade: new FormControl(isHeadOn ? null : 'A'), // 🦐 Clase A/B/C (solo para COLA)
+      boxes: new FormControl(null, [Validators.min(0)]),
+      weightPerBox: new FormControl(null, [Validators.min(0)]),
+      weightFormat: new FormControl('LB'), // 🦐 Por defecto LB para camarón
+      pricePerPound: new FormControl(null), // 🦐 Precio por libra (para liquidación de compra)
+      lineTotal: new FormControl({ value: null, disabled: true }) // 🦐 Total calculado
     });
 
     this.classificationDetailsArray.push(detailGroup);
+  }
+
+  /**
+   * Legacy method - adds detail for current active type (SHELL_ON by default)
+   */
+  addClassificationDetail(): void {
+    this.addClassificationDetailForType(this.currentAddingProcessType);
   }
 
   /**
@@ -165,19 +315,17 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
   }
 
   /**
-   * Calculate pounds per size (totalWeight * 2.20462 / (classificationU + classificationNumber))
+   * 🦐 Calculate pounds per size (total weight converted to LB)
+   * Si el formato es KG, convierte a LB. Si ya es LB, retorna el peso total.
    */
   calculatePoundsPerSize(detailGroup: AbstractControl): number {
     const totalWeight = this.calculateTotalWeight(detailGroup);
-    const classificationU = detailGroup.get('classificationU')?.value || 0;
-    const classificationNumber = detailGroup.get('classificationNumber')?.value || 0;
-    const totalClassification = classificationU + classificationNumber;
+    const format = (detailGroup.get('weightFormat')?.value || 'LB').toString().toUpperCase();
     
-    if (totalClassification === 0) {
-      return 0;
+    if (format === 'KG') {
+      return totalWeight * this.KG_TO_LB_FACTOR;
     }
-    
-    return (totalWeight * this.KG_TO_LB_FACTOR) / totalClassification;
+    return totalWeight; // Ya está en LB
   }
 
   /**
@@ -192,12 +340,65 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
   }
 
   /**
+   * 🦐 Calculate grand total pounds (all weights converted to LB)
+   */
+  calculateGrandTotalPounds(): number {
+    let total = 0;
+    this.classificationDetailsArray.controls.forEach(control => {
+      total += this.calculatePoundsPerSize(control);
+    });
+    return total;
+  }
+
+  /**
    * Calculate grand total boxes across all details
    */
   calculateGrandTotalBoxes(): number {
     let total = 0;
     this.classificationDetailsArray.controls.forEach(control => {
-      total += control.get('boxes')?.value || 0;
+      const rawValue = control.get('boxes')?.value;
+      const boxes = Number(rawValue) || 0; // garantizar suma numérica (evitar '03' + '4' = '034')
+      total += boxes;
+    });
+    return total;
+  }
+
+  /**
+   * 🦐 Calculate total boxes for a specific process type
+   */
+  calculateTotalBoxesForType(processType: string): number {
+    let total = 0;
+    this.classificationDetailsArray.controls.forEach(control => {
+      if (control.get('processType')?.value === processType) {
+        const rawValue = control.get('boxes')?.value;
+        total += Number(rawValue) || 0;
+      }
+    });
+    return total;
+  }
+
+  /**
+   * 🦐 Calculate total weight for a specific process type
+   */
+  calculateTotalWeightForType(processType: string): number {
+    let total = 0;
+    this.classificationDetailsArray.controls.forEach(control => {
+      if (control.get('processType')?.value === processType) {
+        total += this.calculateTotalWeight(control);
+      }
+    });
+    return total;
+  }
+
+  /**
+   * 🦐 Calculate total pounds for a specific process type
+   */
+  calculateTotalPoundsForType(processType: string): number {
+    let total = 0;
+    this.classificationDetailsArray.controls.forEach(control => {
+      if (control.get('processType')?.value === processType) {
+        total += this.calculatePoundsPerSize(control);
+      }
     });
     return total;
   }
@@ -215,6 +416,92 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
   get canDelete(): boolean {
     // This will be controlled by parent component
     return true;
+  }
+
+  /**
+   * 🦐 Calcular total de línea (libras × precio por libra)
+   */
+  calculateLineTotal(detailGroup: AbstractControl): number {
+    const poundsPerSize = this.calculatePoundsPerSize(detailGroup);
+    const pricePerPound = detailGroup.get('pricePerPound')?.value || 0;
+    return poundsPerSize * pricePerPound;
+  }
+
+  /**
+   * 🦐 Calcular gran total monetario
+   */
+  calculateGrandTotalAmount(): number {
+    let total = 0;
+    this.classificationDetailsArray?.controls?.forEach(control => {
+      total += this.calculateLineTotal(control);
+    });
+    return total;
+  }
+
+  /**
+   * 🦐 Exportar Liquidación de Pesca a Excel
+   */
+  exportLiquidacionPesca(): void {
+    const stockOrderId = this.tsoGroup.get('id')?.value;
+    if (!stockOrderId) {
+      console.error('No stock order ID available for export');
+      return;
+    }
+
+    this.exportingLiquidacion = true;
+    const lotNumber = this.tsoGroup.get('internalLotNumber')?.value || stockOrderId;
+    
+    this.processingOrderController.downloadClassificationLiquidacion(stockOrderId)
+      .pipe(take(1))
+      .subscribe({
+        next: (blob: Blob) => {
+          this.downloadFile(blob, `Liquidacion_Pesca_${lotNumber}.xlsx`);
+          this.exportingLiquidacion = false;
+        },
+        error: (error) => {
+          console.error('Error exporting liquidacion:', error);
+          this.exportingLiquidacion = false;
+        }
+      });
+  }
+
+  /**
+   * 🦐 Exportar Liquidación de Compra a Excel
+   */
+  exportLiquidacionCompra(): void {
+    const stockOrderId = this.tsoGroup.get('id')?.value;
+    if (!stockOrderId) {
+      console.error('No stock order ID available for export');
+      return;
+    }
+
+    this.exportingLiquidacion = true;
+    const lotNumber = this.tsoGroup.get('internalLotNumber')?.value || stockOrderId;
+    
+    this.processingOrderController.downloadLiquidacionCompra(stockOrderId)
+      .pipe(take(1))
+      .subscribe({
+        next: (blob: Blob) => {
+          this.downloadFile(blob, `Liquidacion_Compra_${lotNumber}.xlsx`);
+          this.exportingLiquidacion = false;
+        },
+        error: (error) => {
+          console.error('Error exporting liquidacion compra:', error);
+          this.exportingLiquidacion = false;
+        }
+      });
+  }
+
+  /**
+   * Helper to download a blob as a file
+   */
+  private downloadFile(blob: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 
   private calculateGrandTotalWeightInKilograms(): number {

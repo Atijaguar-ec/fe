@@ -593,6 +593,16 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
 
     this.submitted = true;
 
+    // 🐛 Debug: Log validation state
+    if (this.procOrderGroup.invalid) {
+      console.error('❌ Form is invalid. Checking errors...');
+      this.logFormErrors(this.procOrderGroup);
+    }
+    
+    if (this.input.oneInputStockOrderRequired) {
+      console.error('❌ At least one input stock order is required');
+    }
+
     if (this.procOrderGroup.invalid || this.input.oneInputStockOrderRequired) {
       return;
     }
@@ -1225,6 +1235,22 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       // Delete null and not need properties
       delete tso['requiredProcEvidenceFieldGroup'];
       deleteNullFields(tso);
+    });
+  }
+
+  /**
+   * 🐛 Debug helper: Log form validation errors recursively
+   */
+  private logFormErrors(formGroup: FormGroup | FormArray, path: string = ''): void {
+    Object.keys(formGroup.controls).forEach(key => {
+      const control = formGroup.get(key);
+      const controlPath = path ? `${path}.${key}` : key;
+      
+      if (control instanceof FormGroup || control instanceof FormArray) {
+        this.logFormErrors(control, controlPath);
+      } else if (control?.errors) {
+        console.error(`  ❌ ${controlPath}:`, control.errors);
+      }
     });
   }
 
