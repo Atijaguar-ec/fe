@@ -653,7 +653,9 @@ export class TypeListComponent implements OnInit, OnChanges {
   }
 
   translateShrimpPresentationCategory(category?: string): string {
-    if (!category) return '';
+    if (!category) {
+      return '';
+    }
     switch (category) {
       case 'SHELL_ON': return $localize`:@@shrimpPresentationType.category.shellOn:Shell-On (Cola)`;
       case 'BROKEN': return $localize`:@@shrimpPresentationType.category.broken:Quebrado`;

@@ -102,7 +102,9 @@ export class FieldInspectionService {
    * Get display label for flavor test result.
    */
   getFlavorTestResultLabel(result: string | null | undefined): string {
-    if (!result) return '-';
+    if (!result) {
+      return '-';
+    }
     switch (result) {
       case 'NORMAL': return $localize`:@@fieldInspection.flavorTestResult.normal:Normal`;
       case 'DEFECT': return $localize`:@@fieldInspection.flavorTestResult.defect:Con Defecto`;
@@ -114,7 +116,9 @@ export class FieldInspectionService {
    * Get display label for purchase recommendation.
    */
   getPurchaseRecommendedLabel(recommended: boolean | null | undefined): string {
-    if (recommended === null || recommended === undefined) return '-';
+    if (recommended === null || recommended === undefined) {
+      return '-';
+    }
     return recommended 
       ? $localize`:@@fieldInspection.purchaseRecommended.yes:Sí, Comprar`
       : $localize`:@@fieldInspection.purchaseRecommended.no:No Comprar`;

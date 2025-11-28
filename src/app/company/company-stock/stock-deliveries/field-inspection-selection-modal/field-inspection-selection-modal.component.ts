@@ -112,17 +112,23 @@ export class FieldInspectionSelectionModalComponent implements OnInit {
   }
 
   getFlavorResultClass(result: string | null | undefined): string {
-    if (!result) return '';
+    if (!result) {
+      return '';
+    }
     return result === 'NORMAL' ? 'text-success' : 'text-danger';
   }
 
   getRecommendedClass(recommended: boolean | null | undefined): string {
-    if (recommended === null || recommended === undefined) return '';
+    if (recommended === null || recommended === undefined) {
+      return '';
+    }
     return recommended ? 'text-success' : 'text-danger';
   }
 
   formatDate(dateString: string | null | undefined): string {
-    if (!dateString) return '-';
+    if (!dateString) {
+      return '-';
+    }
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString('es-EC', { 
@@ -136,7 +142,9 @@ export class FieldInspectionSelectionModalComponent implements OnInit {
   }
 
   hasReceptionData(inspection: ApiFieldInspection | null): boolean {
-    if (!inspection) return false;
+    if (!inspection) {
+      return false;
+    }
     return !!(
       inspection.numberOfGavetas ||
       inspection.numberOfBines ||
