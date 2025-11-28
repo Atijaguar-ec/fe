@@ -97,12 +97,12 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
     { code: 'BVS', label: 'BVS', category: 'OTHER' }
   ];
 
-  // 🦐 Secciones de clasificación activas (Entero y/o Cola)
-  // Un lote puede tener DOS liquidaciones: HEAD_ON (Entero) y SHELL_ON (Cola)
-  activeProcessTypes: Set<string> = new Set(['SHELL_ON']);
+  // 🦐 Tipo de proceso determinado automáticamente por el semi-producto seleccionado
+  // HEAD_ON = Camarón Entero, SHELL_ON = Camarón Cola
+  currentProcessType: string = 'SHELL_ON';
   
-  // Tipo de proceso actualmente visible para agregar detalles
-  currentAddingProcessType: string = 'SHELL_ON';
+  // Mantener para compatibilidad (deprecated)
+  activeProcessTypes: Set<string> = new Set(['SHELL_ON']);
 
   exportingLiquidacion = false;
   exportingHeadOn = false;
@@ -140,6 +140,7 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
   ngOnInit(): void {
     this.ensureClassificationControls();
     this.setupValidators();
+    this.setupSemiProductListener();
   }
 
   ngOnDestroy(): void {
@@ -175,6 +176,72 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
     // Ensure classification details array exists
     if (!this.tsoGroup.get('classificationDetails')) {
       this.tsoGroup.addControl('classificationDetails', new FormArray([]));
+    }
+  }
+
+  /**
+   * 🦐 Detectar tipo de proceso según el semi-producto seleccionado
+   */
+  private setupSemiProductListener(): void {
+    const semiProductControl = this.tsoGroup.get('semiProduct');
+    if (semiProductControl) {
+      // Detectar tipo inicial
+      this.detectProcessTypeFromSemiProduct(semiProductControl.value);
+      
+      // Escuchar cambios
+      const sub = semiProductControl.valueChanges.subscribe(semiProduct => {
+        this.detectProcessTypeFromSemiProduct(semiProduct);
+      });
+      this.subscriptions.push(sub);
+    }
+  }
+
+  /**
+   * 🦐 Detectar tipo de proceso desde el semi-producto
+   * Busca palabras clave: "entero", "cabeza" = HEAD_ON; "cola", "shell" = SHELL_ON
+   */
+  private detectProcessTypeFromSemiProduct(semiProduct: ApiSemiProduct | null): void {
+    if (!semiProduct || !semiProduct.name) {
+      this.currentProcessType = 'SHELL_ON'; // Default
+      return;
+    }
+    
+    const name = semiProduct.name.toLowerCase();
+    
+    if (name.includes('entero') || name.includes('cabeza') || name.includes('head')) {
+      this.currentProcessType = 'HEAD_ON';
+    } else if (name.includes('cola') || name.includes('shell') || name.includes('tail')) {
+      this.currentProcessType = 'SHELL_ON';
+    } else {
+      // Default basado en si el nombre contiene indicadores
+      this.currentProcessType = 'SHELL_ON';
+    }
+    
+    // Actualizar activeProcessTypes para compatibilidad
+    this.activeProcessTypes.clear();
+    this.activeProcessTypes.add(this.currentProcessType);
+    
+    // Limpiar detalles del tipo anterior y agregar uno nuevo del tipo correcto
+    this.clearAndAddDetailForCurrentType();
+  }
+
+  /**
+   * 🦐 Limpiar detalles existentes y agregar uno del tipo de proceso actual
+   */
+  private clearAndAddDetailForCurrentType(): void {
+    // Solo limpiar si hay detalles del tipo incorrecto
+    const currentDetails = this.classificationDetailsArray.controls;
+    const hasWrongType = currentDetails.some(
+      ctrl => ctrl.get('processType')?.value !== this.currentProcessType
+    );
+    
+    if (hasWrongType || currentDetails.length === 0) {
+      // Limpiar todos los detalles
+      while (this.classificationDetailsArray.length > 0) {
+        this.classificationDetailsArray.removeAt(0);
+      }
+      // Agregar uno nuevo del tipo correcto
+      this.addClassificationDetailForType(this.currentProcessType);
     }
   }
 
@@ -233,27 +300,12 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
   }
 
   /**
-   * 🦐 Toggle a process type section (add/remove)
+   * @deprecated El tipo de proceso ahora se determina automáticamente por el semi-producto.
+   * Este método se mantiene solo por compatibilidad.
    */
   toggleProcessType(processType: string): void {
-    if (this.activeProcessTypes.has(processType)) {
-      // Remove all details of this type
-      const indicesToRemove: number[] = [];
-      this.classificationDetailsArray.controls.forEach((control, index) => {
-        if (control.get('processType')?.value === processType) {
-          indicesToRemove.push(index);
-        }
-      });
-      // Remove in reverse order to maintain indices
-      indicesToRemove.reverse().forEach(index => {
-        this.classificationDetailsArray.removeAt(index);
-      });
-      this.activeProcessTypes.delete(processType);
-    } else {
-      // Add the process type and one empty detail
-      this.activeProcessTypes.add(processType);
-      this.addClassificationDetailForType(processType);
-    }
+    // Ya no se usa - el tipo se determina por el semi-producto
+    console.warn('toggleProcessType is deprecated. Process type is now auto-detected from semi-product.');
   }
 
   /**
@@ -290,10 +342,10 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
   }
 
   /**
-   * Legacy method - adds detail for current active type (SHELL_ON by default)
+   * Legacy method - adds detail for current process type
    */
   addClassificationDetail(): void {
-    this.addClassificationDetailForType(this.currentAddingProcessType);
+    this.addClassificationDetailForType(this.currentProcessType);
   }
 
   /**

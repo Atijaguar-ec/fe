@@ -22,41 +22,8 @@
   }
 }
 
-// 🦐 Selector de tipo de proceso (HEAD_ON, SHELL_ON)
-.process-type-selector {
-  margin-bottom: 1rem;
-  background: #f8f9fa;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-  
-  .form-label {
-    font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 0.75rem;
-    display: block;
-  }
-
-  .form-check-input {
-    width: 3em;
-    height: 1.5em;
-    cursor: pointer;
-    
-    &:checked {
-      background-color: #27ae60;
-      border-color: #27ae60;
-    }
-  }
-
-  .form-check-label {
-    cursor: pointer;
-    margin-left: 0.5rem;
-    
-    strong {
-      font-size: 1rem;
-    }
-  }
-}
+// 🦐 Nota: El tipo de proceso ahora se determina automáticamente
+// por el semi-producto seleccionado (no hay selector manual)
 
 // 🦐 Secciones de clasificación separadas
 .classification-section-box {

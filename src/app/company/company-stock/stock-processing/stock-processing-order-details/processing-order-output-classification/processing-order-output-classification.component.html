@@ -118,40 +118,8 @@
         </div>
     </div>
 
-    <!-- 🦐 SECCIONES DE LIQUIDACIÓN - Un lote puede tener DOS liquidaciones -->
-    <div class="af-row">
-        <div class="af-c12">
-            <div class="process-type-selector">
-                <label class="form-label" i18n="@@productLabelStockProcessingOrderDetail.classification.processType.label">
-                    Secciones de Liquidación (puede activar ambas)
-                </label>
-                <div class="d-flex gap-3">
-                    <!-- HEAD_ON Toggle -->
-                    <div class="form-check form-switch flex-fill">
-                        <input class="form-check-input" type="checkbox" role="switch" 
-                               id="headOnToggle"
-                               [checked]="activeProcessTypes.has('HEAD_ON')"
-                               (change)="toggleProcessType('HEAD_ON')">
-                        <label class="form-check-label" for="headOnToggle">
-                            <strong>🦐 CON CABEZA (Entero)</strong>
-                            <small class="d-block text-muted">Tallas: 20-30 a Pomada</small>
-                        </label>
-                    </div>
-                    <!-- SHELL_ON Toggle -->
-                    <div class="form-check form-switch flex-fill">
-                        <input class="form-check-input" type="checkbox" role="switch" 
-                               id="shellOnToggle"
-                               [checked]="activeProcessTypes.has('SHELL_ON')"
-                               (change)="toggleProcessType('SHELL_ON')">
-                        <label class="form-check-label" for="shellOnToggle">
-                            <strong>🦐 EN COLA (Shell-On)</strong>
-                            <small class="d-block text-muted">Tallas: U-7 a 150+, con Clase A/B</small>
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- 🦐 TIPO DE PROCESO - Determinado automáticamente por el semi-producto seleccionado -->
+    <!-- No se muestran toggles, el tipo se detecta del semi-producto -->
 
     <!-- START AND END DATE -->
     <div class="af-row">
@@ -307,7 +275,7 @@
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
     <!-- 🦐 SECCIÓN 1: LIQUIDACIÓN CON CABEZA (HEAD_ON) - Camarón Entero        -->
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
-    <div class="af-row mt-4" *ngIf="activeProcessTypes.has('HEAD_ON')">
+    <div class="af-row mt-4" *ngIf="currentProcessType === 'HEAD_ON'">
         <div class="af-c12">
             <div class="classification-section-box head-on-section">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -384,7 +352,7 @@
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
     <!-- 🦐 SECCIÓN 2: LIQUIDACIÓN EN COLA (SHELL_ON) - Camarón Descabezado      -->
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
-    <div class="af-row mt-4" *ngIf="activeProcessTypes.has('SHELL_ON')">
+    <div class="af-row mt-4" *ngIf="currentProcessType === 'SHELL_ON'">
         <div class="af-c12">
             <div class="classification-section-box shell-on-section">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -474,11 +442,11 @@
     </div>
 
     <!-- Validation Messages -->
-    <div class="af-row" *ngIf="submitted && classificationDetailsArray.length === 0">
+    <div class="af-row" *ngIf="submitted && classificationDetailsArray.length === 0 && !tsoGroup.get('semiProduct')?.value">
         <div class="af-c12">
             <div class="sc-invalid-feedback mt-2">
                 <span i18n="@@productLabelStockProcessingOrderDetail.classification.detailsRequired.error">
-                    Se requiere al menos una clasificación por talla. Active una sección arriba.
+                    Seleccione un tipo de semi-producto para ver las opciones de clasificación.
                 </span>
             </div>
         </div>
