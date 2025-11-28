@@ -343,7 +343,12 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     }
 
     const ref = selected[0];
-    const sameLot = selected.every(s => s.internalLotNumber === ref.internalLotNumber);
+    
+    // 🦐 Para el número de lote, usar internalLotNumber si existe, sino usar identifier como fallback
+    const getLotNumber = (s: any) => s.internalLotNumber || s.identifier || null;
+    const refLotNumber = getLotNumber(ref);
+    const sameLot = selected.every(s => getLotNumber(s) === refLotNumber);
+    
     const sameWeek = selected.every(s => s.weekNumber === ref.weekNumber);
     const sameProducer = selected.every(s => 
       s.producerUserCustomer?.id === ref.producerUserCustomer?.id);
@@ -362,10 +367,12 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
 
     this.targetStockOrdersArray.controls.forEach(group => {
       // 🦐 Handle internal lot number - propagate and lock if all inputs share the same lot
+      // Usar internalLotNumber si existe, sino usar identifier como fallback (para entregas iniciales)
       const iln = group.get('internalLotNumber');
-      if (sameLot && ref.internalLotNumber && iln) {
-        iln.setValue(ref.internalLotNumber, { emitEvent: false });
+      if (sameLot && refLotNumber && iln) {
+        iln.setValue(refLotNumber, { emitEvent: false });
         iln.disable({ emitEvent: false });
+        console.log('🏷️ Número de lote propagado:', refLotNumber);
       } else if (iln && iln.disabled) {
         iln.enable({ emitEvent: false });
       }

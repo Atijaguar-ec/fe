@@ -660,11 +660,13 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
     const targetStockOrders: ApiStockOrder[] = [];
 
     for (const [index, selectedStockOrder] of this.selectedInputStockOrders.entries()) {
+      // 🦐 Usar internalLotNumber si existe, sino usar identifier como fallback (para entregas iniciales)
+      const baseLotNumber = sourceStockOrder.internalLotNumber || selectedStockOrder.identifier || selectedStockOrder.id?.toString() || '';
       const newStockOrder: ApiStockOrder = {
         facility: sourceStockOrder.facility,
         semiProduct: selectedStockOrder.semiProduct,
         finalProduct: selectedStockOrder.finalProduct,
-        internalLotNumber: `${sourceStockOrder.internalLotNumber}/${index + 1 + 0}`,
+        internalLotNumber: this.selectedInputStockOrders.length > 1 ? `${baseLotNumber}/${index + 1}` : baseLotNumber,
         weekNumber: selectedStockOrder.weekNumber ?? sourceStockOrder.weekNumber,
         // 🦐 Traceability: always inherit shrimp-specific custody fields when transferring
         numberOfGavetas: selectedStockOrder.numberOfGavetas ?? sourceStockOrder.numberOfGavetas,
