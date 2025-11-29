@@ -250,6 +250,13 @@
                             </checkbox-input-rich-label>
                         </checkbox-input>
 
+                        <!-- Checkbox específico para SHRIMP: Área de descabezado -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isDeheadingProcess')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isDeheadingProcess.label">
+                                Área de descabezado
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
                     </div>
                 </div>
                 <div class="af-form-block--c6">

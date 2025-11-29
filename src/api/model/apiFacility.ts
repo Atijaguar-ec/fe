@@ -121,6 +121,10 @@ export interface ApiFacility {
      */
     isRestArea?: boolean;
     /**
+     * Facility performs shrimp deheading process - descabezado (specific for shrimp value chain)
+     */
+    isDeheadingProcess?: boolean;
+    /**
      * Custom facility level overriding facility type order
      */
     level?: number;
@@ -242,6 +246,10 @@ export namespace ApiFacility {
          * Facility has a shrimp resting area (specific for shrimp value chain)
          */
         isRestArea = 'isRestArea',
+        /**
+         * Facility performs shrimp deheading process - descabezado (specific for shrimp value chain)
+         */
+        isDeheadingProcess = 'isDeheadingProcess',
         /**
          * Custom facility level overriding facility type order
          */
@@ -520,6 +528,17 @@ export namespace ApiFacility {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'isDeheadingProcess',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'level',
                     classname: 'ApiFacility',
                     dataType: 'number',
@@ -667,6 +686,8 @@ export namespace ApiFacility {
                 isWashingArea: [
                 ],
                 isRestArea: [
+                ],
+                isDeheadingProcess: [
                 ],
                 level: [
                 ],
