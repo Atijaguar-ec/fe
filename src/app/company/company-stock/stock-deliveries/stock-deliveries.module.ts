@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StockDeliveriesRoutingModule } from './stock-deliveries-routing.module';
 import { StockDeliveriesTabComponent } from './stock-deliveries-tab/stock-deliveries-tab.component';
-import { LabApprovalSelectionModalComponent } from './lab-approval-selection-modal/lab-approval-selection-modal.component';
 import { FieldInspectionSelectionModalComponent } from './field-inspection-selection-modal/field-inspection-selection-modal.component';
 import { CoreModule } from '../../../core/core.module';
 import { ComponentsModule } from '../../../components/components.module';
@@ -15,8 +14,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @NgModule({
   declarations: [
-    StockDeliveriesTabComponent, 
-    LabApprovalSelectionModalComponent,
+    StockDeliveriesTabComponent,
     FieldInspectionSelectionModalComponent
   ],
     imports: [

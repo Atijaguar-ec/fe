@@ -19,8 +19,6 @@ import { SelfOnboardingService } from '../../../../shared-services/self-onboardi
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { EnvironmentInfoService } from '../../../../core/environment-info.service';
 import { NgbModalImproved } from '../../../../core/ngb-modal-improved/ngb-modal-improved.service';
-import { LabApprovalSelectionModalComponent } from '../lab-approval-selection-modal/lab-approval-selection-modal.component';
-import { ApiLaboratoryAnalysis } from '../../../../core/api/laboratory-analysis.service';
 import { FieldInspectionSelectionModalComponent } from '../field-inspection-selection-modal/field-inspection-selection-modal.component';
 import { ApiFieldInspection } from '../../../../core/api/field-inspection.service';
 
@@ -141,10 +139,8 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
     const isFieldInspection = facility && facility.isFieldInspection;
     
     // Para camarón: Si NO es inspección en campo, mostrar modales de selección
-    const requiresLabApproval = isShrimp && !isFieldInspection;
     const canLinkFieldInspection = isShrimp && !isFieldInspection;
 
-    let selectedAnalysis: ApiLaboratoryAnalysis | null = null;
     let selectedFieldInspection: ApiFieldInspection | null = null;
 
     // 🔍 Paso 1: Mostrar modal de inspección de campo (opcional)
@@ -161,41 +157,18 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
         });
 
         const fieldResult = await fieldModalRef.result;
+        if (fieldResult === undefined) {
+          return;
+        }
         selectedFieldInspection = fieldResult as ApiFieldInspection | null;
-        // null means user chose to skip, undefined means cancelled
       } catch (e) {
         // User cancelled - abort navigation
         return;
       }
     }
 
-    // 🔬 Paso 2: Mostrar modal de laboratorio SOLO si no se seleccionó inspección de campo
-    // Si ya hay inspección de campo vinculada, no se necesita análisis de laboratorio
-    if (requiresLabApproval && !selectedFieldInspection) {
-      try {
-        const modalRef = this.modalService.open(LabApprovalSelectionModalComponent, {
-          centered: true,
-          backdrop: 'static',
-          keyboard: false
-        }, {
-          companyId: this.companyId
-        });
-
-        const result = await modalRef.result;
-        selectedAnalysis = result as ApiLaboratoryAnalysis | null;
-        // selectedAnalysis === null significa "continuar sin análisis"
-      } catch (e) {
-        // Usuario canceló el modal (dismiss) → abortar navegación
-        return;
-      }
-    }
-
     // Construir query params
     const queryParams: any = {};
-    if (selectedAnalysis) {
-      queryParams.labAnalysisId = selectedAnalysis.id;
-      queryParams.srcStockOrderId = selectedAnalysis.stockOrderId;
-    }
     if (selectedFieldInspection) {
       queryParams.fieldInspectionId = selectedFieldInspection.id;
     }
@@ -219,10 +192,8 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
     const isShrimp = this.envInfo.isProductType('shrimp');
     const isFieldInspection = facility && facility.isFieldInspection;
     
-    const requiresLabApproval = isShrimp && !isFieldInspection;
     const canLinkFieldInspection = isShrimp && !isFieldInspection;
 
-    let selectedAnalysis: ApiLaboratoryAnalysis | null = null;
     let selectedFieldInspection: ApiFieldInspection | null = null;
 
     // 🔍 Paso 1: Mostrar modal de inspección de campo (opcional)
@@ -239,36 +210,16 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
         });
 
         const fieldResult = await fieldModalRef.result;
+        if (fieldResult === undefined) {
+          return;
+        }
         selectedFieldInspection = fieldResult as ApiFieldInspection | null;
       } catch (e) {
         return;
       }
     }
 
-    // 🔬 Paso 2: Mostrar modal de laboratorio SOLO si no se seleccionó inspección de campo
-    if (requiresLabApproval && !selectedFieldInspection) {
-      try {
-        const modalRef = this.modalService.open(LabApprovalSelectionModalComponent, {
-          centered: true,
-          backdrop: 'static',
-          keyboard: false
-        }, {
-          companyId: this.companyId
-        });
-
-        const result = await modalRef.result;
-        selectedAnalysis = result as ApiLaboratoryAnalysis | null;
-      } catch (e) {
-        // Usuario canceló el modal → abortar navegación
-        return;
-      }
-    }
-
     const queryParams: any = {};
-    if (selectedAnalysis) {
-      queryParams.labAnalysisId = selectedAnalysis.id;
-      queryParams.srcStockOrderId = selectedAnalysis.stockOrderId;
-    }
     if (selectedFieldInspection) {
       queryParams.fieldInspectionId = selectedFieldInspection.id;
     }
