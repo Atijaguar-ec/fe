@@ -36,7 +36,13 @@ export class SensorialQualityFieldsComponent implements OnInit {
   /** Whether sample number is required */
   @Input() sampleNumberRequired: boolean = false;
 
-  // Codebook para Olor y Sabor: Okay + Defectos (Arena, Palo, etc.)
+  // Codebook para Olor (camarón): catálogo específico
+  odorOptionsCodebook: EnumSifrant = EnumSifrant.fromObject({
+    CARACTERISTICO: $localize`:@@sensorialQualityFields.odor.characteristic:Caracteristico`,
+    NO_CARACTERISTICO: $localize`:@@sensorialQualityFields.odor.nonCharacteristic:No caracteristico`
+  });
+
+  // Codebook para Sabor: "Normal" + Defectos (Arena, Palo, etc.)
   flavorOptionsCodebook: EnumSifrant = EnumSifrant.fromObject({});
   
   // Codebook para Color: A1, A2, A3, A4

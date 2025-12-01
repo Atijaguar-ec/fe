@@ -97,6 +97,34 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
     { code: 'BVS', label: 'BVS', category: 'OTHER' }
   ];
 
+  // 🦐 Catálogos para campos de clasificación por fila
+  // Tipo de congelación
+  readonly freezingTypeCatalog = [
+    { code: 'IQF', label: 'IQF (Individual)' },
+    { code: 'BLOCK', label: 'Bloque' },
+    { code: 'SEMI_IQF', label: 'Semi-IQF' }
+  ];
+
+  // Máquinas de procesamiento
+  readonly machineCatalog = [
+    { code: 'MACH_01', label: 'Máquina 1' },
+    { code: 'MACH_02', label: 'Máquina 2' },
+    { code: 'MACH_03', label: 'Máquina 3' },
+    { code: 'GLAZER_01', label: 'Glaseadora 1' },
+    { code: 'FREEZER_01', label: 'Túnel 1' },
+    { code: 'FREEZER_02', label: 'Túnel 2' }
+  ];
+
+  // Marcas con peso por caja y unidad de medida
+  readonly brandCatalog = [
+    { code: 'DUFER_2KG', label: 'Dufer 2 Kg', weightPerBox: 2.00, measureUnit: 'KG' },
+    { code: 'DUFER_4LB', label: 'Dufer 4 Lb', weightPerBox: 4.00, measureUnit: 'LB' },
+    { code: 'DUFER_5LB', label: 'Dufer 5 Lb', weightPerBox: 5.00, measureUnit: 'LB' },
+    { code: 'OCEAN_GOLD_2KG', label: 'Ocean Gold 2 Kg', weightPerBox: 2.00, measureUnit: 'KG' },
+    { code: 'OCEAN_GOLD_5LB', label: 'Ocean Gold 5 Lb', weightPerBox: 5.00, measureUnit: 'LB' },
+    { code: 'CUSTOM', label: 'Personalizado', weightPerBox: null, measureUnit: null }
+  ];
+
   // 🦐 Tipo de proceso determinado automáticamente por el semi-producto seleccionado
   // HEAD_ON = Camarón Entero, SHELL_ON = Camarón Cola
   currentProcessType: string = 'SHELL_ON';
@@ -327,6 +355,11 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
     
     const detailGroup = new FormGroup({
       processType: new FormControl(processType), // 🦐 HEAD_ON o SHELL_ON
+      // 🦐 Nuevos campos por fila (antes estaban en el header)
+      productionOrder: new FormControl(null), // Orden de producción
+      freezingTypeCode: new FormControl(null), // Tipo de congelación (catálogo)
+      machineCode: new FormControl(null), // Máquina (catálogo)
+      brandCode: new FormControl(null), // Marca (catálogo con peso por caja)
       brandDetail: new FormControl(null),
       size: new FormControl(null), // 🦐 Talla (filtrada por tipo de proceso)
       presentationType: new FormControl(isHeadOn ? null : 'SHELL_ON_A'), // 🦐 Solo para COLA
@@ -339,6 +372,22 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
     });
 
     this.classificationDetailsArray.push(detailGroup);
+  }
+
+  /**
+   * 🦐 Cuando se selecciona una marca, actualizar weightPerBox y weightFormat
+   */
+  onBrandChange(detailGroup: AbstractControl): void {
+    const brandCode = detailGroup.get('brandCode')?.value;
+    if (!brandCode) return;
+
+    const selectedBrand = this.brandCatalog.find(b => b.code === brandCode);
+    if (selectedBrand && selectedBrand.weightPerBox != null) {
+      detailGroup.get('weightPerBox')?.setValue(selectedBrand.weightPerBox);
+      if (selectedBrand.measureUnit) {
+        detailGroup.get('weightFormat')?.setValue(selectedBrand.measureUnit);
+      }
+    }
   }
 
   /**

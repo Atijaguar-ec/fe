@@ -29,20 +29,12 @@
   </div>
 </div>
 <div class="af-row">
-  <!-- Olor + Intensidad -->
+  <!-- Olor (sin intensidad) -->
   <div class="af-c2">
     <single-choice
       [formControlInput]="$any(formGroup.get('sensorialRawOdor'))"
-      [codebookService]="flavorOptionsCodebook"
+      [codebookService]="odorOptionsCodebook"
       [label]="odorLabel"
-      style="width: 100%">
-    </single-choice>
-  </div>
-  <div class="af-c2" *ngIf="needsIntensity('sensorialRawOdor')">
-    <single-choice
-      [formControlInput]="$any(formGroup.get('sensorialRawOdorIntensity'))"
-      [codebookService]="intensityCodebook"
-      [label]="intensityLabel"
       style="width: 100%">
     </single-choice>
   </div>
@@ -81,20 +73,12 @@
   </div>
 </div>
 <div class="af-row">
-  <!-- Olor + Intensidad -->
+  <!-- Olor (sin intensidad) -->
   <div class="af-c2">
     <single-choice
       [formControlInput]="$any(formGroup.get('sensorialCookedOdor'))"
-      [codebookService]="flavorOptionsCodebook"
+      [codebookService]="odorOptionsCodebook"
       [label]="odorLabel"
-      style="width: 100%">
-    </single-choice>
-  </div>
-  <div class="af-c2" *ngIf="needsIntensity('sensorialCookedOdor')">
-    <single-choice
-      [formControlInput]="$any(formGroup.get('sensorialCookedOdorIntensity'))"
-      [codebookService]="intensityCodebook"
-      [label]="intensityLabel"
       style="width: 100%">
     </single-choice>
   </div>

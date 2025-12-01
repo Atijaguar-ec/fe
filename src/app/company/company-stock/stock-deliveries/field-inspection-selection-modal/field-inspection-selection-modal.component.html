@@ -45,7 +45,7 @@
             />
           </td>
           <td>{{ formatDate(i.inspectionDate) }}</td>
-          <td>{{ i.producerName || 'N/A' }}</td>
+          <td>{{ i.producerName || i.producerCompanyName || 'N/A' }}</td>
           <td>{{ i.totalQuantity }} Unidades</td>
           <td [class]="getFlavorResultClass(i.flavorTestResult)">
             {{ getFlavorResultLabel(i.flavorTestResult) }}

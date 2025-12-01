@@ -163,8 +163,11 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
 
     this.clearInputPropsAndControls();
-    this.clearInputFacility();
 
+    // Do not clear inputFacilityControl here: it is owned and managed by the parent
+    // component (StockProcessingOrderDetailsComponent). Clearing it on destroy would
+    // reset the selected facility when the layout toggles (e.g. when switching to
+    // classification mode), even though the parent still holds a valid selection.
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 

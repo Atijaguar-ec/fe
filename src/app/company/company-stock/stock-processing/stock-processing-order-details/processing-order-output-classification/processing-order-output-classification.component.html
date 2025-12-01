@@ -155,73 +155,8 @@
         </div>
     </div>
 
-    <!-- PRODUCTION ORDER, FREEZING TYPE, MACHINE -->
+    <!-- PROVIDER NAME (movido de la sección anterior) -->
     <div class="af-row">
-        <div class="af-c4">
-            <textinput
-                [form]="$any(tsoGroup.get('productionOrder'))"
-                label="Orden de producción"
-                placeholder="Ingrese orden de producción"
-                i18n-label="@@productLabelStockProcessingOrderDetail.classification.productionOrder.label"
-                i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.productionOrder.placeholder"
-                [isInvalid]="submitted && tsoGroup.get('productionOrder').invalid">
-                <ng-container *ngIf="submitted">
-                    <div *ngIf="tsoGroup.get('productionOrder').errors as errors" class="sc-invalid-feedback">
-                        <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.productionOrder.error">
-                            La orden de producción es requerida
-                        </div>
-                    </div>
-                </ng-container>
-            </textinput>
-        </div>
-        <div class="af-c4">
-            <textinput
-                [form]="$any(tsoGroup.get('freezingType'))"
-                label="Tipo de congelación"
-                placeholder="ej., IQF, Bloque"
-                i18n-label="@@productLabelStockProcessingOrderDetail.classification.freezingType.label"
-                i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.freezingType.placeholder"
-                [isInvalid]="submitted && tsoGroup.get('freezingType').invalid">
-                <ng-container *ngIf="submitted">
-                    <div *ngIf="tsoGroup.get('freezingType').errors as errors" class="sc-invalid-feedback">
-                        <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.freezingType.error">
-                            El tipo de congelación es requerido
-                        </div>
-                    </div>
-                </ng-container>
-            </textinput>
-        </div>
-        <div class="af-c4">
-            <textinput
-                [form]="$any(tsoGroup.get('machine'))"
-                label="Máquina"
-                placeholder="Ingrese identificador de máquina"
-                i18n-label="@@productLabelStockProcessingOrderDetail.classification.machine.label"
-                i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.machine.placeholder"
-                [isInvalid]="submitted && tsoGroup.get('machine').invalid">
-                <ng-container *ngIf="submitted">
-                    <div *ngIf="tsoGroup.get('machine').errors as errors" class="sc-invalid-feedback">
-                        <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.machine.error">
-                            La máquina es requerida
-                        </div>
-                    </div>
-                </ng-container>
-            </textinput>
-        </div>
-    </div>
-
-    <!-- BRAND HEADER -->
-    <div class="af-row">
-        <div class="af-c6">
-            <textinput
-                [form]="$any(tsoGroup.get('brandHeader'))"
-                label="Marca"
-                placeholder="Ingrese nombre de marca"
-                i18n-label="@@productLabelStockProcessingOrderDetail.classification.brandHeader.label"
-                i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.brandHeader.placeholder"
-                [isInvalid]="submitted && tsoGroup.get('brandHeader').invalid">
-            </textinput>
-        </div>
         <div class="af-c6">
             <textinput
                 [form]="$any(tsoGroup.get('providerName'))"
@@ -231,6 +166,9 @@
             </textinput>
         </div>
     </div>
+    
+    <!-- 🦐 NOTA: Los campos de Orden de producción, Tipo de congelación, Máquina y Marca
+         ahora están en cada fila de la tabla de clasificación -->
 
     <!-- 🦐 PESOS DE LIQUIDACIÓN (Formato DUFER) -->
     <div class="af-row">
@@ -289,8 +227,12 @@
                     </button>
                 </div>
 
-                <div class="classification-table">
+                <div class="classification-table classification-table-expanded">
                     <div class="classification-table-header">
+                        <div class="classification-col col-prod-order">Orden Prod.</div>
+                        <div class="classification-col col-freezing">Congelación</div>
+                        <div class="classification-col col-machine">Máquina</div>
+                        <div class="classification-col col-brand">Marca</div>
                         <div class="classification-col col-size">Talla</div>
                         <div class="classification-col col-boxes">Cajas</div>
                         <div class="classification-col col-weight-box">Peso/Caja</div>
@@ -302,6 +244,27 @@
 
                     <ng-container *ngFor="let detailGroup of classificationDetailsArray.controls; index as detailIndex">
                         <div *ngIf="detailGroup.get('processType')?.value === 'HEAD_ON'" class="classification-table-row">
+                            <div class="classification-col col-prod-order">
+                                <textinput [form]="$any(detailGroup.get('productionOrder'))" placeholder="OP-001"></textinput>
+                            </div>
+                            <div class="classification-col col-freezing">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('freezingTypeCode'))">
+                                    <option value="" disabled selected>Tipo</option>
+                                    <option *ngFor="let ft of freezingTypeCatalog" [value]="ft.code">{{ ft.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-machine">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('machineCode'))">
+                                    <option value="" disabled selected>Máq.</option>
+                                    <option *ngFor="let m of machineCatalog" [value]="m.code">{{ m.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-brand">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('brandCode'))" (change)="onBrandChange(detailGroup)">
+                                    <option value="" disabled selected>Marca</option>
+                                    <option *ngFor="let b of brandCatalog" [value]="b.code">{{ b.label }}</option>
+                                </select>
+                            </div>
                             <div class="classification-col col-size">
                                 <select class="form-control" [formControl]="$any(detailGroup.get('size'))">
                                     <option value="" disabled selected>Talla</option>
@@ -336,7 +299,11 @@
 
                     <!-- Totals HEAD_ON -->
                     <div class="classification-table-row classification-totals-row">
-                        <div class="classification-col col-size"><strong>TOTAL ENTERO</strong></div>
+                        <div class="classification-col col-prod-order"></div>
+                        <div class="classification-col col-freezing"></div>
+                        <div class="classification-col col-machine"></div>
+                        <div class="classification-col col-brand"><strong>TOTAL ENTERO</strong></div>
+                        <div class="classification-col col-size"></div>
                         <div class="classification-col col-boxes"><strong>{{ calculateTotalBoxesForType('HEAD_ON') }}</strong></div>
                         <div class="classification-col col-weight-box"></div>
                         <div class="classification-col col-format"></div>
@@ -366,8 +333,12 @@
                     </button>
                 </div>
 
-                <div class="classification-table">
+                <div class="classification-table classification-table-expanded">
                     <div class="classification-table-header">
+                        <div class="classification-col col-prod-order">Orden Prod.</div>
+                        <div class="classification-col col-freezing">Congelación</div>
+                        <div class="classification-col col-machine">Máquina</div>
+                        <div class="classification-col col-brand">Marca</div>
                         <div class="classification-col col-size">Talla</div>
                         <div class="classification-col col-presentation">Aspecto</div>
                         <div class="classification-col col-quality">Clase</div>
@@ -381,6 +352,27 @@
 
                     <ng-container *ngFor="let detailGroup of classificationDetailsArray.controls; index as detailIndex">
                         <div *ngIf="detailGroup.get('processType')?.value === 'SHELL_ON'" class="classification-table-row">
+                            <div class="classification-col col-prod-order">
+                                <textinput [form]="$any(detailGroup.get('productionOrder'))" placeholder="OP-001"></textinput>
+                            </div>
+                            <div class="classification-col col-freezing">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('freezingTypeCode'))">
+                                    <option value="" disabled selected>Tipo</option>
+                                    <option *ngFor="let ft of freezingTypeCatalog" [value]="ft.code">{{ ft.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-machine">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('machineCode'))">
+                                    <option value="" disabled selected>Máq.</option>
+                                    <option *ngFor="let m of machineCatalog" [value]="m.code">{{ m.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-brand">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('brandCode'))" (change)="onBrandChange(detailGroup)">
+                                    <option value="" disabled selected>Marca</option>
+                                    <option *ngFor="let b of brandCatalog" [value]="b.code">{{ b.label }}</option>
+                                </select>
+                            </div>
                             <div class="classification-col col-size">
                                 <select class="form-control" [formControl]="$any(detailGroup.get('size'))">
                                     <option value="" disabled selected>Talla</option>
@@ -426,7 +418,11 @@
 
                     <!-- Totals SHELL_ON -->
                     <div class="classification-table-row classification-totals-row">
-                        <div class="classification-col col-size"><strong>TOTAL COLA</strong></div>
+                        <div class="classification-col col-prod-order"></div>
+                        <div class="classification-col col-freezing"></div>
+                        <div class="classification-col col-machine"></div>
+                        <div class="classification-col col-brand"><strong>TOTAL COLA</strong></div>
+                        <div class="classification-col col-size"></div>
                         <div class="classification-col col-presentation"></div>
                         <div class="classification-col col-quality"></div>
                         <div class="classification-col col-boxes"><strong>{{ calculateTotalBoxesForType('SHELL_ON') }}</strong></div>

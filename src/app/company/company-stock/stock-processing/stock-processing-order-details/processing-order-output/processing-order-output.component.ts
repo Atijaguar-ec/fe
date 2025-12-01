@@ -77,6 +77,13 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
   @Input()
   selectedInputFacility: ApiFacility | null = null;
 
+  /**
+   * 🦐 When true, the classification component will NOT be rendered here.
+   * This allows the parent to render it in a separate full-width row for better UX.
+   */
+  @Input()
+  skipClassificationRendering = false;
+
   @Output()
   calcTotalOutputQuantity = new EventEmitter<void>();
 

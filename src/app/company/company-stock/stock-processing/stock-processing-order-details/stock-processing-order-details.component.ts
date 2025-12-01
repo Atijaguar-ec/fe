@@ -110,6 +110,10 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
   submitted = false;
   editing = false;
 
+  // 🦐 Cached flag to avoid ExpressionChangedAfterItHasBeenCheckedError when toggling
+  // classification layout based on the selected input facility.
+  private isClassificationModeFlag = false;
+
   saveInProgress = false;
 
   // List for holding references to observable subscriptions
@@ -152,6 +156,26 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     }
 
     return true;
+  }
+
+  /**
+   * 🦐 Check if current processing is in classification mode.
+   * When true, the classification table will be rendered in a full-width row
+   * for better UX (more space for the table columns).
+   */
+  get isClassificationMode(): boolean {
+    return this.isClassificationModeFlag;
+  }
+
+  /**
+   * 🦐 Label for output quantity field, used by classification component.
+   */
+  get targetStockOrderOutputQuantityLabel(): string {
+    if (this.actionType === 'SHIPMENT') {
+      return $localize`:@@productLabelStockProcessingOrderDetail.textinput.orderedQuantityLabelWithUnits.label: Ordered quantity in`;
+    } else {
+      return $localize`:@@productLabelStockProcessingOrderDetail.textinput.outputQuantityLabelWithUnits.label: Output quantity in`;
+    }
   }
 
   get inputTransactions(): ApiTransaction[] {
@@ -298,7 +322,19 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
   }
 
   ngOnInit(): void {
+    // Initialise classification mode flag based on initial facility (if any)
+    const initialFacility = this.inputFacilityControl.value;
+    this.isClassificationModeFlag = initialFacility?.isClassificationProcess === true;
 
+    // Keep flag in sync with facility changes, but update in next microtask
+    // to avoid ExpressionChangedAfterItHasBeenCheckedError when layout toggles.
+    const sub = this.inputFacilityControl.valueChanges.subscribe(facility => {
+      Promise.resolve().then(() => {
+        this.isClassificationModeFlag = facility?.isClassificationProcess === true;
+      });
+    });
+
+    this.subscriptions.push(sub);
   }
 
   ngAfterViewInit(): void {

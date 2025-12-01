@@ -101,58 +101,74 @@
   }
 
   .classification-col {
-    padding: 0 0.5rem;
+    padding: 0 0.25rem;
     display: flex;
     align-items: center;
 
-    &.col-brand {
-      flex: 0 0 12%;
-      min-width: 100px;
+    // 🦐 Nuevas columnas movidas del header
+    &.col-prod-order {
+      flex: 0 0 7%;
+      min-width: 80px;
     }
 
-    &.col-size {
-      flex: 0 0 10%;
+    &.col-freezing {
+      flex: 0 0 7%;
+      min-width: 80px;
+    }
+
+    &.col-machine {
+      flex: 0 0 7%;
+      min-width: 80px;
+    }
+
+    &.col-brand {
+      flex: 0 0 8%;
       min-width: 90px;
     }
 
+    &.col-size {
+      flex: 0 0 7%;
+      min-width: 75px;
+    }
+
     &.col-presentation {
-      flex: 0 0 11%;
-      min-width: 110px;
+      flex: 0 0 8%;
+      min-width: 90px;
     }
 
     &.col-quality {
-      flex: 0 0 8%;
-      min-width: 80px;
-    }
-
-    &.col-boxes {
-      flex: 0 0 10%;
-      min-width: 80px;
-    }
-
-    &.col-weight-box {
-      flex: 0 0 12%;
-      min-width: 100px;
-    }
-
-    &.col-format {
-      flex: 0 0 8%;
+      flex: 0 0 6%;
       min-width: 70px;
     }
 
+    &.col-boxes {
+      flex: 0 0 6%;
+      min-width: 65px;
+    }
+
+    &.col-weight-box {
+      flex: 0 0 8%;
+      min-width: 85px;
+    }
+
+    &.col-format {
+      flex: 0 0 6%;
+      min-width: 60px;
+    }
+
     &.col-total-weight {
-      flex: 0 0 12%;
-      min-width: 100px;
+      flex: 0 0 8%;
+      min-width: 85px;
     }
 
     &.col-pounds {
-      flex: 0 0 12%;
-      min-width: 100px;
+      flex: 0 0 8%;
+      min-width: 85px;
     }
 
     &.col-actions {
-      flex: 0 0 8%;
-      min-width: 60px;
+      flex: 0 0 4%;
+      min-width: 45px;
       justify-content: center;
     }
 
@@ -226,14 +242,33 @@
   }
 }
 
+// Tabla expandida con más columnas
+.classification-table-expanded {
+  .classification-table-header,
+  .classification-table-row {
+    min-width: 1400px; // Más ancho para las nuevas columnas
+  }
+
+  .classification-table-header {
+    font-size: 0.75rem; // Más pequeño para caber
+  }
+}
+
 // Responsive adjustments
-@media (max-width: 1400px) {
+@media (max-width: 1600px) {
   .classification-table {
     overflow-x: auto;
 
     .classification-table-header,
     .classification-table-row {
       min-width: 1200px;
+    }
+  }
+
+  .classification-table-expanded {
+    .classification-table-header,
+    .classification-table-row {
+      min-width: 1500px;
     }
   }
 }
