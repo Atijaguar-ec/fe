@@ -1641,7 +1641,7 @@ export namespace UploadUserCustomerGeoData {
 })
 export class CompanyControllerService {
 
-    protected basePath = 'http://192.168.100.128:8080';
+    protected basePath = 'http://192.168.100.155:8080';
     public defaultHeaders = new HttpHeaders();
     public configuration = new Configuration();
 

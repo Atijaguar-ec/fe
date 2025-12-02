@@ -367,6 +367,7 @@ export class BatchHistoryComponent implements OnInit, AfterViewInit {
 
   companyLabelForTimelineItem(item: ApiStockOrderHistoryTimelineItem): string {
     const companyName = this.companyNameForTimelineItem(item);
+    
     return companyName || $localize`:@@orderHistoryView.timeline.unknownCompany:Empresa no especificada`;
   }
 
