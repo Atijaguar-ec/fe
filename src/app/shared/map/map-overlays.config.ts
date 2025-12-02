@@ -31,7 +31,7 @@ export const DEFAULT_MAP_OVERLAYS: MapOverlayConfig[] = [
     layerId: 'mae-deforestation-overlay-layer',
     label: $localize`:@@map.overlay.maeDeforestation:Deforestación MAE 2020-2022`,
     tiles: [
-      '/wms?service=WMS&request=GetMap&version=1.1.1&layers=mae_ide:v_fc010_deforestacion_20_22_a&styles=&format=image/png&transparent=true&srs=EPSG:3857&bbox={bbox-epsg-3857}&width=256&height=256'
+      '/wms?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=mae_ide:v_fc010_deforestacion_20_22_a&STYLES=&FORMAT=image/png&TRANSPARENT=TRUE&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&WIDTH=256&HEIGHT=256&TILED=true'
     ],
     tileSize: 256,
     attribution: '© Ministerio del Ambiente del Ecuador',
