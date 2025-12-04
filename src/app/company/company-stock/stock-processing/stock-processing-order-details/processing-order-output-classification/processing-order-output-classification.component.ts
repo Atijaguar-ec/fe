@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ApiFacility } from '../../../../../../api/model/apiFacility';
 import { AbstractControl, FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ProcessingOrderControllerService } from '../../../../../../api/api/processingOrderController.service';
 import { take } from 'rxjs/operators';
@@ -136,6 +137,9 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
   exportingHeadOn = false;
   exportingShellOn = false;
 
+  // 🦐 Instalaciones de descabezado disponibles para enviar rechazado
+  deheadingFacilities: ApiFacility[] = [];
+
   @Input()
   tsoGroup!: FormGroup;
 
@@ -167,8 +171,11 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
 
   ngOnInit(): void {
     this.ensureClassificationControls();
+    this.setupReceivedWeightListener();
     this.setupValidators();
     this.setupSemiProductListener();
+    this.setupTotalsListener();
+    this.loadDeheadingFacilities();
   }
 
   ngOnDestroy(): void {
@@ -191,6 +198,8 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
       'providerName',
       'receivedWeight',
       'wasteWeight',
+      'rejectedWeight',      // 🦐 Peso rechazado que va al área de descabezado
+      'deheadingFacility',   // 🦐 Área de descabezado destino para el rechazado
       'totalWeight',
       'processedWeight'
     ];
@@ -216,9 +225,18 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
       // Detectar tipo inicial
       this.detectProcessTypeFromSemiProduct(semiProductControl.value);
       
+      // Cargar áreas de descabezado si ya hay semi-producto seleccionado
+      if (semiProductControl.value) {
+        this.loadDeheadingFacilities();
+      }
+      
       // Escuchar cambios
       const sub = semiProductControl.valueChanges.subscribe(semiProduct => {
         this.detectProcessTypeFromSemiProduct(semiProduct);
+        // Recargar áreas de descabezado cuando cambia el semi-producto
+        if (semiProduct) {
+          this.loadDeheadingFacilities();
+        }
       });
       this.subscriptions.push(sub);
     }
@@ -302,6 +320,55 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
   }
 
   /**
+   * 🦐 Configura escucha para autollenar Peso Recibido (lb) a partir de la cantidad de salida
+   */
+  private setupReceivedWeightListener(): void {
+    if (!this.tsoGroup) {
+      return;
+    }
+
+    const totalQuantityControl = this.tsoGroup.get('totalQuantity');
+    const measureUnitTypeControl = this.tsoGroup.get('measureUnitType');
+
+    if (!totalQuantityControl) {
+      return;
+    }
+
+    // Calcular inicialmente (modo edición)
+    this.updateReceivedWeightFromOutputQuantity();
+
+    const sub1 = totalQuantityControl.valueChanges.subscribe(() => {
+      this.updateReceivedWeightFromOutputQuantity();
+    });
+    this.subscriptions.push(sub1);
+
+    if (measureUnitTypeControl) {
+      const sub2 = measureUnitTypeControl.valueChanges.subscribe(() => {
+        this.updateReceivedWeightFromOutputQuantity();
+      });
+      this.subscriptions.push(sub2);
+    }
+  }
+
+  /**
+   * 🦐 Configura escucha para recalcular totales y autollenar Peso Procesado (lb)
+   */
+  private setupTotalsListener(): void {
+    const detailsArray = this.classificationDetailsArray;
+    if (!detailsArray) {
+      return;
+    }
+
+    // Recalcular inmediatamente por si estamos en modo edición
+    this.updateProcessedWeightFromDetails();
+
+    const sub = detailsArray.valueChanges.subscribe(() => {
+      this.updateProcessedWeightFromDetails();
+    });
+    this.subscriptions.push(sub);
+  }
+
+  /**
    * 🦐 Get filtered size catalog for a specific process type
    */
   getSizeCatalogForType(processType: string): Array<{code: string, label: string, order: number}> {
@@ -345,6 +412,38 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
       return this.semiProductOutputFacilitiesCodebooks?.get(semiProduct.id) || null;
     }
     return null;
+  }
+
+  /**
+   * 🦐 Cargar instalaciones de descabezado para enviar material rechazado
+   * Busca en TODOS los codebooks disponibles las instalaciones con isDeheadingProcess === true
+   */
+  private loadDeheadingFacilities(): void {
+    if (!this.semiProductOutputFacilitiesCodebooks || this.semiProductOutputFacilitiesCodebooks.size === 0) {
+      console.log('[loadDeheadingFacilities] No codebooks available yet');
+      return;
+    }
+
+    // Usar un Set para evitar duplicados por ID
+    const foundFacilities = new Map<number, ApiFacility>();
+
+    // Buscar en todos los codebooks disponibles
+    this.semiProductOutputFacilitiesCodebooks.forEach((codebook, semiProductId) => {
+      const sub = codebook.getAllCandidates().pipe(take(1)).subscribe(
+        (facilities: ApiFacility[]) => {
+          // Filtrar y agregar las instalaciones de descabezado
+          facilities.filter(f => f.isDeheadingProcess === true).forEach(f => {
+            if (f.id && !foundFacilities.has(f.id)) {
+              foundFacilities.set(f.id, f);
+            }
+          });
+          // Actualizar la lista
+          this.deheadingFacilities = Array.from(foundFacilities.values());
+          console.log('[loadDeheadingFacilities] Found deheading facilities:', this.deheadingFacilities.length, this.deheadingFacilities.map(f => f.name));
+        }
+      );
+      this.subscriptions.push(sub);
+    });
   }
 
   /**
@@ -454,6 +553,75 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
       total += this.calculatePoundsPerSize(control);
     });
     return total;
+  }
+
+  /**
+   * 🦐 Actualiza el campo de encabezado "Peso Procesado (lb)" con la suma de la lista
+   * Usa siempre las libras calculadas (conversión desde KG cuando aplique).
+   */
+  private updateProcessedWeightFromDetails(): void {
+    if (!this.tsoGroup) {
+      return;
+    }
+
+    const processedWeightControl = this.tsoGroup.get('processedWeight');
+    if (!processedWeightControl) {
+      return;
+    }
+
+    const totalPounds = this.calculateGrandTotalPounds();
+    const rounded = Math.round((totalPounds + Number.EPSILON) * 100) / 100;
+
+    // No emitir eventos para evitar ciclos innecesarios
+    processedWeightControl.setValue(rounded, { emitEvent: false });
+  }
+
+  /**
+   * 🦐 Actualiza el campo de encabezado "Peso Recibido (lb)" con la cantidad de salida en libras
+   * Usa measureUnitType.weight para convertir cualquier unidad a KG y luego a LB.
+   */
+  private updateReceivedWeightFromOutputQuantity(): void {
+    if (!this.tsoGroup) {
+      return;
+    }
+
+    const receivedWeightControl = this.tsoGroup.get('receivedWeight');
+    const totalQuantityControl = this.tsoGroup.get('totalQuantity');
+    const measureUnitTypeControl = this.tsoGroup.get('measureUnitType');
+
+    if (!receivedWeightControl || !totalQuantityControl) {
+      return;
+    }
+
+    const rawQuantity = totalQuantityControl.value;
+    const quantity = rawQuantity != null ? Number(rawQuantity) : null;
+
+    if (quantity == null || isNaN(quantity)) {
+      receivedWeightControl.setValue(null, { emitEvent: false });
+      return;
+    }
+
+    const mu = measureUnitTypeControl?.value as { code?: string; label?: string; weight?: number } | null;
+
+    let pounds: number;
+
+    const code = mu?.code?.toString().toUpperCase() || '';
+    const label = mu?.label?.toString().toUpperCase() || '';
+
+    if (code === 'LB' || label.includes('LB')) {
+      // Ya está en libras
+      pounds = quantity;
+    } else if (mu?.weight != null) {
+      // quantity * weight(kg por unidad) -> KG; luego convertir a LB
+      const quantityInKg = quantity * mu.weight;
+      pounds = quantityInKg * this.KG_TO_LB_FACTOR;
+    } else {
+      // Fallback: asumir que la unidad ya está en libras
+      pounds = quantity;
+    }
+
+    const rounded = Math.round((pounds + Number.EPSILON) * 100) / 100;
+    receivedWeightControl.setValue(rounded, { emitEvent: false });
   }
 
   /**

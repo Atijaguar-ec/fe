@@ -172,7 +172,7 @@
 
     <!-- 🦐 PESOS DE LIQUIDACIÓN (Formato DUFER) -->
     <div class="af-row">
-        <div class="af-c3">
+        <div class="af-c4">
             <textinput
                 [form]="$any(tsoGroup.get('receivedWeight'))"
                 label="Peso Recibido (lb)"
@@ -181,7 +181,7 @@
                 i18n-label="@@productLabelStockProcessingOrderDetail.classification.receivedWeight.label">
             </textinput>
         </div>
-        <div class="af-c3">
+        <div class="af-c4">
             <textinput
                 [form]="$any(tsoGroup.get('wasteWeight'))"
                 label="Basura (lb)"
@@ -190,16 +190,37 @@
                 i18n-label="@@productLabelStockProcessingOrderDetail.classification.wasteWeight.label">
             </textinput>
         </div>
-        <div class="af-c3">
+        <div class="af-c4">
             <textinput
-                [form]="$any(tsoGroup.get('totalWeight'))"
-                label="Peso Total (lb)"
+                [form]="$any(tsoGroup.get('rejectedWeight'))"
+                label="Rechazado (lb)"
                 type="number"
                 placeholder="0.00"
-                i18n-label="@@productLabelStockProcessingOrderDetail.classification.totalWeight.label">
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.rejectedWeight.label">
             </textinput>
         </div>
-        <div class="af-c3">
+    </div>
+    
+    <!-- 🦐 DESTINO DEL RECHAZADO: Área de descabezado -->
+    <div class="af-row" *ngIf="tsoGroup.get('rejectedWeight')?.value > 0">
+        <div class="af-c6">
+            <label class="af-label" i18n="@@productLabelStockProcessingOrderDetail.classification.deheadingFacility.label">
+                Área destino para rechazado
+            </label>
+            <select class="form-control" [formControl]="$any(tsoGroup.get('deheadingFacility'))">
+                <option [ngValue]="null" disabled>Seleccione área de descabezado</option>
+                <option *ngFor="let facility of deheadingFacilities" [ngValue]="facility">
+                    {{ facility.name }}
+                </option>
+            </select>
+            <small class="text-muted" i18n="@@productLabelStockProcessingOrderDetail.classification.deheadingFacility.hint">
+                El material rechazado ({{ tsoGroup.get('rejectedWeight')?.value }} lb) será enviado a esta área
+            </small>
+        </div>
+    </div>
+
+    <div class="af-row">
+        <div class="af-c6">
             <textinput
                 [form]="$any(tsoGroup.get('processedWeight'))"
                 label="Peso Procesado (lb)"
@@ -368,7 +389,7 @@
                                 </select>
                             </div>
                             <div class="classification-col col-brand">
-                                <select class="form-control" [formControl]="$any(detailGroup.get('brandCode'))" (change)="onBrandChange(detailGroup)">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('brandCode'))" (change)="onBrandChange(detailGroup, $event.target.value)">
                                     <option value="" disabled selected>Marca</option>
                                     <option *ngFor="let b of brandCatalog" [value]="b.code">{{ b.label }}</option>
                                 </select>
