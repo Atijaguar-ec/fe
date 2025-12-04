@@ -336,7 +336,9 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
       const isClassificationFacility = facility.isClassificationProcess === true
         || (facility.name?.toLowerCase().includes('clasificad') ?? false);
 
-      console.log('[setInputFacility] facility:', facility.name, 'isClassificationProcess:', facility.isClassificationProcess, 'detected as classification:', isClassificationFacility);
+      console.log('[setInputFacility] facility:', facility.name);
+      console.log('isClassificationProcess:', facility.isClassificationProcess);
+      console.log('detected as classification:', isClassificationFacility);
 
       const requestParams: GetAvailableStockForStockUnitInFacility.PartialParamMap = {
         limit: 500,
