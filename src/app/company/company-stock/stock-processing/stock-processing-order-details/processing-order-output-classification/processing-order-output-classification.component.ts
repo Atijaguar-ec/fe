@@ -376,14 +376,19 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
 
   /**
    * 🦐 Cuando se selecciona una marca, actualizar weightPerBox y weightFormat
+   * El código de marca se pasa explícitamente desde el (change) del select para
+   * evitar problemas de sincronización con el FormControl.
    */
-  onBrandChange(detailGroup: AbstractControl): void {
-    const brandCode = detailGroup.get('brandCode')?.value;
-    if (!brandCode) return;
+  onBrandChange(detailGroup: AbstractControl, brandCode: string): void {
+    if (!brandCode) {
+      return;
+    }
 
     const selectedBrand = this.brandCatalog.find(b => b.code === brandCode);
-    if (selectedBrand && selectedBrand.weightPerBox != null) {
-      detailGroup.get('weightPerBox')?.setValue(selectedBrand.weightPerBox);
+    if (selectedBrand) {
+      if (selectedBrand.weightPerBox != null) {
+        detailGroup.get('weightPerBox')?.setValue(selectedBrand.weightPerBox);
+      }
       if (selectedBrand.measureUnit) {
         detailGroup.get('weightFormat')?.setValue(selectedBrand.measureUnit);
       }

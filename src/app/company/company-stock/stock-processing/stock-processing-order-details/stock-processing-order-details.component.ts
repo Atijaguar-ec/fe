@@ -329,8 +329,21 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     // Keep flag in sync with facility changes, but update in next microtask
     // to avoid ExpressionChangedAfterItHasBeenCheckedError when layout toggles.
     const sub = this.inputFacilityControl.valueChanges.subscribe(facility => {
+      const wasClassificationMode = this.isClassificationModeFlag;
+      const willBeClassificationMode = facility?.isClassificationProcess === true;
+
       Promise.resolve().then(() => {
-        this.isClassificationModeFlag = facility?.isClassificationProcess === true;
+        this.isClassificationModeFlag = willBeClassificationMode;
+
+        // If layout changed (switched between classification and standard modes),
+        // the input component was destroyed and recreated. We need to reload the
+        // facility data into the new component instance after Angular processes
+        // the layout change.
+        if (wasClassificationMode !== willBeClassificationMode && facility) {
+          setTimeout(() => {
+            this.input?.setInputFacility(facility);
+          }, 0);
+        }
       });
     });
 

@@ -1,6 +1,6 @@
 <div class="af-form-element position-relative outputs-bottom-spacing processing-section classification-section">
     
-    <!-- HEADER: Selección de semi-producto y instalación -->
+    <!-- HEADER: Selección de semi-producto y area -->
     <div class="af-row">
         <div class="af-c12 d-flex">
             <div class="flex-fill">
@@ -35,7 +35,7 @@
         <div class="af-c12">
             <single-choice
                 *ngIf="tsoGroup.get('semiProduct').value"
-                label="Instalación"
+                label="Área"
                 i18n-label="@@productLabelStockProcessingOrderDetail.classification.facility.label"
                 [formControlInput]="$any(tsoGroup.get('facility'))"
                 [codebookService]="getOutputFacilityCodebook()"
@@ -45,7 +45,7 @@
                 <ng-container *ngIf="submitted">
                     <div *ngIf="tsoGroup.get('facility').errors as errors" class="sc-invalid-feedback"
                          i18n="@@productLabelStockProcessingOrderDetail.classification.facility.error">
-                        La instalación es requerida
+                        La área es requerida
                     </div>
                 </ng-container>
             </single-choice>
@@ -156,7 +156,7 @@
     </div>
 
     <!-- PROVIDER NAME (movido de la sección anterior) -->
-    <div class="af-row">
+    <!-- <div class="af-row">
         <div class="af-c6">
             <textinput
                 [form]="$any(tsoGroup.get('providerName'))"
@@ -165,7 +165,7 @@
                 i18n-label="@@productLabelStockProcessingOrderDetail.classification.providerName.label">
             </textinput>
         </div>
-    </div>
+    </div> -->
     
     <!-- 🦐 NOTA: Los campos de Orden de producción, Tipo de congelación, Máquina y Marca
          ahora están en cada fila de la tabla de clasificación -->
@@ -260,7 +260,7 @@
                                 </select>
                             </div>
                             <div class="classification-col col-brand">
-                                <select class="form-control" [formControl]="$any(detailGroup.get('brandCode'))" (change)="onBrandChange(detailGroup)">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('brandCode'))" (change)="onBrandChange(detailGroup, $event.target.value)">
                                     <option value="" disabled selected>Marca</option>
                                     <option *ngFor="let b of brandCatalog" [value]="b.code">{{ b.label }}</option>
                                 </select>
