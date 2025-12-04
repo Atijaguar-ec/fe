@@ -170,15 +170,26 @@
     <!-- 🦐 NOTA: Los campos de Orden de producción, Tipo de congelación, Máquina y Marca
          ahora están en cada fila de la tabla de clasificación -->
 
-    <!-- 🦐 PESOS DE LIQUIDACIÓN (Formato DUFER) -->
+    <!-- 🦐 PESOS DE LIQUIDACIÓN (Formato DUFER)
+         Nota: 'Peso Recibido (lb)' se mantiene solo a nivel de modelo (autocalculado en TS)
+         y ya no se muestra en la UI; el usuario trabaja con 'Cantidad de salida en Libras'. -->
     <div class="af-row">
         <div class="af-c4">
             <textinput
-                [form]="$any(tsoGroup.get('receivedWeight'))"
-                label="Peso Recibido (lb)"
+                [form]="$any(tsoGroup.get('processedWeight'))"
+                label="Peso Procesado (lb)"
                 type="number"
                 placeholder="0.00"
-                i18n-label="@@productLabelStockProcessingOrderDetail.classification.receivedWeight.label">
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.processedWeight.label">
+            </textinput>
+        </div>
+        <div class="af-c4">
+            <textinput
+                [form]="$any(tsoGroup.get('rejectedWeight'))"
+                label="Rechazado (lb)"
+                type="number"
+                placeholder="0.00"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.rejectedWeight.label">
             </textinput>
         </div>
         <div class="af-c4">
@@ -190,14 +201,20 @@
                 i18n-label="@@productLabelStockProcessingOrderDetail.classification.wasteWeight.label">
             </textinput>
         </div>
-        <div class="af-c4">
-            <textinput
-                [form]="$any(tsoGroup.get('rejectedWeight'))"
-                label="Rechazado (lb)"
-                type="number"
-                placeholder="0.00"
-                i18n-label="@@productLabelStockProcessingOrderDetail.classification.rejectedWeight.label">
-            </textinput>
+    </div>
+    
+    <!-- Validación en vivo: la suma de procesado + rechazado + basura no puede superar la cantidad de salida -->
+    <div class="af-row" *ngIf="headerTotalsExceededOutput()">
+        <div class="af-c12">
+            <div class="alert alert-danger d-flex align-items-center py-2 mb-0" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span>
+                    <strong>Error:</strong> La suma de Peso Procesado, Rechazado y Basura 
+                    (<strong>{{ ((tsoGroup.get('processedWeight')?.value || 0) + (tsoGroup.get('rejectedWeight')?.value || 0) + (tsoGroup.get('wasteWeight')?.value || 0)) | number:'1.2-2' }} lb</strong>)
+                    supera la Cantidad de salida 
+                    (<strong>{{ tsoGroup.get('totalQuantity')?.value | number:'1.2-2' }} lb</strong>).
+                </span>
+            </div>
         </div>
     </div>
     
@@ -216,18 +233,11 @@
             <small class="text-muted" i18n="@@productLabelStockProcessingOrderDetail.classification.deheadingFacility.hint">
                 El material rechazado ({{ tsoGroup.get('rejectedWeight')?.value }} lb) será enviado a esta área
             </small>
-        </div>
-    </div>
-
-    <div class="af-row">
-        <div class="af-c6">
-            <textinput
-                [form]="$any(tsoGroup.get('processedWeight'))"
-                label="Peso Procesado (lb)"
-                type="number"
-                placeholder="0.00"
-                i18n-label="@@productLabelStockProcessingOrderDetail.classification.processedWeight.label">
-            </textinput>
+            <div *ngIf="submitted && tsoGroup.get('deheadingFacility')?.invalid" class="sc-invalid-feedback mt-1">
+                <span>
+                    Seleccione un área de descabezado cuando existe producto rechazado.
+                </span>
+            </div>
         </div>
     </div>
 
@@ -259,7 +269,6 @@
                         <div class="classification-col col-weight-box">Peso/Caja</div>
                         <div class="classification-col col-format">Formato</div>
                         <div class="classification-col col-total-weight">Peso Total</div>
-                        <div class="classification-col col-pounds">Libras</div>
                         <div class="classification-col col-actions"></div>
                     </div>
 
@@ -307,9 +316,6 @@
                             <div class="classification-col col-total-weight">
                                 <span class="calculated-value">{{ calculateTotalWeight(detailGroup) | number:'1.2-2' }}</span>
                             </div>
-                            <div class="classification-col col-pounds">
-                                <span class="calculated-value">{{ calculatePoundsPerSize(detailGroup) | number:'1.2-2' }}</span>
-                            </div>
                             <div class="classification-col col-actions">
                                 <div class="delete-row-icon" (click)="removeClassificationDetail(detailIndex)">
                                     <fa-icon class="del-icon" [icon]="faTrashAlt"></fa-icon>
@@ -329,7 +335,6 @@
                         <div class="classification-col col-weight-box"></div>
                         <div class="classification-col col-format"></div>
                         <div class="classification-col col-total-weight"><strong>{{ calculateTotalWeightForType('HEAD_ON') | number:'1.2-2' }}</strong></div>
-                        <div class="classification-col col-pounds"><strong>{{ calculateTotalPoundsForType('HEAD_ON') | number:'1.2-2' }}</strong></div>
                         <div class="classification-col col-actions"></div>
                     </div>
                 </div>
@@ -367,7 +372,6 @@
                         <div class="classification-col col-weight-box">Peso/Caja</div>
                         <div class="classification-col col-format">Formato</div>
                         <div class="classification-col col-total-weight">Peso Total</div>
-                        <div class="classification-col col-pounds">Libras</div>
                         <div class="classification-col col-actions"></div>
                     </div>
 
@@ -426,9 +430,6 @@
                             <div class="classification-col col-total-weight">
                                 <span class="calculated-value">{{ calculateTotalWeight(detailGroup) | number:'1.2-2' }}</span>
                             </div>
-                            <div class="classification-col col-pounds">
-                                <span class="calculated-value">{{ calculatePoundsPerSize(detailGroup) | number:'1.2-2' }}</span>
-                            </div>
                             <div class="classification-col col-actions">
                                 <div class="delete-row-icon" (click)="removeClassificationDetail(detailIndex)">
                                     <fa-icon class="del-icon" [icon]="faTrashAlt"></fa-icon>
@@ -450,7 +451,6 @@
                         <div class="classification-col col-weight-box"></div>
                         <div class="classification-col col-format"></div>
                         <div class="classification-col col-total-weight"><strong>{{ calculateTotalWeightForType('SHELL_ON') | number:'1.2-2' }}</strong></div>
-                        <div class="classification-col col-pounds"><strong>{{ calculateTotalPoundsForType('SHELL_ON') | number:'1.2-2' }}</strong></div>
                         <div class="classification-col col-actions"></div>
                     </div>
                 </div>

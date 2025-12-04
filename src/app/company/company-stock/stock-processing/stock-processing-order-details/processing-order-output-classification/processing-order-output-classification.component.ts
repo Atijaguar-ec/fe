@@ -175,6 +175,7 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
     this.setupValidators();
     this.setupSemiProductListener();
     this.setupTotalsListener();
+    this.setupHeaderTotalsConstraint();
     this.loadDeheadingFacilities();
   }
 
@@ -310,6 +311,30 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
         control.updateValueAndValidity({ emitEvent: false });
       }
     });
+
+    // Si hay producto rechazado (> 0 lb), el área de descabezado es obligatoria
+    const rejectedWeightControl = this.tsoGroup.get('rejectedWeight');
+    const deheadingFacilityControl = this.tsoGroup.get('deheadingFacility');
+
+    if (rejectedWeightControl && deheadingFacilityControl) {
+      const updateDeheadingValidators = () => {
+        const rejected = Number(rejectedWeightControl.value) || 0;
+        if (rejected > 0) {
+          deheadingFacilityControl.setValidators([Validators.required]);
+        } else {
+          deheadingFacilityControl.clearValidators();
+        }
+        deheadingFacilityControl.updateValueAndValidity({ emitEvent: false });
+      };
+
+      // Evaluar una vez al inicializar (modo edición)
+      updateDeheadingValidators();
+
+      const sub = rejectedWeightControl.valueChanges.subscribe(() => {
+        updateDeheadingValidators();
+      });
+      this.subscriptions.push(sub);
+    }
   }
 
   /**
@@ -366,6 +391,40 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
       this.updateProcessedWeightFromDetails();
     });
     this.subscriptions.push(sub);
+  }
+
+  /**
+   * Sets up real-time validation constraint for header weight totals.
+   * Ensures processedWeight + rejectedWeight + wasteWeight <= totalQuantity.
+   * Subscribes to value changes on all relevant controls for live validation.
+   */
+  private setupHeaderTotalsConstraint(): void {
+    if (!this.tsoGroup) {
+      return;
+    }
+
+    const processedWeightControl = this.tsoGroup.get('processedWeight');
+    const rejectedWeightControl = this.tsoGroup.get('rejectedWeight');
+    const wasteWeightControl = this.tsoGroup.get('wasteWeight');
+    const totalQuantityControl = this.tsoGroup.get('totalQuantity');
+
+    // Initial validation (for edit mode)
+    this.validateHeaderTotalsNotExceedOutput();
+
+    // Subscribe to value changes for real-time validation
+    const controls = [
+      processedWeightControl,
+      rejectedWeightControl,
+      wasteWeightControl,
+      totalQuantityControl
+    ].filter((c): c is AbstractControl => !!c);
+
+    controls.forEach(control => {
+      const sub = control.valueChanges.subscribe(() => {
+        this.validateHeaderTotalsNotExceedOutput();
+      });
+      this.subscriptions.push(sub);
+    });
   }
 
   /**
@@ -574,6 +633,7 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
 
     // No emitir eventos para evitar ciclos innecesarios
     processedWeightControl.setValue(rounded, { emitEvent: false });
+    this.validateHeaderTotalsNotExceedOutput();
   }
 
   /**
@@ -622,6 +682,132 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
 
     const rounded = Math.round((pounds + Number.EPSILON) * 100) / 100;
     receivedWeightControl.setValue(rounded, { emitEvent: false });
+  }
+
+  /**
+   * Validates that the sum of processedWeight + rejectedWeight + wasteWeight
+   * does not exceed the totalQuantity (output quantity in pounds).
+   * Uses a small tolerance (0.01 lb) to avoid false positives from floating-point rounding.
+   * Sets the error both on the group and on the individual header controls.
+   */
+  private validateHeaderTotalsNotExceedOutput(): void {
+    if (!this.tsoGroup) {
+      return;
+    }
+
+    const totalQuantityControl = this.tsoGroup.get('totalQuantity');
+    if (!totalQuantityControl) {
+      this.clearHeaderTotalsError();
+      this.clearHeaderTotalsFieldErrors();
+      return;
+    }
+
+    const rawTotalQuantity = totalQuantityControl.value;
+    const totalQuantity = rawTotalQuantity != null ? Number(rawTotalQuantity) : null;
+
+    if (totalQuantity == null || isNaN(totalQuantity)) {
+      this.clearHeaderTotalsError();
+      this.clearHeaderTotalsFieldErrors();
+      return;
+    }
+
+    const processedControl = this.tsoGroup.get('processedWeight');
+    const rejectedControl = this.tsoGroup.get('rejectedWeight');
+    const wasteControl = this.tsoGroup.get('wasteWeight');
+
+    const processed = Number(processedControl?.value) || 0;
+    const rejected = Number(rejectedControl?.value) || 0;
+    const waste = Number(wasteControl?.value) || 0;
+
+    const sum = processed + rejected + waste;
+
+    const TOLERANCE = 0.01;
+
+    if (sum > totalQuantity + TOLERANCE) {
+      const currentErrors = this.tsoGroup.errors || {};
+      if (!currentErrors['totalsExceedOutput']) {
+        this.tsoGroup.setErrors({ ...currentErrors, totalsExceedOutput: true });
+      }
+
+      const controls = [processedControl, rejectedControl, wasteControl].filter(
+        (c): c is AbstractControl => !!c
+      );
+
+      controls.forEach(control => {
+        const controlErrors = control.errors || {};
+        if (!controlErrors['totalsExceedOutput']) {
+          control.setErrors({ ...controlErrors, totalsExceedOutput: true });
+        }
+      });
+    } else {
+      this.clearHeaderTotalsError();
+      this.clearHeaderTotalsFieldErrors();
+    }
+  }
+
+  private clearHeaderTotalsError(): void {
+    if (!this.tsoGroup) {
+      return;
+    }
+
+    const errors = this.tsoGroup.errors;
+    if (errors && errors['totalsExceedOutput']) {
+      const { totalsExceedOutput, ...rest } = errors as { [key: string]: any };
+      const hasOtherErrors = Object.keys(rest).length > 0;
+      this.tsoGroup.setErrors(hasOtherErrors ? rest : null);
+    }
+  }
+
+  private clearHeaderTotalsFieldErrors(): void {
+    if (!this.tsoGroup) {
+      return;
+    }
+
+    const controls = [
+      this.tsoGroup.get('processedWeight'),
+      this.tsoGroup.get('rejectedWeight'),
+      this.tsoGroup.get('wasteWeight')
+    ].filter((c): c is AbstractControl => !!c);
+
+    controls.forEach(control => {
+      const errors = control.errors;
+      if (errors && errors['totalsExceedOutput']) {
+        const { totalsExceedOutput, ...rest } = errors as { [key: string]: any };
+        const hasOtherErrors = Object.keys(rest).length > 0;
+        control.setErrors(hasOtherErrors ? rest : null);
+      }
+    });
+  }
+
+  /**
+   * Pure helper for the template: returns true when
+   * processedWeight + rejectedWeight + wasteWeight > totalQuantity.
+   * Does NOT modify form errors to avoid side effects during change detection.
+   */
+  headerTotalsExceededOutput(): boolean {
+    if (!this.tsoGroup) {
+      return false;
+    }
+
+    const totalQuantityControl = this.tsoGroup.get('totalQuantity');
+    if (!totalQuantityControl) {
+      return false;
+    }
+
+    const rawTotalQuantity = totalQuantityControl.value;
+    const totalQuantity = rawTotalQuantity != null ? Number(rawTotalQuantity) : null;
+    if (totalQuantity == null || isNaN(totalQuantity)) {
+      return false;
+    }
+
+    const processed = Number(this.tsoGroup.get('processedWeight')?.value) || 0;
+    const rejected = Number(this.tsoGroup.get('rejectedWeight')?.value) || 0;
+    const waste = Number(this.tsoGroup.get('wasteWeight')?.value) || 0;
+
+    const sum = processed + rejected + waste;
+    const TOLERANCE = 0.01;
+
+    return sum > totalQuantity + TOLERANCE;
   }
 
   /**
