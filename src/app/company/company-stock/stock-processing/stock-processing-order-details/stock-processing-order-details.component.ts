@@ -578,7 +578,6 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
 
     StockProcessingOrderDetailsHelper.setRequiredProcessingEvidence(procAction, this.requiredProcessingEvidenceArray).then();
     this.input?.clearInputPropsAndControls();
-    this.input?.clearInputFacility();
     this.clearOutputPropsAndControls();
 
     if (procAction) {
@@ -608,8 +607,12 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
         }
       });
 
-      // Load and the facilities that are applicable for the processing action
-      await this.loadFacilities();
+      // Load the facilities that are applicable for the processing action in the next tick
+      // to avoid ExpressionChangedAfterItHasBeenCheckedError when bindings that depend on
+      // the selected input facility are checked twice in dev mode.
+      setTimeout(() => {
+        this.loadFacilities().then();
+      });
 
     } else {
 

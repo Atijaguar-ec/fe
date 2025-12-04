@@ -387,7 +387,6 @@ export interface ApiStockOrder {
     openOrder?: boolean;
     purchaseOrder?: boolean;
     available?: boolean;
-    
 }
 
 /**
@@ -1913,7 +1912,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'openOrder',
+                    name: 'available',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -2434,10 +2433,9 @@ export namespace ApiStockOrder {
   //                   validators: []
   //               },
   //               purchaseOrder: {
-  //               available: {
   //                   validators: []
   //               },
-  //               openOrder: {
+  //               available: {
   //                   validators: []
   //               },
   //     }

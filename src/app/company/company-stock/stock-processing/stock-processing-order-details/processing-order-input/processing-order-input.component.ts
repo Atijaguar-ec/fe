@@ -140,7 +140,17 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
 
   get hideAvailableStock() {
     const facility = this.inputFacilityControl.value as ApiFacility;
-    return !facility || facility.company?.id !== this.companyId;
+    if (!facility) {
+      return true;
+    }
+    
+    // 🦐 For classification facilities, always show available stock regardless of company ownership
+    if (facility.isClassificationProcess) {
+      return false;
+    }
+    
+    // For other facilities, only show stock if facility belongs to current company
+    return facility.company?.id !== this.companyId;
   }
 
   get oneInputStockOrderRequired() {
