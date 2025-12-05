@@ -35,8 +35,8 @@ export interface ApiSemiProduct {
     description?: string;
     measurementUnitType?: ApiMeasureUnitType;
     translations?: Array<ApiSemiProductTranslation>;
-    sku?: boolean;
     buyable?: boolean;
+    sku?: boolean;
     skuendCustomer?: boolean;
 }
 
@@ -56,8 +56,8 @@ export namespace ApiSemiProduct {
         description = 'description',
         measurementUnitType = 'measurementUnitType',
         translations = 'translations',
-        sku = 'sku',
         buyable = 'buyable',
+        sku = 'sku',
         skuendCustomer = 'skuendCustomer'
     }
 
@@ -128,7 +128,7 @@ export namespace ApiSemiProduct {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'sku',
+                    name: 'buyable',
                     classname: 'ApiSemiProduct',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -139,7 +139,7 @@ export namespace ApiSemiProduct {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'buyable',
+                    name: 'sku',
                     classname: 'ApiSemiProduct',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -169,9 +169,9 @@ export namespace ApiSemiProduct {
                 ],
                 translations: [
                 ],
-                sku: [
-                ],
                 buyable: [
+                ],
+                sku: [
                 ],
                 skuendCustomer: [
                 ],
@@ -197,10 +197,10 @@ export namespace ApiSemiProduct {
   //               translations: {
   //                   validators: []
   //               },
-  //               sku: {
+  //               buyable: {
   //                   validators: []
   //               },
-  //               buyable: {
+  //               sku: {
   //                   validators: []
   //               },
   //               skuendCustomer: {

@@ -43,8 +43,8 @@ export interface ApiProcessingActionOutputSemiProduct {
      * Maximum output weight when repacked outputs
      */
     maxOutputWeight?: number;
-    sku?: boolean;
     buyable?: boolean;
+    sku?: boolean;
     skuendCustomer?: boolean;
 }
 
@@ -72,8 +72,8 @@ export namespace ApiProcessingActionOutputSemiProduct {
          * Maximum output weight when repacked outputs
          */
         maxOutputWeight = 'maxOutputWeight',
-        sku = 'sku',
         buyable = 'buyable',
+        sku = 'sku',
         skuendCustomer = 'skuendCustomer'
     }
 
@@ -166,7 +166,7 @@ export namespace ApiProcessingActionOutputSemiProduct {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'sku',
+                    name: 'buyable',
                     classname: 'ApiProcessingActionOutputSemiProduct',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -177,7 +177,7 @@ export namespace ApiProcessingActionOutputSemiProduct {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'buyable',
+                    name: 'sku',
                     classname: 'ApiProcessingActionOutputSemiProduct',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -211,9 +211,9 @@ export namespace ApiProcessingActionOutputSemiProduct {
                 ],
                 maxOutputWeight: [
                 ],
-                sku: [
-                ],
                 buyable: [
+                ],
+                sku: [
                 ],
                 skuendCustomer: [
                 ],
@@ -245,10 +245,10 @@ export namespace ApiProcessingActionOutputSemiProduct {
   //               maxOutputWeight: {
   //                   validators: []
   //               },
-  //               sku: {
+  //               buyable: {
   //                   validators: []
   //               },
-  //               buyable: {
+  //               sku: {
   //                   validators: []
   //               },
   //               skuendCustomer: {
