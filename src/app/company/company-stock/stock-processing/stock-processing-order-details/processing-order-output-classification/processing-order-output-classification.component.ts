@@ -192,23 +192,23 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
   private ensureClassificationControls(): void {
     // Header fields con valores por defecto
     const fieldsWithDefaults: { [key: string]: any } = {
-      'classificationStartTime': new Date(),  // 🦐 Fecha/hora actual por defecto
-      'classificationEndTime': new Date(),    // 🦐 Fecha/hora actual por defecto
-      'productionOrder': null,
-      'freezingType': null,
-      'machine': null,
-      'brandHeader': null,
+      classificationStartTime: new Date(),  // 🦐 Fecha/hora actual por defecto
+      classificationEndTime: new Date(),    // 🦐 Fecha/hora actual por defecto
+      productionOrder: null,
+      freezingType: null,
+      machine: null,
+      brandHeader: null,
       // 🦐 Campos adicionales formato DUFER
-      'providerName': null,
-      'receivedWeight': null,
-      'wasteWeight': null,
-      'rejectedWeight': null,      // 🦐 Peso rechazado que va al área de descabezado
-      'deheadingFacility': null,   // 🦐 Área de descabezado destino para el rechazado
-      'totalWeight': null,
-      'processedWeight': null,
+      providerName: null,
+      receivedWeight: null,
+      wasteWeight: null,
+      rejectedWeight: null,      // 🦐 Peso rechazado que va al área de descabezado
+      deheadingFacility: null,   // 🦐 Área de descabezado destino para el rechazado
+      totalWeight: null,
+      processedWeight: null,
       // 🦐 Multi-output classification support
-      'outputType': null,          // 'PROCESSED' (primary) or 'REJECTED' (secondary)
-      'poundsRejected': null       // Alias for rejectedWeight for backend compatibility
+      outputType: null,          // 'PROCESSED' (primary) or 'REJECTED' (secondary)
+      poundsRejected: null       // Alias for rejectedWeight for backend compatibility
     };
 
     Object.keys(fieldsWithDefaults).forEach(fieldName => {
