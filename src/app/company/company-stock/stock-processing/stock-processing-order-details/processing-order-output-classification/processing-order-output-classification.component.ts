@@ -259,11 +259,32 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
       return;
     }
     
-    const name = semiProduct.name.toLowerCase();
+    const normalized = semiProduct.name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, ''); // quitar acentos para comparaciones robustas
     
-    if (name.includes('entero') || name.includes('cabeza') || name.includes('head')) {
+    const indicatesHeadLess =
+      normalized.includes('sin cabeza') ||
+      normalized.includes('descabez') ||
+      normalized.includes('cortad') || // ej: Camarón Cortado / Camarón cortado tratado
+      normalized.includes('headless') ||
+      normalized.includes('shell on') ||
+      normalized.includes('shell-on') ||
+      normalized.includes('shell_on') ||
+      normalized.includes('tail') ||
+      normalized.includes('cola');
+    
+    const indicatesHeadOn =
+      normalized.includes('entero') ||
+      (normalized.includes('cabeza') && !indicatesHeadLess) ||
+      normalized.includes('head on') ||
+      normalized.includes('head-on') ||
+      normalized.includes('head_on');
+    
+    if (indicatesHeadOn && !indicatesHeadLess) {
       this.currentProcessType = 'HEAD_ON';
-    } else if (name.includes('cola') || name.includes('shell') || name.includes('tail')) {
+    } else if (indicatesHeadLess) {
       this.currentProcessType = 'SHELL_ON';
     } else {
       // Default basado en si el nombre contiene indicadores
