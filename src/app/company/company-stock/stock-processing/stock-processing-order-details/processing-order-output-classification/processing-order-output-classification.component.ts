@@ -363,6 +363,7 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
 
   /**
    * 🦐 Configura escucha para recalcular totales y autollenar Peso Procesado (lb)
+   * IMPORTANTE: Se recalcula cuando cambian valores Y cuando se agregan/eliminan filas
    */
   private setupTotalsListener(): void {
     const detailsArray = this.classificationDetailsArray;
@@ -373,10 +374,19 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
     // Recalcular inmediatamente por si estamos en modo edición
     this.updateProcessedWeightFromDetails();
 
+    // 🦐 Listener para cambios en valores de filas existentes
     const sub = detailsArray.valueChanges.subscribe(() => {
       this.updateProcessedWeightFromDetails();
     });
     this.subscriptions.push(sub);
+  }
+  
+  /**
+   * 🦐 Método público para recalcular totales cuando se agregan/eliminan filas
+   * Debe ser llamado explícitamente desde addClassificationDetail() y removeClassificationDetail()
+   */
+  public recalculateTotals(): void {
+    this.updateProcessedWeightFromDetails();
   }
 
   /**
@@ -536,6 +546,9 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
     });
 
     this.classificationDetailsArray.push(detailGroup);
+    
+    // 🦐 IMPORTANTE: Recalcular totales después de agregar fila
+    this.recalculateTotals();
   }
 
   /**
@@ -572,6 +585,9 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
   removeClassificationDetail(index: number): void {
     if (this.classificationDetailsArray.length > 1) {
       this.classificationDetailsArray.removeAt(index);
+      
+      // 🦐 IMPORTANTE: Recalcular totales después de eliminar fila
+      this.recalculateTotals();
     }
   }
 
