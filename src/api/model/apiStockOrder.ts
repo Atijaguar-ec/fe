@@ -238,6 +238,26 @@ export interface ApiStockOrder {
      */
     netQuantity?: number;
     /**
+     * Total processed weight in pounds (classification header)
+     */
+    processedWeight?: number;
+    /**
+     * Total rejected weight in pounds (classification header)
+     */
+    rejectedWeight?: number;
+    /**
+     * Alias for rejected weight in pounds (backend compatibility)
+     */
+    poundsRejected?: number;
+    /**
+     * Waste weight in pounds (classification header)
+     */
+    wasteWeight?: number;
+    /**
+     * Destination facility for rejected output (deheading)
+     */
+    deheadingFacility?: ApiFacility;
+    /**
      * Number of gavetas (shrimp-specific)
      */
     numberOfGavetas?: number;
@@ -592,6 +612,26 @@ export namespace ApiStockOrder {
          * Net quantity after all deductions (tare, damaged weight, moisture)
          */
         netQuantity = 'netQuantity',
+        /**
+         * Total processed weight in pounds (classification header)
+         */
+        processedWeight = 'processedWeight',
+        /**
+         * Total rejected weight in pounds (classification header)
+         */
+        rejectedWeight = 'rejectedWeight',
+        /**
+         * Alias for rejected weight in pounds (backend compatibility)
+         */
+        poundsRejected = 'poundsRejected',
+        /**
+         * Waste weight in pounds (classification header)
+         */
+        wasteWeight = 'wasteWeight',
+        /**
+         * Destination facility for rejected output (deheading)
+         */
+        deheadingFacility = 'deheadingFacility',
         /**
          * Number of gavetas (shrimp-specific)
          */
@@ -1452,6 +1492,62 @@ export namespace ApiStockOrder {
                     isPrimitiveType: true,
                     isListContainer: false,
                     complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'processedWeight',
+                    classname: 'ApiStockOrder',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'rejectedWeight',
+                    classname: 'ApiStockOrder',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'poundsRejected',
+                    classname: 'ApiStockOrder',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'wasteWeight',
+                    classname: 'ApiStockOrder',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    metadata: ApiFacility.formMetadata,
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'deheadingFacility',
+                    classname: 'ApiStockOrder',
+                    dataType: 'ApiFacility',
+                    isPrimitiveType: false,
+                    isListContainer: false,
+                    complexType: 'ApiFacility'
                 },
                 {
                     isReadOnly: false,
