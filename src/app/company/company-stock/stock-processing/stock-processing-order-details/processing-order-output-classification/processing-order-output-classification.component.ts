@@ -78,13 +78,6 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
     { code: 'B_LARGE', label: 'B Large', order: 4 }
   ];
   
-  // Grados de calidad (A, B, C)
-  readonly qualityGradeCatalog = [
-    { code: 'A', label: 'Clase A (Primera)' },
-    { code: 'B', label: 'Clase B (Segunda)' },
-    { code: 'C', label: 'Clase C (Otros)' }
-  ];
-  
   // Tipos de presentación (solo para COLA - SHELL_ON)
   readonly presentationTypeCatalog = [
     { code: 'SHELL_ON_A', label: 'Shell-On A', category: 'SHELL_ON' },
@@ -231,19 +224,12 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
     if (semiProductControl) {
       // Detectar tipo inicial
       this.detectProcessTypeFromSemiProduct(semiProductControl.value);
-      
-      // Cargar áreas de descabezado si ya hay semi-producto seleccionado
-      if (semiProductControl.value) {
-        this.loadDeheadingFacilities();
-      }
+      this.updateDeheadingFacilityAvailability();
       
       // Escuchar cambios
       const sub = semiProductControl.valueChanges.subscribe(semiProduct => {
         this.detectProcessTypeFromSemiProduct(semiProduct);
-        // Recargar áreas de descabezado cuando cambia el semi-producto
-        if (semiProduct) {
-          this.loadDeheadingFacilities();
-        }
+        this.updateDeheadingFacilityAvailability();
       });
       this.subscriptions.push(sub);
     }
@@ -264,23 +250,28 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, ''); // quitar acentos para comparaciones robustas
     
-    const indicatesHeadLess =
-      normalized.includes('sin cabeza') ||
-      normalized.includes('descabez') ||
-      normalized.includes('cortad') || // ej: Camarón Cortado / Camarón cortado tratado
-      normalized.includes('headless') ||
-      normalized.includes('shell on') ||
-      normalized.includes('shell-on') ||
-      normalized.includes('shell_on') ||
-      normalized.includes('tail') ||
-      normalized.includes('cola');
+    const headlessKeywords = [
+      'sin cabeza',
+      'descabez',
+      'cortad',
+      'headless',
+      'shell on',
+      'shell-on',
+      'shell_on',
+      'tail',
+      'cola'
+    ];
+    const headOnKeywords = [
+      'entero',
+      'head on',
+      'head-on',
+      'head_on'
+    ];
     
+    const indicatesHeadLess = headlessKeywords.some(keyword => normalized.includes(keyword));
     const indicatesHeadOn =
-      normalized.includes('entero') ||
-      (normalized.includes('cabeza') && !indicatesHeadLess) ||
-      normalized.includes('head on') ||
-      normalized.includes('head-on') ||
-      normalized.includes('head_on');
+      headOnKeywords.some(keyword => normalized.includes(keyword)) ||
+      (normalized.includes('cabeza') && !indicatesHeadLess);
     
     if (indicatesHeadOn && !indicatesHeadLess) {
       this.currentProcessType = 'HEAD_ON';
@@ -297,6 +288,22 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
     
     // Limpiar detalles del tipo anterior y agregar uno nuevo del tipo correcto
     this.clearAndAddDetailForCurrentType();
+  }
+
+  /**
+   * 🦐 Habilita/limpia el selector de área de descabezado dependiendo del tipo
+   */
+  private updateDeheadingFacilityAvailability(): void {
+    if (this.currentProcessType === 'HEAD_ON') {
+      this.loadDeheadingFacilities();
+    } else {
+      // Para camarón sin cabeza no se requiere área de descabezado
+      this.deheadingFacilities = [];
+      const deheadingControl = this.tsoGroup.get('deheadingFacility');
+      if (deheadingControl?.value) {
+        deheadingControl.setValue(null);
+      }
+    }
   }
 
   /**
@@ -558,7 +565,6 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
       brandDetail: new FormControl(null),
       size: new FormControl(null), // 🦐 Talla (filtrada por tipo de proceso)
       presentationType: new FormControl(isHeadOn ? null : 'SHELL_ON_A'), // 🦐 Solo para COLA
-      qualityGrade: new FormControl(isHeadOn ? null : 'A'), // 🦐 Clase A/B/C (solo para COLA)
       boxes: new FormControl(null, [Validators.min(0)]),
       weightPerBox: new FormControl(null, [Validators.min(0)]),
       weightFormat: new FormControl('LB'), // 🦐 Por defecto LB para camarón
@@ -833,24 +839,20 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
     }
 
     const totalQuantityControl = this.tsoGroup.get('totalQuantity');
-    if (!totalQuantityControl) {
+    const processedControl = this.tsoGroup.get('processedWeight');
+    const rejectedControl = this.tsoGroup.get('rejectedWeight');
+    const wasteControl = this.tsoGroup.get('wasteWeight');
+
+    if (!totalQuantityControl || !processedControl || !rejectedControl || !wasteControl) {
       return false;
     }
 
-    const rawTotalQuantity = totalQuantityControl.value;
-    const totalQuantity = rawTotalQuantity != null ? Number(rawTotalQuantity) : null;
-    if (totalQuantity == null || isNaN(totalQuantity)) {
-      return false;
-    }
+    const totalQuantity = Number(totalQuantityControl.value) || 0;
+    const processed = Number(processedControl.value) || 0;
+    const rejected = Number(rejectedControl.value) || 0;
+    const waste = Number(wasteControl.value) || 0;
 
-    const processed = Number(this.tsoGroup.get('processedWeight')?.value) || 0;
-    const rejected = Number(this.tsoGroup.get('rejectedWeight')?.value) || 0;
-    const waste = Number(this.tsoGroup.get('wasteWeight')?.value) || 0;
-
-    const sum = processed + rejected + waste;
-    const TOLERANCE = 0.01;
-
-    return sum > totalQuantity + TOLERANCE;
+    return processed + rejected + waste > totalQuantity + 0.01;
   }
 
   /**
@@ -904,6 +906,27 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
       }
     });
     return total;
+  }
+
+  /**
+   * 🦐 Devuelve la unidad (KG/LB) usada en la sección Shell-On.
+   * Se toma la primera fila de tipo SHELL_ON que tenga weightFormat definido.
+   */
+  getShellOnUnitLabel(): string | null {
+    if (!this.classificationDetailsArray?.length) {
+      return null;
+    }
+
+    for (const control of this.classificationDetailsArray.controls) {
+      if (control.get('processType')?.value === 'SHELL_ON') {
+        const format = control.get('weightFormat')?.value;
+        if (format) {
+          return String(format);
+        }
+      }
+    }
+
+    return null;
   }
 
   /**
