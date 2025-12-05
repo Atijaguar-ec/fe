@@ -384,8 +384,8 @@ export interface ApiStockOrder {
      * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
      */
     repackedOriginStockOrderId?: string;
-    purchaseOrder?: boolean;
     available?: boolean;
+    purchaseOrder?: boolean;
     openOrder?: boolean;
 }
 
@@ -739,8 +739,8 @@ export namespace ApiStockOrder {
          * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
          */
         repackedOriginStockOrderId = 'repackedOriginStockOrderId',
-        purchaseOrder = 'purchaseOrder',
         available = 'available',
+        purchaseOrder = 'purchaseOrder',
         openOrder = 'openOrder'
     }
 
@@ -1890,7 +1890,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'purchaseOrder',
+                    name: 'available',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1901,7 +1901,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'available',
+                    name: 'purchaseOrder',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -2119,9 +2119,9 @@ export namespace ApiStockOrder {
                 ],
                 repackedOriginStockOrderId: [
                 ],
-                purchaseOrder: [
-                ],
                 available: [
+                ],
+                purchaseOrder: [
                 ],
                 openOrder: [
                 ],
@@ -2429,10 +2429,10 @@ export namespace ApiStockOrder {
   //               repackedOriginStockOrderId: {
   //                   validators: []
   //               },
-  //               purchaseOrder: {
+  //               available: {
   //                   validators: []
   //               },
-  //               available: {
+  //               purchaseOrder: {
   //                   validators: []
   //               },
   //               openOrder: {

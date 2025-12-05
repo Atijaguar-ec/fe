@@ -161,7 +161,14 @@ const CHAIN_OVERRIDES: ChainOverrides = {
       'productLabelProcessingAction.newProcessingAction.field.cuppingGrade': 'Puntaje de laboratorio',
       'productLabelProcessingAction.newProcessingAction.field.cuppingFlavour': 'Notas sensoriales',
       'productLabelProcessingAction.newProcessingAction.field.roastingDate': 'Fecha de procesamiento en planta',
-      'productLabelProcessingAction.newProcessingAction.field.roastingProfile': 'Proceso post-cosecha'
+      'productLabelProcessingAction.newProcessingAction.field.roastingProfile': 'Proceso post-cosecha',
+
+      // 🦐 Multi-output classification support
+      'productLabelStockProcessingOrderDetail.classification.createRejectedOutput.button': 'Crear salida para rechazado',
+      'productLabelStockProcessingOrderDetail.classification.deheadingFacility.label': 'Área destino para rechazado',
+      'productLabelStockProcessingOrderDetail.classification.deheadingFacility.hint': 'El material rechazado será enviado a esta área',
+      'productLabelStockProcessingOrderDetail.classification.rejectedOutputInfo.title': 'Salida de Producto Rechazado',
+      'productLabelStockProcessingOrderDetail.classification.rejectedOutputInfo.description': 'Este output corresponde al material rechazado que será procesado en el área de descabezado. No requiere tabla de clasificación por tallas.'
     },
 
     en: {
@@ -267,7 +274,14 @@ const CHAIN_OVERRIDES: ChainOverrides = {
       'productLabelProcessingAction.newProcessingAction.field.cuppingGrade': 'Lab score',
       'productLabelProcessingAction.newProcessingAction.field.cuppingFlavour': 'Sensory notes',
       'productLabelProcessingAction.newProcessingAction.field.roastingDate': 'Processing plant date',
-      'productLabelProcessingAction.newProcessingAction.field.roastingProfile': 'Post-harvest process'
+      'productLabelProcessingAction.newProcessingAction.field.roastingProfile': 'Post-harvest process',
+
+      // 🦐 Multi-output classification support
+      'productLabelStockProcessingOrderDetail.classification.createRejectedOutput.button': 'Create rejected output',
+      'productLabelStockProcessingOrderDetail.classification.deheadingFacility.label': 'Destination area for rejected product',
+      'productLabelStockProcessingOrderDetail.classification.deheadingFacility.hint': 'Rejected material will be sent to this area',
+      'productLabelStockProcessingOrderDetail.classification.rejectedOutputInfo.title': 'Rejected Product Output',
+      'productLabelStockProcessingOrderDetail.classification.rejectedOutputInfo.description': 'This output corresponds to rejected material that will be processed at the deheading area. Classification table by size is not required.'
     }
   },
 

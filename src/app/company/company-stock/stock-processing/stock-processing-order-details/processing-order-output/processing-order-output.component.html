@@ -3,6 +3,7 @@
         i18n="@@productLabelStockProcessingOrderDetail.section.output.outputsSectionTitle">Outputs of this processing</h2>
     
     <!-- CLASSIFICATION MODE: Use specialized component -->
+    <!-- 🦐 El backend crea automáticamente el segundo StockOrder para producto rechazado -->
     <ng-container *ngIf="isClassificationMode()">
         <app-processing-order-output-classification
             *ngFor="let tsoGroup of targetStockOrdersArray.controls; index as tsoGroupIndex"

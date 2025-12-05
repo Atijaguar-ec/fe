@@ -219,32 +219,44 @@
     </div>
     
     <!-- 🦐 DESTINO DEL RECHAZADO: Área de descabezado -->
-    <div class="af-row" *ngIf="tsoGroup.get('rejectedWeight')?.value > 0">
-        <div class="af-c6">
+    <!-- El backend creará automáticamente un segundo StockOrder para el producto rechazado -->
+    <div class="af-row" *ngIf="tsoGroup.get('rejectedWeight')?.value > 0 && isProcessedOutput">
+        <div class="af-c6" [formGroup]="tsoGroup">
             <label class="af-label" i18n="@@productLabelStockProcessingOrderDetail.classification.deheadingFacility.label">
                 Área destino para rechazado
             </label>
-            <select class="form-control" [formControl]="$any(tsoGroup.get('deheadingFacility'))">
-                <option [ngValue]="null" disabled>Seleccione área de descabezado</option>
+            <select class="form-control" formControlName="deheadingFacility" 
+                    (change)="onDeheadingFacilityChange($event)"
+                    [compareWith]="compareFacilities">
+                <option [ngValue]="null">-- Seleccione área de descabezado --</option>
                 <option *ngFor="let facility of deheadingFacilities" [ngValue]="facility">
                     {{ facility.name }}
                 </option>
             </select>
             <small class="text-muted" i18n="@@productLabelStockProcessingOrderDetail.classification.deheadingFacility.hint">
-                El material rechazado ({{ tsoGroup.get('rejectedWeight')?.value }} lb) será enviado a esta área
+                El material rechazado ({{ tsoGroup.get('rejectedWeight')?.value }} lb) será enviado automáticamente a esta área
             </small>
-            <div *ngIf="submitted && tsoGroup.get('deheadingFacility')?.invalid" class="sc-invalid-feedback mt-1">
+            <div *ngIf="submitted && !tsoGroup.get('deheadingFacility')?.value" class="sc-invalid-feedback mt-1">
                 <span>
                     Seleccione un área de descabezado cuando existe producto rechazado.
                 </span>
+            </div>
+        </div>
+        <!-- 🦐 Indicador informativo de que se creará automáticamente -->
+        <div class="af-c6 d-flex align-items-center">
+            <div class="alert alert-info mb-0 py-2 px-3" style="font-size: 0.85rem;">
+                <i class="fas fa-info-circle mr-2"></i>
+                Al guardar, se creará automáticamente una salida de <strong>{{ tsoGroup.get('rejectedWeight')?.value }} lb</strong> 
+                para el área de descabezado seleccionada.
             </div>
         </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
     <!-- 🦐 SECCIÓN 1: LIQUIDACIÓN CON CABEZA (HEAD_ON) - Camarón Entero        -->
+    <!-- Solo se muestra para outputs de tipo PROCESSED (no para REJECTED)      -->
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
-    <div class="af-row mt-4" *ngIf="currentProcessType === 'HEAD_ON'">
+    <div class="af-row mt-4" *ngIf="currentProcessType === 'HEAD_ON' && isProcessedOutput">
         <div class="af-c12">
             <div class="classification-section-box head-on-section">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -344,8 +356,9 @@
 
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
     <!-- 🦐 SECCIÓN 2: LIQUIDACIÓN EN COLA (SHELL_ON) - Camarón Descabezado      -->
+    <!-- Solo se muestra para outputs de tipo PROCESSED (no para REJECTED)      -->
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
-    <div class="af-row mt-4" *ngIf="currentProcessType === 'SHELL_ON'">
+    <div class="af-row mt-4" *ngIf="currentProcessType === 'SHELL_ON' && isProcessedOutput">
         <div class="af-c12">
             <div class="classification-section-box shell-on-section">
                 <div class="d-flex justify-content-between align-items-center mb-3">

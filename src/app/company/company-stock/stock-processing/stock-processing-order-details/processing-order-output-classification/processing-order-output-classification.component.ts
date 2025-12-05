@@ -167,6 +167,9 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
   @Output()
   removeOutputEvent = new EventEmitter<number>();
 
+  // 🦐 Nota: El backend crea automáticamente el segundo StockOrder para producto rechazado
+  // cuando rejectedWeight > 0 y deheadingFacility está seleccionado
+
   constructor(private processingOrderController: ProcessingOrderControllerService) { }
 
   ngOnInit(): void {
@@ -187,27 +190,30 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
    * Ensure all classification-specific form controls exist
    */
   private ensureClassificationControls(): void {
-    // Header fields
-    const headerFields = [
-      'classificationStartTime',
-      'classificationEndTime',
-      'productionOrder',
-      'freezingType',
-      'machine',
-      'brandHeader',
+    // Header fields con valores por defecto
+    const fieldsWithDefaults: { [key: string]: any } = {
+      'classificationStartTime': new Date(),  // 🦐 Fecha/hora actual por defecto
+      'classificationEndTime': new Date(),    // 🦐 Fecha/hora actual por defecto
+      'productionOrder': null,
+      'freezingType': null,
+      'machine': null,
+      'brandHeader': null,
       // 🦐 Campos adicionales formato DUFER
-      'providerName',
-      'receivedWeight',
-      'wasteWeight',
-      'rejectedWeight',      // 🦐 Peso rechazado que va al área de descabezado
-      'deheadingFacility',   // 🦐 Área de descabezado destino para el rechazado
-      'totalWeight',
-      'processedWeight'
-    ];
+      'providerName': null,
+      'receivedWeight': null,
+      'wasteWeight': null,
+      'rejectedWeight': null,      // 🦐 Peso rechazado que va al área de descabezado
+      'deheadingFacility': null,   // 🦐 Área de descabezado destino para el rechazado
+      'totalWeight': null,
+      'processedWeight': null,
+      // 🦐 Multi-output classification support
+      'outputType': null,          // 'PROCESSED' (primary) or 'REJECTED' (secondary)
+      'poundsRejected': null       // Alias for rejectedWeight for backend compatibility
+    };
 
-    headerFields.forEach(fieldName => {
+    Object.keys(fieldsWithDefaults).forEach(fieldName => {
       if (!this.tsoGroup.get(fieldName)) {
-        this.tsoGroup.addControl(fieldName, new FormControl(null));
+        this.tsoGroup.addControl(fieldName, new FormControl(fieldsWithDefaults[fieldName]));
       }
     });
 
@@ -312,29 +318,9 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
       }
     });
 
-    // Si hay producto rechazado (> 0 lb), el área de descabezado es obligatoria
-    const rejectedWeightControl = this.tsoGroup.get('rejectedWeight');
-    const deheadingFacilityControl = this.tsoGroup.get('deheadingFacility');
-
-    if (rejectedWeightControl && deheadingFacilityControl) {
-      const updateDeheadingValidators = () => {
-        const rejected = Number(rejectedWeightControl.value) || 0;
-        if (rejected > 0) {
-          deheadingFacilityControl.setValidators([Validators.required]);
-        } else {
-          deheadingFacilityControl.clearValidators();
-        }
-        deheadingFacilityControl.updateValueAndValidity({ emitEvent: false });
-      };
-
-      // Evaluar una vez al inicializar (modo edición)
-      updateDeheadingValidators();
-
-      const sub = rejectedWeightControl.valueChanges.subscribe(() => {
-        updateDeheadingValidators();
-      });
-      this.subscriptions.push(sub);
-    }
+    // Nota: la obligatoriedad de "Área destino para rechazado" se muestra solo a nivel de UI
+    // mediante un mensaje informativo. No se añaden Validators al FormControl para no bloquear
+    // el guardado en caso de discrepancias de binding.
   }
 
   /**
@@ -475,11 +461,12 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
 
   /**
    * 🦐 Cargar instalaciones de descabezado para enviar material rechazado
-   * Busca en TODOS los codebooks disponibles las instalaciones con isDeheadingProcess === true
+   * Busca instalaciones con isDeheadingProcess === true O que contengan "descabezado" en el nombre/tipo
    */
   private loadDeheadingFacilities(): void {
+    console.log('🦐 DEBUG loadDeheadingFacilities called');
     if (!this.semiProductOutputFacilitiesCodebooks || this.semiProductOutputFacilitiesCodebooks.size === 0) {
-      console.log('[loadDeheadingFacilities] No codebooks available yet');
+      console.log('🦐 DEBUG [loadDeheadingFacilities] No codebooks available yet');
       return;
     }
 
@@ -490,15 +477,34 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
     this.semiProductOutputFacilitiesCodebooks.forEach((codebook, semiProductId) => {
       const sub = codebook.getAllCandidates().pipe(take(1)).subscribe(
         (facilities: ApiFacility[]) => {
-          // Filtrar y agregar las instalaciones de descabezado
-          facilities.filter(f => f.isDeheadingProcess === true).forEach(f => {
+          console.log('🦐 DEBUG [loadDeheadingFacilities] Checking facilities for semiProduct', semiProductId, ':', facilities.length);
+          // Filtrar instalaciones de descabezado por bandera O por nombre/tipo
+          facilities.filter(f => {
+            const isDeheadingByFlag = f.isDeheadingProcess === true;
+            const isDeheadingByName = f.name?.toLowerCase().includes('descabezado') || 
+                                     f.name?.toLowerCase().includes('deheading') ||
+                                     f.facilityType?.label?.toLowerCase().includes('descabezado') ||
+                                     f.facilityType?.code?.toLowerCase().includes('descabezado');
+            return isDeheadingByFlag || isDeheadingByName;
+          }).forEach(f => {
             if (f.id && !foundFacilities.has(f.id)) {
               foundFacilities.set(f.id, f);
+              console.log('🦐 DEBUG [loadDeheadingFacilities] Added facility:', f.name, 'id:', f.id);
             }
           });
           // Actualizar la lista
           this.deheadingFacilities = Array.from(foundFacilities.values());
-          console.log('[loadDeheadingFacilities] Found deheading facilities:', this.deheadingFacilities.length, this.deheadingFacilities.map(f => f.name));
+          console.log('🦐 DEBUG [loadDeheadingFacilities] Total found:', this.deheadingFacilities.length, this.deheadingFacilities.map(f => f.name));
+          
+          // 🦐 Auto-seleccionar si solo hay una opción disponible
+          if (this.deheadingFacilities.length === 1) {
+            const deheadingControl = this.tsoGroup.get('deheadingFacility');
+            if (deheadingControl && !deheadingControl.value) {
+              const selectedFacility = this.deheadingFacilities[0];
+              deheadingControl.setValue(selectedFacility);
+              console.log('🦐 DEBUG [loadDeheadingFacilities] Auto-selected single facility:', selectedFacility.name, 'id:', selectedFacility.id);
+            }
+          }
         }
       );
       this.subscriptions.push(sub);
@@ -987,5 +993,47 @@ export class ProcessingOrderOutputClassificationComponent implements OnInit, OnD
       month: '2-digit',
       day: '2-digit'
     }).format(date);
+  }
+
+  // =====================================================
+  // 🦐 Multi-Output Classification Support
+  // El backend crea automáticamente el segundo StockOrder
+  // cuando rejectedWeight > 0 y deheadingFacility está seleccionado
+  // =====================================================
+
+  /**
+   * Check if this output is a PROCESSED (primary) output
+   */
+  get isProcessedOutput(): boolean {
+    const outputType = this.tsoGroup.get('outputType')?.value;
+    const result = !outputType || outputType === 'PROCESSED';
+    console.log('🦐 DEBUG isProcessedOutput:', result, 'outputType:', outputType);
+    return result;
+  }
+
+  /**
+   * Check if this output is a REJECTED (secondary) output
+   * (Solo usado cuando se edita una orden que ya tiene output rechazado)
+   */
+  get isRejectedOutput(): boolean {
+    return this.tsoGroup.get('outputType')?.value === 'REJECTED';
+  }
+
+  /**
+   * Debug handler para cambios en el select de deheadingFacility
+   */
+  onDeheadingFacilityChange(event: any): void {
+    const control = this.tsoGroup.get('deheadingFacility');
+    console.log('🦐 DEBUG onDeheadingFacilityChange - event:', event);
+    console.log('🦐 DEBUG onDeheadingFacilityChange - control value:', control?.value);
+    console.log('🦐 DEBUG onDeheadingFacilityChange - deheadingFacilities:', this.deheadingFacilities);
+  }
+
+  /**
+   * Función de comparación para el select de facilities
+   * Compara por ID para evitar problemas con referencias de objetos
+   */
+  compareFacilities(f1: ApiFacility | null, f2: ApiFacility | null): boolean {
+    return f1 && f2 ? f1.id === f2.id : f1 === f2;
   }
 }

@@ -645,6 +645,24 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
 
     this.submitted = true;
 
+    // 🦐 Asegurar que el campo "Área destino para rechazado" no bloquee el guardado
+    // si el usuario ya seleccionó un valor. Limpiamos errores residuales en
+    // targetStockOrders[*].deheadingFacility cuando hay rejectedWeight > 0 y
+    // existe un facility seleccionado.
+    if (this.targetStockOrdersArray && this.targetStockOrdersArray.controls) {
+      this.targetStockOrdersArray.controls.forEach((tsoGroup: FormGroup, index: number) => {
+        const rejected = Number(tsoGroup.get('rejectedWeight')?.value) || 0;
+        const deheadingCtrl = tsoGroup.get('deheadingFacility');
+        if (rejected > 0 && deheadingCtrl && deheadingCtrl.value) {
+          if (deheadingCtrl.errors) {
+            console.warn(`🦐 Clearing deheadingFacility errors for targetStockOrders.${index}`, deheadingCtrl.errors);
+          }
+          deheadingCtrl.setErrors(null);
+          deheadingCtrl.updateValueAndValidity({ emitEvent: false });
+        }
+      });
+    }
+
     // 🐛 Debug: Log validation state
     if (this.procOrderGroup.invalid) {
       console.error('❌ Form is invalid. Checking errors...');
@@ -724,6 +742,9 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
 
       // Add common shared data (processing evidences, comments, etc.) to all target output Stock order
       this.enrichTargetStockOrders(processingOrder.targetStockOrders);
+
+      // 🦐 Debug: Log targetStockOrders to verify rejectedWeight and deheadingFacility are being sent
+      console.log('🦐 Sending targetStockOrders:', JSON.stringify(processingOrder.targetStockOrders, null, 2));
 
       const res = await this.processingOrderController
         .createOrUpdateProcessingOrder(processingOrder).pipe(take(1)).toPromise();
@@ -1263,7 +1284,16 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     const requiredEvidenceTypeValues = StockProcessingOrderDetailsHelper.prepareRequiredEvidenceTypeValues(this.requiredProcessingEvidenceArray);
     const otherEvidenceDocuments = StockProcessingOrderDetailsHelper.prepareOtherEvidenceDocuments(this.otherProcessingEvidenceArray);
 
-    targetStockOrders.forEach(tso => {
+    targetStockOrders.forEach((tso, index) => {
+
+      const tsoFormGroup = this.targetStockOrdersArray.at(index) as FormGroup | null;
+      const getNumeric = (value: any): number | null => {
+        if (value === null || value === undefined || value === '') {
+          return null;
+        }
+        const parsed = Number(value);
+        return isNaN(parsed) ? null : parsed;
+      };
 
       // Set shared properties
       tso.requiredEvidenceTypeValues = requiredEvidenceTypeValues;
@@ -1271,6 +1301,37 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       tso.comments = this.commentsControl.value;
       tso.fulfilledQuantity = 0;
       tso.availableQuantity = 0;
+
+      // 🦐 Extra fields capturados en el formulario de clasificación
+      if (tsoFormGroup) {
+        const processedWeight = getNumeric(tsoFormGroup.get('processedWeight')?.value);
+        if (processedWeight != null) {
+          tso.processedWeight = processedWeight;
+          // En clasificación la cantidad real enviada a congelación es el peso procesado
+          tso.totalQuantity = processedWeight;
+        }
+
+        const rejectedWeight = getNumeric(tsoFormGroup.get('rejectedWeight')?.value);
+        if (rejectedWeight != null) {
+          tso.rejectedWeight = rejectedWeight;
+          tso.poundsRejected = rejectedWeight;
+        }
+
+        const wasteWeight = getNumeric(tsoFormGroup.get('wasteWeight')?.value);
+        if (wasteWeight != null) {
+          tso.wasteWeight = wasteWeight;
+        }
+
+        const deheadingFacility = tsoFormGroup.get('deheadingFacility')?.value;
+        console.log('🦐 DEBUG deheadingFacility control value:', deheadingFacility);
+        console.log('🦐 DEBUG rejectedWeight:', rejectedWeight);
+        if (deheadingFacility) {
+          tso.deheadingFacility = deheadingFacility;
+          console.log('🦐 DEBUG deheadingFacility assigned to tso:', tso.deheadingFacility);
+        } else {
+          console.warn('🦐 DEBUG deheadingFacility is null/undefined, not assigned');
+        }
+      }
 
       // Set specific properties
       tso.requiredEvidenceFieldValues = StockProcessingOrderDetailsHelper.prepareRequiredEvidenceFieldValues(tso['requiredProcEvidenceFieldGroup'], this.selectedProcAction);

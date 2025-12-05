@@ -359,6 +359,9 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
     this.newOutputAdded.emit();
   }
 
+  // 🦐 Nota: El backend crea automáticamente el segundo StockOrder para producto rechazado
+  // cuando rejectedWeight > 0 y deheadingFacility está seleccionado en el output principal
+
   setRequiredFieldsAndListenersForTSO(tsoGroup: FormGroup) {
 
     // Set validators for specific fields depending on the Processing action type
