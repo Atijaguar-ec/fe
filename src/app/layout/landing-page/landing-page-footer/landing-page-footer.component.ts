@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { EnvironmentInfoService } from '../../../core/environment-info.service';
 
 @Component({
   selector: 'app-landing-page-footer',
@@ -6,10 +7,12 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./landing-page-footer.component.scss']
 })
 export class LandingPageFooterComponent implements OnInit {
-
-  constructor() { }
+  currentYear: number = new Date().getFullYear();
+  companyName: string = '';
+  constructor(private envInfo: EnvironmentInfoService) { }
 
   ngOnInit(): void {
+    this.companyName = this.envInfo.companyName;
   }
 
 }

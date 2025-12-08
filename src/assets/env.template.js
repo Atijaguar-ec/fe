@@ -9,7 +9,7 @@ window.env = {
   API_TIMEOUT: '${API_TIMEOUT}' || '30000',
   
   // Company Configuration
-  COMPANY_NAME: '${COMPANY_NAME}' || 'INATrace',
+  COMPANY_NAME: '${COMPANY_NAME}' || 'UNOCACE',
   COMPANY_THEME: '${COMPANY_THEME}' || 'default',
   COMPANY_LOGO: '${COMPANY_LOGO}' || '/assets/logo.png',
   

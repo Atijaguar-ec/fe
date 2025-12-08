@@ -8,6 +8,7 @@ services:
       - NODE_ENV=${NODE_ENV:-production}
       - PRIMARY_PRODUCT_TYPE=${PRIMARY_PRODUCT_TYPE:-CACAO}
       - COMPANY_THEME=${COMPANY_THEME:-cacao}
+      - COMPANY_NAME=${COMPANY_NAME:-Fortaleza del Valle}
     networks:
       - frontend
     ports:

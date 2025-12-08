@@ -19,7 +19,7 @@ export class EnvironmentInfoService {
   }
 
   get companyName(): string {
-    return this.env.COMPANY_NAME || 'INATrace';
+    return this.env.COMPANY_NAME || 'ECUADOR';
   }
 
   get primaryProductType(): string {

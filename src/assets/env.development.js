@@ -17,7 +17,8 @@
     // Environment variables for Beyco integration
     window['env']['beycoAuthURL'] = '';
     window['env']['beycoClientId'] = '';
-    
+
+    window['env']['COMPANY_NAME'] = 'UNOCACE';
     // Product Configuration
     window['env']['PRIMARY_PRODUCT_TYPE'] = 'COCOA'; // COFFEE, COCOA, or SHRIMP
 
