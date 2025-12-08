@@ -664,7 +664,7 @@ export namespace ListPaymentsByPurchase {
 })
 export class PaymentControllerService {
 
-    protected basePath = 'http://192.168.100.155:8080';
+    protected basePath = 'http://192.168.100.187:8080';
     public defaultHeaders = new HttpHeaders();
     public configuration = new Configuration();
 
