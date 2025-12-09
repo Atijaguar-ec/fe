@@ -1,0 +1,400 @@
+# =============================================================================
+# 🍫 INATrace Frontend - UNOCACE Pipeline (Cacao)
+# =============================================================================
+# Autor: DevOps Team
+# Descripción: Pipeline CI/CD exclusivo para UNOCACE (Staging + Production)
+# Producto: Cacao
+# Dominio Test: inatrace-test.unocace.com
+# Dominio Prod: inatrace.unocace.com
+# =============================================================================
+
+name: 🍫 UNOCACE Frontend (Cacao)
+
+on:
+  push:
+    branches: [staging, main]
+    paths:
+      - 'src/**'
+      - 'package*.json'
+      - 'angular.json'
+      - 'Dockerfile'
+      - '.github/workflows/deploy-frontend-unocace.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Ambiente destino'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}-inatrace
+  NODE_VERSION: '14'
+  SWAGGER_DOCS_HOST: https://inatrace.atijaguar.com/api/v3/api-docs
+  # UNOCACE specific
+  COMPANY_NAME: UNOCACE
+  COMPANY_THEME: cacao
+  PRIMARY_PRODUCT_TYPE: COCOA
+
+# =============================================================================
+# JOBS
+# =============================================================================
+jobs:
+  # ---------------------------------------------------------------------------
+  # Quality Gate
+  # ---------------------------------------------------------------------------
+  quality:
+    name: 🔍 Quality Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+
+      - name: 🧹 Clean cache
+        run: npm cache clean --force
+
+      - name: 📚 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Lint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: 🧪 Unit tests
+        run: npm run test -- --watch=false --progress=false
+
+  # ---------------------------------------------------------------------------
+  # Build Docker Image
+  # ---------------------------------------------------------------------------
+  build:
+    name: 🏗️ Build Docker Image
+    runs-on: ubuntu-latest
+    needs: quality
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tag }}
+      image-ref: ${{ steps.image_ref.outputs.image }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🏷️ Generate tag
+        id: meta
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            VERSION=$(grep -m1 '"version":' package.json | sed -E 's/.*"([0-9.]+)".*/\1/')
+            TAG="unocace-v${VERSION}"
+          else
+            TAG="unocace-staging-${GITHUB_SHA::7}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "🏷️ Tag: $TAG"
+
+      - name: 🔐 Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📝 Compute image ref
+        id: image_ref
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+
+      - name: 📚 Install dependencies
+        run: npm ci
+
+      - name: 🔄 Generate API client
+        run: npm run generate-api
+
+      - name: 🔧 Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🏗️ Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ steps.image_ref.outputs.image }}:${{ steps.meta.outputs.tag }}
+            ${{ steps.image_ref.outputs.image }}:unocace-latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: BUILD_OPTIMIZATION=true
+
+  # ---------------------------------------------------------------------------
+  # Deploy: UNOCACE Staging (Test)
+  # ---------------------------------------------------------------------------
+  deploy-staging:
+    name: 🧪 UNOCACE Staging
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/staging' || github.event.inputs.environment == 'staging'
+    environment:
+      name: unocace-staging
+      url: https://inatrace-test.unocace.com
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📁 Prepare remote directory
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.UNOCACE_HOST }}
+          username: ${{ secrets.UNOCACE_USER }}
+          password: ${{ secrets.UNOCACE_PASSWORD }}
+          port: ${{ secrets.UNOCACE_PORT || 22 }}
+          script: mkdir -p /opt/inatrace/frontend/test/unocace
+
+      - name: 📤 Upload docker-compose.yml
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.UNOCACE_HOST }}
+          username: ${{ secrets.UNOCACE_USER }}
+          password: ${{ secrets.UNOCACE_PASSWORD }}
+          port: ${{ secrets.UNOCACE_PORT || 22 }}
+          source: "ci/docker-compose.yml"
+          target: "/opt/inatrace/frontend/test/unocace"
+          strip_components: 1
+
+      - name: 📤 Upload nginx.conf
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.UNOCACE_HOST }}
+          username: ${{ secrets.UNOCACE_USER }}
+          password: ${{ secrets.UNOCACE_PASSWORD }}
+          port: ${{ secrets.UNOCACE_PORT || 22 }}
+          source: "nginx.conf"
+          target: "/opt/inatrace/frontend/test/unocace"
+
+      - name: 📝 Prepare .env
+        run: |
+          cat > .env <<EOF
+          IMAGE_NAME=${{ needs.build.outputs.image-ref }}
+          TAG=${{ needs.build.outputs.image-tag }}
+          NODE_ENV=test
+          PRIMARY_PRODUCT_TYPE=${{ env.PRIMARY_PRODUCT_TYPE }}
+          CONTAINER_NAME=inatrace-fe-test-unocace
+          HOST_HTTP_PORT=8081
+          FRONTEND_NETWORK=inatrace-frontend-unocace-network
+          BACKEND_NETWORK=inatrace-backend-unocace-network
+          DOMAIN=inatrace-test.unocace.com
+          COMPANY_NAME=${{ env.COMPANY_NAME }}
+          COMPANY_THEME=${{ env.COMPANY_THEME }}
+          TRAEFIK_ENABLE=true
+          TRAEFIK_ROUTER_NAME=inatrace-fe-test-unocace
+          TRAEFIK_ROUTER_RULE=Host(\`inatrace-test.unocace.com\`)
+          TRAEFIK_ENTRYPOINTS=websecure
+          TRAEFIK_CERT_RESOLVER=letsencrypt
+          EOF
+
+      - name: 📤 Upload .env
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.UNOCACE_HOST }}
+          username: ${{ secrets.UNOCACE_USER }}
+          password: ${{ secrets.UNOCACE_PASSWORD }}
+          port: ${{ secrets.UNOCACE_PORT || 22 }}
+          source: ".env"
+          target: "/opt/inatrace/frontend/test/unocace"
+
+      - name: 🚀 Deploy Staging
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.UNOCACE_HOST }}
+          username: ${{ secrets.UNOCACE_USER }}
+          password: ${{ secrets.UNOCACE_PASSWORD }}
+          port: ${{ secrets.UNOCACE_PORT || 22 }}
+          script: |
+            set -e
+            echo "🍫 Deploying UNOCACE Staging..."
+            cd /opt/inatrace/frontend/test/unocace
+            
+            set -a && source .env && set +a
+            
+            # Networks
+            docker network inspect inatrace-frontend-unocace-network >/dev/null 2>&1 || docker network create inatrace-frontend-unocace-network
+            docker network inspect inatrace-backend-unocace-network >/dev/null 2>&1 || docker network create inatrace-backend-unocace-network
+            
+            # Deploy
+            docker compose down 2>/dev/null || true
+            docker compose pull
+            docker compose up -d
+            
+            # Health check
+            echo "⏳ Health check..."
+            for i in {1..12}; do
+              sleep 10
+              if curl -sf http://localhost:8081/health; then
+                echo "✅ UNOCACE Staging deployed successfully!"
+                exit 0
+              fi
+              echo "  Attempt $i/12..."
+            done
+            
+            echo "❌ Health check failed"
+            docker compose logs --tail=100
+            exit 1
+
+  # ---------------------------------------------------------------------------
+  # Deploy: UNOCACE Production
+  # ---------------------------------------------------------------------------
+  deploy-production:
+    name: 🏭 UNOCACE Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'production'
+    environment:
+      name: unocace-production
+      url: https://inatrace.unocace.com
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📁 Prepare remote directory
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.UNOCACE_PROD_HOST }}
+          username: ${{ secrets.UNOCACE_PROD_USER }}
+          key: ${{ secrets.UNOCACE_PROD_SSH_KEY }}
+          port: ${{ secrets.UNOCACE_PROD_PORT || 22 }}
+          script: mkdir -p /opt/inatrace/frontend/prod/unocace
+
+      - name: 📤 Upload docker-compose.yml
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.UNOCACE_PROD_HOST }}
+          username: ${{ secrets.UNOCACE_PROD_USER }}
+          key: ${{ secrets.UNOCACE_PROD_SSH_KEY }}
+          port: ${{ secrets.UNOCACE_PROD_PORT || 22 }}
+          source: "ci/docker-compose.yml"
+          target: "/opt/inatrace/frontend/prod/unocace"
+          strip_components: 1
+
+      - name: 📤 Upload nginx.conf
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.UNOCACE_PROD_HOST }}
+          username: ${{ secrets.UNOCACE_PROD_USER }}
+          key: ${{ secrets.UNOCACE_PROD_SSH_KEY }}
+          port: ${{ secrets.UNOCACE_PROD_PORT || 22 }}
+          source: "nginx.conf"
+          target: "/opt/inatrace/frontend/prod/unocace"
+
+      - name: 📝 Prepare .env
+        run: |
+          cat > .env <<EOF
+          IMAGE_NAME=${{ needs.build.outputs.image-ref }}
+          TAG=${{ needs.build.outputs.image-tag }}
+          NODE_ENV=production
+          PRIMARY_PRODUCT_TYPE=${{ env.PRIMARY_PRODUCT_TYPE }}
+          CONTAINER_NAME=inatrace-fe-prod-unocace
+          HOST_HTTP_PORT=8081
+          FRONTEND_NETWORK=inatrace-frontend-unocace-network
+          BACKEND_NETWORK=inatrace-backend-unocace-network
+          DOMAIN=inatrace.unocace.com
+          COMPANY_NAME=${{ env.COMPANY_NAME }}
+          COMPANY_THEME=${{ env.COMPANY_THEME }}
+          TRAEFIK_ENABLE=true
+          TRAEFIK_ROUTER_NAME=inatrace-fe-prod-unocace
+          TRAEFIK_ROUTER_RULE=Host(\`inatrace.unocace.com\`)
+          TRAEFIK_ENTRYPOINTS=websecure
+          TRAEFIK_CERT_RESOLVER=letsencrypt
+          EOF
+
+      - name: 📤 Upload .env
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.UNOCACE_PROD_HOST }}
+          username: ${{ secrets.UNOCACE_PROD_USER }}
+          key: ${{ secrets.UNOCACE_PROD_SSH_KEY }}
+          port: ${{ secrets.UNOCACE_PROD_PORT || 22 }}
+          source: ".env"
+          target: "/opt/inatrace/frontend/prod/unocace"
+
+      - name: 🚀 Deploy Production
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.UNOCACE_PROD_HOST }}
+          username: ${{ secrets.UNOCACE_PROD_USER }}
+          key: ${{ secrets.UNOCACE_PROD_SSH_KEY }}
+          port: ${{ secrets.UNOCACE_PROD_PORT || 22 }}
+          script: |
+            set -e
+            echo "🍫 Deploying UNOCACE Production..."
+            cd /opt/inatrace/frontend/prod/unocace
+            
+            set -a && source .env && set +a
+            
+            # Networks
+            docker network inspect inatrace-frontend-unocace-network >/dev/null 2>&1 || docker network create inatrace-frontend-unocace-network
+            docker network inspect inatrace-backend-unocace-network >/dev/null 2>&1 || docker network create inatrace-backend-unocace-network
+            
+            # Deploy
+            docker compose down 2>/dev/null || true
+            docker compose pull
+            docker compose up -d
+            
+            # Health check
+            echo "⏳ Health check..."
+            for i in {1..12}; do
+              sleep 10
+              if curl -sf https://inatrace.unocace.com/health; then
+                echo "✅ UNOCACE Production deployed successfully!"
+                exit 0
+              fi
+              echo "  Attempt $i/12..."
+            done
+            
+            echo "❌ Health check failed"
+            docker compose logs --tail=100
+            exit 1
+
+  # ---------------------------------------------------------------------------
+  # Summary
+  # ---------------------------------------------------------------------------
+  summary:
+    name: 📊 Summary
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    steps:
+      - name: 📊 Generate Summary
+        run: |
+          echo "## 🍫 UNOCACE Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | Status | URL |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------|--------|-----|" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.deploy-staging.result }}" != "skipped" ]]; then
+            echo "| 🧪 Staging | ${{ needs.deploy-staging.result }} | https://inatrace-test.unocace.com |" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [[ "${{ needs.deploy-production.result }}" != "skipped" ]]; then
+            echo "| 🏭 Production | ${{ needs.deploy-production.result }} | https://inatrace.unocace.com |" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Producto:** Cacao (COCOA)" >> $GITHUB_STEP_SUMMARY
+          echo "**Empresa:** UNOCACE" >> $GITHUB_STEP_SUMMARY
