@@ -9,10 +9,12 @@ import { EnvironmentInfoService } from '../../../core/environment-info.service';
 export class LandingPageFooterComponent implements OnInit {
   currentYear: number = new Date().getFullYear();
   companyName: string = '';
+  companyLogoSrc: string = '';
   constructor(private envInfo: EnvironmentInfoService) { }
 
   ngOnInit(): void {
     this.companyName = this.envInfo.companyName;
+    this.companyLogoSrc = this.envInfo.companyLogo;
   }
 
 }
