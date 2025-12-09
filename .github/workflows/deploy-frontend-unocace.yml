@@ -280,8 +280,7 @@ jobs:
         with:
           host: ${{ secrets.PROD_UNOCACE_HOST }}
           username: ${{ secrets.PROD_UNOCACE_USER }}
-          key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
-          port: ${{ secrets.PROD_UNOCACE_PORT || 22 }}
+          password: ${{ secrets.PROD_UNOCACE_PASSWORD }}
           script: mkdir -p /opt/inatrace/frontend
 
       - name: 📤 Upload docker-compose.yml
@@ -289,8 +288,7 @@ jobs:
         with:
           host: ${{ secrets.PROD_UNOCACE_HOST }}
           username: ${{ secrets.PROD_UNOCACE_USER }}
-          key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
-          port: ${{ secrets.PROD_UNOCACE_PORT || 22 }}
+          password: ${{ secrets.PROD_UNOCACE_PASSWORD }}
           source: "ci/docker-compose.yml"
           target: "/opt/inatrace/frontend"
           strip_components: 1
@@ -300,8 +298,7 @@ jobs:
         with:
           host: ${{ secrets.PROD_UNOCACE_HOST }}
           username: ${{ secrets.PROD_UNOCACE_USER }}
-          key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
-          port: ${{ secrets.PROD_UNOCACE_PORT || 22 }}
+          password: ${{ secrets.PROD_UNOCACE_PASSWORD }}
           source: "nginx.conf"
           target: "/opt/inatrace/frontend"
 
@@ -331,8 +328,7 @@ jobs:
         with:
           host: ${{ secrets.PROD_UNOCACE_HOST }}
           username: ${{ secrets.PROD_UNOCACE_USER }}
-          key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
-          port: ${{ secrets.PROD_UNOCACE_PORT || 22 }}
+          password: ${{ secrets.PROD_UNOCACE_PASSWORD }}
           source: ".env"
           target: "/opt/inatrace/frontend"
 
@@ -341,8 +337,7 @@ jobs:
         with:
           host: ${{ secrets.PROD_UNOCACE_HOST }}
           username: ${{ secrets.PROD_UNOCACE_USER }}
-          key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
-          port: ${{ secrets.PROD_UNOCACE_PORT || 22 }}
+          password: ${{ secrets.PROD_UNOCACE_PASSWORD }}
           script: |
             set -e
             echo "🍫 Deploying UNOCACE Production..."
