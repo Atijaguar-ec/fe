@@ -305,7 +305,7 @@ jobs:
                 echo "✅ Development frontend deployment successful!"
                 exit 0
               fi
-              echo "⏳ Health check attempt $i/10, retrying..."
+              echo "⏳ Health check attempt $i/10, retrying... "
             done
 
             echo "❌ Health check failed after 10 attempts"

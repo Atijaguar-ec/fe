@@ -11,7 +11,7 @@ window.env = {
   // Company Configuration
   COMPANY_NAME: '${COMPANY_NAME}' || 'UNOCACE',
   COMPANY_THEME: '${COMPANY_THEME}' || 'default',
-  COMPANY_LOGO: '${COMPANY_LOGO}' || '/assets/unocace-logo.jpg',
+  COMPANY_LOGO: '${COMPANY_LOGO}' || '/assets/landing-page/unocace-logo.jpg',
   
   // Feature Flags
   ENABLE_ANALYTICS: '${ENABLE_ANALYTICS}' || 'true',
