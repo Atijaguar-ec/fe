@@ -164,19 +164,19 @@ jobs:
       - name: 📁 Prepare remote directory
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.UNOCACE_HOST }}
-          username: ${{ secrets.UNOCACE_USER }}
-          password: ${{ secrets.UNOCACE_PASSWORD }}
-          port: ${{ secrets.UNOCACE_PORT || 22 }}
+          host: ${{ secrets.TEST_UNOCACE_HOST }}
+          username: ${{ secrets.TEST_UNOCACE_USER }}
+          password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
+          port: ${{ secrets.TEST_UNOCACE_PORT || 22 }}
           script: mkdir -p /opt/inatrace/frontend/test/unocace
 
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.UNOCACE_HOST }}
-          username: ${{ secrets.UNOCACE_USER }}
-          password: ${{ secrets.UNOCACE_PASSWORD }}
-          port: ${{ secrets.UNOCACE_PORT || 22 }}
+          host: ${{ secrets.TEST_UNOCACE_HOST }}
+          username: ${{ secrets.TEST_UNOCACE_USER }}
+          password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
+          port: ${{ secrets.TEST_UNOCACE_PORT || 22 }}
           source: "ci/docker-compose.yml"
           target: "/opt/inatrace/frontend/test/unocace"
           strip_components: 1
@@ -184,10 +184,10 @@ jobs:
       - name: 📤 Upload nginx.conf
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.UNOCACE_HOST }}
-          username: ${{ secrets.UNOCACE_USER }}
-          password: ${{ secrets.UNOCACE_PASSWORD }}
-          port: ${{ secrets.UNOCACE_PORT || 22 }}
+          host: ${{ secrets.TEST_UNOCACE_HOST }}
+          username: ${{ secrets.TEST_UNOCACE_USER }}
+          password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
+          port: ${{ secrets.TEST_UNOCACE_PORT || 22 }}
           source: "nginx.conf"
           target: "/opt/inatrace/frontend/test/unocace"
 
@@ -215,20 +215,20 @@ jobs:
       - name: 📤 Upload .env
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.UNOCACE_HOST }}
-          username: ${{ secrets.UNOCACE_USER }}
-          password: ${{ secrets.UNOCACE_PASSWORD }}
-          port: ${{ secrets.UNOCACE_PORT || 22 }}
+          host: ${{ secrets.TEST_UNOCACE_HOST }}
+          username: ${{ secrets.TEST_UNOCACE_USER }}
+          password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
+          port: ${{ secrets.TEST_UNOCACE_PORT || 22 }}
           source: ".env"
           target: "/opt/inatrace/frontend/test/unocace"
 
       - name: 🚀 Deploy Staging
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.UNOCACE_HOST }}
-          username: ${{ secrets.UNOCACE_USER }}
-          password: ${{ secrets.UNOCACE_PASSWORD }}
-          port: ${{ secrets.UNOCACE_PORT || 22 }}
+          host: ${{ secrets.TEST_UNOCACE_HOST }}
+          username: ${{ secrets.TEST_UNOCACE_USER }}
+          password: ${{ secrets.TEST_UNOCACE_PASSWORD }}
+          port: ${{ secrets.TEST_UNOCACE_PORT || 22 }}
           script: |
             set -e
             echo "🍫 Deploying UNOCACE Staging..."
@@ -278,19 +278,19 @@ jobs:
       - name: 📁 Prepare remote directory
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.UNOCACE_PROD_HOST }}
-          username: ${{ secrets.UNOCACE_PROD_USER }}
-          key: ${{ secrets.UNOCACE_PROD_SSH_KEY }}
-          port: ${{ secrets.UNOCACE_PROD_PORT || 22 }}
+          host: ${{ secrets.PROD_UNOCACE_HOST }}
+          username: ${{ secrets.PROD_UNOCACE_USER }}
+          key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
+          port: ${{ secrets.PROD_UNOCACE_PORT || 22 }}
           script: mkdir -p /opt/inatrace/frontend/prod/unocace
 
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.UNOCACE_PROD_HOST }}
-          username: ${{ secrets.UNOCACE_PROD_USER }}
-          key: ${{ secrets.UNOCACE_PROD_SSH_KEY }}
-          port: ${{ secrets.UNOCACE_PROD_PORT || 22 }}
+          host: ${{ secrets.PROD_UNOCACE_HOST }}
+          username: ${{ secrets.PROD_UNOCACE_USER }}
+          key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
+          port: ${{ secrets.PROD_UNOCACE_PORT || 22 }}
           source: "ci/docker-compose.yml"
           target: "/opt/inatrace/frontend/prod/unocace"
           strip_components: 1
@@ -298,10 +298,10 @@ jobs:
       - name: 📤 Upload nginx.conf
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.UNOCACE_PROD_HOST }}
-          username: ${{ secrets.UNOCACE_PROD_USER }}
-          key: ${{ secrets.UNOCACE_PROD_SSH_KEY }}
-          port: ${{ secrets.UNOCACE_PROD_PORT || 22 }}
+          host: ${{ secrets.PROD_UNOCACE_HOST }}
+          username: ${{ secrets.PROD_UNOCACE_USER }}
+          key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
+          port: ${{ secrets.PROD_UNOCACE_PORT || 22 }}
           source: "nginx.conf"
           target: "/opt/inatrace/frontend/prod/unocace"
 
@@ -329,20 +329,20 @@ jobs:
       - name: 📤 Upload .env
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.UNOCACE_PROD_HOST }}
-          username: ${{ secrets.UNOCACE_PROD_USER }}
-          key: ${{ secrets.UNOCACE_PROD_SSH_KEY }}
-          port: ${{ secrets.UNOCACE_PROD_PORT || 22 }}
+          host: ${{ secrets.PROD_UNOCACE_HOST }}
+          username: ${{ secrets.PROD_UNOCACE_USER }}
+          key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
+          port: ${{ secrets.PROD_UNOCACE_PORT || 22 }}
           source: ".env"
           target: "/opt/inatrace/frontend/prod/unocace"
 
       - name: 🚀 Deploy Production
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.UNOCACE_PROD_HOST }}
-          username: ${{ secrets.UNOCACE_PROD_USER }}
-          key: ${{ secrets.UNOCACE_PROD_SSH_KEY }}
-          port: ${{ secrets.UNOCACE_PROD_PORT || 22 }}
+          host: ${{ secrets.PROD_UNOCACE_HOST }}
+          username: ${{ secrets.PROD_UNOCACE_USER }}
+          key: ${{ secrets.PROD_UNOCACE_SSH_KEY }}
+          port: ${{ secrets.PROD_UNOCACE_PORT || 22 }}
           script: |
             set -e
             echo "🍫 Deploying UNOCACE Production..."

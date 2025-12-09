@@ -164,19 +164,19 @@ jobs:
       - name: 📁 Prepare remote directory
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.DUFER_HOST }}
-          username: ${{ secrets.DUFER_USER }}
-          key: ${{ secrets.DUFER_SSH_KEY }}
-          port: ${{ secrets.DUFER_PORT || 22 }}
+          host: ${{ secrets.TEST_DUFER_HOST }}
+          username: ${{ secrets.TEST_DUFER_USER }}
+          key: ${{ secrets.TEST_DUFER_SSH_KEY }}
+          port: ${{ secrets.TEST_DUFER_PORT || 22 }}
           script: mkdir -p /opt/inatrace/frontend/test/dufer
 
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.DUFER_HOST }}
-          username: ${{ secrets.DUFER_USER }}
-          key: ${{ secrets.DUFER_SSH_KEY }}
-          port: ${{ secrets.DUFER_PORT || 22 }}
+          host: ${{ secrets.TEST_DUFER_HOST }}
+          username: ${{ secrets.TEST_DUFER_USER }}
+          key: ${{ secrets.TEST_DUFER_SSH_KEY }}
+          port: ${{ secrets.TEST_DUFER_PORT || 22 }}
           source: "ci/docker-compose.yml"
           target: "/opt/inatrace/frontend/test/dufer"
           strip_components: 1
@@ -184,10 +184,10 @@ jobs:
       - name: 📤 Upload nginx.conf
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.DUFER_HOST }}
-          username: ${{ secrets.DUFER_USER }}
-          key: ${{ secrets.DUFER_SSH_KEY }}
-          port: ${{ secrets.DUFER_PORT || 22 }}
+          host: ${{ secrets.TEST_DUFER_HOST }}
+          username: ${{ secrets.TEST_DUFER_USER }}
+          key: ${{ secrets.TEST_DUFER_SSH_KEY }}
+          port: ${{ secrets.TEST_DUFER_PORT || 22 }}
           source: "nginx.conf"
           target: "/opt/inatrace/frontend/test/dufer"
 
@@ -215,20 +215,20 @@ jobs:
       - name: 📤 Upload .env
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.DUFER_HOST }}
-          username: ${{ secrets.DUFER_USER }}
-          key: ${{ secrets.DUFER_SSH_KEY }}
-          port: ${{ secrets.DUFER_PORT || 22 }}
+          host: ${{ secrets.TEST_DUFER_HOST }}
+          username: ${{ secrets.TEST_DUFER_USER }}
+          key: ${{ secrets.TEST_DUFER_SSH_KEY }}
+          port: ${{ secrets.TEST_DUFER_PORT || 22 }}
           source: ".env"
           target: "/opt/inatrace/frontend/test/dufer"
 
       - name: 🚀 Deploy Staging
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.DUFER_HOST }}
-          username: ${{ secrets.DUFER_USER }}
-          key: ${{ secrets.DUFER_SSH_KEY }}
-          port: ${{ secrets.DUFER_PORT || 22 }}
+          host: ${{ secrets.TEST_DUFER_HOST }}
+          username: ${{ secrets.TEST_DUFER_USER }}
+          key: ${{ secrets.TEST_DUFER_SSH_KEY }}
+          port: ${{ secrets.TEST_DUFER_PORT || 22 }}
           script: |
             set -e
             echo "🦐 Deploying DUFER Staging..."
@@ -278,19 +278,19 @@ jobs:
       - name: 📁 Prepare remote directory
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.DUFER_PROD_HOST }}
-          username: ${{ secrets.DUFER_PROD_USER }}
-          key: ${{ secrets.DUFER_PROD_SSH_KEY }}
-          port: ${{ secrets.DUFER_PROD_PORT || 22 }}
+          host: ${{ secrets.PROD_DUFER_HOST }}
+          username: ${{ secrets.PROD_DUFER_USER }}
+          key: ${{ secrets.PROD_DUFER_SSH_KEY }}
+          port: ${{ secrets.PROD_DUFER_PORT || 22 }}
           script: mkdir -p /opt/inatrace/frontend/prod/dufer
 
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.DUFER_PROD_HOST }}
-          username: ${{ secrets.DUFER_PROD_USER }}
-          key: ${{ secrets.DUFER_PROD_SSH_KEY }}
-          port: ${{ secrets.DUFER_PROD_PORT || 22 }}
+          host: ${{ secrets.PROD_DUFER_HOST }}
+          username: ${{ secrets.PROD_DUFER_USER }}
+          key: ${{ secrets.PROD_DUFER_SSH_KEY }}
+          port: ${{ secrets.PROD_DUFER_PORT || 22 }}
           source: "ci/docker-compose.yml"
           target: "/opt/inatrace/frontend/prod/dufer"
           strip_components: 1
@@ -298,10 +298,10 @@ jobs:
       - name: 📤 Upload nginx.conf
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.DUFER_PROD_HOST }}
-          username: ${{ secrets.DUFER_PROD_USER }}
-          key: ${{ secrets.DUFER_PROD_SSH_KEY }}
-          port: ${{ secrets.DUFER_PROD_PORT || 22 }}
+          host: ${{ secrets.PROD_DUFER_HOST }}
+          username: ${{ secrets.PROD_DUFER_USER }}
+          key: ${{ secrets.PROD_DUFER_SSH_KEY }}
+          port: ${{ secrets.PROD_DUFER_PORT || 22 }}
           source: "nginx.conf"
           target: "/opt/inatrace/frontend/prod/dufer"
 
@@ -329,20 +329,20 @@ jobs:
       - name: 📤 Upload .env
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.DUFER_PROD_HOST }}
-          username: ${{ secrets.DUFER_PROD_USER }}
-          key: ${{ secrets.DUFER_PROD_SSH_KEY }}
-          port: ${{ secrets.DUFER_PROD_PORT || 22 }}
+          host: ${{ secrets.PROD_DUFER_HOST }}
+          username: ${{ secrets.PROD_DUFER_USER }}
+          key: ${{ secrets.PROD_DUFER_SSH_KEY }}
+          port: ${{ secrets.PROD_DUFER_PORT || 22 }}
           source: ".env"
           target: "/opt/inatrace/frontend/prod/dufer"
 
       - name: 🚀 Deploy Production
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.DUFER_PROD_HOST }}
-          username: ${{ secrets.DUFER_PROD_USER }}
-          key: ${{ secrets.DUFER_PROD_SSH_KEY }}
-          port: ${{ secrets.DUFER_PROD_PORT || 22 }}
+          host: ${{ secrets.PROD_DUFER_HOST }}
+          username: ${{ secrets.PROD_DUFER_USER }}
+          key: ${{ secrets.PROD_DUFER_SSH_KEY }}
+          port: ${{ secrets.PROD_DUFER_PORT || 22 }}
           script: |
             set -e
             echo "🦐 Deploying DUFER Production..."
