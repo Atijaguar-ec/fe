@@ -2,10 +2,9 @@ import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { ProductControllerService } from 'src/api/api/productController.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { GoogleMap } from '@angular/google-maps';
 import { FormGroup, FormControl } from '@angular/forms';
 import { GlobalEventManagerService } from 'src/app/core/global-event-manager.service';
-import { take } from 'rxjs/operators';
+import { JourneyMarker, MapboxJourneyMapComponent } from 'src/app/shared/mapbox-journey-map/mapbox-journey-map.component';
 
 @Component({
   selector: 'app-product-label-statistics-page',
@@ -14,31 +13,20 @@ import { take } from 'rxjs/operators';
 })
 export class ProductLabelStatisticsPageComponent implements OnInit, OnDestroy {
 
-  @ViewChild(GoogleMap) set map(map: GoogleMap) {
-    if (map) {
-      this.gMap = map;
-      this.fitBounds();
-    }
-  }
+  @ViewChild(MapboxJourneyMapComponent) mapComponent: MapboxJourneyMapComponent;
 
-  gMap = null;
-  markers: any = [];
-  defaultCenter = {
-    lat: -1.831239,
-    lng: -78.183406
-  };
-  defaultZoom = 7;
-  zoomForOnePin = 10;
-  bounds: any;
-  isGoogleMapsLoaded = false;
+  // Mapbox configuration
+  readonly defaultCenter = { lat: -1.831239, lng: -78.183406 };
+  readonly defaultZoom = 7;
+  readonly markerColor = '#25265E';
 
-  initialBoundsAuth: any = [];
-  initialBoundsOrig: any = [];
-  initialBoundsVisit: any = [];
+  // Markers for display (combined from all categories based on filter)
+  mapMarkers: JourneyMarker[] = [];
 
-  authMarkers: any = [];
-  origMarkers: any = [];
-  visitMarkers: any = [];
+  // Separate marker arrays for filtering
+  private authMarkersData: JourneyMarker[] = [];
+  private origMarkersData: JourneyMarker[] = [];
+  private visitMarkersData: JourneyMarker[] = [];
 
   subs: Subscription[] = [];
   statistics = {};
@@ -66,14 +54,6 @@ export class ProductLabelStatisticsPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.getStatistics();
-
-    const sub2 = this.globalEventsManager.loadedGoogleMapsEmitter.subscribe(
-      loaded => {
-        if (loaded) { this.isGoogleMapsLoaded = true; }
-      },
-      error => { }
-    );
-    this.subs.push(sub2);
   }
 
   ngOnDestroy(): void {
@@ -108,109 +88,80 @@ export class ProductLabelStatisticsPageComponent implements OnInit, OnDestroy {
   }
 
 
-  initializeMarkers(data): void {
-    this.authMarkers = [];
-    this.origMarkers = [];
-    this.visitMarkers = [];
-    if(data) {
-      Object.entries(data.authLocations).forEach(
-        ([key, value]) => {
-          if(key != 'unknown') {
-            const num = value;
+  initializeMarkers(data: any): void {
+    this.authMarkersData = [];
+    this.origMarkersData = [];
+    this.visitMarkersData = [];
+
+    if (data) {
+      // Parse auth locations
+      if (data.authLocations) {
+        Object.entries(data.authLocations).forEach(([key, value]) => {
+          if (key !== 'unknown') {
             const pos = key.split(':');
-            const tmp = {
-              position: {
-                lat: parseFloat(pos[0]),
-                lng: parseFloat(pos[1])
-              },
-              // label: {
-              //   text: String(num)
-              // }
-            };
-            this.authMarkers.push(tmp);
-            this.initialBoundsAuth.push(tmp.position);
+            this.authMarkersData.push({
+              lat: parseFloat(pos[0]),
+              lng: parseFloat(pos[1]),
+              draggable: false
+            });
           }
-        }
-      );
-      Object.entries(data.originLocations).forEach(
-        ([key, value]) => {
-          if (key != 'unknown') {
-            const num = value;
+        });
+      }
+
+      // Parse origin locations
+      if (data.originLocations) {
+        Object.entries(data.originLocations).forEach(([key, value]) => {
+          if (key !== 'unknown') {
             const pos = key.split(':');
-            const tmp = {
-              position: {
-                lat: parseFloat(pos[0]),
-                lng: parseFloat(pos[1])
-              },
-              // label: {
-              //   text: String(num)
-              // }
-            };
-            this.origMarkers.push(tmp);
-            this.initialBoundsOrig.push(tmp.position);
+            this.origMarkersData.push({
+              lat: parseFloat(pos[0]),
+              lng: parseFloat(pos[1]),
+              draggable: false
+            });
           }
-        }
-      );
-      Object.entries(data.visitsLocations).forEach(
-        ([key, value]) => {
-          if (key != 'unknown') {
-            const num = value;
+        });
+      }
+
+      // Parse visit locations
+      if (data.visitsLocations) {
+        Object.entries(data.visitsLocations).forEach(([key, value]) => {
+          if (key !== 'unknown') {
             const pos = key.split(':');
-            const tmp = {
-              position: {
-                lat: parseFloat(pos[0]),
-                lng: parseFloat(pos[1])
-              },
-              // label: {
-              //   text: String(num)
-              // }
-            };
-            this.visitMarkers.push(tmp);
-            this.initialBoundsVisit.push(tmp.position);
+            this.visitMarkersData.push({
+              lat: parseFloat(pos[0]),
+              lng: parseFloat(pos[1]),
+              draggable: false
+            });
           }
-        }
-      );
+        });
+      }
     }
-    this.fitBounds();
+
+    this.updateVisibleMarkers();
   }
 
+  /**
+   * Update visible markers based on checkbox filters
+   */
+  updateVisibleMarkers(): void {
+    const markers: JourneyMarker[] = [];
 
-  fitBounds() {
-    if (!this.gMap) { return; }
-    this.bounds = new google.maps.LatLngBounds();
-    if(this.locationsForm.get('visitLoc').value) {
-      for (const bound of this.initialBoundsVisit) {
-        this.bounds.extend(bound);
-      }
+    if (this.locationsForm.get('visitLoc')?.value) {
+      markers.push(...this.visitMarkersData);
     }
-    if (this.locationsForm.get('authLoc').value) {
-      for (const bound of this.initialBoundsAuth) {
-        this.bounds.extend(bound);
-      }
+    if (this.locationsForm.get('authLoc')?.value) {
+      markers.push(...this.authMarkersData);
     }
-    if (this.locationsForm.get('origLoc').value) {
-      for (const bound of this.initialBoundsOrig) {
-        this.bounds.extend(bound);
-      }
+    if (this.locationsForm.get('origLoc')?.value) {
+      markers.push(...this.origMarkersData);
     }
-    if (this.bounds.isEmpty()) {
-      this.gMap.googleMap.setCenter(this.defaultCenter);
-      this.gMap.googleMap.setZoom(this.defaultZoom);
-      return;
-    }
-    const center = this.bounds.getCenter();
-    const offset = 0.02;
-    const northEast = new google.maps.LatLng(
-      center.lat() + offset,
-      center.lng() + offset
-    );
-    const southWest = new google.maps.LatLng(
-      center.lat() - offset,
-      center.lng() - offset
-    );
-    const minBounds = new google.maps.LatLngBounds(southWest, northEast);
-    this.gMap.fitBounds(this.bounds.union(minBounds));
 
+    this.mapMarkers = markers;
+
+    // Trigger map to fit bounds after markers update
+    if (this.mapComponent) {
+      setTimeout(() => this.mapComponent.fitBounds(), 100);
+    }
   }
 
 }

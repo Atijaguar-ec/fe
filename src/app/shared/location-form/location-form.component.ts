@@ -1,10 +1,8 @@
-import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, Validators } from '@angular/forms';
-import { GoogleMap } from '@angular/google-maps';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { Subscription } from 'rxjs';
 import { CountryService } from 'src/app/shared-services/countries.service';
-import { GlobalEventManagerService } from 'src/app/core/global-event-manager.service';
 import { EnumSifrant } from 'src/app/shared-services/enum-sifrant';
 import { ApiCountry } from '../../../api/model/apiCountry';
 
@@ -15,13 +13,8 @@ import { ApiCountry } from '../../../api/model/apiCountry';
 })
 export class LocationFormComponent implements OnInit, OnDestroy {
 
-  @ViewChild(GoogleMap) set map(map: GoogleMap) {
-    if (map) { this.gMap = map; this.fitBounds(); }
-  }
-
   constructor(
-    public countryCodes: CountryService,
-    public globalEventsManager: GlobalEventManagerService
+    public countryCodes: CountryService
   ) { }
 
   get publiclyVisible() {
@@ -56,18 +49,9 @@ export class LocationFormComponent implements OnInit, OnDestroy {
   codebookStatus = EnumSifrant.fromObject(this.publiclyVisible);
 
   ngOnInit(): void {
-
-    this.subs.push(
-        this.globalEventsManager.loadedGoogleMapsEmitter.subscribe(
-            loaded => {
-              if (loaded) { this.isGoogleMapsLoaded = true; }
-              this.initializeMarker();
-              const tmpVis = this.form.get('publiclyVisible').value;
-              if (tmpVis != null) { this.form.get('publiclyVisible').setValue(tmpVis.toString()); }
-            },
-            () => { }
-        )
-    );
+    // Initialize form values
+    const tmpVis = this.form.get('publiclyVisible')?.value;
+    if (tmpVis != null) { this.form.get('publiclyVisible')?.setValue(tmpVis.toString()); }
 
     this.subs.push(
         this.form.get('address.country').valueChanges
@@ -211,74 +195,11 @@ export class LocationFormComponent implements OnInit, OnDestroy {
     this.initialBounds.push(tmp.position);
   }
 
-  fitBounds() {
-    this.bounds = new google.maps.LatLngBounds();
-    for (const bound of this.initialBounds) {
-      this.bounds.extend(bound);
-    }
-    if (this.bounds.isEmpty()) {
-      this.gMap.googleMap.setCenter(this.defaultCenter);
-      this.gMap.googleMap.setZoom(this.defaultZoom);
-      return;
-    }
-    const center = this.bounds.getCenter();
-    const offset = 0.02;
-    const northEast = new google.maps.LatLng(
-      center.lat() + offset,
-      center.lng() + offset
-    );
-    const southWest = new google.maps.LatLng(
-      center.lat() - offset,
-      center.lng() - offset
-    );
-    const minBounds = new google.maps.LatLngBounds(southWest, northEast);
-    this.gMap.fitBounds(this.bounds.union(minBounds));
-  }
-
-  updateLonLat() {
-
-    if (this.marker) {
-      this.form.get('latitude').setValue(this.marker.position.lat);
-      this.form.get('longitude').setValue(this.marker.position.lng);
-    } else {
-      this.form.get('latitude').setValue(null);
-      this.form.get('longitude').setValue(null);
-    }
-    this.form.get('latitude').markAsDirty();
-    this.form.get('longitude').markAsDirty();
-  }
-
-  dblClick(event: google.maps.MouseEvent) {
-    if (this.marker) {
-      this.updateMarkerLocation(event.latLng.toJSON());
-    } else {
-      this.marker = {
-        position: event.latLng.toJSON(),
-        label: {
-          text: ' '
-        },
-        infoText: ' '
-      };
-      this.updateLonLat();
-    }
-  }
-
-  dragend(event, index) {
-    this.updateMarkerLocation(event.latLng.toJSON());
-  }
-
-  updateMarkerLocation(loc) {
-    const tmpCurrent = this.marker;
-    this.marker = {
-      position: loc,
-      label: tmpCurrent.label,
-      infoText: tmpCurrent.infoText
-    };
-    this.updateLonLat();
-  }
-
-  removeOriginLocation() {
-    this.marker = null;
-    this.initialBounds = [];
-  }
+  // Google Maps methods commented out - map is disabled in HTML
+  // fitBounds() { ... }
+  // updateLonLat() { ... }
+  // dblClick(event) { ... }
+  // dragend(event, index) { ... }
+  // updateMarkerLocation(loc) { ... }
+  // removeOriginLocation() { ... }
 }

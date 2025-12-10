@@ -1,10 +1,9 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { CountryService } from '../../shared-services/countries.service';
-import { GlobalEventManagerService } from '../../core/global-event-manager.service';
 import { FormGroup } from '@angular/forms';
 import _ from 'lodash-es';
 import { EnumSifrant } from '../../shared-services/enum-sifrant';
-import { GoogleMap } from '@angular/google-maps';
+import { JourneyMarker, MapboxJourneyMapComponent, MapClickEvent, MarkerDragEvent } from '../mapbox-journey-map/mapbox-journey-map.component';
 
 @Component({
   selector: 'app-location-form-new',
@@ -19,54 +18,43 @@ export class LocationFormNewComponent implements OnInit {
   @Input()
   submitted = false;
 
-  @ViewChild(GoogleMap) set map(map: GoogleMap) {
-    if (map) { this.gMap = map; this.fitBounds(); }
-  }
+  @ViewChild(MapboxJourneyMapComponent) mapComponent: MapboxJourneyMapComponent;
 
-  gMap: GoogleMap | null = null;
-  isGoogleMapsLoaded = false;
-  marker: { position: { lat: number; lng: number } } | null = null;
-  bounds: google.maps.LatLngBounds | null = null;
-  initialBounds: { lat: number; lng: number }[] = [];
-  defaultCenter = {
-    lat: -1.831239,
-    lng: -78.183406
-  };
-  defaultZoom = 7;
+  // Mapbox configuration
+  readonly defaultCenter = { lat: -1.831239, lng: -78.183406 };
+  readonly defaultZoom = 7;
+  readonly markerColor = '#25265E';
+
+  // Single marker for location
+  mapMarkers: JourneyMarker[] = [];
 
   codebookStatus = EnumSifrant.fromObject(this.publiclyVisible);
 
   constructor(
-      public countryCodes: CountryService,
-      public globalEventsManager: GlobalEventManagerService
+      public countryCodes: CountryService
   ) { }
 
   ngOnInit(): void {
-    this.globalEventsManager.loadedGoogleMapsEmitter.subscribe(loaded => {
-      if (loaded) {
-        this.isGoogleMapsLoaded = true;
-        this.initializeMarker();
-      }
-    });
+    this.initializeMarker();
   }
 
-  initializeMarker() {
-    if (!this.form.get('facilityLocation.latitude') || !this.form.get('facilityLocation.longitude')) {
+  initializeMarker(): void {
+    const latCtrl = this.form.get('facilityLocation.latitude');
+    const lngCtrl = this.form.get('facilityLocation.longitude');
+    if (!latCtrl || !lngCtrl) {
       return;
     }
-    const lat = this.form.get('facilityLocation.latitude').value;
-    const lng = this.form.get('facilityLocation.longitude').value;
+    const lat = latCtrl.value;
+    const lng = lngCtrl.value;
     if (lat == null || lng == null) {
+      this.mapMarkers = [];
       return;
     }
-    const tmp = {
-      position: {
-        lat,
-        lng
-      }
-    };
-    this.marker = tmp;
-    this.initialBounds.push(tmp.position);
+    this.mapMarkers = [{
+      lat,
+      lng,
+      draggable: true
+    }];
   }
 
   doShowVillage(): boolean {
@@ -81,76 +69,49 @@ export class LocationFormNewComponent implements OnInit {
     return obj;
   }
 
-  dblClick(event: google.maps.MouseEvent) {
-    if (this.marker) {
-      this.updateMarkerLocation(event.latLng.toJSON());
-    } else {
-      this.marker = {
-        position: event.latLng.toJSON()
-      };
-      this.updateLatLng();
-    }
-  }
-
-  removeMarker() {
-    this.marker = null;
-  }
-
-  updateLatLng() {
-    this.form.get('facilityLocation.latitude').setValue(this.marker ? this.marker.position.lat : null);
-    this.form.get('facilityLocation.longitude').setValue(this.marker ? this.marker.position.lng : null);
-
-    this.form.get('facilityLocation.latitude').markAsDirty();
-    this.form.get('facilityLocation.longitude').markAsDirty();
-  }
-
-  updateMarkerLocation(location) {
-    this.marker = {
-      position: location
-    };
+  /**
+   * Handle map double-click - add or update marker
+   */
+  onMapDblClick(event: MapClickEvent): void {
+    this.mapMarkers = [{
+      lat: event.lat,
+      lng: event.lng,
+      draggable: true
+    }];
     this.updateLatLng();
   }
 
-  dragEnd(event) {
-    this.updateMarkerLocation(event.latLng.toJSON());
+  /**
+   * Handle marker right-click - remove marker
+   */
+  onMarkerRightClick(): void {
+    this.mapMarkers = [];
+    this.updateLatLng();
   }
 
-  fitBounds() {
-    if (!this.gMap || !this.gMap.googleMap) {
-      return;
-    }
-    
-    this.bounds = new google.maps.LatLngBounds();
-    for (const bound of this.initialBounds) {
-      if (bound && bound.lat != null && bound.lng != null) {
-        this.bounds.extend(bound);
-      }
-    }
-    
-    if (this.bounds.isEmpty()) {
-      this.gMap.googleMap.setCenter(this.defaultCenter);
-      this.gMap.googleMap.setZoom(this.defaultZoom);
-      return;
-    }
-    
-    const center = this.bounds.getCenter();
-    if (!center) {
-      this.gMap.googleMap.setCenter(this.defaultCenter);
-      this.gMap.googleMap.setZoom(this.defaultZoom);
-      return;
-    }
-    
-    const offset = 0.02;
-    const northEast = new google.maps.LatLng(
-        center.lat() + offset,
-        center.lng() + offset
-    );
-    const southWest = new google.maps.LatLng(
-        center.lat() - offset,
-        center.lng() - offset
-    );
-    const minBounds = new google.maps.LatLngBounds(southWest, northEast);
-    this.gMap.fitBounds(this.bounds.union(minBounds));
+  /**
+   * Handle marker drag end
+   */
+  onMarkerDragEnd(event: MarkerDragEvent): void {
+    this.mapMarkers = [{
+      lat: event.lat,
+      lng: event.lng,
+      draggable: true
+    }];
+    this.updateLatLng();
+  }
+
+  /**
+   * Update form with marker coordinates
+   */
+  updateLatLng(): void {
+    const lat = this.mapMarkers.length > 0 ? this.mapMarkers[0].lat : null;
+    const lng = this.mapMarkers.length > 0 ? this.mapMarkers[0].lng : null;
+
+    this.form.get('facilityLocation.latitude')?.setValue(lat);
+    this.form.get('facilityLocation.longitude')?.setValue(lng);
+    this.form.get('facilityLocation.latitude')?.markAsDirty();
+    this.form.get('facilityLocation.longitude')?.markAsDirty();
   }
 
 }

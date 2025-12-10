@@ -94,49 +94,35 @@
       <div class="section-spacer"></div>
       <div class="d-flex flex-column">
         <h5 i18n="@@productLabelStatistics.title.locations">Scan locations</h5>
-        <google-map
-          *ngIf="isGoogleMapsLoaded"
-          width="100%"
-          height="380px"
-          [zoom]="defaultZoom"
-          [center]="defaultCenter"
-          [options]="{disableDoubleClickZoom: true}">
-          <ng-container *ngIf="locationsForm.get('authLoc').value">
-            <map-marker
-              *ngFor="let marker of authMarkers; index as i"
-              [position]="marker.position"
-              [label]="marker.label">
-            </map-marker>
-          </ng-container>
-          <ng-container *ngIf="locationsForm.get('origLoc').value">
-            <map-marker
-              *ngFor="let marker of origMarkers; index as i"
-              [position]="marker.position"
-              [label]="marker.label">
-            </map-marker>
-          </ng-container>
-          <ng-container *ngIf="locationsForm.get('visitLoc').value">
-            <map-marker
-              *ngFor="let marker of visitMarkers; index as i"
-              [position]="marker.position"
-              [label]="marker.label">
-            </map-marker>
-          </ng-container>
-        </google-map>
+        <!-- Mapbox map showing scan locations -->
+        <app-mapbox-journey-map
+          [mapId]="'statistics-map'"
+          [height]="'380px'"
+          [width]="'100%'"
+          [centerLat]="defaultCenter.lat"
+          [centerLng]="defaultCenter.lng"
+          [defaultZoom]="defaultZoom"
+          [markerList]="mapMarkers"
+          [editMode]="false"
+          [showPolyline]="false"
+          [markerColor]="markerColor"
+          [autoFitBounds]="true"
+          [disableDoubleClickZoom]="true">
+        </app-mapbox-journey-map>
       </div>
 
       <div class="d-flex justify-content-between">
-        <checkbox-input [form]="locationsForm.get('visitLoc')" (onClick)="fitBounds()">
+        <checkbox-input [form]="locationsForm.get('visitLoc')" (onClick)="updateVisibleMarkers()">
           <checkbox-input-rich-label i18n="@@productLabelStatistics.checkbox-input.pageVisits">
             Page visits
           </checkbox-input-rich-label>
         </checkbox-input>
-        <checkbox-input [form]="locationsForm.get('authLoc')" (onClick)="fitBounds()" *ngIf="this.showAuth">
+        <checkbox-input [form]="locationsForm.get('authLoc')" (onClick)="updateVisibleMarkers()" *ngIf="this.showAuth">
           <checkbox-input-rich-label i18n="@@productLabelStatistics.checkbox-input.authenticityClicks">
             Check Authenticity clicks
           </checkbox-input-rich-label>
         </checkbox-input>
-        <checkbox-input [form]="locationsForm.get('origLoc')" (onClick)="fitBounds()" *ngIf="this.showOrig">
+        <checkbox-input [form]="locationsForm.get('origLoc')" (onClick)="updateVisibleMarkers()" *ngIf="this.showOrig">
           <checkbox-input-rich-label i18n="@@productLabelStatistics.checkbox-input.originClicks">
             Trace origin clicks
           </checkbox-input-rich-label>

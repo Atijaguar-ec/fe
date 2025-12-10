@@ -1,19 +1,24 @@
-import { Component, OnInit, Input, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { FormGroup, FormArray, FormControl } from '@angular/forms';
 import { ApiProductLabelBatch } from 'src/api/model/apiProductLabelBatch';
-import {dateISOString, generateFormFromMetadata} from 'src/shared/utils';
+import { dateISOString, generateFormFromMetadata } from 'src/shared/utils';
 import { ApiProductLabelBatchValidationScheme } from '../batches-list/batch-edit-modal/validation';
 import { ProductControllerService } from 'src/api/api/productController.service';
 import { Location } from '@angular/common';
 import { take } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
-import { GoogleMap, MapInfoWindow } from '@angular/google-maps';
 import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 import { PrefillLocationsFromProductModalComponent } from './prefill-locations-from-product-modal/prefill-locations-from-product-modal.component';
 import { GlobalEventManagerService } from 'src/app/core/global-event-manager.service';
 import { Subscription } from 'rxjs';
 import { NgbModalImproved } from 'src/app/core/ngb-modal-improved/ngb-modal-improved.service';
+import {
+  MapboxJourneyMapComponent,
+  MapClickEvent,
+  MarkerDragEvent,
+  JourneyMarker
+} from 'src/app/shared/mapbox-journey-map/mapbox-journey-map.component';
 
 
 @Component({
@@ -23,15 +28,7 @@ import { NgbModalImproved } from 'src/app/core/ngb-modal-improved/ngb-modal-impr
 })
 export class BatchDetailPageComponent implements OnInit, OnDestroy {
 
-  @ViewChild(GoogleMap) set map(map: GoogleMap) {
-    if (map) {
-      this.gMap = map;
-      this.fitBounds();}
-  }
-
-  @ViewChild(MapInfoWindow) set infoWindow(infoWindow: MapInfoWindow) {
-    if (infoWindow) { this.gInfoWindow = infoWindow; }
-  }
+  @ViewChild(MapboxJourneyMapComponent) mapComponent: MapboxJourneyMapComponent;
 
   constructor(
     private globalEventsManager: GlobalEventManagerService,
@@ -64,19 +61,14 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
   goToLink: string = this.router.url.substr(0, this.router.url.lastIndexOf('/'));
 
   faTrashAlt = faTrashAlt;
-  gInfoWindow = null;
-  gMap = null;
-  gInfoWindowText = '';
-  markers: any = [];
-  defaultCenter = {
-    lat: -1.831239,
-    lng: -78.183406
-  };
-  defaultZoom = 7;
-  zoomForOnePin = 10;
-  bounds: any;
-  initialBounds: any = [];
-  isGoogleMapsLoaded = false;
+
+  // Mapbox map configuration
+  readonly defaultCenter = { lat: -1.831239, lng: -78.183406 };
+  readonly defaultZoom = 7;
+  readonly markerColor = '#25265E';
+
+  // Markers for display (converted from originLocations for MapboxJourneyMapComponent)
+  mapMarkers: JourneyMarker[] = [];
 
   batch: ApiProductLabelBatch = {};
 
@@ -103,14 +95,6 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
       this.getBatch();
       this.title = $localize`:@@batchDetail.title.edit:Edit batch`;
     }
-    const sub2 = this.globalEventsManager.loadedGoogleMapsEmitter.subscribe(
-      loaded => {
-        if (loaded) { this.isGoogleMapsLoaded = true; }
-      },
-      error => { }
-    );
-    this.subs.push(sub2);
-
   }
 
   newBatch() {
@@ -198,34 +182,14 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
     if (this.mode == 'create') { this.batchDetailForm.get('labelId').setValue(Number(this.route.snapshot.params.labelId)); }
   }
 
-  onFileUpload(event) {
+  onFileUpload(event: any) {
   }
 
-  fitBounds() {
-    if (this.initialBounds.length == 0) { return; }
-    this.bounds = new google.maps.LatLngBounds();
-    for (const bound of this.initialBounds) {
-      this.bounds.extend(bound);
-    }
-    if (this.bounds.isEmpty()) {
-      this.gMap.googleMap.setCenter(this.defaultCenter);
-      this.gMap.googleMap.setZoom(this.defaultZoom);
-      return;
-    }
-    const center = this.bounds.getCenter();
-    const offset = 0.02;
-    const northEast = new google.maps.LatLng(
-      center.lat() + offset,
-      center.lng() + offset
-    );
-    const southWest = new google.maps.LatLng(
-      center.lat() - offset,
-      center.lng() - offset
-    );
-    const minBounds = new google.maps.LatLngBounds(southWest, northEast);
-    this.gMap.fitBounds(this.bounds.union(minBounds));
-  }
+  // ==================== MAP METHODS (Mapbox) ====================
 
+  /**
+   * Create a FormGroup for a location
+   */
   createOrFillOriginLocationsItem(loc: any, create: boolean): FormGroup {
     return new FormGroup({
       latitude: new FormControl(create ? loc.lat : loc.latitude),
@@ -235,7 +199,10 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  initializeOriginLocations(locs): void {
+  /**
+   * Initialize origin locations FormArray from data
+   */
+  initializeOriginLocations(locs: any[]): void {
     const tmp = new FormArray([]);
     for (const loc of locs) {
       tmp.push(this.createOrFillOriginLocationsItem(loc, false));
@@ -244,83 +211,77 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
     this.batchDetailForm.updateValueAndValidity();
   }
 
-  initializeMarkers(locs): void {
-    this.markers = [];
-    for (const loc of locs) {
-      const tmp = {
-        position: {
-          lat: loc.latitude,
-          lng: loc.longitude
-        },
-        label: {
-          text: loc.numberOfFarmers ? String(loc.numberOfFarmers) : ' '
-        },
-        infoText: loc.pinName
-      };
-      this.markers.push(tmp);
-      this.initialBounds.push(tmp.position);
+  /**
+   * Convert origin locations to JourneyMarker array for the map
+   */
+  initializeMarkers(locs: any[]): void {
+    this.mapMarkers = locs.map((loc, index) => ({
+      lat: loc.latitude,
+      lng: loc.longitude,
+      label: loc.numberOfFarmers ? String(loc.numberOfFarmers) : String(index + 1),
+      infoText: loc.pinName || '',
+      draggable: true
+    }));
+  }
+
+  /**
+   * Refresh map markers from the form array
+   */
+  refreshMapMarkers(): void {
+    this.mapMarkers = this.originLocations.controls.map((ctrl, index) => ({
+      lat: ctrl.get('latitude')?.value,
+      lng: ctrl.get('longitude')?.value,
+      label: ctrl.get('numberOfFarmers')?.value ? String(ctrl.get('numberOfFarmers')?.value) : String(index + 1),
+      infoText: ctrl.get('pinName')?.value || '',
+      draggable: true
+    }));
+  }
+
+  /**
+   * Handle map double-click - add new location
+   */
+  onMapDblClick(event: MapClickEvent): void {
+    this.originLocations.push(this.createOrFillOriginLocationsItem({ lat: event.lat, lng: event.lng }, true));
+    this.refreshMapMarkers();
+    this.batchDetailForm.markAsDirty();
+  }
+
+  /**
+   * Handle marker right-click - remove location
+   */
+  onMarkerRightClick(event: { index: number }): void {
+    this.removeOriginLocation(event.index);
+  }
+
+  /**
+   * Handle marker drag end - update location coordinates
+   */
+  onMarkerDragEnd(event: MarkerDragEvent): void {
+    const ctrl = this.originLocations.at(event.index);
+    if (ctrl) {
+      ctrl.get('latitude')?.setValue(event.lat);
+      ctrl.get('longitude')?.setValue(event.lng);
+      this.refreshMapMarkers();
+      this.batchDetailForm.markAsDirty();
     }
   }
 
-  addOriginLocations(loc) {
-    const tmp = {
-      position: loc,
-      label: {
-        text: ' '
-      },
-      infoText: ' '
-    };
-    this.markers.push(tmp);
-    this.initialBounds.push(tmp.position);
-    this.originLocations.push(this.createOrFillOriginLocationsItem(loc, true) as FormGroup);
-    this.batchDetailForm.markAsDirty();
-  }
-
-  removeOriginLocation(index: number) {
+  /**
+   * Remove a location by index
+   */
+  removeOriginLocation(index: number): void {
     this.originLocations.removeAt(index);
-    this.markers.splice(index, 1);
-    this.initialBounds.splice(index, 1);
+    this.refreshMapMarkers();
     this.batchDetailForm.markAsDirty();
   }
 
-  updateMarkerLocation(loc, index) {
-    this.originLocations.at(index).get('latitude').setValue(loc.lat);
-    this.originLocations.at(index).get('longitude').setValue(loc.lng);
-    const tmpCurrent = this.markers[index];
-    const tmp = {
-      position: loc,
-      label: tmpCurrent.label,
-      infoText: tmpCurrent.infoText
-    };
-    this.markers.splice(index, 1, tmp);
-    this.initialBounds.splice(index, 1, tmp.position);
-  }
-
-  updateInfoWindow(infoText, index) {
-    const tmpCurrent = this.markers[index];
-    const tmp = {
-      position: tmpCurrent.position,
-      label: tmpCurrent.label,
-      infoText
-    };
-    this.markers.splice(index, 1, tmp);
-  }
-
-  dblClick(event: google.maps.MouseEvent) {
-    this.addOriginLocations(event.latLng.toJSON());
-  }
-
-  dragend(event, index) {
-    this.updateMarkerLocation(event.latLng.toJSON(), index);
-  }
-
-  openInfoWindow(gMarker, marker) {
-    this.gInfoWindowText = marker.infoText;
-    this.gInfoWindow.open(gMarker);
-  }
-
-  onKey(event, index) {
-    this.updateInfoWindow(event.target.value, index);
+  /**
+   * Handle pin name change - update marker info text
+   */
+  onKey(event: any, index: number): void {
+    // The form is already updated via two-way binding
+    // Just refresh markers to update the infoText
+    this.refreshMapMarkers();
   }
 
   async prefillFromProduct() {
@@ -330,25 +291,22 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
       instructionsHtml: $localize`:@@batchDetail.prefillFromProduct.instructionsHtml:This action will replace all your current locations with product's locations`
     });
     const confiem = await modalRef.result;
-    if (confirm) {
-      const productId = +this.route.snapshot.paramMap.get('id');
+    if (confiem) {
+      const productId = +this.route.snapshot.paramMap.get('id')!;
       this.productController.getProduct(productId).pipe(take(1))
         .subscribe(resp => {
-          if (resp.status == 'OK') {
+          if (resp.status === 'OK') {
             this.prefillLocations(resp.data.origin.locations);
           }
-
-        }
-        );
+        });
     }
   }
 
-  prefillLocations(prodLocations){
+  prefillLocations(prodLocations: any[]): void {
     this.initializeOriginLocations(prodLocations);
-    this.initialBounds = [];
     this.initializeMarkers(prodLocations);
-    this.fitBounds();
     this.batchDetailForm.markAsDirty();
+    // Map will auto-fit bounds via autoFitBounds input
   }
 
 }

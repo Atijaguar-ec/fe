@@ -93,19 +93,20 @@
 
           <div style="height: 2rem;"></div>
 
-          <google-map
-                  *ngIf="isGoogleMapsLoaded"
-                  height="380px"
-                  width="100%">
-            <map-marker
-                #gMarker="mapMarker"
-                *ngFor="let marker of markers; index as i"
-                [position]="marker.position"
-                [label]="marker.label"
-                (mapClick)="openInfoWindow(gMarker, marker)">
-            </map-marker>
-            <map-info-window>{{gInfoWindowText}}</map-info-window>
-          </google-map>
+          <!-- Mapbox map showing facility locations -->
+          <app-mapbox-journey-map
+            [mapId]="'facilities-map'"
+            [height]="'380px'"
+            [width]="'100%'"
+            [centerLat]="defaultCenter.lat"
+            [centerLng]="defaultCenter.lng"
+            [defaultZoom]="defaultZoom"
+            [markerList]="mapMarkers"
+            [editMode]="false"
+            [showPolyline]="false"
+            [markerColor]="markerColor"
+            [autoFitBounds]="true">
+          </app-mapbox-journey-map>
 
           <div style="height: 2rem;"></div>
         </div>

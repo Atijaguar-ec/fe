@@ -6,7 +6,6 @@ import localeRw from '@angular/common/locales/rw';
 import localeEs from '@angular/common/locales/es';
 import { LOCALE_ID, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { GoogleMapsModule } from '@angular/google-maps';
 import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerGestureConfig, HammerModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -190,7 +189,6 @@ export function getConfiguration(): Configuration {
         NgbTimepickerModule,
         NgbDropdownModule,
         NgbPaginationModule,
-        GoogleMapsModule,
         DragDropModule,
         HammerModule,
         ChartsModule,

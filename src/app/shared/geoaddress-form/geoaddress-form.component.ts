@@ -1,11 +1,10 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormGroup, Validators } from '@angular/forms';
-import { GoogleMap } from '@angular/google-maps';
 import { Subscription } from 'rxjs';
 import _ from 'lodash-es';
 import { CountryService } from '../../shared-services/countries.service';
-import { GlobalEventManagerService } from '../../core/global-event-manager.service';
 import { EnumSifrant } from '../../shared-services/enum-sifrant';
+import { JourneyMarker, MapboxJourneyMapComponent, MapClickEvent, MarkerDragEvent } from '../mapbox-journey-map/mapbox-journey-map.component';
 
 @Component({
   selector: 'app-geoaddress-form',
@@ -20,29 +19,21 @@ export class GeoaddressFormComponent implements OnInit, OnDestroy {
   @Input()
   submitted = false;
 
-  @ViewChild(GoogleMap) set map(map: GoogleMap) {
-    if (map) { this.gMap = map; this.fitBounds(); }
-  }
+  @ViewChild(MapboxJourneyMapComponent) mapComponent: MapboxJourneyMapComponent;
 
-  gMap = null;
-  isGoogleMapsLoaded = false;
-  markers: any = [];
-  defaultCenter = {
-    lat: -1.831239,
-    lng: -78.183406
-  };
-  defaultZoom = 7;
-  zoomForOnePin = 10;
-  bounds: any;
-  initialBounds: any = [];
+  // Mapbox configuration
+  readonly defaultCenter = { lat: -1.831239, lng: -78.183406 };
+  readonly defaultZoom = 7;
+  readonly markerColor = '#25265E';
+
+  // Single marker for location
+  mapMarkers: JourneyMarker[] = [];
+
   subs: Subscription[] = [];
-
-  marker = null;
   codebookStatus = EnumSifrant.fromObject(this.publiclyVisible);
 
   constructor(
-      public countryCodes: CountryService,
-      public globalEventsManager: GlobalEventManagerService
+      public countryCodes: CountryService
   ) { }
 
   ngOnInit(): void {
@@ -52,14 +43,8 @@ export class GeoaddressFormComponent implements OnInit, OnDestroy {
       this.form.get('sector').setValidators([Validators.required]);
     });
 
-    const sub2 = this.globalEventsManager.loadedGoogleMapsEmitter.subscribe(
-        loaded => {
-          if (loaded) { this.isGoogleMapsLoaded = true; }
-          this.initializeMarker();
-        },
-        error => { }
-    );
-    this.subs.push(sub2);
+    // Initialize marker from form values
+    this.initializeMarker();
 
     const sub3 = this.form.get('country').valueChanges
         .subscribe(value => {
@@ -189,97 +174,69 @@ export class GeoaddressFormComponent implements OnInit, OnDestroy {
     this.form.get('zip').updateValueAndValidity();
   }
 
-  initializeMarker() {
-    if (!this.form.get('latitude') || !this.form.get('longitude')) { return; }
-    const lat = this.form.get('latitude').value;
-    const lng = this.form.get('longitude').value;
-    if (lng == null || lat == null) { return; }
-
-    const tmp = {
-      position: {
-        lat,
-        lng
-      }
-    };
-    this.marker = tmp;
-    this.initialBounds.push(tmp.position);
-  }
-
-  fitBounds() {
-    this.bounds = new google.maps.LatLngBounds();
-    for (const bound of this.initialBounds) {
-      this.bounds.extend(bound);
-    }
-    if (this.bounds.isEmpty()) {
-      this.gMap.googleMap.setCenter(this.defaultCenter);
-      this.gMap.googleMap.setZoom(this.defaultZoom);
+  initializeMarker(): void {
+    const latCtrl = this.form.get('latitude');
+    const lngCtrl = this.form.get('longitude');
+    if (!latCtrl || !lngCtrl) { return; }
+    const lat = latCtrl.value;
+    const lng = lngCtrl.value;
+    if (lng == null || lat == null) {
+      this.mapMarkers = [];
       return;
     }
-    const center = this.bounds.getCenter();
-    const offset = 0.02;
-    const northEast = new google.maps.LatLng(
-        center.lat() + offset,
-        center.lng() + offset
-    );
-    const southWest = new google.maps.LatLng(
-        center.lat() - offset,
-        center.lng() - offset
-    );
-    const minBounds = new google.maps.LatLngBounds(southWest, northEast);
-    this.gMap.fitBounds(this.bounds.union(minBounds));
+    this.mapMarkers = [{
+      lat,
+      lng,
+      draggable: true
+    }];
   }
 
 
 
 
-  updateLonLat() {
+  /**
+   * Update form with marker coordinates
+   */
+  updateLonLat(): void {
+    const lat = this.mapMarkers.length > 0 ? this.mapMarkers[0].lat : null;
+    const lng = this.mapMarkers.length > 0 ? this.mapMarkers[0].lng : null;
 
-    if (this.marker) {
-      this.form.get('latitude').setValue(this.marker.position.lat);
-      this.form.get('longitude').setValue(this.marker.position.lng);
-    } else {
-      this.form.get('latitude').setValue(null);
-      this.form.get('longitude').setValue(null);
-    }
-    this.form.get('latitude').markAsDirty();
-    this.form.get('longitude').markAsDirty();
+    this.form.get('latitude')?.setValue(lat);
+    this.form.get('longitude')?.setValue(lng);
+    this.form.get('latitude')?.markAsDirty();
+    this.form.get('longitude')?.markAsDirty();
   }
 
-  dblClick(event: google.maps.MouseEvent) {
-    if (this.marker) {
-      this.updateMarkerLocation(event.latLng.toJSON());
-    } else {
-      const tmp = {
-        position: event.latLng.toJSON(),
-        label: {
-          text: ' '
-        },
-        infoText: ' '
-      };
-      this.marker = tmp;
-      this.updateLonLat();
-    }
-  }
-
-  dragend(event, index) {
-    this.updateMarkerLocation(event.latLng.toJSON());
-  }
-
-  updateMarkerLocation(loc) {
-    const tmpCurrent = this.marker;
-    const tmp = {
-      position: loc,
-      label: tmpCurrent.label,
-      infoText: tmpCurrent.infoText
-    };
-    this.marker = tmp;
+  /**
+   * Handle map double-click - add or update marker
+   */
+  onMapDblClick(event: MapClickEvent): void {
+    this.mapMarkers = [{
+      lat: event.lat,
+      lng: event.lng,
+      draggable: true
+    }];
     this.updateLonLat();
   }
 
+  /**
+   * Handle marker drag end
+   */
+  onMarkerDragEnd(event: MarkerDragEvent): void {
+    this.mapMarkers = [{
+      lat: event.lat,
+      lng: event.lng,
+      draggable: true
+    }];
+    this.updateLonLat();
+  }
 
-  removeOriginLocation() {
-    this.marker = null;
-    this.initialBounds = [];
+  /**
+   * Handle marker right-click - remove marker
+   */
+  onMarkerRightClick(): void {
+    this.mapMarkers = [];
+    this.updateLonLat();
   }
 
 

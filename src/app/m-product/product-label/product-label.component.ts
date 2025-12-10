@@ -2,7 +2,7 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
 import { Location } from '@angular/common';
 import { AfterViewInit, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { AbstractControl, FormArray, FormControl, FormGroup } from '@angular/forms';
-import { GoogleMap, MapInfoWindow } from '@angular/google-maps';
+import { JourneyMarker, MapboxJourneyMapComponent, MapClickEvent, MarkerDragEvent } from 'src/app/shared/mapbox-journey-map/mapbox-journey-map.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { faCompass, faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 import { faArrowDown, faArrowsAlt, faArrowUp, faCodeBranch, faEye, faQrcode, faSlidersH, faTimes } from '@fortawesome/free-solid-svg-icons';
@@ -84,16 +84,7 @@ import { SelfOnboardingService } from '../../shared-services/self-onboarding.ser
 })
 export class ProductLabelComponent extends ComponentCanDeactivate implements OnInit, OnDestroy, AfterViewInit {
 
-  @ViewChild(GoogleMap) set map(gMap: GoogleMap) {
-    if (gMap) {
-      this.gMap = gMap;
-      this.googleMapsIsLoaded();
-    }
-  }
-
-  @ViewChild(MapInfoWindow) set infoWindow(infoWindow: MapInfoWindow) {
-    if (infoWindow) { this.gInfoWindow = infoWindow; }
-  }
+  @ViewChild(MapboxJourneyMapComponent) mapComponent: MapboxJourneyMapComponent;
 
   @ViewChild('createProductTooltip')
   createProductTooltip: NgbTooltip;
@@ -115,9 +106,8 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
     return this.productForm.get('origin.locations') as FormArray;
   }
 
-  get isGoogleMapsLoaded() {  // fix of a Google Maps glitch
-    return !!window.google;
-  }
+  // Google Maps removed - using Mapbox now
+  // get isGoogleMapsLoaded() { return !!window.google; }
 
   get labelChanged() {
     return (this.visibilityForm && this.visibilityForm.dirty) || this.labelTitleForm.dirty;
@@ -169,20 +159,17 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
     return obj;
   }
 
-  gMap = null;
-  gInfoWindow = null;
-  gInfoWindowText = '';
   productForm: FormGroup;
   countries: any = [];
-  markers: any = [];
   journeyMarkers: any[] = [];
-  defaultCenter = {
-    lat: -1.831239,
-    lng: -78.183406
-  };
-  defaultZoom = 7;
-  bounds: any;
-  initialBounds: any = [];
+
+  // Mapbox configuration
+  readonly defaultCenter = { lat: -1.831239, lng: -78.183406 };
+  readonly defaultZoom = 7;
+  readonly markerColor = '#25265E';
+
+  // Markers for display
+  mapMarkers: JourneyMarker[] = [];
 
   faTimes = faTimes;
   faArrowsAlt = faArrowsAlt;
@@ -921,79 +908,76 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
     this.productForm.updateValueAndValidity();
   }
 
+  /**
+   * Convert origin locations to JourneyMarker array for the map
+   */
   initializeMarkers(): void {
-    this.markers = [];
-    for (const loc of this.originLocations.value) {
-      const tmp = {
-        position: {
-          lat: loc.latitude,
-          lng: loc.longitude
-        },
-        label: {
-          text: loc.numberOfFarmers ? String(loc.numberOfFarmers) : ' '
-        },
-        infoText: loc.pinName
-      };
-      this.markers.push(tmp);
-      this.initialBounds.push(tmp.position);
-    }
+    this.mapMarkers = this.originLocations.value.map((loc: any, index: number) => ({
+      lat: loc.latitude,
+      lng: loc.longitude,
+      label: loc.numberOfFarmers ? String(loc.numberOfFarmers) : String(index + 1),
+      infoText: loc.pinName || '',
+      draggable: this.canEdit()
+    }));
   }
 
-  addOriginLocations(loc) {
-    const tmp = {
-      position: loc,
-      label: {
-        text: ' '
-      },
-      infoText: ' '
-    };
-    this.markers.push(tmp);
-    this.originLocations.push(this.createOrFillOriginLocationsItem(loc, true) as FormGroup);
-    this.productForm.markAsDirty();
+  /**
+   * Refresh map markers from the form array
+   */
+  refreshMapMarkers(): void {
+    this.mapMarkers = this.originLocations.controls.map((ctrl: AbstractControl, index: number) => ({
+      lat: ctrl.get('latitude')?.value,
+      lng: ctrl.get('longitude')?.value,
+      label: ctrl.get('numberOfFarmers')?.value ? String(ctrl.get('numberOfFarmers')?.value) : String(index + 1),
+      infoText: ctrl.get('pinName')?.value || '',
+      draggable: this.canEdit()
+    }));
   }
 
-  removeOriginLocation(index: number) {
+  /**
+   * Handle map double-click - add new location
+   */
+  onMapDblClick(event: MapClickEvent): void {
     if (this.canEdit()) {
-      this.originLocations.removeAt(index);
-      this.markers.splice(index, 1);
+      this.originLocations.push(this.createOrFillOriginLocationsItem({ lat: event.lat, lng: event.lng }, true));
+      this.refreshMapMarkers();
       this.productForm.markAsDirty();
     }
   }
 
-  updateMarkerLocation(loc, index) {
-    this.originLocations.at(index).get('latitude').setValue(loc.lat);
-    this.originLocations.at(index).get('longitude').setValue(loc.lng);
-    const tmpCurrent = this.markers[index];
-    const tmp = {
-      position: loc,
-      label: tmpCurrent.label,
-      infoText: tmpCurrent.infoText
-    };
-    this.markers.splice(index, 1, tmp);
-  }
-  updateInfoWindow(infoText, index) {
-    const tmpCurrent = this.markers[index];
-    const tmp = {
-      position: tmpCurrent.position,
-      label: tmpCurrent.label,
-      infoText
-    };
-    this.markers.splice(index, 1, tmp);
+  /**
+   * Handle marker right-click - remove location
+   */
+  onMarkerRightClick(event: { index: number }): void {
+    this.removeOriginLocation(event.index);
   }
 
-  dblClick(event: google.maps.MouseEvent) {
-    if (this.canEdit()) {
-      this.addOriginLocations(event.latLng.toJSON());
+  /**
+   * Handle marker drag end - update location coordinates
+   */
+  onMarkerDragEnd(event: MarkerDragEvent): void {
+    const ctrl = this.originLocations.at(event.index);
+    if (ctrl) {
+      ctrl.get('latitude')?.setValue(event.lat);
+      ctrl.get('longitude')?.setValue(event.lng);
+      this.refreshMapMarkers();
+      this.productForm.markAsDirty();
     }
   }
 
-  dragend(event, index) {
-    this.updateMarkerLocation(event.latLng.toJSON(), index);
+  removeOriginLocation(index: number): void {
+    if (this.canEdit()) {
+      this.originLocations.removeAt(index);
+      this.refreshMapMarkers();
+      this.productForm.markAsDirty();
+    }
   }
 
-  openInfoWindow(gMarker, marker) {
-    this.gInfoWindowText = marker.infoText;
-    this.gInfoWindow.open(gMarker);
+  /**
+   * Handle pin name change
+   */
+  onKey(event: any, index: number): void {
+    this.refreshMapMarkers();
   }
   
   removeJourneyMarker(i: number) {
@@ -1027,41 +1011,13 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
     return arr;
   }
 
-  onKey(event, index) {
-    this.updateInfoWindow(event.target.value, index);
-  }
-
-  googleMapsIsLoaded() {
-    if (this.initialBounds.length === 0) { return; }
-    this.bounds = new google.maps.LatLngBounds();
-    for (const bound of this.initialBounds) {
-      this.bounds.extend(bound);
+  /**
+   * Reset map - triggers auto-fit bounds
+   */
+  resetMap(): void {
+    if (this.mapComponent) {
+      this.mapComponent.fitBounds();
     }
-    if (this.bounds.isEmpty()) {
-      this.gMap.googleMap.setCenter(this.defaultCenter);
-      this.gMap.googleMap.setZoom(this.defaultZoom);
-      return;
-    }
-    const center = this.bounds.getCenter();
-    const offset = 0.02;
-    const northEast = new google.maps.LatLng(
-      center.lat() + offset,
-      center.lng() + offset
-    );
-    const southWest = new google.maps.LatLng(
-      center.lat() - offset,
-      center.lng() - offset
-    );
-    const minBounds = new google.maps.LatLngBounds(southWest, northEast);
-    this.gMap.fitBounds(this.bounds.union(minBounds));
-  }
-
-  resetMap() {
-    this.initialBounds = [];
-    for (const m of this.markers) {
-      this.initialBounds.push(m.position);
-    }
-    this.googleMapsIsLoaded();
   }
 
   openOnStart() {

@@ -1,0 +1,78 @@
+.mapbox-journey-map-container {
+  position: relative;
+  
+  .map {
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .map-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+    
+    .style-selector {
+      background: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      
+      .form-check-inline {
+        margin-right: 1rem;
+        
+        &:last-child {
+          margin-right: 0;
+        }
+      }
+      
+      .form-check-label {
+        font-size: 0.85rem;
+        color: #333;
+        cursor: pointer;
+      }
+      
+      .form-check-input {
+        cursor: pointer;
+      }
+    }
+  }
+}
+
+// Global marker styles (for markers created via DOM)
+:host ::ng-deep {
+  .mapbox-journey-marker {
+    transition: transform 0.1s ease;
+    
+    &:hover {
+      transform: scale(1.1);
+    }
+    
+    &:active {
+      cursor: grabbing !important;
+    }
+  }
+  
+  .mapboxgl-popup {
+    max-width: 200px;
+    
+    .mapboxgl-popup-content {
+      padding: 10px 15px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    
+    .mapboxgl-popup-tip {
+      border-top-color: white;
+    }
+  }
+  
+  // Cooperative gestures message styling
+  .mapboxgl-ctrl-icon.mapboxgl-ctrl-geolocate,
+  .mapboxgl-ctrl-icon.mapboxgl-ctrl-zoom-in,
+  .mapboxgl-ctrl-icon.mapboxgl-ctrl-zoom-out {
+    background-color: white;
+  }
+}

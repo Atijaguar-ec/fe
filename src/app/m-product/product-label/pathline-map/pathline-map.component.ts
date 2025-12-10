@@ -1,161 +1,63 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, ViewChild } from '@angular/core';
 import { FormArray, FormControl, FormGroup } from '@angular/forms';
-import { GoogleMap } from '@angular/google-maps';
-import { GlobalEventManagerService } from '../../../core/global-event-manager.service';
-import { Subject } from 'rxjs/internal/Subject';
-import { takeUntil } from 'rxjs/operators';
-import { Subscription } from 'rxjs';
+import { MapboxJourneyMapComponent, MapClickEvent } from '../../../shared/mapbox-journey-map/mapbox-journey-map.component';
 
+/**
+ * PathlineMapComponent - Displays a journey map with markers and polylines.
+ * 
+ * This component uses Mapbox GL JS (via MapboxJourneyMapComponent) to display
+ * an editable journey path. Users can:
+ * - Click on the map to add new markers
+ * - Right-click on markers to remove them
+ * - Markers are connected by a dashed polyline
+ * 
+ * Migrated from Google Maps to Mapbox for better cost efficiency.
+ */
 @Component({
     selector: 'app-pathline-map',
     templateUrl: './pathline-map.component.html',
     styleUrls: ['./pathline-map.component.scss']
 })
-export class PathlineMapComponent implements OnInit, OnChanges, OnDestroy {
-    
-    private destroy$ = new Subject<boolean>();
-    
-    isGoogleMapsLoaded = false;
+export class PathlineMapComponent {
 
-    defaultCenter = {
-        lat: -1.831239,
-        lng: -78.183406
-    };
-    defaultZoom = 7;
+    @ViewChild(MapboxJourneyMapComponent) mapComponent!: MapboxJourneyMapComponent;
 
-    gMap: GoogleMap = null;
-    bounds: google.maps.LatLngBounds;
-    mapMarkerOption: any;
-    initialBounds: google.maps.LatLngLiteral[] = [];
+    /** FormArray containing marker coordinates (each with 'latitude' and 'longitude' controls) */
+    @Input() markersForm!: FormArray;
 
-    journeyVertices: google.maps.LatLngLiteral[] = [];
-    lineSymbol = {
-        path: 'M 0,-1 0,1',
-        strokeOpacity: 1,
-        scale: 2,
-        strokeColor: '#25265E'
-    };
+    /** Default center latitude (Ecuador) */
+    readonly centerLat = -1.831239;
 
-    polylineOptions: google.maps.PolylineOptions = {
-        icons: [
-            {
-                icon: this.lineSymbol,
-                offset: '0',
-                repeat: '20px'
-            },
-        ],
-        strokeOpacity: 0,
-    };
+    /** Default center longitude (Ecuador) */
+    readonly centerLng = -78.183406;
 
-    private markersFormValueChangeSubs: Subscription;
+    /** Default zoom level */
+    readonly defaultZoom = 7;
 
-    @Input()
-    public markersForm: FormArray;
-    
-    constructor(public globalEventManager: GlobalEventManagerService) {
-    }
-    
-    @ViewChild(GoogleMap)
-    set map(gMap: GoogleMap) {
-        if (gMap) {
-            this.gMap = gMap;
-            this.mapMarkerOption = {
-                icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: 4,
-                    fillColor: '#25265E',
-                    fillOpacity: 1,
-                    strokeColor: '#25265E',
-                }
-            };
-            setTimeout(() => this.googleMapsIsLoaded(gMap));
-        }
-    }
+    /** Marker color */
+    readonly markerColor = '#25265E';
 
-    ngOnInit(): void {
-        this.globalEventManager.loadedGoogleMapsEmitter.pipe(takeUntil(this.destroy$)).subscribe({
-            next: loaded => {
-                if (loaded) {
-                    this.isGoogleMapsLoaded = true;
-                }
-            }
-        });
-    }
+    /** Polyline color */
+    readonly polylineColor = '#25265E';
 
-    ngOnChanges(changes: SimpleChanges) {
-        if (changes.markersForm) {
+    constructor() {}
 
-            // Form instance is changed, we need to register new subscription (also update the journey points)
-            this.updateJourneyVertices();
-
-            this.markersFormValueChangeSubs = this.markersForm?.valueChanges.subscribe(() => {
-                this.updateJourneyVertices();
-            });
-        }
-    }
-
-    ngOnDestroy() {
-        if (this.markersFormValueChangeSubs) {
-            this.markersFormValueChangeSubs.unsubscribe();
-        }
-        this.destroy$.next(true);
-    }
-    
-    googleMapsIsLoaded(map) {
-        this.isGoogleMapsLoaded = true;
-    
-        this.markersForm.controls.forEach(ctrl => {
-            this.initialBounds.push({
-                lat: ctrl.get('latitude').value,
-                lng: ctrl.get('longitude').value,
-            });
-        });
-
-        this.updateJourneyVertices();
-        
-        this.bounds = new google.maps.LatLngBounds();
-        for (const bound of this.initialBounds) {
-            this.bounds.extend(bound);
-        }
-        if (this.bounds.isEmpty()) {
-            map.googleMap.setCenter(this.defaultCenter);
-            map.googleMap.setZoom(this.defaultZoom);
-            return;
-        }
-        const center = this.bounds.getCenter();
-        const offset = 0.02;
-        const northEast = new google.maps.LatLng(
-            center.lat() + offset,
-            center.lng() + offset
-        );
-        const southWest = new google.maps.LatLng(
-            center.lat() - offset,
-            center.lng() - offset
-        );
-        const minBounds = new google.maps.LatLngBounds(southWest, northEast);
-        map.fitBounds(this.bounds.union(minBounds));
-    }
-    
-    addJourneyMarker(event: google.maps.MouseEvent) {
+    /**
+     * Handle map click event - adds a new marker at the clicked position
+     */
+    onMapClick(event: MapClickEvent): void {
         this.markersForm.push(new FormGroup({
-            latitude: new FormControl(event.latLng.lat()),
-            longitude: new FormControl(event.latLng.lng()),
+            latitude: new FormControl(event.lat),
+            longitude: new FormControl(event.lng),
         }));
         this.markersForm.markAsDirty();
     }
-    
-    removeJourneyMarker(i: number) {
-        this.markersForm.removeAt(i);
+
+    /**
+     * Handle marker right-click event - removes the marker at the given index
+     */
+    onMarkerRightClick(event: { index: number }): void {
+        this.markersForm.removeAt(event.index);
         this.markersForm.markAsDirty();
     }
-
-    private updateJourneyVertices(): void {
-        this.journeyVertices = this.markersForm.controls.map(ctrl => {
-            return {
-                lat: ctrl.get('latitude').value,
-                lng: ctrl.get('longitude').value,
-            };
-        });
-    }
-
 }

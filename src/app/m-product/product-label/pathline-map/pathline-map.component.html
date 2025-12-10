@@ -1,17 +1,19 @@
-<google-map
-    *ngIf="isGoogleMapsLoaded"
-    width="100%"
-    height="380px"
-    [options]="{disableDoubleClickZoom: true}"
-    (mapClick)="addJourneyMarker($event)">
-    <map-marker
-        *ngFor="let marker of markersForm.controls; index as i"
-        [position]="{lat: marker.get('latitude').value, lng: marker.get('longitude').value}"
-        (mapRightclick)="removeJourneyMarker(i)"
-        [options]="mapMarkerOption">
-    </map-marker>
-    <map-polyline *ngIf="markersForm.length > 1"
-                  [options]="polylineOptions"
-                  [path]="journeyVertices">
-    </map-polyline>
-</google-map>
+<!-- Mapbox Journey Map - Click to add markers, right-click on marker to remove -->
+<app-mapbox-journey-map
+    [mapId]="'pathline-map'"
+    [height]="'380px'"
+    [width]="'100%'"
+    [centerLat]="centerLat"
+    [centerLng]="centerLng"
+    [defaultZoom]="defaultZoom"
+    [markersForm]="markersForm"
+    [editMode]="true"
+    [showPolyline]="true"
+    [polylineColor]="polylineColor"
+    [polylineDashArray]="[2, 2]"
+    [markerColor]="markerColor"
+    [disableDoubleClickZoom]="true"
+    [autoFitBounds]="true"
+    (mapClick)="onMapClick($event)"
+    (markerRightClick)="onMarkerRightClick($event)">
+</app-mapbox-journey-map>

@@ -5,7 +5,6 @@ import { FacilityControllerService } from '../../../../api/api/facilityControlle
 import { shareReplay, switchMap, take, tap } from 'rxjs/operators';
 import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
 import { ApiFacilityLocation } from '../../../../api/model/apiFacilityLocation';
-import { GoogleMap, MapInfoWindow, MapMarker } from '@angular/google-maps';
 import { GlobalEventManagerService } from '../../../core/global-event-manager.service';
 import { ApiPaginatedResponseApiFacility } from '../../../../api/model/apiPaginatedResponseApiFacility';
 import { ApiPaginatedListApiFacility } from '../../../../api/model/apiPaginatedListApiFacility';
@@ -18,6 +17,7 @@ import { NgbModalImproved } from '../../../core/ngb-modal-improved/ngb-modal-imp
 import {
   CompanyDetailFacilityAddWizardComponent
 } from '../company-detail-facility-add-wizard/company-detail-facility-add-wizard.component';
+import { JourneyMarker, MapboxJourneyMapComponent } from '../../../shared/mapbox-journey-map/mapbox-journey-map.component';
 
 @Component({
   selector: 'app-company-detail-facilities',
@@ -35,17 +35,13 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
   pageSize = 10;
   page = 0;
 
-  gMap = null;
-  isGoogleMapsLoaded = false;
-  markers: any = [];
-  defaultCenter = {
-    lat: -1.831239,
-    lng: -78.183406
-  };
-  defaultZoom = 7;
-  bounds: any;
-  initialBounds: any = [];
-  gInfoWindowText = '';
+  // Mapbox map configuration
+  readonly defaultCenter = { lat: -1.831239, lng: -78.183406 };
+  readonly defaultZoom = 7;
+  readonly markerColor = '#25265E';
+
+  // Markers for display
+  mapMarkers: JourneyMarker[] = [];
 
   public companyId;
   public facilities$: Observable<ApiPaginatedResponseApiFacility>;
@@ -92,12 +88,7 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
   @Output()
   countAll = new EventEmitter<number>();
 
-  @ViewChild(GoogleMap) set map(map: GoogleMap) {
-    if (map) { this.gMap = map; this.fitBounds(); }
-  }
-
-  @ViewChild(MapInfoWindow, { static: false })
-  gInfoWindow: MapInfoWindow;
+  @ViewChild(MapboxJourneyMapComponent) mapComponent: MapboxJourneyMapComponent;
 
   @ViewChild('addFacilityButtonTooltip')
   addFacilityButtonTooltip: NgbTooltip;
@@ -121,12 +112,7 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
     this.companyId = this.route.snapshot.params.id;
     this.initializeFacilitiesObservable();
 
-    this.globalEventsManager.loadedGoogleMapsEmitter.subscribe(loaded => {
-      if (loaded) {
-        this.isGoogleMapsLoaded = true;
-      }
-    });
-  }
+    }
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
@@ -199,36 +185,6 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
     this.paging$.next(event);
   }
 
-  openInfoWindow(gMarker: MapMarker, marker) {
-    this.gInfoWindowText = marker.infoText;
-    this.gInfoWindow.open(gMarker);
-  }
-
-  fitBounds() {
-    if (!this.gMap || this.gMap == null) { return; }
-    this.bounds = new google.maps.LatLngBounds();
-    for (const bound of this.initialBounds) {
-      this.bounds.extend(bound);
-    }
-    if (this.bounds.isEmpty()) {
-      this.gMap.googleMap.setCenter(this.defaultCenter);
-      this.gMap.googleMap.setZoom(this.defaultZoom);
-      return;
-    }
-    const center = this.bounds.getCenter();
-    const offset = 0.02;
-    const northEast = new google.maps.LatLng(
-        center.lat() + offset,
-        center.lng() + offset
-    );
-    const southWest = new google.maps.LatLng(
-        center.lat() - offset,
-        center.lng() - offset
-    );
-    const minBounds = new google.maps.LatLngBounds(southWest, northEast);
-    this.gMap.fitBounds(this.bounds.union(minBounds));
-  }
-
   initializeFacilitiesObservable() {
     this.facilities$ = combineLatest(this.reloadPingList$, this.paging$, this.sortingParams$,
         (ping: boolean, page: number, sorting: any) => {
@@ -271,26 +227,28 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
     );
   }
 
-  intializeMarkers(data: ApiPaginatedListApiFacility) {
-    if (!data) {
+  /**
+   * Initialize map markers from facility data
+   */
+  intializeMarkers(data: ApiPaginatedListApiFacility): void {
+    if (!data || !data.items) {
+      this.mapMarkers = [];
       return;
     }
-    this.markers = [];
-    this.initialBounds = [];
-    for (const item of data.items) {
-      if (item.facilityLocation && item.facilityLocation.publiclyVisible && item.facilityLocation.latitude && item.facilityLocation.longitude) {
-        const tmp = {
-          position: {
-            lat: item.facilityLocation.latitude,
-            lng: item.facilityLocation.longitude
-          },
-          infoText: item.name
-        };
-        this.markers.push(tmp);
-        this.initialBounds.push(tmp.position);
-      }
-    }
-    this.fitBounds();
+
+    this.mapMarkers = data.items
+      .filter(item => 
+        item.facilityLocation && 
+        item.facilityLocation.publiclyVisible && 
+        item.facilityLocation.latitude && 
+        item.facilityLocation.longitude
+      )
+      .map(item => ({
+        lat: item.facilityLocation!.latitude!,
+        lng: item.facilityLocation!.longitude!,
+        infoText: item.name || '',
+        draggable: false
+      }));
   }
 
   async activateFacility(facilityId) {
