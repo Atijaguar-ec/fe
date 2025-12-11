@@ -105,10 +105,6 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
   get originLocations(): FormArray {
     return this.productForm.get('origin.locations') as FormArray;
   }
-
-  // Google Maps removed - using Mapbox now
-  // get isGoogleMapsLoaded() { return !!window.google; }
-
   get labelChanged() {
     return (this.visibilityForm && this.visibilityForm.dirty) || this.labelTitleForm.dirty;
   }

@@ -2368,6 +2368,7 @@
     "orderList.sortOptions.orderedTo.name": "Ordenó a",
     "orderList.sortOptions.kgs.name": "kgs",
     "productLabelStockProcessingOrderDetail.itemNetWeightLabel": "Cantidad (max. {$PH} {$PH_1})",
+  "productLabelStockFacilityModal.checkbox.moisturePercentage.label": "Mostrar \"Deducción por porcentaje de humedad\"",
     "facilityTypeDetail.single-choice.underlyingMeasurementUnit.label": "Unidad de medida subyacente",
     "productLabelProcessingAction.newProcessingAction.field.womenShare": "Cuota de mujeres",
     "productLabelProcessingAction.newProcessingAction.document.billOfLading": "Conocimiento de embarque",

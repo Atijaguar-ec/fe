@@ -15,8 +15,6 @@ export const environment = {
     relativeImageUploadUrl: (window['env'] && window['env']['relativeImageUploadUrl']) || '/api/common/image',
     relativeImageUploadUrlAllSizes: (window['env'] && window['env']['relativeImageUploadUrlAllSizes']) || '/api/common/image',
     version: '2.40.0-SNAPSHOT',
-
-    googleMapsApiKey: (window['env'] && window['env']['googleMapsApiKey']) || 'AIzaSyAP1JuiYWi0A_Zf8BK0YIfl4nCKoxHnPHU',
     googleAnalyticsId: '',
     mapboxAccessToken: (window['env'] && window['env']['mapboxAccessToken']) || 'pk.eyJ1IjoiYWx2YXJvZ2VvdmFuaSIsImEiOiJjbWN5bDFkbG0wcGt4Mm5xNngydnZ0cTUxIn0.e15Wl5VmuU4S2QIiO5242A',
     facebookPixelId: null,

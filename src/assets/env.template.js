@@ -24,7 +24,6 @@ window.env = {
   BUILD_DATE: '${BUILD_DATE}' || '',
   
   // External Services
-  GOOGLE_MAPS_API_KEY: '${GOOGLE_MAPS_API_KEY}' || 'AIzaSyAP1JuiYWi0A_Zf8BK0YIfl4nCKoxHnPHU',
   ANALYTICS_ID: '${ANALYTICS_ID}' || '',
   
   // Security
@@ -48,7 +47,6 @@ window.env = {
   relativeFileUploadUrlManualType: '${RELATIVE_FILE_UPLOAD_URL_MANUAL_TYPE}' || '/api/common/document?type=',
   relativeImageUploadUrl: '${RELATIVE_IMAGE_UPLOAD_URL}' || '/api/common/image',
   relativeImageUploadUrlAllSizes: '${RELATIVE_IMAGE_UPLOAD_URL_ALL_SIZES}' || '/api/common/image',
-  googleMapsApiKey: '${GOOGLE_MAPS_API_KEY}' || 'AIzaSyAP1JuiYWi0A_Zf8BK0YIfl4nCKoxHnPHU',
   tokenForPublicLogRoute: '${TOKEN_FOR_PUBLIC_LOG_ROUTE}' || '',
   mapboxAccessToken: '${MAPBOX_ACCESS_TOKEN}' || 'pk.eyJ1IjoiYWx2YXJvZ2VvdmFuaSIsImEiOiJjbWN5bDFkbG0wcGt4Mm5xNngydnZ0cTUxIn0.e15Wl5VmuU4S2QIiO5242A',
   beycoAuthURL: '${BEYCO_AUTH_URL}' || '',

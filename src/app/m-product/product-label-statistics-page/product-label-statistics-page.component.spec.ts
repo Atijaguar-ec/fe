@@ -8,7 +8,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { convertToParamMap } from '@angular/router';
-import { of, Subject } from 'rxjs';
+import { of } from 'rxjs';
 import { ProductControllerService } from 'src/api/api/productController.service';
 import { GlobalEventManagerService } from 'src/app/core/global-event-manager.service';
 import { AuthService } from 'src/app/core/auth.service';
@@ -34,10 +34,8 @@ describe('ProductLabelStatisticsPageComponent', () => {
   } as Partial<ProductControllerService> as ProductControllerService;
 
   // Mock GlobalEventManagerService
-  const loadedGoogleMapsEmitter = new Subject<boolean>();
   const mockGlobalEventManager: Partial<GlobalEventManagerService> = {
     showLoading: jasmine.createSpy('showLoading'),
-    loadedGoogleMapsEmitter,
     push: jasmine.createSpy('push'),
     openMessageModal: jasmine.createSpy('openMessageModal').and.returnValue(Promise.resolve('cancel'))
   } as any;
