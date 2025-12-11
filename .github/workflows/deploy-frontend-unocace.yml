@@ -207,7 +207,7 @@ jobs:
           COMPANY_THEME=${{ env.COMPANY_THEME }}
           TRAEFIK_ENABLE=true
           TRAEFIK_ROUTER_NAME=inatrace-fe-test-unocace
-          TRAEFIK_ROUTER_RULE=Host(\`inatrace-test.unocace.com\`)
+          TRAEFIK_ROUTER_RULE='Host(`inatrace-test.unocace.com`)'
           TRAEFIK_ENTRYPOINTS=websecure
           TRAEFIK_CERT_RESOLVER=letsencrypt
           EOF
@@ -241,6 +241,7 @@ jobs:
             docker network inspect inatrace-backend-unocace-network >/dev/null 2>&1 || docker network create inatrace-backend-unocace-network
             
             # Deploy
+            docker rm -f inatrace-fe-test-unocace 2>/dev/null || true
             docker compose down 2>/dev/null || true
             docker compose pull
             docker compose up -d
@@ -318,7 +319,7 @@ jobs:
           COMPANY_THEME=${{ env.COMPANY_THEME }}
           TRAEFIK_ENABLE=true
           TRAEFIK_ROUTER_NAME=inatrace-fe-prod-unocace
-          TRAEFIK_ROUTER_RULE=Host(\`inatrace.unocace.com\`)
+          TRAEFIK_ROUTER_RULE='Host(`inatrace.unocace.com`)'
           TRAEFIK_ENTRYPOINTS=websecure
           TRAEFIK_CERT_RESOLVER=letsencrypt
           EOF
@@ -350,6 +351,7 @@ jobs:
             docker network inspect inatrace-backend-unocace-network >/dev/null 2>&1 || docker network create inatrace-backend-unocace-network
             
             # Deploy
+            docker rm -f inatrace-fe-prod-unocace 2>/dev/null || true
             docker compose down 2>/dev/null || true
             docker compose pull
             docker compose up -d
