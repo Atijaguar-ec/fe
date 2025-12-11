@@ -3,6 +3,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 import { CompanyListComponent } from './company-list.component';
 import { CompanyControllerService } from 'src/api/api/companyController.service';
@@ -53,7 +54,8 @@ describe('CompanyListComponent', () => {
         { provide: GlobalEventManagerService, useValue: mockGlobalEventManagerService },
         { provide: AuthService, useValue: mockAuthService },
         { provide: NgbModalImproved, useValue: mockNgbModalImproved }
-      ]
+      ],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));

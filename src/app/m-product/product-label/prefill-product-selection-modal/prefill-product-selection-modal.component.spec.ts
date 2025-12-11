@@ -1,7 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { SharedModule } from 'src/app/shared/shared.module';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 import { PrefillProductSelectionModalComponent } from './prefill-product-selection-modal.component';
 
@@ -18,13 +18,13 @@ describe('PrefillProductSelectionModalComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [
-        HttpClientTestingModule,
-        SharedModule
+        HttpClientTestingModule
       ],
       declarations: [ PrefillProductSelectionModalComponent ],
       providers: [
         { provide: NgbActiveModal, useValue: mockNgbActiveModal }
-      ]
+      ],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));

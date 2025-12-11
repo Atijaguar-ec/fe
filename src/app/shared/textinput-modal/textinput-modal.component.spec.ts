@@ -1,6 +1,8 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { SharedModule } from 'src/app/shared/shared.module';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ToastrModule } from 'ngx-toastr';
 
 import { TextinputModalComponent } from './textinput-modal.component';
 
@@ -16,11 +18,12 @@ describe('TextinputModalComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [ SharedModule ],
+      imports: [ FormsModule, ReactiveFormsModule, ToastrModule.forRoot() ],
       declarations: [ TextinputModalComponent ],
       providers: [
         { provide: NgbActiveModal, useValue: mockNgbActiveModal }
-      ]
+      ],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));
