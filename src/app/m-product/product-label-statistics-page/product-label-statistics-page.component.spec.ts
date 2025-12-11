@@ -7,7 +7,6 @@ import { NgbModalImproved } from 'src/app/core/ngb-modal-improved/ngb-modal-impr
 import { LayoutModule } from 'src/app/layout/layout.module';
 import { ProductCommonModule } from 'src/app/m-product/product-common/product-common.module';
 import { SharedModule } from 'src/app/shared/shared.module';
-import { GoogleMapsModule } from '@angular/google-maps';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { StatisticsCardComponent } from './statistics-card/statistics-card.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -65,7 +64,6 @@ describe('ProductLabelStatisticsPageComponent', () => {
         LayoutModule,
         ProductCommonModule,
         SharedModule,
-        GoogleMapsModule,
         FormsModule,
         ReactiveFormsModule,
         FontAwesomeModule

@@ -3,7 +3,6 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { GoogleMapsModule } from '@angular/google-maps';
 import { LayoutModule } from 'src/app/layout/layout.module';
 import { ProductCommonModule } from 'src/app/m-product/product-common/product-common.module';
 import { SharedModule } from 'src/app/shared/shared.module';
@@ -66,7 +65,6 @@ describe('BatchDetailPageComponent', () => {
         RouterTestingModule,
         ReactiveFormsModule,
         NgbModule,
-        GoogleMapsModule,
         LayoutModule,
         ProductCommonModule,
         SharedModule,
