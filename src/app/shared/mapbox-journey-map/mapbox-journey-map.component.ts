@@ -201,7 +201,9 @@ export class MapboxJourneyMapComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (!this.mapReady) return;
+    if (!this.mapReady) {
+      return;
+    }
 
     if (changes['markerList'] && !changes['markerList'].firstChange) {
       this.updateMarkersFromList();
@@ -230,33 +232,34 @@ export class MapboxJourneyMapComponent implements OnInit, AfterViewInit, OnDestr
    * Programmatically fit the map bounds to all markers
    */
   fitBounds(): void {
-    if (!this.mapReady || !this.map) return;
+    if (!this.mapReady || !this.map) {
+      return;
+    }
 
     const coordinates = this.getMarkerCoordinates();
     if (coordinates.length === 0) {
       this.map.setCenter([this.centerLng, this.centerLat]);
       this.map.setZoom(this.defaultZoom);
-      return;
-    }
-
-    const bounds = new mapboxgl.LngLatBounds();
-    coordinates.forEach(coord => bounds.extend([coord.lng, coord.lat]));
-
-    if (coordinates.length === 1) {
-      // Single marker - center on it with default zoom
-      this.map.setCenter([coordinates[0].lng, coordinates[0].lat]);
-      this.map.setZoom(this.defaultZoom);
     } else {
-      // Multiple markers - fit bounds with padding
-      const offset = 0.02;
-      const center = bounds.getCenter();
-      bounds.extend([center.lng - offset, center.lat - offset]);
-      bounds.extend([center.lng + offset, center.lat + offset]);
-      
-      this.map.fitBounds(bounds, {
-        padding: this.boundsPadding,
-        maxZoom: 15
-      });
+      // Single marker - center on it with default zoom
+      if (coordinates.length === 1) {
+        this.map.setCenter([coordinates[0].lng, coordinates[0].lat]);
+        this.map.setZoom(this.defaultZoom);
+      } else {
+        // Multiple markers - fit bounds with padding
+        const bounds = new mapboxgl.LngLatBounds();
+        coordinates.forEach(coord => bounds.extend([coord.lng, coord.lat]));
+
+        const offset = 0.02;
+        const center = bounds.getCenter();
+        bounds.extend([center.lng - offset, center.lat - offset]);
+        bounds.extend([center.lng + offset, center.lat + offset]);
+
+        this.map.fitBounds(bounds, {
+          padding: this.boundsPadding,
+          maxZoom: 15
+        });
+      }
     }
   }
 
@@ -278,7 +281,9 @@ export class MapboxJourneyMapComponent implements OnInit, AfterViewInit, OnDestr
    * Fly to a specific location
    */
   flyTo(lat: number, lng: number, zoom?: number): void {
-    if (!this.map) return;
+    if (!this.map) {
+      return;
+    }
     this.map.flyTo({
       center: [lng, lat],
       zoom: zoom || this.defaultZoom
@@ -369,7 +374,9 @@ export class MapboxJourneyMapComponent implements OnInit, AfterViewInit, OnDestr
 
   private updateMarkersFromForm(): void {
     this.clearMarkers();
-    if (!this.markersForm) return;
+    if (!this.markersForm) {
+      return;
+    }
 
     this.markersForm.controls.forEach((control, index) => {
       const lat = control.get('latitude')?.value;
@@ -457,7 +464,9 @@ export class MapboxJourneyMapComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   private updatePolyline(): void {
-    if (!this.map || !this.mapReady) return;
+    if (!this.map || !this.mapReady) {
+      return;
+    }
 
     // Remove existing polyline
     if (this.map.getLayer(this.POLYLINE_LAYER_ID)) {
@@ -467,10 +476,14 @@ export class MapboxJourneyMapComponent implements OnInit, AfterViewInit, OnDestr
       this.map.removeSource(this.POLYLINE_SOURCE_ID);
     }
 
-    if (!this.showPolyline) return;
+    if (!this.showPolyline) {
+      return;
+    }
 
     const coordinates = this.getMarkerCoordinates();
-    if (coordinates.length < 2) return;
+    if (coordinates.length < 2) {
+      return;
+    }
 
     // Add polyline source
     this.map.addSource(this.POLYLINE_SOURCE_ID, {
@@ -503,7 +516,9 @@ export class MapboxJourneyMapComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   private updatePolylineFromCurrentMarkers(): void {
-    if (!this.showPolyline || !this.map || !this.mapReady) return;
+    if (!this.showPolyline || !this.map || !this.mapReady) {
+      return;
+    }
 
     const coordinates = this.markers.map(m => {
       const lngLat = m.getLngLat();
@@ -527,10 +542,11 @@ export class MapboxJourneyMapComponent implements OnInit, AfterViewInit, OnDestr
     if (this.markersForm) {
       return this.markersForm.controls
         .filter(c => c.get('latitude')?.value != null && c.get('longitude')?.value != null)
-        .map(c => ({
-          lat: c.get('latitude')!.value,
-          lng: c.get('longitude')!.value
-        }));
+        .map(c => {
+          const lat = c.get('latitude')?.value as number;
+          const lng = c.get('longitude')?.value as number;
+          return { lat, lng };
+        });
     }
     return this.markerList.map(m => ({ lat: m.lat, lng: m.lng }));
   }

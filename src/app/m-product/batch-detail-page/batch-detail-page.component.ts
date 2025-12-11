@@ -292,7 +292,11 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
     });
     const confiem = await modalRef.result;
     if (confiem) {
-      const productId = +this.route.snapshot.paramMap.get('id')!;
+      const idParam = this.route.snapshot.paramMap.get('id');
+      if (!idParam) {
+        return;
+      }
+      const productId = +idParam;
       this.productController.getProduct(productId).pipe(take(1))
         .subscribe(resp => {
           if (resp.status === 'OK') {

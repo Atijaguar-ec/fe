@@ -237,25 +237,21 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
     }
 
     this.mapMarkers = data.items
-      .filter(item => 
-        item.facilityLocation && 
-        item.facilityLocation.publiclyVisible && 
-        item.facilityLocation.latitude && 
-        item.facilityLocation.longitude
+      .filter(item =>
+        item.facilityLocation &&
+        item.facilityLocation.publiclyVisible &&
+        item.facilityLocation.latitude != null &&
+        item.facilityLocation.longitude != null
       )
-      .map(item => ({
-        lat: item.facilityLocation!.latitude!,
-        lng: item.facilityLocation!.longitude!,
-        infoText: item.name || '',
-        draggable: false
-      }));
-  }
-
-  async activateFacility(facilityId) {
-    const resActivate = await this.facilityControllerService.activateFacility(facilityId).pipe(take(1)).toPromise();
-    if (resActivate && resActivate.status === 'OK') {
-      this.reloadPingList$.next(null);
-    }
+      .map(item => {
+        const location = item.facilityLocation as ApiFacilityLocation;
+        return {
+          lat: location.latitude as number,
+          lng: location.longitude as number,
+          infoText: item.name || '',
+          draggable: false
+        } as JourneyMarker;
+      });
   }
 
   async deactivateFacility(facilityId) {
