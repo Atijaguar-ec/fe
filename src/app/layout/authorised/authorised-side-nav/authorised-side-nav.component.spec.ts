@@ -1,7 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router, RouterEvent } from '@angular/router';
-import { of, Subject } from 'rxjs';
+import { BehaviorSubject, of, Subject } from 'rxjs';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 
@@ -46,12 +46,13 @@ describe('AuthorisedSideNavComponent', () => {
     mockAboutAppInfoService = {
       getAboutAppInfo: jasmine.createSpy('getAboutAppInfo').and.returnValue(of({}))
     };
-    
+
+    // Use BehaviorSubject streams to mirror real SelfOnboardingService observables
     mockSelfOnboardingService = {
       getSelfOnboardingStatus: jasmine.createSpy('getSelfOnboardingStatus').and.returnValue(of({})),
-      addProductCurrentStep$: of(0),
-      addFacilityCurrentStep$: of(0),
-      addProcessingActionCurrentStep$: of(0)
+      addProductCurrentStep$: new BehaviorSubject<number | string | null>(0),
+      addFacilityCurrentStep$: new BehaviorSubject<number | string | null>(0),
+      addProcessingActionCurrentStep$: new BehaviorSubject<number | string | null>(0)
     };
 
     TestBed.configureTestingModule({
