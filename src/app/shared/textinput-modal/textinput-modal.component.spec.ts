@@ -1,5 +1,6 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { SharedModule } from 'src/app/shared/shared.module';
 
 import { TextinputModalComponent } from './textinput-modal.component';
 
@@ -15,6 +16,7 @@ describe('TextinputModalComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
+      imports: [ SharedModule ],
       declarations: [ TextinputModalComponent ],
       providers: [
         { provide: NgbActiveModal, useValue: mockNgbActiveModal }
