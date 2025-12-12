@@ -30,8 +30,7 @@ describe('BatchDetailPageComponent', () => {
       showLoadingSpinner: jasmine.createSpy('showLoadingSpinner'),
       hideLoadingSpinner: jasmine.createSpy('hideLoadingSpinner'),
       showLoading: jasmine.createSpy('showLoading'),
-      push: jasmine.createSpy('push'),
-      loadedGoogleMapsEmitter: new Subject<boolean>()
+      push: jasmine.createSpy('push')
     };
     
     // Mock NgbModalImproved

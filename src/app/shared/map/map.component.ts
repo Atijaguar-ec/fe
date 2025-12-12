@@ -1,6 +1,5 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
-import { environment } from 'src/environments/environment';
-import * as mapboxgl from 'mapbox-gl';
+import * as mapboxgl from 'maplibre-gl';
 import { Observable, Subscription } from 'rxjs';
 import { ApiPlotCoordinate } from '../../../api/model/apiPlotCoordinate';
 import { PlotCoordinatesManagerService } from '../../shared-services/plot-coordinates-manager.service';
@@ -21,8 +20,7 @@ declare const $localize: (messageParts: TemplateStringsArray, ...expressions: un
 })
 export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges {
 
-  private map: mapboxgl.Map;
-  private MAPBOX_STYLE_BASE_PATH = 'mapbox://styles/mapbox/';
+  private map!: mapboxgl.Map;
 
   private MAPBOX_SOURCE_PREFIX = 'ina_plot_';
 
@@ -92,6 +90,33 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
               private companyControllerService: CompanyControllerService) {
   }
 
+  private createBaseStyle(styleId: string): any {
+    return {
+      version: 8,
+      sources: {
+        'osm-tiles': {
+          type: 'raster',
+          tiles: [
+            'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+          ],
+          tileSize: 256,
+          attribution: '© OpenStreetMap contributors'
+        }
+      },
+      layers: [
+        {
+          id: 'osm-tiles',
+          type: 'raster',
+          source: 'osm-tiles',
+          minzoom: 0,
+          maxzoom: 19
+        }
+      ]
+    };
+  }
+
   private addConfiguredOverlays(): void {
     if (!this.mapReady || !this.map || !this.overlays?.length) {
       return;
@@ -105,7 +130,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
       }
 
       if (!this.map.getSource(overlay.sourceId)) {
-        const rasterSource: mapboxgl.RasterSourceSpecification = {
+        const rasterSource: any = {
           type: 'raster',
           tiles: overlay.tiles,
           tileSize: overlay.tileSize ?? 256,
@@ -123,7 +148,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
       }
 
       if (!this.map.getLayer(overlay.layerId)) {
-        const rasterLayer: mapboxgl.RasterLayer = {
+        const rasterLayer: any = {
           id: overlay.layerId,
           type: 'raster',
           source: overlay.sourceId,
@@ -383,7 +408,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
     // Subscribe to Map style radio group changes
     this.subscriptions.add(
       this.mapStyle.valueChanges.subscribe(value => {
-        this.map.setStyle(`${this.MAPBOX_STYLE_BASE_PATH}${value}`);
+        this.map.setStyle(this.createBaseStyle(value));
       })
     );
   }
@@ -398,12 +423,10 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
   
   buildMap(): void {
     this.map = new mapboxgl.Map({
-      accessToken: environment.mapboxAccessToken,
       container: this.mapId, // id of div that holds the map
-      style: `${this.MAPBOX_STYLE_BASE_PATH}${this.mapStyle.value}`,
+      style: this.createBaseStyle(this.mapStyle.value),
       zoom: 10,
       center: [this.initialLng ?? 14.995463, this.initialLat ?? 46.151241],
-      cooperativeGestures: true
     });
 
     // disable map rotation using right click + drag
@@ -491,7 +514,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
       const popup = new mapboxgl.Popup(
         {
           anchor: 'top',
-          offset: { top: [0, -10]},
+          offset: [0, -10],
           closeOnClick: true
         }
       ).setHTML(popupHtml);

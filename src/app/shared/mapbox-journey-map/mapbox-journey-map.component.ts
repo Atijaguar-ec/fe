@@ -9,8 +9,7 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core';
-import { environment } from '../../../environments/environment';
-import * as mapboxgl from 'mapbox-gl';
+import * as mapboxgl from 'maplibre-gl';
 import { FormArray, FormControl, FormGroup } from '@angular/forms';
 import { Subscription } from 'rxjs';
 
@@ -87,15 +86,39 @@ export interface MapClickEvent {
 })
 export class MapboxJourneyMapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges {
 
-  private map: mapboxgl.Map;
+  private map!: mapboxgl.Map;
   private markers: mapboxgl.Marker[] = [];
   private popups: mapboxgl.Popup[] = [];
   private mapReady = false;
   private subscriptions = new Subscription();
 
-  // Map style options
-  private readonly MAPBOX_STYLE_SATELLITE = 'mapbox://styles/mapbox/satellite-streets-v12';
-  private readonly MAPBOX_STYLE_OUTDOORS = 'mapbox://styles/mapbox/outdoors-v12';
+  // Base map style (raster tiles from OpenStreetMap, no token required)
+  private createBaseStyle(): any {
+    return {
+      version: 8,
+      sources: {
+        'osm-tiles': {
+          type: 'raster',
+          tiles: [
+            'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+          ],
+          tileSize: 256,
+          attribution: '© OpenStreetMap contributors'
+        }
+      },
+      layers: [
+        {
+          id: 'osm-tiles',
+          type: 'raster',
+          source: 'osm-tiles',
+          minzoom: 0,
+          maxzoom: 19
+        }
+      ]
+    };
+  }
 
   // Polyline layer IDs
   private readonly POLYLINE_SOURCE_ID = 'journey-polyline-source';
@@ -268,8 +291,7 @@ export class MapboxJourneyMapComponent implements OnInit, AfterViewInit, OnDestr
    */
   setStyle(style: 'satellite' | 'outdoors'): void {
     this.currentStyle = style;
-    const styleUrl = style === 'satellite' ? this.MAPBOX_STYLE_SATELLITE : this.MAPBOX_STYLE_OUTDOORS;
-    this.map.setStyle(styleUrl);
+    this.map.setStyle(this.createBaseStyle());
 
     // Re-add polyline after style change
     this.map.once('style.load', () => {
@@ -301,13 +323,11 @@ export class MapboxJourneyMapComponent implements OnInit, AfterViewInit, OnDestr
 
   private initializeMap(): void {
     this.map = new mapboxgl.Map({
-      accessToken: environment.mapboxAccessToken,
       container: this.mapId,
-      style: this.MAPBOX_STYLE_SATELLITE,
+      style: this.createBaseStyle(),
       zoom: this.defaultZoom,
       center: [this.centerLng, this.centerLat],
       doubleClickZoom: !this.disableDoubleClickZoom,
-      cooperativeGestures: true
     });
 
     // Disable rotation

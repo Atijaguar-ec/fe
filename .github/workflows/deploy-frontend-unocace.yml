@@ -231,7 +231,7 @@ jobs:
           port: ${{ secrets.TEST_UNOCACE_PORT || 22 }}
           script: |
             set -e
-            echo "🍫 Deploying UNOCACE Staging... "
+            echo "🍫 Deploying UNOCACE Staging..."
             cd /opt/inatrace/frontend
             
             set -a && source .env && set +a

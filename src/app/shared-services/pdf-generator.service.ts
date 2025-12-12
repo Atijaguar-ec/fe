@@ -314,20 +314,14 @@ export class PdfGeneratorService {
       }
     });
     
-    // También buscar otros tipos de mapas como fallback
-    const otherMapElements = Array.from(document.querySelectorAll('.gm-style, .leaflet-container'));
-    
+    // También buscar otros tipos de mapas como fallback (por ejemplo, Leaflet)
+    const otherMapElements = Array.from(document.querySelectorAll('.leaflet-container'));
+
     otherMapElements.forEach(mapElement => {
       try {
-        if ((mapElement as any).map) {
-          // Para Google Maps
-          if ((window as any).google && (window as any).google.maps) {
-            (window as any).google.maps.event.trigger((mapElement as any).map, 'resize');
-          }
-          // Para Leaflet
-          if ((mapElement as any).map.invalidateSize) {
-            (mapElement as any).map.invalidateSize();
-          }
+        const mapInstance = (mapElement as any).map;
+        if (mapInstance && typeof mapInstance.invalidateSize === 'function') {
+          mapInstance.invalidateSize();
         }
       } catch (e) {
         console.warn('Could not prepare other map type:', e);

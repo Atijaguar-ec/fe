@@ -1,4 +1,4 @@
-const csvFile = './src/assets/locale/Coffee-translations.csv'; //copy from google sheets
+const csvFile = './src/assets/locale/Coffee-translations.csv'; 
 const fs = require('fs')
 const readline = require('readline');
 
