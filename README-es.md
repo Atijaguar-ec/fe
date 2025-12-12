@@ -204,13 +204,12 @@ Edita `src/assets/env.js` para definir los endpoints reales del backend y otros 
 window['env']['environmentName'] = 'production';
 window['env']['appBaseUrl'] = '';  // ✅ IMPORTANTE: Vacío para usar rutas relativas
 window['env']['qrCodeBasePath'] = '/api/stock-order';
-window['env']['relativeFileUploadUrl'] = '/api/document';
-window['env']['relativeFileUploadUrlManualType'] = '/api/document?type=MANUAL';
-window['env']['relativeImageUploadUrl'] = '/api/image';
+window['env']['relativeFileUploadUrl'] = '/api/common/document';
+window['env']['relativeFileUploadUrlManualType'] = '/api/common/document?type=';
+window['env']['relativeImageUploadUrl'] = '/api/common/image';
 window['env']['relativeImageUploadUrlAllSizes'] = '/api/image';
 window['env']['googleMapsApiKey'] = '';
 window['env']['tokenForPublicLogRoute'] = '';
-window['env']['mapboxAccessToken'] = '';
 window['env']['beycoAuthURL'] = '';
 window['env']['beycoClientId'] = '';
 ```

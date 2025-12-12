@@ -13,7 +13,6 @@
     window['env']['relativeImageUploadUrl'] = '/api/common/image'; // Subida de imágenes (corrige /api/image -> /api/common/image)
     window['env']['relativeImageUploadUrlAllSizes'] = '/api/common/image'; // Mismo endpoint; tamaño vía params en backend
     window['env']['tokenForPublicLogRoute'] = '';
-    window['env']['mapboxAccessToken'] = 'pk.eyJ1IjoiYWx2YXJvZ2VvdmFuaSIsImEiOiJjbWN5bDFkbG0wcGt4Mm5xNngydnZ0cTUxIn0.e15Wl5VmuU4S2QIiO5242A';
 
     // Environment variables for Beyco integration
     window['env']['beycoAuthURL'] = '';
