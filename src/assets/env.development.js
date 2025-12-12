@@ -10,9 +10,12 @@
     window['env']['relativeFileUploadUrlManualType'] = '/api/common/document?type=MANUAL'; // Upload manual (ajustar si aplica)
     window['env']['relativeImageUploadUrl'] = '/api/common/image'; // Endpoint para subir imágenes (CommonController)
     window['env']['relativeImageUploadUrlAllSizes'] = '/api/common/image'; // El backend maneja variantes por parámetro, usar mismo endpoint
-    window['env']['googleMapsApiKey'] = 'AIzaSyAP1JuiYWi0A_Zf8BK0YIfl4nCKoxHnPHU';
+    window['env']['useMapsGoogle'] = false;
+    window['env']['googleMapsApiKey'] = '';
     window['env']['tokenForPublicLogRoute'] = '';
-    window['env']['mapboxAccessToken'] = 'pk.eyJ1IjoiYWx2YXJvZ2VvdmFuaSIsImEiOiJjbWN5bDFkbG0wcGt4Mm5xNngydnZ0cTUxIn0.e15Wl5VmuU4S2QIiO5242A';
+    window['env']['mapboxAccessToken'] = '';
+    window['env']['maptilerApiKey'] = '';
+    window['env']['facebookPixelId'] = null;
 
     // Environment variables for Beyco integration
     window['env']['beycoAuthURL'] = '';

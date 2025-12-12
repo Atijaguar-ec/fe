@@ -248,9 +248,9 @@ export interface ApiStockOrder {
      * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
      */
     repackedOriginStockOrderId?: string;
+    available?: boolean;
     purchaseOrder?: boolean;
     openOrder?: boolean;
-    available?: boolean;
 }
 
 /**
@@ -469,9 +469,9 @@ export namespace ApiStockOrder {
          * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
          */
         repackedOriginStockOrderId = 'repackedOriginStockOrderId',
+        available = 'available',
         purchaseOrder = 'purchaseOrder',
-        openOrder = 'openOrder',
-        available = 'available'
+        openOrder = 'openOrder'
     }
 
     /**
@@ -1233,6 +1233,17 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'available',
+                    classname: 'ApiStockOrder',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'purchaseOrder',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
@@ -1245,17 +1256,6 @@ export namespace ApiStockOrder {
                     isEnum: false,
                     required: false,
                     name: 'openOrder',
-                    classname: 'ApiStockOrder',
-                    dataType: 'boolean',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'available',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1392,11 +1392,11 @@ export namespace ApiStockOrder {
                 ],
                 repackedOriginStockOrderId: [
                 ],
+                available: [
+                ],
                 purchaseOrder: [
                 ],
                 openOrder: [
-                ],
-                available: [
                 ],
             }
         }
@@ -1597,13 +1597,13 @@ export namespace ApiStockOrder {
   //               repackedOriginStockOrderId: {
   //                   validators: []
   //               },
+  //               available: {
+  //                   validators: []
+  //               },
   //               purchaseOrder: {
   //                   validators: []
   //               },
   //               openOrder: {
-  //                   validators: []
-  //               },
-  //               available: {
   //                   validators: []
   //               },
   //     }

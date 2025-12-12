@@ -73,6 +73,8 @@ import { ColorInputComponent } from './color-input/color-input.component';
 import { DocumentPreviewComponent } from './document-preview/document-preview.component';
 import { ToggleSwitchComponent } from './toggle-switch/toggle-switch.component';
 import { MapComponent } from './map/map.component';
+import { MaplibreJourneyMapComponent } from './maplibre-journey-map/maplibre-journey-map.component';
+import { JourneyMapComponent } from './journey-map/journey-map.component';
 
 @NgModule({
     declarations: [
@@ -133,7 +135,9 @@ import { MapComponent } from './map/map.component';
         GeoaddressFormComponent,
         ColorInputComponent,
         DocumentPreviewComponent,
-        ToggleSwitchComponent
+        ToggleSwitchComponent,
+        MaplibreJourneyMapComponent,
+        JourneyMapComponent
     ],
     entryComponents: [
         TextinputModalComponent,
@@ -208,6 +212,8 @@ import { MapComponent } from './map/map.component';
         ColorInputComponent,
         DocumentPreviewComponent,
         ToggleSwitchComponent,
+        MaplibreJourneyMapComponent,
+        JourneyMapComponent,
         NgSelectModule
     ]
 })

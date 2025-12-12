@@ -53,6 +53,7 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
     "lodash-es": "^4.17.15",
+    "maplibre-gl": "1.15.3",
     "mapbox-gl": "^1.13.0",
     "ng2-charts": "^2.4.2",
     "ng2-file-upload": "^1.4.0",
