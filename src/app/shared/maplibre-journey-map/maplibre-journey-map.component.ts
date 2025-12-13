@@ -47,7 +47,7 @@ export interface JourneyMapLatLng {
 })
 export class MaplibreJourneyMapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges {
   private map!: maplibregl.Map;
-  private markers: maplibregl.Marker[] = [];
+  private mapMarkers: maplibregl.Marker[] = [];
   private popups: maplibregl.Popup[] = [];
   private mapReady = false;
   private subscriptions = new Subscription();
@@ -63,7 +63,7 @@ export class MaplibreJourneyMapComponent implements OnInit, AfterViewInit, OnDes
   @Input() centerLng = -78.183406;
   @Input() defaultZoom = 7;
 
-  @Input('markers') markerList: JourneyMarker[] = [];
+  @Input() markers: JourneyMarker[] = [];
 
   @Input() markersForm: FormArray | null = null;
 
@@ -112,7 +112,7 @@ export class MaplibreJourneyMapComponent implements OnInit, AfterViewInit, OnDes
       return;
     }
 
-    if (changes['markerList'] && !changes['markerList'].firstChange) {
+    if (changes['markers'] && !changes['markers'].firstChange) {
       this.updateMarkersFromList();
       this.updatePolyline();
       if (this.autoFitBounds) {
@@ -218,7 +218,7 @@ export class MaplibreJourneyMapComponent implements OnInit, AfterViewInit, OnDes
 
     if (this.markersForm) {
       this.updateMarkersFromForm();
-    } else if (this.markerList.length > 0) {
+    } else if (this.markers.length > 0) {
       this.updateMarkersFromList();
     }
 
@@ -248,15 +248,15 @@ export class MaplibreJourneyMapComponent implements OnInit, AfterViewInit, OnDes
   }
 
   private clearMarkers(): void {
-    this.markers.forEach(m => m.remove());
-    this.markers = [];
+    this.mapMarkers.forEach(m => m.remove());
+    this.mapMarkers = [];
     this.popups.forEach(p => p.remove());
     this.popups = [];
   }
 
   private updateMarkersFromList(): void {
     this.clearMarkers();
-    this.markerList.forEach((marker, index) => {
+    this.markers.forEach((marker, index) => {
       this.addMarkerToMap(marker, index);
     });
   }
@@ -344,7 +344,7 @@ export class MaplibreJourneyMapComponent implements OnInit, AfterViewInit, OnDes
       });
     }
 
-    this.markers.push(marker);
+    this.mapMarkers.push(marker);
   }
 
   private updatePolyline(): void {
@@ -405,7 +405,7 @@ export class MaplibreJourneyMapComponent implements OnInit, AfterViewInit, OnDes
       return;
     }
 
-    const coordinates = this.markers.map(m => {
+    const coordinates = this.mapMarkers.map(m => {
       const lngLat = m.getLngLat();
       return [lngLat.lng, lngLat.lat];
     });
@@ -434,7 +434,7 @@ export class MaplibreJourneyMapComponent implements OnInit, AfterViewInit, OnDes
         });
     }
 
-    return this.markerList.map(m => ({ lat: m.lat, lng: m.lng }));
+    return this.markers.map(m => ({ lat: m.lat, lng: m.lng }));
   }
 
   private getFitCoordinates(): { lat: number; lng: number }[] {
