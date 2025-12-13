@@ -27,25 +27,27 @@ export class PlotsFormComponent implements OnInit {
   productTypes: Array<ApiProductType> = [];
   plotCoordinatesManager: PlotCoordinatesManagerService = new PlotCoordinatesManagerService();
 
-  pin: ApiPlotCoordinate;
+  mapId = 'map-viewer';
+
+  pin?: ApiPlotCoordinate;
   plotsListManager: any;
 
   drawPlotSubject = new Subject<boolean>();
 
-  initialLat: number;
-  initialLng: number;
+  initialLat?: number;
+  initialLng?: number;
 
   @Input()
-  productTypesCodebook: CompanyProductTypesService;
+  productTypesCodebook!: CompanyProductTypesService;
 
   @Input()
-  form: FormGroup; // contains the plots control
+  form!: FormGroup; // contains the plots control
 
   @Input()
   submitted = false;
 
   @Input()
-  updateMode: boolean;
+  updateMode = false;
 
   @Output()
   uploadGeoData = new EventEmitter<void>();
@@ -75,11 +77,15 @@ export class PlotsFormComponent implements OnInit {
 
   ngOnInit(): void {
 
-    this.plots = this.form.get('plots').value;
+    const plotsCtrl = this.form.get('plots');
+    this.plots = (plotsCtrl?.value as Array<ApiPlot>) ?? [];
+
+    const formId = this.form.get('id')?.value;
+    this.mapId = `map-viewer-${formId ?? 'new'}`;
 
     this.pin = {
-      latitude: this.form.get('location').value.latitude,
-      longitude: this.form.get('location').value.latitude,
+      latitude: this.form.get('location.latitude')?.value,
+      longitude: this.form.get('location.longitude')?.value,
     };
 
     this.initialLat = this.form.get('location')?.get('address')?.get('country')?.value?.latitude;
@@ -91,11 +97,12 @@ export class PlotsFormComponent implements OnInit {
 
   initializeMarker() {
 
-    if (!this.form.get('latitude') || !this.form.get('longitude')) {
+    if (!this.form.get('location.latitude') || !this.form.get('location.longitude')) {
       return;
     }
-    const lat = this.form.get('latitude').value;
-    const lng = this.form.get('longitude').value;
+
+    const lat = this.form.get('location.latitude')?.value;
+    const lng = this.form.get('location.longitude')?.value;
     if (lng == null || lat == null) {
       return;
     }
@@ -107,23 +114,34 @@ export class PlotsFormComponent implements OnInit {
   }
 
   initializeListManager() {
+    const plotsControl = this.form.get('plots');
+    if (!(plotsControl instanceof FormArray)) {
+      return;
+    }
+
     this.plotsListManager = new ListEditorManager<ApiPlot>(
-      this.form.get('plots') as FormArray,
+      plotsControl,
       PlotsFormComponent.ApiPlotEmptyObjectFormFactory(),
       ApiPlotValidationScheme
     );
   }
 
   updateLonLat(coordinates: Array<ApiPlotCoordinate>) {
-    if (coordinates) {
-      this.form.get('location.latitude').setValue(coordinates[0].latitude);
-      this.form.get('location.longitude').setValue(coordinates[0].longitude);
-    } else {
-      this.form.get('location.latitude').setValue(null);
-      this.form.get('location.longitude').setValue(null);
+    const latCtrl = this.form.get('location.latitude');
+    const lngCtrl = this.form.get('location.longitude');
+    if (!latCtrl || !lngCtrl) {
+      return;
     }
-    this.form.get('location.latitude').markAsDirty();
-    this.form.get('location.longitude').markAsDirty();
+
+    if (coordinates) {
+      latCtrl.setValue(coordinates[0].latitude);
+      lngCtrl.setValue(coordinates[0].longitude);
+    } else {
+      latCtrl.setValue(null);
+      lngCtrl.setValue(null);
+    }
+    latCtrl.markAsDirty();
+    lngCtrl.markAsDirty();
   }
 
   drawPlot() {
@@ -131,14 +149,19 @@ export class PlotsFormComponent implements OnInit {
   }
 
   updateFormGeoId(apiPlot: ApiPlot) {
-    const currentPlotsValue = this.form.get('plots').value as Array<ApiPlot>;
+    const plotsCtrl = this.form.get('plots');
+    if (!plotsCtrl) {
+      return;
+    }
+
+    const currentPlotsValue = (plotsCtrl.value as Array<ApiPlot>) ?? [];
     currentPlotsValue.forEach(plot => {
       if (plot.id === apiPlot.id) {
         plot.geoId = apiPlot.geoId;
       }
     });
     // update
-    this.form.get('plots').setValue(currentPlotsValue);
+    plotsCtrl.setValue(currentPlotsValue);
   }
 
   openGeoIdWhisp($geoId: string) {
