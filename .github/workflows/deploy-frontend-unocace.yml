@@ -194,6 +194,8 @@ jobs:
       - name: 📝 Prepare .env
         run: |
           cat > .env <<EOF
+          FE_IMAGE_NAME=${{ needs.build.outputs.image-ref }}
+          FE_TAG=${{ needs.build.outputs.image-tag }}
           IMAGE_NAME=${{ needs.build.outputs.image-ref }}
           TAG=${{ needs.build.outputs.image-tag }}
           NODE_ENV=test
@@ -205,6 +207,10 @@ jobs:
           DOMAIN=inatrace-test.unocace.com
           COMPANY_NAME=${{ env.COMPANY_NAME }}
           COMPANY_THEME=${{ env.COMPANY_THEME }}
+          USE_MAPS_GOOGLE=false
+          MAPTILER_API_KEY=${{ secrets.TEST_UNOCACE_MAPTILER_API_KEY || secrets.MAPTILER_API_KEY }}
+          GOOGLE_MAPS_API_KEY=${{ secrets.TEST_UNOCACE_GOOGLE_MAPS_API_KEY || secrets.GOOGLE_MAPS_API_KEY }}
+          MAPBOX_ACCESS_TOKEN=${{ secrets.TEST_UNOCACE_MAPBOX_ACCESS_TOKEN || secrets.MAPBOX_ACCESS_TOKEN }}
           TRAEFIK_ENABLE=true
           TRAEFIK_ROUTER_NAME=inatrace-fe-test-unocace
           TRAEFIK_ROUTER_RULE=Host(\`inatrace-test.unocace.com\`)
@@ -305,6 +311,8 @@ jobs:
       - name: 📝 Prepare .env
         run: |
           cat > .env <<EOF
+          FE_IMAGE_NAME=${{ needs.build.outputs.image-ref }}
+          FE_TAG=${{ needs.build.outputs.image-tag }}
           IMAGE_NAME=${{ needs.build.outputs.image-ref }}
           TAG=${{ needs.build.outputs.image-tag }}
           NODE_ENV=production
@@ -316,6 +324,9 @@ jobs:
           DOMAIN=inatrace.unocace.com
           COMPANY_NAME=${{ env.COMPANY_NAME }}
           COMPANY_THEME=${{ env.COMPANY_THEME }}
+          MAPTILER_API_KEY=${{ secrets.PROD_UNOCACE_MAPTILER_API_KEY || secrets.MAPTILER_API_KEY }}
+          GOOGLE_MAPS_API_KEY=${{ secrets.PROD_UNOCACE_GOOGLE_MAPS_API_KEY || secrets.GOOGLE_MAPS_API_KEY }}
+          MAPBOX_ACCESS_TOKEN=${{ secrets.PROD_UNOCACE_MAPBOX_ACCESS_TOKEN || secrets.MAPBOX_ACCESS_TOKEN }}
           TRAEFIK_ENABLE=true
           TRAEFIK_ROUTER_NAME=inatrace-fe-prod-unocace
           TRAEFIK_ROUTER_RULE=Host(\`inatrace.unocace.com\`)
