@@ -2867,7 +2867,6 @@
     "productLabelFacilities.tableCol.activate": "Activar",
     "productLabelFacilities.tableCol.deactivate": "Deactivar",
     "productLabelFacilities.deactivateFacility.delete": "Está seguro que quiere deactivar el área?",
-    "productLabelStockFacilityModal.checkbox.priceReductionDamage.label": "Mostrar 'Descuento para defectos'",
     "productLabelStockFacilityModal.checkbox.finalPriceDiscount.label": "Mostrar 'Descuento al precio final'",
     "productLabelStockFacilityModal.checkbox.weightReductionDamage.label": "Mostrar 'Descuento de peso'",
     "productLabelStockPurchaseOrdersModal.textinput.damagedWeightDeduction.placeholder": "Introduzca descuento de peso",
@@ -2940,7 +2939,6 @@
     "productLabelStockFacilityModal.removeSemiOrFinalProduct.confirm.message": "Está seguro que quiere quitar el producto? Ya no va a poder trabajar con estos productos",
     "productLabelStockFacilityModal.checkbox.priceDeterminedLater.label": "Muestra 'Precio por determinar'",
     "productLabelStockPurchaseOrdersModal.checkboxinput.priceDeterminedLater.label": "Precio por determinar",
-    "stockOrderItem.pricePerUnitForEndCustomer.textinput.error": "Se requiere precio",
     "productLabelStockPayments.addPricePerUnit.message": "Seleccione 'editar' para añadir el precio por unidad antes de añadir un pago de saldo",
     "beycoOrderList.title": "Exportar a Beyco",
     "beycoOrderList.form.sharedValues": "Información básica",
@@ -3332,6 +3330,36 @@
     "productLabelStockBulkPayments.textinput.paymentPerKg.error": "Error en el pago por kg",
     "quoteOrdersOnOrganization.input.placehoder": "Introduce un valor",
     "companyDashboardComponent.graph.values.trunked": "Truncado",
+
+    "certificationTypeDetail.textinput.code.label": "Código",
+    "certificationTypeDetail.textinput.code.placeholder": "Ingresa el código",
+    "certificationTypeDetail.textinput.label.label": "Etiqueta",
+    "certificationTypeDetail.textinput.label.placeholder": "Ingresa la etiqueta",
+    "certificationTypeDetail.singleChoice.category.label": "Categoría",
+    "certificationTypeDetail.singleChoice.status.label": "Estado",
+    "certificationTypeDetail.hint.translations": " Especifica la etiqueta en inglés y agrega traducciones para todos los idiomas utilizados. ",
+    "certificationTypeDetail.textinput.code.error": " El código debe contener solo mayúsculas, números o guiones bajos ",
+    "certificationTypeDetail.textinput.code.errorRequired": " El código es obligatorio ",
+    "certificationTypeDetail.textinput.label.error": " La etiqueta es obligatoria ",
+    "certificationTypeDetail.singleChoice.category.error": " La categoría es obligatoria ",
+    "certificationTypeDetail.singleChoice.status.error": " El estado es obligatorio ",
+    "certificationTypeDetail.translation.label": "Etiqueta",
+    "certificationTypeDetail.translation.placeholder": "Ingresa la etiqueta",
+    "certificationTypeDetail.translation.error": " La traducción al inglés es obligatoria ",
+
+    "facilityTypeDetail.textinput.order.label": "Order",
+    "facilityTypeDetail.textinput.order.placeholder": "Enter order (lower shows first)",
+    "facilityTypeDetail.textinput.order.error.numeric": " Order must be a number ",
+
+    "valueChainDetail.section.productType.title": "Product type",
+    "valueChainDetail.textinput.productType.label": "Value chain product type",
+    "valueChainDetail.textinput.productType.error": " Product type is required. ",
+
+    "productLabelStockFacilityModal.checkbox.moisturePercentage.label": " Display \"Moisture percentage deduction\" ",
+    "locationForm.textinput.label": "Street address",
+    "locationForm.textinput.placeholder": "Enter street address",
+
+    "map.overlay.maeDeforestation": "Deforestación MAE 2020-2022",
 
     "collectorDetail.textinput.maxProductionQuantity.label": "Cantidad máxima de producción (qq)",
     "productLabelPurchaseOrder.aggregated.organicBalance": "Saldo Orgánico (qq)"
