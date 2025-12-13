@@ -488,12 +488,12 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
       container: this.mapId, // id of div that holds the map
       style: this.getBaseStyle(this.mapStyle.value),
       zoom: 10,
-      center: [this.initialLng ?? 14.995463, this.initialLat ?? 46.151241],
-      cooperativeGestures: true
+      center: [this.initialLng ?? 14.995463, this.initialLat ?? 46.151241]
     };
 
     if (this.useLegacyMaps) {
       options.accessToken = environment.mapboxAccessToken;
+      options.cooperativeGestures = true;
     }
 
     this.map = new this.mapApi.Map(options);
