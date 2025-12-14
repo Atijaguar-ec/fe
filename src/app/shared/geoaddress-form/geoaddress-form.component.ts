@@ -6,6 +6,10 @@ import _ from 'lodash-es';
 import { CountryService } from '../../shared-services/countries.service';
 import { GlobalEventManagerService } from '../../core/global-event-manager.service';
 import { EnumSifrant } from '../../shared-services/enum-sifrant';
+import { environment } from '../../../environments/environment';
+import { ApiPlotCoordinate } from '../../../api/model/apiPlotCoordinate';
+
+declare const $localize: (messageParts: TemplateStringsArray, ...expressions: unknown[]) => string;
 
 @Component({
   selector: 'app-geoaddress-form',
@@ -39,6 +43,8 @@ export class GeoaddressFormComponent implements OnInit, OnDestroy {
 
   marker = null;
   codebookStatus = EnumSifrant.fromObject(this.publiclyVisible);
+  mapId = `geoaddress-map-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+  plotCoordinates: ApiPlotCoordinate[] = [];
 
   constructor(
       public countryCodes: CountryService,
@@ -60,6 +66,8 @@ export class GeoaddressFormComponent implements OnInit, OnDestroy {
         error => { }
     );
     this.subs.push(sub2);
+
+    this.initializePlotCoordinates();
 
     const sub3 = this.form.get('country').valueChanges
         .subscribe(value => {
@@ -284,10 +292,48 @@ export class GeoaddressFormComponent implements OnInit, OnDestroy {
 
 
   get publiclyVisible() {
-    const obj = {};
+    const obj: Record<string, string> = {};
     obj['true'] = $localize`:@@locationForm.publiclyVisible.yes:YES`;
     obj['false'] = $localize`:@@locationForm.publiclyVisible.no:NO`;
     return obj;
+  }
+
+  get useMapsGoogle(): boolean {
+    return environment.useMapsGoogle;
+  }
+
+  initializePlotCoordinates(): void {
+    const latCtrl = this.form.get('latitude');
+    const lngCtrl = this.form.get('longitude');
+    const lat = latCtrl?.value;
+    const lng = lngCtrl?.value;
+    if (typeof lat === 'number' && typeof lng === 'number') {
+      this.plotCoordinates = [{ latitude: lat, longitude: lng }];
+    } else {
+      this.plotCoordinates = [];
+    }
+  }
+
+  onMapCoordinatesChange(coords: ApiPlotCoordinate[]): void {
+    const latCtrl = this.form.get('latitude');
+    const lngCtrl = this.form.get('longitude');
+    if (!latCtrl || !lngCtrl) {
+      return;
+    }
+
+    if (!coords || coords.length === 0) {
+      this.plotCoordinates = [];
+      latCtrl.setValue(null);
+      lngCtrl.setValue(null);
+    } else {
+      const last = coords[coords.length - 1];
+      this.plotCoordinates = [{ latitude: last.latitude, longitude: last.longitude }];
+      latCtrl.setValue(last.latitude);
+      lngCtrl.setValue(last.longitude);
+    }
+
+    latCtrl.markAsDirty();
+    lngCtrl.markAsDirty();
   }
 
 }
