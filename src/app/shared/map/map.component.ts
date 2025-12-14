@@ -88,6 +88,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
   private overlayLayerIds: Set<string> = new Set();
   private overlaySourceIds: Set<string> = new Set();
   private mapReady = false;
+  private mapInitAttempts = 0;
 
   overlayVisibility: Record<string, boolean> = {};
 
@@ -493,6 +494,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
 
   flyToCurrentPosition(): void {
     navigator.geolocation.getCurrentPosition( position => {
+      if (!this.map) {
+        return;
+      }
       this.map.flyTo({
         center: [position.coords.longitude, position.coords.latitude]
       });
@@ -500,6 +504,15 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
   }
   
   buildMap(): void {
+    const container = document.getElementById(this.mapId);
+    if (!container) {
+      if (this.mapInitAttempts < 10) {
+        this.mapInitAttempts++;
+        setTimeout(() => this.buildMap(), 0);
+      }
+      return;
+    }
+
     this.mapApi = this.useLegacyMaps ? mapboxgl : maplibregl;
 
     const options: any = {
@@ -515,6 +528,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
     }
 
     this.map = new this.mapApi.Map(options);
+    this.mapInitAttempts = 0;
 
     this.map.dragRotate.disable();
 
