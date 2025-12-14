@@ -1151,7 +1151,7 @@
     "breadCrumb.termsAndConditionsPage.termsAndConditions": "Terms and conditions",
     "breadCrumb.KnowledgeBlogFrontComponent.home": "Home",
     "breadCrumb.KnowledgeBlogFrontComponent.knowledgeBlog": "Blog",
-    "cookies.cookieBanner.segmentWithButton": "{$START_PARAGRAPH}Cookies on this page{$CLOSE_PARAGRAPH}{$START_PARAGRAPH_1}The website uses cookies for a variety of purposes. Some are essential for the operation of online services. However, cookies for analytics and your settings provide a better user experience, easier site usage.{$CLOSE_PARAGRAPH}{$START_PARAGRAPH_1}You can read more about cookies in {$START_LINK}Cookies{$CLOSE_LINK}. By continuing to use the site you agree to the cookies. You can edit your cookie {$START_LINK}settings here{$CLOSE_LINK}.{$CLOSE_PARAGRAPH}{$START_TAG_DIV}{$START_LINK_1}{$START_TAG_SPAN}OK{$CLOSE_TAG_SPAN}{$CLOSE_LINK}{$CLOSE_TAG_DIV}",
+    "cookies.cookieBanner.segmentWithButton": "{$START_PARAGRAPH}Cookies on this page{$CLOSE_PARAGRAPH}{$START_PARAGRAPH_1}The website uses cookies for a variety of purposes. Some are essential for the operation of online services. However, cookies for analytics and your settings provide a better user experience, easier site usage.{$CLOSE_PARAGRAPH}{$START_PARAGRAPH_1}You can read more about cookies in {$START_LINK}Cookies{$CLOSE_LINK}. By continuing to use the site you agree to the cookies. You can edit your cookie {$START_LINK}settings here{$CLOSE_LINK}.{$CLOSE_PARAGRAPH}{$START_TAG_BUTTON}{$START_TAG_SPAN}OK{$CLOSE_TAG_SPAN}{$CLOSE_TAG_BUTTON}",
     "tokenInterceptor.login.message": "Wrong username or password",
     "tokenInterceptor.login.title": "Error",
     "tokenInterceptor.logout.message": "Your session has expired",
@@ -3324,6 +3324,40 @@
     "guidedTour.allStockSection.selectFacility": "Here you select the facility your (semi-) product is currently located in.",
 
     "collectorDetail.textinput.maxProductionQuantity.label": "Max production quantity (qq)",
-    "productLabelPurchaseOrder.aggregated.organicBalance": "Organic Balance (qq)"
+    "productLabelPurchaseOrder.aggregated.organicBalance": "Organic Balance (qq)",
+
+    "certificationTypeDetail.textinput.code.label": "Code",
+    "certificationTypeDetail.textinput.code.placeholder": "Enter code",
+    "certificationTypeDetail.textinput.label.label": "Label",
+    "certificationTypeDetail.textinput.label.placeholder": "Enter label",
+    "certificationTypeDetail.singleChoice.category.label": "Category",
+    "certificationTypeDetail.singleChoice.status.label": "Status",
+    "certificationTypeDetail.hint.translations": " Specify the label in English and add translations for all used languages. ",
+    "certificationTypeDetail.textinput.code.error": " Code must contain only uppercase letters, numbers or underscores ",
+    "certificationTypeDetail.textinput.code.errorRequired": " Code is required ",
+    "certificationTypeDetail.textinput.label.error": " Label is required ",
+    "certificationTypeDetail.singleChoice.category.error": " Category is required ",
+    "certificationTypeDetail.singleChoice.status.error": " Status is required ",
+    "certificationTypeDetail.translation.label": "Label",
+    "certificationTypeDetail.translation.placeholder": "Enter label",
+    "certificationTypeDetail.translation.error": " English translation is required ",
+
+    "facilityTypeDetail.textinput.order.label": "Order",
+    "facilityTypeDetail.textinput.order.placeholder": "Enter order (lower shows first)",
+    "facilityTypeDetail.textinput.order.error.numeric": " Order must be a number ",
+
+    "valueChainDetail.section.productType.title": "Product type",
+    "valueChainDetail.textinput.productType.label": "Value chain product type",
+    "valueChainDetail.textinput.productType.error": " Product type is required. ",
+
+    "locationForm.textinput.label": "Street address",
+    "locationForm.textinput.placeholder": "Enter street address",
+
+    "map.overlay.maeDeforestation": "Deforestación MAE 2020-2022",
+
+    "paymentForm.textinput.purchased.placeholder": "Enter purchased quantity",
+    "paymentForm.textinput.balance.placeholder": "Enter balance",
+    "paymentForm.textinput.totalPaid.placeholder": "Enter total amount paid",
+    "productLabelPayments.tableCol.delete": "Delete"
   }
 }
