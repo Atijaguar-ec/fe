@@ -77,6 +77,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
   editable = false;
 
   @Input()
+  singlePinMode = false;
+
+  @Input()
   overlays: MapOverlayConfig[] = DEFAULT_MAP_OVERLAYS;
   
   subscriptions: Subscription = new Subscription();
@@ -271,6 +274,21 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
     if (this.map && this.map.getLayer(overlay.layerId)) {
       this.map.setLayoutProperty(overlay.layerId, 'visibility', shouldShow ? 'visible' : 'none');
     }
+  }
+
+  private mapRightClicked() {
+    if (!this.editable || !this.editMode || !this.singlePinMode) {
+      return;
+    }
+
+    this.clearAllMarkers();
+    this.plotCoordinatesChange.emit(this.plotCoordinates);
+  }
+
+  private clearAllMarkers(): void {
+    this.markers.forEach(marker => marker.remove());
+    this.markers = [];
+    this.plotCoordinates = [];
   }
 
   onOverlayToggle(overlay: MapOverlayConfig, visible: boolean): void {
@@ -502,7 +520,19 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
 
     this.map.touchZoomRotate.disableRotation();
 
-    this.map.on('click', (e: any) => this.mapClicked(e));
+    if (this.singlePinMode) {
+      this.map.doubleClickZoom.disable();
+      this.map.on('dblclick', (e: any) => {
+        if (typeof e?.preventDefault === 'function') {
+          e.preventDefault();
+        }
+        this.mapClicked(e);
+      });
+    } else {
+      this.map.on('click', (e: any) => this.mapClicked(e));
+    }
+
+    this.map.on('contextmenu', () => this.mapRightClicked());
     this.map.on('load', () => this.mapLoaded());
   }
 
@@ -681,6 +711,11 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
 
       const lng = e.lngLat.wrap()['lng'] as number;
       const lat = e.lngLat.wrap()['lat'] as number;
+
+      if (this.singlePinMode) {
+        this.clearAllMarkers();
+      }
+
       this.placeMarkerOnMap(lat, lng);
       this.plotCoordinatesChange.emit(this.plotCoordinates);
 
