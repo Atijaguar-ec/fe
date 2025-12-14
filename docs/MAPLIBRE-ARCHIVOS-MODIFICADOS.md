@@ -1,7 +1,7 @@
 # Archivos Modificados - Sistema Dual de Mapas
 
 ## Fecha de Implementación
-Diciembre 2024
+Diciembre 2025
 
 ## Resumen de Cambios
 
@@ -61,12 +61,32 @@ Diciembre 2024
 |---------|---------|
 | `src/app/b2c/b2c-page/b2c-journey/b2c-journey.component.ts` | Removido código Google Maps, simplificado |
 | `src/app/b2c/b2c-page/b2c-journey/b2c-journey.component.html` | Cambiado `<google-map>` por `<app-journey-map>` |
+| `src/app/shared/location-form-new/location-form-new.component.ts` | Fallback a `<app-map>` cuando `useMapsGoogle=false` y sincronización de pin (modo pin único) |
+| `src/app/shared/location-form-new/location-form-new.component.html` | Render condicional Google/MapLibre según `useMapsGoogle` |
+| `src/app/shared/geoaddress-form/geoaddress-form.component.ts` | Fallback a `<app-map>` cuando `useMapsGoogle=false` y sincronización de pin |
+| `src/app/shared/geoaddress-form/geoaddress-form.component.html` | Render condicional Google/MapLibre según `useMapsGoogle` |
+| `src/app/m-product/batch-detail-page/batch-detail-page.component.ts` | Fallback a `<app-map>` y sincronización de coordenadas con formulario |
+| `src/app/m-product/batch-detail-page/batch-detail-page.component.html` | Render condicional Google/MapLibre según `useMapsGoogle` |
+| `src/app/m-product/product-label/product-label.component.ts` | Fallback a `<app-map>` y sincronización de coordenadas con formulario |
+| `src/app/m-product/product-label/product-label.component.html` | Render condicional Google/MapLibre según `useMapsGoogle` |
+| `src/app/m-product/product-label-statistics-page/product-label-statistics-page.component.ts` | Ajuste de markers y fallback a MapLibre Journey Map |
+| `src/app/m-product/product-label-statistics-page/product-label-statistics-page.component.html` | Render condicional Google/MapLibre según `useMapsGoogle` |
+| `src/app/m-product/product-label/pathline-map/pathline-map.component.ts` | Fallback a `<app-map>` y sincronización de coordenadas |
+| `src/app/m-product/product-label/pathline-map/pathline-map.component.html` | Render condicional Google/MapLibre según `useMapsGoogle` |
 
 ### Dependencias
 
 | Archivo | Cambios |
 |---------|---------|
-| `package.json` | Agregado `maplibre-gl: ^1.15.3` |
+| `package.json` | Agregado `maplibre-gl: 1.15.3` |
+
+### Fixes de Estabilidad
+
+| Archivo | Cambios |
+|---------|---------|
+| `src/app/shared/maplibre-journey-map/maplibre-journey-map.component.ts` | Evitar crash en CI/tests sin WebGL (guard + try/catch) y proteger `setStyle()` si no existe mapa |
+| `src/app/shared/map/map.component.html` | Binding del id del contenedor con `[id]="mapId"` para asegurar que exista antes de inicializar |
+| `src/app/shared/map/map.component.ts` | Retry de inicialización para evitar error runtime "Container not found" y guardas por mapa nulo |
 
 ## Estructura de Archivos Nuevos
 

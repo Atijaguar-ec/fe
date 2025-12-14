@@ -191,16 +191,19 @@ Cuando no hay `maptilerApiKey`, se usan tiles de OpenStreetMap:
 | Componente | Estado | Notas |
 |------------|--------|-------|
 | `B2cJourneyComponent` | ✅ Migrado | Usa `<app-journey-map>` |
+| `LocationFormNewComponent` | ✅ Migrado | Fallback a `<app-map>` (pin único) cuando `useMapsGoogle=false` |
+| `GeoaddressFormComponent` | ✅ Migrado | Fallback a `<app-map>` (pin único) cuando `useMapsGoogle=false` |
+| `BatchDetailPageComponent` | ✅ Migrado | Fallback a `<app-map>` y sincronización FormArray ↔ coordenadas |
+| `ProductLabelComponent` | ✅ Migrado | Fallback a `<app-map>` y sincronización FormArray ↔ coordenadas |
+| `ProductLabelStatisticsPageComponent` | ✅ Migrado | Fallback a `<app-maplibre-journey-map>` |
+| `PathlineMapComponent` | ✅ Migrado | Fallback a `<app-map>` y sincronización de coordenadas |
+| `CompanyDetailFacilitiesComponent` | ✅ Migrado | Fallback a `<app-maplibre-journey-map>` |
 
 ### Componentes Pendientes
 
 | Componente | Proveedor Actual | Acción Requerida |
 |------------|------------------|------------------|
-| `LocationFormComponent` | Google Maps | Crear wrapper |
-| `GeoaddressFormComponent` | Google Maps | Crear wrapper |
-| `MapComponent` (plots) | Mapbox GL | Crear versión MapLibre |
-| `BatchDetailPageComponent` | Google Maps | Migrar a wrapper |
-| `ProductLabelComponent` | Google Maps | Migrar a wrapper |
+| `LocationFormComponent` | Google Maps (legacy) | Revisar si aún se usa; el mapa está comentado en el template |
 
 ## Carga Condicional
 
@@ -231,7 +234,7 @@ El CSS de MapLibre se importa localmente (no CDN):
 ```json
 {
   "dependencies": {
-    "maplibre-gl": "^1.15.3",
+    "maplibre-gl": "1.15.3",
     "@angular/google-maps": "^10.x",
     "mapbox-gl": "^1.13.0"
   }
@@ -257,6 +260,13 @@ El CSS de MapLibre se importa localmente (no CDN):
 1. Verificar que `useMapsGoogle=true`
 2. Verificar que `googleMapsApiKey` esté configurado
 3. Verificar que el dominio esté autorizado en Google Cloud Console
+
+## CI/CD (UNOCACE)
+
+El frontend consume `MAPTILER_API_KEY` desde `env.template.js` (vía `envsubst`).
+
+- En **staging/test**, el pipeline setea `MAPTILER_API_KEY` desde `TEST_UNOCACE_MAPTILER_API_KEY`.
+- En **producción**, el pipeline setea `MAPTILER_API_KEY` desde `PROD_UNOCACE_MAPTILER_API_KEY`.
 
 ## Referencias
 
