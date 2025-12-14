@@ -148,6 +148,8 @@
                     [editable]="true"
                     [editMode]="true"
                     [singlePinMode]="true"
+                    [initialLat]="defaultCenter.lat"
+                    [initialLng]="defaultCenter.lng"
                     [plotCoordinates]="plotCoordinates"
                     (plotCoordinatesChange)="onMapCoordinatesChange($event)">
             </app-map>
