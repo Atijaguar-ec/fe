@@ -173,6 +173,10 @@ export class MaplibreJourneyMapComponent implements OnInit, AfterViewInit, OnDes
   }
 
   setStyle(style: 'satellite' | 'outdoors'): void {
+    if (!this.map) {
+      return;
+    }
+
     this.currentStyle = style;
     this.map.setStyle(this.createStyle(style));
 
@@ -196,14 +200,35 @@ export class MaplibreJourneyMapComponent implements OnInit, AfterViewInit, OnDes
     return this.map;
   }
 
+  private hasWebGLSupport(): boolean {
+    try {
+      if (typeof window === 'undefined' || typeof document === 'undefined') {
+        return false;
+      }
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      return !!gl;
+    } catch {
+      return false;
+    }
+  }
+
   private initializeMap(): void {
-    this.map = new maplibregl.Map({
-      container: this.mapId,
-      style: this.createStyle(this.currentStyle),
-      zoom: this.defaultZoom,
-      center: [this.centerLng, this.centerLat],
-      doubleClickZoom: !this.disableDoubleClickZoom
-    });
+    if (!this.hasWebGLSupport()) {
+      return;
+    }
+
+    try {
+      this.map = new maplibregl.Map({
+        container: this.mapId,
+        style: this.createStyle(this.currentStyle),
+        zoom: this.defaultZoom,
+        center: [this.centerLng, this.centerLat],
+        doubleClickZoom: !this.disableDoubleClickZoom
+      });
+    } catch {
+      return;
+    }
 
     this.map.dragRotate.disable();
     this.map.touchZoomRotate.disableRotation();
