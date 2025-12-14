@@ -135,6 +135,32 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
       };
     }
 
+    // Fallback: use ESRI satellite for satellite view, OSM for outdoors
+    if (value === 'satellite-streets-v12') {
+      return {
+        version: 8,
+        sources: {
+          'esri-satellite': {
+            type: 'raster',
+            tiles: [
+              'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+            ],
+            tileSize: 256,
+            attribution: '© Esri, Maxar, Earthstar Geographics'
+          }
+        },
+        layers: [
+          {
+            id: 'esri-satellite',
+            type: 'raster',
+            source: 'esri-satellite',
+            minzoom: 0,
+            maxzoom: 19
+          }
+        ]
+      };
+    }
+
     return {
       version: 8,
       sources: {

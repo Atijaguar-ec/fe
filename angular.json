@@ -37,6 +37,7 @@
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
             "aot": true,
+            "showCircularDependencies": false,
             "outputPath": "dist",
             "index": "src/index.html",
             "main": "src/main.ts",
