@@ -22,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Ambiente destino'
+        description: 'Ambiente destino '
         required: true
         default: 'staging'
         type: choice
