@@ -6,7 +6,6 @@ import { shareReplay, switchMap, take, tap } from 'rxjs/operators';
 import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
 import { ApiFacilityLocation } from '../../../../api/model/apiFacilityLocation';
 import { ApiFacility } from '../../../../api/model/apiFacility';
-import { ApiFacility } from '../../../../api/model/apiFacility';
 import { GoogleMap, MapInfoWindow, MapMarker } from '@angular/google-maps';
 import { GlobalEventManagerService } from '../../../core/global-event-manager.service';
 import { ApiPaginatedResponseApiFacility } from '../../../../api/model/apiPaginatedResponseApiFacility';

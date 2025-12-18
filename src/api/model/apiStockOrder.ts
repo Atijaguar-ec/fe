@@ -372,26 +372,6 @@ export interface ApiStockOrder {
      */
     inspectionNotes?: string;
     /**
-     * Processed weight (shrimp classification)
-     */
-    processedWeight?: number;
-    /**
-     * Rejected weight (shrimp classification)
-     */
-    rejectedWeight?: number;
-    /**
-     * Pounds rejected (shrimp classification)
-     */
-    poundsRejected?: number;
-    /**
-     * Waste weight (shrimp classification)
-     */
-    wasteWeight?: number;
-    /**
-     * Deheading facility (shrimp classification)
-     */
-    deheadingFacility?: ApiFacility;
-    /**
      * Generated UUID tag for this stock order QR code
      */
     qrCodeTag?: string;
@@ -404,8 +384,8 @@ export interface ApiStockOrder {
      * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
      */
     repackedOriginStockOrderId?: string;
-    openOrder?: boolean;
     purchaseOrder?: boolean;
+    openOrder?: boolean;
     available?: boolean;
 }
 
@@ -747,26 +727,6 @@ export namespace ApiStockOrder {
          */
         inspectionNotes = 'inspectionNotes',
         /**
-         * Processed weight (shrimp classification)
-         */
-        processedWeight = 'processedWeight',
-        /**
-         * Rejected weight (shrimp classification)
-         */
-        rejectedWeight = 'rejectedWeight',
-        /**
-         * Pounds rejected (shrimp classification)
-         */
-        poundsRejected = 'poundsRejected',
-        /**
-         * Waste weight (shrimp classification)
-         */
-        wasteWeight = 'wasteWeight',
-        /**
-         * Deheading facility (shrimp classification)
-         */
-        deheadingFacility = 'deheadingFacility',
-        /**
          * Generated UUID tag for this stock order QR code
          */
         qrCodeTag = 'qrCodeTag',
@@ -779,8 +739,8 @@ export namespace ApiStockOrder {
          * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
          */
         repackedOriginStockOrderId = 'repackedOriginStockOrderId',
-        openOrder = 'openOrder',
         purchaseOrder = 'purchaseOrder',
+        openOrder = 'openOrder',
         available = 'available'
     }
 
@@ -1930,7 +1890,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'openOrder',
+                    name: 'purchaseOrder',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1941,7 +1901,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'purchaseOrder',
+                    name: 'openOrder',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -2159,9 +2119,9 @@ export namespace ApiStockOrder {
                 ],
                 repackedOriginStockOrderId: [
                 ],
-                openOrder: [
-                ],
                 purchaseOrder: [
+                ],
+                openOrder: [
                 ],
                 available: [
                 ],
@@ -2469,10 +2429,10 @@ export namespace ApiStockOrder {
   //               repackedOriginStockOrderId: {
   //                   validators: []
   //               },
-  //               openOrder: {
+  //               purchaseOrder: {
   //                   validators: []
   //               },
-  //               purchaseOrder: {
+  //               openOrder: {
   //                   validators: []
   //               },
   //               available: {

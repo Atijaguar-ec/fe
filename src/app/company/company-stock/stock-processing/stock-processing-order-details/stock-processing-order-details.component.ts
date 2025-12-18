@@ -12,7 +12,7 @@ import { Location } from '@angular/common';
 import { ListEditorManager } from '../../../../shared/list-editor/list-editor-manager';
 import { ApiActivityProof } from '../../../../../api/model/apiActivityProof';
 import { ApiActivityProofValidationScheme } from '../../stock-core/additional-proof-item/validation';
-import { dateISOString, deleteNullFields, generateFormFromMetadata } from '../../../../../shared/utils';
+import { dateISOString, deleteNullFields, generateFormFromMetadata, uuidv4 } from '../../../../../shared/utils';
 import { CompanyFacilitiesForStockUnitProductService } from '../../../../shared-services/company-facilities-for-stock-unit-product.service';
 import { AvailableSellingFacilitiesForCompany } from '../../../../shared-services/available-selling-facilities-for.company';
 import { StockOrderControllerService } from '../../../../../api/api/stockOrderController.service';
@@ -32,9 +32,9 @@ import { ApiProcessingOrderValidationScheme, ApiStockOrderValidationScheme } fro
 import { StaticSemiProductsService } from './static-semi-products.service';
 import { StockProcessingOrderDetailsHelper } from './stock-processing-order-details.helper';
 import { ApiStockOrderSelectable } from './stock-processing-order-details.model';
+import { ApiFacility } from '../../../../../api/model/apiFacility';
 import TypeEnum = ApiProcessingAction.TypeEnum;
 import OrderTypeEnum = ApiStockOrder.OrderTypeEnum;
-import { uuidv4 } from 'src/shared/utils';
 import { SelectedUserCompanyService } from '../../../../core/selected-user-company.service';
 import { ProcessingOrderInputComponent } from './processing-order-input/processing-order-input.component';
 import { ProcessingOrderOutputComponent } from './processing-order-output/processing-order-output.component';
@@ -42,6 +42,14 @@ import { ProcessingOrderOutputComponent } from './processing-order-output/proces
 declare const $localize: (messageParts: TemplateStringsArray, ...expressions: unknown[]) => string;
 
 type PageMode = 'create' | 'edit';
+
+type ApiStockOrderClassificationPayload = ApiStockOrder & {
+  processedWeight?: number;
+  rejectedWeight?: number;
+  poundsRejected?: number;
+  wasteWeight?: number;
+  deheadingFacility?: ApiFacility;
+};
 
 interface RepackedTargetStockOrder extends ApiStockOrder {
   repackedOutputsArray: ApiStockOrder[];
@@ -110,7 +118,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
   submitted = false;
   editing = false;
 
-  // 🦐 Cached flag to avoid ExpressionChangedAfterItHasBeenCheckedError when toggling
+  // Cached flag to avoid ExpressionChangedAfterItHasBeenCheckedError when toggling
   // classification layout based on the selected input facility.
   private isClassificationModeFlag = false;
 
@@ -159,7 +167,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
   }
 
   /**
-   * 🦐 Check if current processing is in classification mode.
+   * Check if current processing is in classification mode.
    * When true, the classification table will be rendered in a full-width row
    * for better UX (more space for the table columns).
    */
@@ -168,7 +176,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
   }
 
   /**
-   * 🦐 Label for output quantity field, used by classification component.
+   * Label for output quantity field, used by classification component.
    */
   get targetStockOrderOutputQuantityLabel(): string {
     if (this.actionType === 'SHIPMENT') {
@@ -393,7 +401,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
 
     const ref = selected[0];
     
-    // 🦐 Para el número de lote, usar internalLotNumber si existe, sino usar identifier como fallback
+    // Para el número de lote, usar internalLotNumber si existe, sino usar identifier como fallback
     const getLotNumber = (s: any) => s.internalLotNumber || s.identifier || null;
     const refLotNumber = getLotNumber(ref);
     const sameLot = selected.every(s => getLotNumber(s) === refLotNumber);
@@ -415,13 +423,13 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     const sameGuia = selected.every(s => s.guiaRemisionNumber === ref.guiaRemisionNumber);
 
     this.targetStockOrdersArray.controls.forEach(group => {
-      // 🦐 Handle internal lot number - propagate and lock if all inputs share the same lot
+      // Handle internal lot number - propagate and lock if all inputs share the same lot
       // Usar internalLotNumber si existe, sino usar identifier como fallback (para entregas iniciales)
       const iln = group.get('internalLotNumber');
       if (sameLot && refLotNumber && iln) {
         iln.setValue(refLotNumber, { emitEvent: false });
         iln.disable({ emitEvent: false });
-        console.log('🏷️ Número de lote propagado:', refLotNumber);
+        console.log(' Número de lote propagado:', refLotNumber);
       } else if (iln && iln.disabled) {
         iln.enable({ emitEvent: false });
       }
@@ -496,7 +504,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
         const sampleNumber = group.get('sampleNumber');
         if (sampleNumber) {
           sampleNumber.setValue(ref.sampleNumber, { emitEvent: false });
-          console.log('🔬 Propagated sample number:', ref.sampleNumber);
+          console.log(' Propagated sample number:', ref.sampleNumber);
         }
       }
 
@@ -506,17 +514,17 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
         const sumQuantity = selected.reduce((sum, s) => sum + (s.selectedQuantity || 0), 0);
         if (sumQuantity > 0) {
           totalQuantity.setValue(sumQuantity.toFixed(2), { emitEvent: false });
-          console.log('📊 Propagated total quantity:', sumQuantity.toFixed(2));
+          console.log(' Propagated total quantity:', sumQuantity.toFixed(2));
         }
       }
 
-      // 🦐 CUSTODIA: Propagate shrimp-specific traceability fields
+      // CUSTODIA: Propagate shrimp-specific traceability fields
       // These fields must be preserved through the entire processing chain
       if (sameGavetas && ref.numberOfGavetas != null) {
         const gavetas = group.get('numberOfGavetas');
         if (gavetas) {
           gavetas.setValue(ref.numberOfGavetas, { emitEvent: false });
-          console.log('🧺 Custodiado N° de Gavetas:', ref.numberOfGavetas);
+          console.log(' Custodiado N° de Gavetas:', ref.numberOfGavetas);
         }
       }
 
@@ -524,7 +532,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
         const bines = group.get('numberOfBines');
         if (bines) {
           bines.setValue(ref.numberOfBines, { emitEvent: false });
-          console.log('📦 Custodiado N° de Bines:', ref.numberOfBines);
+          console.log(' Custodiado N° de Bines:', ref.numberOfBines);
         }
       }
 
@@ -532,7 +540,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
         const piscinas = group.get('numberOfPiscinas');
         if (piscinas) {
           piscinas.setValue(ref.numberOfPiscinas, { emitEvent: false });
-          console.log('🏊 Custodiado N° de Piscinas:', ref.numberOfPiscinas);
+          console.log(' Custodiado N° de Piscinas:', ref.numberOfPiscinas);
         }
       }
 
@@ -540,7 +548,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
         const guia = group.get('guiaRemisionNumber');
         if (guia) {
           guia.setValue(ref.guiaRemisionNumber, { emitEvent: false });
-          console.log('📄 Custodiado N° de Guía de Remisión:', ref.guiaRemisionNumber);
+          console.log(' Custodiado N° de Guía de Remisión:', ref.guiaRemisionNumber);
         }
       }
     });
@@ -645,7 +653,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
 
     this.submitted = true;
 
-    // 🦐 Asegurar que el campo "Área destino para rechazado" no bloquee el guardado
+    // Asegurar que el campo "Área destino para rechazado" no bloquee el guardado
     // si el usuario ya seleccionó un valor. Limpiamos errores residuales en
     // targetStockOrders[*].deheadingFacility cuando hay rejectedWeight > 0 y
     // existe un facility seleccionado.
@@ -655,7 +663,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
         const deheadingCtrl = tsoGroup.get('deheadingFacility');
         if (rejected > 0 && deheadingCtrl && deheadingCtrl.value) {
           if (deheadingCtrl.errors) {
-            console.warn(`🦐 Clearing deheadingFacility errors for targetStockOrders.${index}`, deheadingCtrl.errors);
+            console.warn(` DEBUG deheadingFacility errors for targetStockOrders.${index}`, deheadingCtrl.errors);
           }
           deheadingCtrl.setErrors(null);
           deheadingCtrl.updateValueAndValidity({ emitEvent: false });
@@ -663,14 +671,14 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       });
     }
 
-    // 🐛 Debug: Log validation state
+    // Debug: Log validation state
     if (this.procOrderGroup.invalid) {
-      console.error('❌ Form is invalid. Checking errors...');
+      console.error(' Form is invalid. Checking errors...');
       this.logFormErrors(this.procOrderGroup);
     }
     
     if (this.input.oneInputStockOrderRequired) {
-      console.error('❌ At least one input stock order is required');
+      console.error(' At least one input stock order is required');
     }
 
     if (this.procOrderGroup.invalid || this.input.oneInputStockOrderRequired) {
@@ -743,8 +751,8 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       // Add common shared data (processing evidences, comments, etc.) to all target output Stock order
       this.enrichTargetStockOrders(processingOrder.targetStockOrders);
 
-      // 🦐 Debug: Log targetStockOrders to verify rejectedWeight and deheadingFacility are being sent
-      console.log('🦐 Sending targetStockOrders:', JSON.stringify(processingOrder.targetStockOrders, null, 2));
+      // Debug: Log targetStockOrders to verify rejectedWeight and deheadingFacility are being sent
+      console.log(' Sending targetStockOrders:', JSON.stringify(processingOrder.targetStockOrders, null, 2));
 
       const res = await this.processingOrderController
         .createOrUpdateProcessingOrder(processingOrder).pipe(take(1)).toPromise();
@@ -1256,7 +1264,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       const newStockOrder = {...repackedSacUnit};
       newStockOrder.creatorId = sourceStockOrder.creatorId;
       newStockOrder.internalLotNumber = sourceStockOrder.internalLotNumber;
-      // 🦐 Traceability: inherit week number and shrimp custody fields from the source TSO
+      // Traceability: inherit week number and shrimp custody fields from the source TSO
       newStockOrder.weekNumber = sourceStockOrder.weekNumber;
       newStockOrder.numberOfGavetas = sourceStockOrder.numberOfGavetas;
       newStockOrder.numberOfBines = sourceStockOrder.numberOfBines;
@@ -1302,34 +1310,35 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       tso.fulfilledQuantity = 0;
       tso.availableQuantity = 0;
 
-      // 🦐 Extra fields capturados en el formulario de clasificación
+      // Extra fields capturados en el formulario de clasificación
       if (tsoFormGroup) {
+        const tsoPayload = tso as ApiStockOrderClassificationPayload;
         const processedWeight = getNumeric(tsoFormGroup.get('processedWeight')?.value);
         if (processedWeight != null) {
-          tso.processedWeight = processedWeight;
+          tsoPayload.processedWeight = processedWeight;
           // En clasificación la cantidad real enviada a congelación es el peso procesado
           tso.totalQuantity = processedWeight;
         }
 
         const rejectedWeight = getNumeric(tsoFormGroup.get('rejectedWeight')?.value);
         if (rejectedWeight != null) {
-          tso.rejectedWeight = rejectedWeight;
-          tso.poundsRejected = rejectedWeight;
+          tsoPayload.rejectedWeight = rejectedWeight;
+          tsoPayload.poundsRejected = rejectedWeight;
         }
 
         const wasteWeight = getNumeric(tsoFormGroup.get('wasteWeight')?.value);
         if (wasteWeight != null) {
-          tso.wasteWeight = wasteWeight;
+          tsoPayload.wasteWeight = wasteWeight;
         }
 
         const deheadingFacility = tsoFormGroup.get('deheadingFacility')?.value;
-        console.log('🦐 DEBUG deheadingFacility control value:', deheadingFacility);
-        console.log('🦐 DEBUG rejectedWeight:', rejectedWeight);
+        console.log(' DEBUG deheadingFacility control value:', deheadingFacility);
+        console.log(' DEBUG rejectedWeight:', rejectedWeight);
         if (deheadingFacility) {
-          tso.deheadingFacility = deheadingFacility;
-          console.log('🦐 DEBUG deheadingFacility assigned to tso:', tso.deheadingFacility);
+          tsoPayload.deheadingFacility = deheadingFacility;
+          console.log(' DEBUG deheadingFacility assigned to tso:', tsoPayload.deheadingFacility);
         } else {
-          console.warn('🦐 DEBUG deheadingFacility is null/undefined, not assigned');
+          console.warn(' DEBUG deheadingFacility is null/undefined, not assigned');
         }
       }
 
