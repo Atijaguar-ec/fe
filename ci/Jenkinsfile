@@ -263,6 +263,7 @@ git fetch --tags --prune origin
                 --build-arg BUILD_DATE=\$BUILD_DATE \
                 --build-arg VCS_REF=${env.GIT_SHORT_SHA} \
                 --build-arg VERSION=${env.DEPLOY_TAG} \
+                --build-arg BUILD_CONFIG=production-cocoa \
                 --label org.opencontainers.image.created=\$BUILD_DATE \
                 --label org.opencontainers.image.revision=${env.GIT_SHORT_SHA} \
                 --label org.opencontainers.image.version=${env.DEPLOY_TAG} \

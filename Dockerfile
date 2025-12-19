@@ -8,8 +8,12 @@ ARG BUILD_OPTIMIZATION=true
 ARG BUILD_CONFIG=production
 RUN if [ "$BUILD_OPTIMIZATION" = "false" ]; then \
       npm run build:fast; \
+    elif [ "$BUILD_CONFIG" = "production-cocoa" ]; then \
+      npm run build:cocoa; \
     elif [ "$BUILD_CONFIG" = "production-shrimp" ]; then \
       npm run build:shrimp; \
+    elif [ "$BUILD_CONFIG" = "production-coffee" ]; then \
+      npm run build:coffee; \
     else \
       npm run build:prod; \
     fi

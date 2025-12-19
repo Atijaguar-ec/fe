@@ -140,6 +140,7 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             BUILD_OPTIMIZATION=true
+            BUILD_CONFIG=production-cocoa
 
   deploy-staging:
     name: 🧪 Deploy UNOCACE Staging
