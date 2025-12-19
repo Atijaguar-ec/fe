@@ -116,6 +116,12 @@ jobs:
         run: npm ci
 
       - name: 🔄 Generate API client (OpenAPI)
+        env:
+          SWAGGER_DOCS_AUTHORIZATION: ${{ secrets.SWAGGER_DOCS_AUTHORIZATION }}
+          SWAGGER_DOCS_HEADERS: ${{ secrets.SWAGGER_DOCS_HEADERS }}
+          SWAGGER_DOCS_BASIC_USER: ${{ secrets.SWAGGER_DOCS_BASIC_USER }}
+          SWAGGER_DOCS_BASIC_PASS: ${{ secrets.SWAGGER_DOCS_BASIC_PASS }}
+          GENERATE_API_OPTIONAL: 'true'
         run: npm run generate-api
 
       - name: 🔐 Login to GHCR

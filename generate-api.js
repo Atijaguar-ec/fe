@@ -137,6 +137,45 @@ function validateAndNormalizeUrl(url) {
   return normalizedUrl;
 }
 
+function getSwaggerRequestHeaders() {
+  const headers = { Accept: 'application/json' };
+
+  const rawHeaders = process.env.SWAGGER_DOCS_HEADERS;
+  if (rawHeaders && rawHeaders.trim() !== '') {
+    try {
+      const parsed = JSON.parse(rawHeaders);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        for (const [k, v] of Object.entries(parsed)) {
+          if (typeof v === 'string' && v.trim() !== '') {
+            headers[k] = v;
+          }
+        }
+      }
+    } catch (e) {
+      throw new Error(`Invalid SWAGGER_DOCS_HEADERS JSON: ${e.message}`);
+    }
+  }
+
+  const authorization = process.env.SWAGGER_DOCS_AUTHORIZATION;
+  if (authorization && authorization.trim() !== '') {
+    headers.Authorization = authorization;
+  }
+
+  const basicUser = process.env.SWAGGER_DOCS_BASIC_USER;
+  const basicPass = process.env.SWAGGER_DOCS_BASIC_PASS;
+  if ((!headers.Authorization || headers.Authorization.trim() === '') && basicUser && basicPass) {
+    headers.Authorization = `Basic ${Buffer.from(`${basicUser}:${basicPass}`).toString('base64')}`;
+  }
+
+  const headerName = process.env.SWAGGER_DOCS_AUTH_HEADER_NAME;
+  const headerValue = process.env.SWAGGER_DOCS_AUTH_HEADER_VALUE;
+  if (headerName && headerValue && headerName.trim() !== '' && headerValue.trim() !== '') {
+    headers[headerName] = headerValue;
+  }
+
+  return headers;
+}
+
 /**
  * Ensures the output directory exists
  * @param {string} dirPath - Directory path to create
@@ -183,10 +222,10 @@ function createTimeout(ms) {
  * @param {string} url - URL to fetch from
  * @returns {Promise<object>} Parsed OpenAPI spec
  */
-async function fetchOpenApiSpec(url) {
+async function fetchOpenApiSpec(url, headers) {
   // Use Promise.race for timeout - works in Node.js 14+ without AbortController
   const fetchPromise = fetch(url, {
-    headers: { 'Accept': 'application/json' },
+    headers,
     timeout: CONFIG.timeout
   });
 
@@ -196,6 +235,15 @@ async function fetchOpenApiSpec(url) {
   ]);
 
   if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      throw new Error(
+        `HTTP ${response.status}: ${response.statusText}. ` +
+        'The OpenAPI endpoint appears protected. ' +
+        'Provide credentials via SWAGGER_DOCS_AUTHORIZATION (e.g. "Bearer ..."), ' +
+        'or SWAGGER_DOCS_BASIC_USER/SWAGGER_DOCS_BASIC_PASS, ' +
+        'or SWAGGER_DOCS_HEADERS (JSON string).'
+      );
+    }
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
 
@@ -270,20 +318,35 @@ async function main() {
     const swaggerUrl = validateAndNormalizeUrl(process.env.SWAGGER_DOCS_HOST);
     log.success(`Target: ${swaggerUrl}`);
 
+    const swaggerHeaders = getSwaggerRequestHeaders();
+
     // Step 2: Ensure output directory exists
     log.step(2, 'Preparing output directory...');
     ensureDirectoryExists(CONFIG.outputDir);
 
     // Step 3: Fetch and validate OpenAPI spec
     log.step(3, 'Fetching OpenAPI specification...');
-    const spec = await fetchOpenApiSpec(swaggerUrl);
+    const spec = await fetchOpenApiSpec(swaggerUrl, swaggerHeaders);
     const version = spec.openapi || spec.swagger;
     const apiTitle = spec.info?.title || 'Unknown API';
     log.success(`Found: ${apiTitle} (OpenAPI ${version})`);
 
     // Step 4: Generate TypeScript code
     log.step(4, 'Generating TypeScript API client...');
-    const exitCode = await runGenerator(swaggerUrl, CONFIG.outputDir);
+    const tmpSpecPath = path.join(os.tmpdir(), `openapi-spec-${process.pid}-${Date.now()}.json`);
+    fs.writeFileSync(tmpSpecPath, JSON.stringify(spec));
+    let exitCode = await runGenerator(tmpSpecPath, CONFIG.outputDir);
+
+    if (exitCode !== 0) {
+      const fileUrl = `file://${tmpSpecPath}`;
+      exitCode = await runGenerator(fileUrl, CONFIG.outputDir);
+    }
+
+    safeUnlink(tmpSpecPath);
+
+    if (exitCode !== 0) {
+      exitCode = await runGenerator(swaggerUrl, CONFIG.outputDir);
+    }
 
     if (exitCode !== 0) {
       throw new Error(`Generator exited with code ${exitCode}`);
@@ -310,6 +373,16 @@ async function main() {
     }
 
     console.log(`${colorize(line, '31')}\n`);
+
+    const optional = String(process.env.GENERATE_API_OPTIONAL || '').toLowerCase();
+    const isOptional = optional === '1' || optional === 'true' || optional === 'yes';
+    const isAuthError = typeof err.message === 'string' && (err.message.includes('HTTP 401') || err.message.includes('HTTP 403'));
+
+    if (isOptional && isAuthError) {
+      log.warn('Continuing because GENERATE_API_OPTIONAL is enabled and the OpenAPI endpoint returned an auth error.');
+      process.exit(0);
+    }
+
     process.exit(1);
   }
 }
