@@ -340,7 +340,7 @@ TRAEFIK_ROUTER_NAME=${deploy.traefikRouter}
 TRAEFIK_ROUTER_RULE=${deploy.traefikRule}
 TRAEFIK_ENTRYPOINTS=${deploy.traefikEntrypoints}
 TRAEFIK_CERT_RESOLVER=${deploy.traefikResolver}
-HEALTHCHECK_URL=http://localhost
+HEALTHCHECK_URL=http://localhost/health
 HEALTHCHECK_INTERVAL=15s
 HEALTHCHECK_TIMEOUT=5s
 HEALTHCHECK_RETRIES=3
@@ -352,12 +352,12 @@ NGINX_CONF_PATH=./nginx.conf
           def remoteScript = """#!/bin/bash
 set -euo pipefail
 
-REMOTE_DIR="\${deploy.targetDir}"
-FRONTEND_NETWORK="\${deploy.frontendNetwork}"
-BACKEND_NETWORK="\${deploy.backendNetwork}"
-HEALTH_URL="http://localhost"
-MAX_RETRIES=\${env.HEALTH_MAX_RETRIES}
-SLEEP_TIME=\${env.HEALTH_SLEEP}
+REMOTE_DIR="${deploy.targetDir}"
+FRONTEND_NETWORK="${deploy.frontendNetwork}"
+BACKEND_NETWORK="${deploy.backendNetwork}"
+HEALTH_URL="http://localhost:${deploy.hostPort}/health"
+MAX_RETRIES=${env.HEALTH_MAX_RETRIES}
+SLEEP_TIME=${env.HEALTH_SLEEP}
 
 if command -v docker compose >/dev/null 2>&1; then
   COMPOSE_CMD="docker compose"
@@ -472,7 +472,7 @@ exit 1
                 docker compose -f ci/docker-compose.yml pull || true
 
                 echo "🔄 Desplegando servicios localmente..."
-                docker compose -f ci/docker-compose.yml up -d --remove-orphans --force-recreate
+                docker compose -f ci/docker-compose.yml up -d --force-recreate
 
                 echo "📊 Estado inicial de contenedores:"
                 docker compose -f ci/docker-compose.yml ps
@@ -481,7 +481,7 @@ exit 1
                 RETRY_COUNT=0
                 MAX_RETRIES=${env.HEALTH_MAX_RETRIES}
                 SLEEP_TIME=${env.HEALTH_SLEEP}
-                HEALTH_URL="http://localhost:${deploy.hostPort}"
+                HEALTH_URL="http://localhost:${deploy.hostPort}/health"
 
                 while [ \$RETRY_COUNT -lt \$MAX_RETRIES ]; do
                   RETRY_COUNT=\$((RETRY_COUNT + 1))
