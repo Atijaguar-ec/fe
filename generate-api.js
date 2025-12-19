@@ -186,12 +186,13 @@ function createTimeout(ms) {
 async function fetchOpenApiSpec(url) {
   // Use Promise.race for timeout - works in Node.js 14+ without AbortController
   const fetchPromise = fetch(url, {
-    headers: { 'Accept': 'application/json' }
+    headers: { 'Accept': 'application/json' },
+    timeout: CONFIG.timeout
   });
 
   const response = await Promise.race([
     fetchPromise,
-    createTimeout(CONFIG.timeout)
+    createTimeout(CONFIG.timeout + 1000)
   ]);
 
   if (!response.ok) {
