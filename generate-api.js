@@ -166,35 +166,46 @@ function safeUnlink(filePath) {
 }
 
 /**
+ * Creates a timeout promise for fetch operations
+ * Compatible with Node.js 14+ (no AbortController required)
+ * @param {number} ms - Timeout in milliseconds
+ * @returns {Promise} Promise that rejects after timeout
+ */
+function createTimeout(ms) {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error(`Request timeout after ${ms}ms`)), ms);
+  });
+}
+
+/**
  * Fetches and validates the OpenAPI specification
+ * Uses Promise.race for timeout (compatible with Node.js 14+)
  * @param {string} url - URL to fetch from
  * @returns {Promise<object>} Parsed OpenAPI spec
  */
 async function fetchOpenApiSpec(url) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), CONFIG.timeout);
+  // Use Promise.race for timeout - works in Node.js 14+ without AbortController
+  const fetchPromise = fetch(url, {
+    headers: { 'Accept': 'application/json' }
+  });
 
-  try {
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: { 'Accept': 'application/json' }
-    });
+  const response = await Promise.race([
+    fetchPromise,
+    createTimeout(CONFIG.timeout)
+  ]);
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    const spec = await response.json();
-
-    // Basic OpenAPI validation
-    if (!spec.openapi && !spec.swagger) {
-      throw new Error('Response is not a valid OpenAPI/Swagger specification');
-    }
-
-    return spec;
-  } finally {
-    clearTimeout(timeoutId);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
+
+  const spec = await response.json();
+
+  // Basic OpenAPI validation
+  if (!spec.openapi && !spec.swagger) {
+    throw new Error('Response is not a valid OpenAPI/Swagger specification');
+  }
+
+  return spec;
 }
 
 /**
