@@ -94,19 +94,36 @@
 
           <div style="height: 2rem;"></div>
 
-          <google-map
-                  *ngIf="isGoogleMapsLoaded"
-                  height="380px"
-                  width="100%">
-            <map-marker
-                #gMarker="mapMarker"
-                *ngFor="let marker of markers; index as i"
-                [position]="marker.position"
-                [label]="marker.label"
-                (mapClick)="openInfoWindow(gMarker, marker)">
-            </map-marker>
-            <map-info-window>{{gInfoWindowText}}</map-info-window>
-          </google-map>
+          <ng-container *ngIf="useGoogle; else maplibre">
+            <google-map
+                    *ngIf="isGoogleMapsLoaded"
+                    height="380px"
+                    width="100%">
+              <map-marker
+                  #gMarker="mapMarker"
+                  *ngFor="let marker of googleMarkers; index as i"
+                  [position]="marker.position"
+                  [label]="marker.label"
+                  (mapClick)="openInfoWindow(gMarker, marker)">
+              </map-marker>
+              <map-info-window>{{gInfoWindowText}}</map-info-window>
+            </google-map>
+          </ng-container>
+
+          <ng-template #maplibre>
+            <app-maplibre-journey-map
+              mapId="company-detail-facilities-map"
+              height="380px"
+              width="100%"
+              [markers]="maplibreMarkers"
+              [showPolyline]="false"
+              [centerLat]="defaultCenter.lat"
+              [centerLng]="defaultCenter.lng"
+              [defaultZoom]="defaultZoom"
+              [autoFitBounds]="true"
+              [boundsPadding]="50">
+            </app-maplibre-journey-map>
+          </ng-template>
 
           <div style="height: 2rem;"></div>
         </div>

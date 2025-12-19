@@ -4,14 +4,14 @@
       <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between">
 
           <div class="mb-4 mb-lg-0">
-              <div class="mb-2">Copyright 2023, INATrace. All Rights Reserved.</div>
+              <div class="mb-2">&copy; {{ currentYear }} INATrace | Potenciado por la Cooperación Alemana GIZ a través del proyecto ELKE (Cadenas Libres de Deforestación) para {{ companyName }}</div>
               <div><a [routerLink]="['/','s','cookies']">Cookie policy.</a>&nbsp;<a [routerLink]="['/','s','privacy']">Privacy policy.</a>&nbsp;<a [routerLink]="['/','s','terms-and-conditions']">Terms and conditions.</a></div>
           </div>
           
-          <div class="d-flex flex-column flex-md-row logos">
-              <img src="/assets/landing-page/bmz-logo.jpg" alt="BMZ logo image" class="mr-5">
-              <img src="/assets/landing-page/giz-logo.jpg" alt="GIZ logo image" class="mr-5">
-              <img src="/assets/landing-page/ina-logo.jpg" alt="INA logo image">
+          <div class="d-flex flex-column flex-lg-row logos">
+              <img src="/assets/landing-page/bmz-logo.jpg" alt="BMZ logo image" class="img-fluid">
+              <img src="/assets/landing-page/giz-logo.jpg" alt="GIZ logo image" class="img-fluid">
+              <img [src]="companyLogoSrc" alt="{{ companyName }} Logo image" class="img-fluid">
           </div>
 
       </div>

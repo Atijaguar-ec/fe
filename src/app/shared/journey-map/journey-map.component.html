@@ -1,0 +1,26 @@
+<ng-container *ngIf="useGoogle; else maplibre">
+  <google-map *ngIf="googleMapsLoaded" [height]="height" [width]="width">
+    <map-marker
+      *ngFor="let marker of googleMarkers; index as i"
+      [position]="marker.position"
+      [options]="googleMarkerOptions">
+    </map-marker>
+    <map-polyline *ngIf="polylinePath?.length" [path]="polylinePath" [options]="googlePolylineOptions"></map-polyline>
+  </google-map>
+</ng-container>
+
+<ng-template #maplibre>
+  <app-maplibre-journey-map
+    [mapId]="mapId"
+    [height]="height"
+    [width]="width"
+    [markers]="maplibreMarkers"
+    [showPolyline]="!!polylinePath?.length"
+    [polylinePath]="polylinePath"
+    [centerLat]="defaultCenter.lat"
+    [centerLng]="defaultCenter.lng"
+    [defaultZoom]="defaultZoom"
+    [boundsPadding]="boundsPadding"
+    [showStyleSelector]="showStyleSelector">
+  </app-maplibre-journey-map>
+</ng-template>

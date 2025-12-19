@@ -4,7 +4,7 @@ import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import localeDe from '@angular/common/locales/de';
 import localeRw from '@angular/common/locales/rw';
 import localeEs from '@angular/common/locales/es';
-import { LOCALE_ID, NgModule } from '@angular/core';
+import { Injectable, LOCALE_ID, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { GoogleMapsModule } from '@angular/google-maps';
 import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerGestureConfig, HammerModule } from '@angular/platform-browser';
@@ -92,6 +92,7 @@ import { GuidedTourSuccessModalComponent } from './user/self-onboarding-checklis
 import { EnvironmentInfoService } from './core/environment-info.service';
 import { PRODUCT_CONTEXT, productContextFactory } from './core/product-context';
 
+@Injectable()
 export class HammerConfig extends HammerGestureConfig {
   buildHammer(element: HTMLElement) {
     return new Hammer(element, {

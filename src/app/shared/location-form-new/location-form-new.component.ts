@@ -5,6 +5,10 @@ import { FormGroup } from '@angular/forms';
 import _ from 'lodash-es';
 import { EnumSifrant } from '../../shared-services/enum-sifrant';
 import { GoogleMap } from '@angular/google-maps';
+import { environment } from '../../../environments/environment';
+import { ApiPlotCoordinate } from '../../../api/model/apiPlotCoordinate';
+
+declare const $localize: (messageParts: TemplateStringsArray, ...expressions: unknown[]) => string;
 
 @Component({
   selector: 'app-location-form-new',
@@ -14,7 +18,7 @@ import { GoogleMap } from '@angular/google-maps';
 export class LocationFormNewComponent implements OnInit {
 
   @Input()
-  form: FormGroup;
+  form!: FormGroup;
 
   @Input()
   submitted = false;
@@ -26,6 +30,8 @@ export class LocationFormNewComponent implements OnInit {
   gMap: GoogleMap | null = null;
   isGoogleMapsLoaded = false;
   marker: { position: { lat: number; lng: number } } | null = null;
+  mapId = `facility-location-map-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+  plotCoordinates: ApiPlotCoordinate[] = [];
   bounds: google.maps.LatLngBounds | null = null;
   initialBounds: { lat: number; lng: number }[] = [];
   defaultCenter = {
@@ -48,14 +54,57 @@ export class LocationFormNewComponent implements OnInit {
         this.initializeMarker();
       }
     });
+
+    this.initializePlotCoordinates();
+  }
+
+  get useMapsGoogle(): boolean {
+    return environment.useMapsGoogle;
+  }
+
+  initializePlotCoordinates(): void {
+    const latCtrl = this.form.get('facilityLocation.latitude');
+    const lngCtrl = this.form.get('facilityLocation.longitude');
+    const lat = latCtrl?.value;
+    const lng = lngCtrl?.value;
+    if (typeof lat === 'number' && typeof lng === 'number') {
+      this.plotCoordinates = [{ latitude: lat, longitude: lng }];
+    } else {
+      this.plotCoordinates = [];
+    }
+  }
+
+  onMapCoordinatesChange(coords: ApiPlotCoordinate[]): void {
+    const latCtrl = this.form.get('facilityLocation.latitude');
+    const lngCtrl = this.form.get('facilityLocation.longitude');
+    if (!latCtrl || !lngCtrl) {
+      return;
+    }
+
+    if (!coords || coords.length === 0) {
+      this.plotCoordinates = [];
+      latCtrl.setValue(null);
+      lngCtrl.setValue(null);
+    } else {
+      const last = coords[coords.length - 1];
+      this.plotCoordinates = [{ latitude: last.latitude, longitude: last.longitude }];
+      latCtrl.setValue(last.latitude);
+      lngCtrl.setValue(last.longitude);
+    }
+
+    latCtrl.markAsDirty();
+    lngCtrl.markAsDirty();
   }
 
   initializeMarker() {
-    if (!this.form.get('facilityLocation.latitude') || !this.form.get('facilityLocation.longitude')) {
+    const latCtrl = this.form.get('facilityLocation.latitude');
+    const lngCtrl = this.form.get('facilityLocation.longitude');
+    if (!latCtrl || !lngCtrl) {
       return;
     }
-    const lat = this.form.get('facilityLocation.latitude').value;
-    const lng = this.form.get('facilityLocation.longitude').value;
+
+    const lat = latCtrl.value;
+    const lng = lngCtrl.value;
     if (lat == null || lng == null) {
       return;
     }
@@ -70,12 +119,13 @@ export class LocationFormNewComponent implements OnInit {
   }
 
   doShowVillage(): boolean {
-    return this.form.get('facilityLocation.address.country').invalid
-        || _.isEqual(this.form.get('facilityLocation.address.country').value, {id: 184, code: 'RW', name: 'Rwanda'});
+    const countryCtrl = this.form.get('facilityLocation.address.country');
+    return countryCtrl?.invalid
+        || _.isEqual(countryCtrl?.value, {id: 184, code: 'RW', name: 'Rwanda'});
   }
 
   get publiclyVisible() {
-    const obj = {};
+    const obj: Record<string, string> = {};
     obj['true'] = $localize`:@@locationForm.publiclyVisible.yes:YES`;
     obj['false'] = $localize`:@@locationForm.publiclyVisible.no:NO`;
     return obj;
@@ -97,22 +147,32 @@ export class LocationFormNewComponent implements OnInit {
   }
 
   updateLatLng() {
-    this.form.get('facilityLocation.latitude').setValue(this.marker ? this.marker.position.lat : null);
-    this.form.get('facilityLocation.longitude').setValue(this.marker ? this.marker.position.lng : null);
+    const latCtrl = this.form.get('facilityLocation.latitude');
+    const lngCtrl = this.form.get('facilityLocation.longitude');
+    if (!latCtrl || !lngCtrl) {
+      return;
+    }
 
-    this.form.get('facilityLocation.latitude').markAsDirty();
-    this.form.get('facilityLocation.longitude').markAsDirty();
+    latCtrl.setValue(this.marker ? this.marker.position.lat : null);
+    lngCtrl.setValue(this.marker ? this.marker.position.lng : null);
+
+    latCtrl.markAsDirty();
+    lngCtrl.markAsDirty();
   }
 
-  updateMarkerLocation(location) {
+  updateMarkerLocation(location: google.maps.LatLngLiteral) {
     this.marker = {
       position: location
     };
     this.updateLatLng();
   }
 
-  dragEnd(event) {
-    this.updateMarkerLocation(event.latLng.toJSON());
+  dragEnd(event: google.maps.MapMouseEvent) {
+    const latLng = event.latLng;
+    if (!latLng) {
+      return;
+    }
+    this.updateMarkerLocation(latLng.toJSON());
   }
 
   fitBounds() {

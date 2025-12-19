@@ -1,11 +1,8 @@
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { B2cPageComponent } from '../b2c-page.component';
 import { ApiBusinessToCustomerSettings } from '../../../../api/model/apiBusinessToCustomerSettings';
-import { Subscription } from 'rxjs';
-import { GoogleMap } from '@angular/google-maps';
 import { ApiHistoryTimelineItem } from '../../../../api/model/apiHistoryTimelineItem';
 import { HistoryTimelineItem } from './model';
-import { GlobalEventManagerService } from '../../../core/global-event-manager.service';
 
 @Component({
   selector: 'app-b2c-journey',
@@ -15,8 +12,7 @@ import { GlobalEventManagerService } from '../../../core/global-event-manager.se
 export class B2cJourneyComponent implements OnInit {
 
   constructor(
-      @Inject(B2cPageComponent) private b2cPage: B2cPageComponent,
-      public globalEventManager: GlobalEventManagerService
+      private b2cPage: B2cPageComponent
   ) {
     this.productName = b2cPage.productName;
     this.b2cSettings = b2cPage.b2cSettings;
@@ -26,17 +22,11 @@ export class B2cJourneyComponent implements OnInit {
 
   b2cSettings: ApiBusinessToCustomerSettings;
 
-  subs: Subscription[] = [];
-  isGoogleMapsLoaded = false;
-
   producerName = '';
   historyItems: HistoryTimelineItem[] = [];
 
-  locations: google.maps.LatLngLiteral[] = [];
-
-  markers: any = [];
-  initialBounds: any = [];
-  bounds: any;
+  polylinePath: Array<{ lat: number; lng: number }> = [];
+  markers: Array<{ lat: number; lng: number }> = [];
 
   defaultCenter = {
     lat: -1.831239,
@@ -44,58 +34,7 @@ export class B2cJourneyComponent implements OnInit {
   };
   defaultZoom = 2;
 
-  lineSymbol = {
-    path: 'M 0,-1 0,1',
-    strokeOpacity: 1,
-    scale: 2,
-    strokeColor: '#25265E'
-  };
-
-  options: google.maps.PolylineOptions = {
-    icons: [
-      {
-        icon: this.lineSymbol,
-        offset: '0',
-        repeat: '20px'
-      },
-    ],
-    strokeOpacity: 0,
-  };
-
-  gMap: GoogleMap = null;
-
-  mapMarkerOption: any;
-
-  @ViewChild(GoogleMap)
-  set map(map: GoogleMap) {
-    if (map) {
-      this.gMap = map;
-      this.mapMarkerOption = {
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 3,
-          fillColor: '#25265E',
-          fillOpacity: 1,
-          strokeColor: '#25265E',
-        }
-      };
-      setTimeout(() => this.googleMapsIsLoaded(map));
-    }
-  }
-
-  get map(): GoogleMap {
-    return this.gMap;
-  }
-
   ngOnInit(): void {
-    const sub2 = this.globalEventManager.loadedGoogleMapsEmitter.subscribe(
-        loaded => {
-          if (loaded) { this.isGoogleMapsLoaded = true; }
-        },
-        () => { }
-    );
-    this.subs.push(sub2);
-
     this.initLabel();
     this.data().then();
   }
@@ -129,14 +68,16 @@ export class B2cJourneyComponent implements OnInit {
 
   initLabel() {
 
-    const labelData = this.b2cPage.publicProductLabel;
+    const labelData: any = this.b2cPage.publicProductLabel as any;
+    const fields: any[] = labelData?.fields || [];
 
-    for (const item of labelData.fields) {
+    for (const item of fields) {
       if (item.name === 'name') {
-        this.producerName = item.value;
+        this.producerName = item.value || '';
       }
       if (item.name === 'journeyMarkers') {
-        this.locations = item.value.map(marker => {
+        const markerValues: any[] = item.value || [];
+        this.polylinePath = markerValues.map((marker: any) => {
           return {
             lat: marker.latitude,
             lng: marker.longitude,
@@ -148,30 +89,27 @@ export class B2cJourneyComponent implements OnInit {
 
   async data() {
 
-    for (let i = 0; i < this.locations.length; i += 2) {
+    for (let i = 0; i < this.polylinePath.length; i += 2) {
       this.markers.push({
-        position: {
-          lat: this.locations[i].lat,
-          lng: this.locations[i].lng
-        }
+        lat: this.polylinePath[i].lat,
+        lng: this.polylinePath[i].lng
       });
     }
 
     if (this.b2cPage.qrTag !== 'EMPTY') {
 
       // Get the aggregated history for the QR code tag
-      const qrData = this.b2cPage.qrProductLabel;
+      const qrData: any = this.b2cPage.qrProductLabel as any;
       if (qrData) {
-        this.historyItems = qrData.historyTimeline.items.map(item => this.addIconStyleForIconType(item));
-        this.producerName = qrData.producerName;
+        const items: ApiHistoryTimelineItem[] = (qrData.historyTimeline?.items || []) as ApiHistoryTimelineItem[];
+        this.historyItems = items.map(item => this.addIconStyleForIconType(item));
+        this.producerName = qrData.producerName || this.producerName;
 
-        qrData.historyTimeline.items.map(historyItem => {
+        items.forEach(historyItem => {
           if (historyItem.longitude && historyItem.latitude) {
             this.markers.push({
-              position: {
-                lat: historyItem.latitude,
-                lng: historyItem.longitude
-              }
+              lat: historyItem.latitude,
+              lng: historyItem.longitude
             });
           }
         });
@@ -179,46 +117,7 @@ export class B2cJourneyComponent implements OnInit {
     }
   }
 
-  googleMapsIsLoaded(map) {
-    this.isGoogleMapsLoaded = true;
-    for (const [i, loc] of this.locations.entries()) {
-      const tmp = {
-        position: {
-          lat: loc.lat,
-          lng: loc.lng,
-          type: i === 0 || i === this.locations.length - 1 ? 'bound' : 'middle'
-        },
-      };
-      this.initialBounds.push(tmp.position);
-    }
-    this.bounds = new google.maps.LatLngBounds();
-    for (const bound of this.initialBounds) {
-      this.bounds.extend(bound);
-    }
-    if (this.bounds.isEmpty()) {
-      map.googleMap.setCenter(this.defaultCenter);
-      map.googleMap.setZoom(this.defaultZoom);
-      return;
-    }
-    const center = this.bounds.getCenter();
-    const offset = 0.02;
-    const northEast = new google.maps.LatLng(
-        center.lat() + offset,
-        center.lng() + offset
-    );
-    const southWest = new google.maps.LatLng(
-        center.lat() - offset,
-        center.lng() - offset
-    );
-    const minBounds = new google.maps.LatLngBounds(southWest, northEast);
-    map.fitBounds(this.bounds.union(minBounds));
-  }
-
-  get polyOptions() {
-    return this.options;
-  }
-
-  formatDate(date) {
+  formatDate(date: string | null | undefined) {
     if (date) {
       const split = date.split('-');
       return split[2] + '.' + split[1] + '.' + split[0];

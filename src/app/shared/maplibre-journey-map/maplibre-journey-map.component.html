@@ -1,0 +1,35 @@
+<div class="maplibre-journey-map-container" [style.height]="height" [style.width]="width">
+  <div class="map" [id]="mapId"></div>
+
+  <div class="map-controls" *ngIf="showStyleSelector">
+    <div class="style-selector">
+      <div class="form-check form-check-inline">
+        <input
+          class="form-check-input"
+          type="radio"
+          [id]="mapId + '-satellite'"
+          [attr.name]="mapId + '-mapStyle'"
+          [checked]="currentStyle === 'satellite'"
+          (change)="setStyle('satellite')"
+        >
+        <label class="form-check-label" [for]="mapId + '-satellite'">
+          Satellite
+        </label>
+      </div>
+
+      <div class="form-check form-check-inline">
+        <input
+          class="form-check-input"
+          type="radio"
+          [id]="mapId + '-outdoors'"
+          [attr.name]="mapId + '-mapStyle'"
+          [checked]="currentStyle === 'outdoors'"
+          (change)="setStyle('outdoors')"
+        >
+        <label class="form-check-label" [for]="mapId + '-outdoors'">
+          Map
+        </label>
+      </div>
+    </div>
+  </div>
+</div>

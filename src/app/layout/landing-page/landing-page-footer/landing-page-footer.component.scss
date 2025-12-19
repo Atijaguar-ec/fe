@@ -1,0 +1,30 @@
+.main-footer {
+  .logos {
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .logos img {
+    max-height: 80px;
+    width: auto;
+    height: auto;
+    margin: 0 1.5rem 0.75rem;
+  }
+
+  @media (max-width: 576px) {
+    .logos {
+      align-items: stretch;
+    }
+
+    .logos img {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      max-height: none;
+      object-fit: contain;
+      margin: 0.75rem 0;
+    }
+  }
+}
