@@ -404,7 +404,7 @@ done
 echo "❌ Healthcheck falló tras \$MAX_RETRIES intentos" >&2
 \$COMPOSE_CMD logs --tail=100
 exit 1
-"""
+""".stripIndent()
           writeFile file: "${env.WORKSPACE}/ci/remote-deploy.sh", text: remoteScript
 
           if (params.BRANCH == 'main') {
