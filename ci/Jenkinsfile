@@ -322,8 +322,19 @@ git fetch --tags --prune origin
           deploy.frontendNetwork = env.DEPLOY_NETWORK_FRONT
           deploy.backendNetwork = env.DEPLOY_NETWORK_BACK
 
+          // Extraer valores del mapa para interpolación correcta en strings
+          def targetDir = deploy.targetDir
+          def containerName = deploy.containerName
+          def hostPort = deploy.hostPort
+          def frontendNetwork = deploy.frontendNetwork
+          def backendNetwork = deploy.backendNetwork
+          def traefikRouter = deploy.traefikRouter
+          def traefikRule = deploy.traefikRule
+          def traefikEntrypoints = deploy.traefikEntrypoints
+          def traefikResolver = deploy.traefikResolver
+
           env.CURRENT_DEPLOY_NAME = deploy.name
-          env.CURRENT_DEPLOY_DIR = deploy.targetDir
+          env.CURRENT_DEPLOY_DIR = targetDir
           env.CURRENT_HEALTH_URL = deploy.healthExternal
 
           echo "\n🚀 Iniciando despliegue remoto: ${deploy.name}"
@@ -332,15 +343,15 @@ git fetch --tags --prune origin
 # Frontend-specific variables (not backend)
 FE_IMAGE_NAME=${env.IMAGE_REPOSITORY}
 FE_TAG=${env.DEPLOY_TAG}
-CONTAINER_NAME=${deploy.containerName}
-HOST_HTTP_PORT=${deploy.hostPort}
-FRONTEND_NETWORK=${deploy.frontendNetwork}
-BACKEND_NETWORK=${deploy.backendNetwork}
+CONTAINER_NAME=${containerName}
+HOST_HTTP_PORT=${hostPort}
+FRONTEND_NETWORK=${frontendNetwork}
+BACKEND_NETWORK=${backendNetwork}
 TRAEFIK_ENABLE=true
-TRAEFIK_ROUTER_NAME=${deploy.traefikRouter}
-TRAEFIK_ROUTER_RULE=${deploy.traefikRule}
-TRAEFIK_ENTRYPOINTS=${deploy.traefikEntrypoints}
-TRAEFIK_CERT_RESOLVER=${deploy.traefikResolver}
+TRAEFIK_ROUTER_NAME=${traefikRouter}
+TRAEFIK_ROUTER_RULE=${traefikRule}
+TRAEFIK_ENTRYPOINTS=${traefikEntrypoints}
+TRAEFIK_CERT_RESOLVER=${traefikResolver}
 HEALTHCHECK_URL=http://localhost/health
 HEALTHCHECK_INTERVAL=15s
 HEALTHCHECK_TIMEOUT=5s
@@ -353,10 +364,10 @@ NGINX_CONF_PATH=./nginx.conf
           def remoteScript = """#!/bin/bash
 set -euo pipefail
 
-REMOTE_DIR="${deploy.targetDir}"
-FRONTEND_NETWORK="${deploy.frontendNetwork}"
-BACKEND_NETWORK="${deploy.backendNetwork}"
-HEALTH_URL="http://localhost:${deploy.hostPort}/health"
+REMOTE_DIR="${targetDir}"
+FRONTEND_NETWORK="${frontendNetwork}"
+BACKEND_NETWORK="${backendNetwork}"
+HEALTH_URL="http://localhost:${hostPort}/health"
 MAX_RETRIES=${env.HEALTH_MAX_RETRIES}
 SLEEP_TIME=${env.HEALTH_SLEEP}
 
@@ -409,7 +420,7 @@ exit 1
                 set -e
                 SSH_TARGET="${params.SSH_USER}@${params.SSH_HOST}"
                 SSH_PORT="${params.SSH_PORT}"
-                REMOTE_DIR="${deploy.targetDir}"
+                REMOTE_DIR="${targetDir}"
                 SSH_KEY_PATH="\$SSH_KEY_FILE"
 
                 chmod 600 "\$SSH_KEY_PATH" || true
@@ -451,7 +462,7 @@ exit 1
                 
                 # Actualizar variables específicas para este build
                 sed -i "s|FE_TAG=.*|FE_TAG=${env.DEPLOY_TAG}|g" ci/.env
-                sed -i "s|CONTAINER_NAME=.*|CONTAINER_NAME=${deploy.containerName}|g" ci/.env
+                sed -i "s|CONTAINER_NAME=.*|CONTAINER_NAME=${containerName}|g" ci/.env
 
                 # Forzar configuración de entorno y producto para staging
                 if grep -q '^NODE_ENV=' ci/.env; then
@@ -482,7 +493,7 @@ exit 1
                 RETRY_COUNT=0
                 MAX_RETRIES=${env.HEALTH_MAX_RETRIES}
                 SLEEP_TIME=${env.HEALTH_SLEEP}
-                HEALTH_URL="http://localhost:${deploy.hostPort}/health"
+                HEALTH_URL="http://localhost:${hostPort}/health"
 
                 while [ \$RETRY_COUNT -lt \$MAX_RETRIES ]; do
                   RETRY_COUNT=\$((RETRY_COUNT + 1))
