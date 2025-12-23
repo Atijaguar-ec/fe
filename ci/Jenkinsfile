@@ -28,7 +28,7 @@ pipeline {
     )
     string(
       name: 'SSH_USER',
-      defaultValue: 'inatrace',
+      defaultValue: 'administrador',
       description: 'Usuario SSH en el servidor remoto'
     )
     string(
