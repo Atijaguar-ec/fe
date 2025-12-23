@@ -368,8 +368,8 @@ REMOTE_DIR="${targetDir}"
 FRONTEND_NETWORK="${frontendNetwork}"
 BACKEND_NETWORK="${backendNetwork}"
 HEALTH_URL="http://localhost:${hostPort}/health"
-MAX_RETRIES=${env.HEALTH_MAX_RETRIES}
-SLEEP_TIME=${env.HEALTH_SLEEP}
+MAX_RETRIES="${env.HEALTH_MAX_RETRIES}"
+SLEEP_TIME="${env.HEALTH_SLEEP}"
 
 if command -v docker compose >/dev/null 2>&1; then
   COMPOSE_CMD="docker compose"
