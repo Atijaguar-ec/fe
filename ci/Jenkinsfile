@@ -23,7 +23,7 @@ pipeline {
     )
     string(
       name: 'SSH_HOST',
-      defaultValue: 'inatrace.espam.edu.ec',
+      defaultValue: '10.10.102.26',
       description: 'Host o IP del servidor remoto Fortaleza (test/prod)'
     )
     string(
