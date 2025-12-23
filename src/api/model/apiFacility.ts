@@ -85,6 +85,46 @@ export interface ApiFacility {
      */
     displayPriceDeterminedLater?: boolean;
     /**
+     * Facility is a field inspection point for shrimp sensory testing (specific for shrimp value chain)
+     */
+    isFieldInspection?: boolean;
+    /**
+     * Facility is a quality laboratory (specific for shrimp value chain)
+     */
+    isLaboratory?: boolean;
+    /**
+     * Facility performs shrimp classification process (specific for shrimp value chain)
+     */
+    isClassificationProcess?: boolean;
+    /**
+     * Facility performs shrimp freezing process (specific for shrimp value chain)
+     */
+    isFreezingProcess?: boolean;
+    /**
+     * Facility performs shrimp cutting process (specific for shrimp value chain)
+     */
+    isCuttingProcess?: boolean;
+    /**
+     * Facility performs shrimp treatment process (specific for shrimp value chain)
+     */
+    isTreatmentProcess?: boolean;
+    /**
+     * Facility has a shrimp tunnel freezing area (specific for shrimp value chain)
+     */
+    isTunnelFreezing?: boolean;
+    /**
+     * Facility has a shrimp washing area (specific for shrimp value chain)
+     */
+    isWashingArea?: boolean;
+    /**
+     * Facility has a shrimp resting area (specific for shrimp value chain)
+     */
+    isRestArea?: boolean;
+    /**
+     * Facility performs shrimp deheading process - descabezado (specific for shrimp value chain)
+     */
+    isDeheadingProcess?: boolean;
+    /**
      * Custom facility level overriding facility type order
      */
     level?: number;
@@ -170,6 +210,46 @@ export namespace ApiFacility {
          * Enable form control 'Price determined later'
          */
         displayPriceDeterminedLater = 'displayPriceDeterminedLater',
+        /**
+         * Facility is a field inspection point for shrimp sensory testing (specific for shrimp value chain)
+         */
+        isFieldInspection = 'isFieldInspection',
+        /**
+         * Facility is a quality laboratory (specific for shrimp value chain)
+         */
+        isLaboratory = 'isLaboratory',
+        /**
+         * Facility performs shrimp classification process (specific for shrimp value chain)
+         */
+        isClassificationProcess = 'isClassificationProcess',
+        /**
+         * Facility performs shrimp freezing process (specific for shrimp value chain)
+         */
+        isFreezingProcess = 'isFreezingProcess',
+        /**
+         * Facility performs shrimp cutting process (specific for shrimp value chain)
+         */
+        isCuttingProcess = 'isCuttingProcess',
+        /**
+         * Facility performs shrimp treatment process (specific for shrimp value chain)
+         */
+        isTreatmentProcess = 'isTreatmentProcess',
+        /**
+         * Facility has a shrimp tunnel freezing area (specific for shrimp value chain)
+         */
+        isTunnelFreezing = 'isTunnelFreezing',
+        /**
+         * Facility has a shrimp washing area (specific for shrimp value chain)
+         */
+        isWashingArea = 'isWashingArea',
+        /**
+         * Facility has a shrimp resting area (specific for shrimp value chain)
+         */
+        isRestArea = 'isRestArea',
+        /**
+         * Facility performs shrimp deheading process - descabezado (specific for shrimp value chain)
+         */
+        isDeheadingProcess = 'isDeheadingProcess',
         /**
          * Custom facility level overriding facility type order
          */
@@ -349,6 +429,116 @@ export namespace ApiFacility {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'isFieldInspection',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'isLaboratory',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'isClassificationProcess',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'isFreezingProcess',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'isCuttingProcess',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'isTreatmentProcess',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'isTunnelFreezing',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'isWashingArea',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'isRestArea',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'isDeheadingProcess',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'level',
                     classname: 'ApiFacility',
                     dataType: 'number',
@@ -479,6 +669,26 @@ export namespace ApiFacility {
                 ],
                 displayPriceDeterminedLater: [
                 ],
+                isFieldInspection: [
+                ],
+                isLaboratory: [
+                ],
+                isClassificationProcess: [
+                ],
+                isFreezingProcess: [
+                ],
+                isCuttingProcess: [
+                ],
+                isTreatmentProcess: [
+                ],
+                isTunnelFreezing: [
+                ],
+                isWashingArea: [
+                ],
+                isRestArea: [
+                ],
+                isDeheadingProcess: [
+                ],
                 level: [
                 ],
                 facilityLocation: [
@@ -541,6 +751,36 @@ export namespace ApiFacility {
   //                   validators: []
   //               },
   //               displayPriceDeterminedLater: {
+  //                   validators: []
+  //               },
+  //               isFieldInspection: {
+  //                   validators: []
+  //               },
+  //               isLaboratory: {
+  //                   validators: []
+  //               },
+  //               isClassificationProcess: {
+  //                   validators: []
+  //               },
+  //               isFreezingProcess: {
+  //                   validators: []
+  //               },
+  //               isCuttingProcess: {
+  //                   validators: []
+  //               },
+  //               isTreatmentProcess: {
+  //                   validators: []
+  //               },
+  //               isTunnelFreezing: {
+  //                   validators: []
+  //               },
+  //               isWashingArea: {
+  //                   validators: []
+  //               },
+  //               isRestArea: {
+  //                   validators: []
+  //               },
+  //               isDeheadingProcess: {
   //                   validators: []
   //               },
   //               level: {

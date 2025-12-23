@@ -1,0 +1,492 @@
+<div class="af-form-element position-relative outputs-bottom-spacing processing-section classification-section">
+    
+    <!-- HEADER: Selección de semi-producto y area -->
+    <div class="af-row">
+        <div class="af-c12 d-flex">
+            <div class="flex-fill">
+                <single-choice
+                    label="Tipo de semi-producto"
+                    i18n-label="@@productLabelStockProcessingOrderDetail.classification.semiProduct.label"
+                    [formControlInput]="$any(tsoGroup.get('semiProduct'))"
+                    [codebookService]="outputSemiProductsCodebook"
+                    [clearable]="false"
+                    style="min-width: 150px;"
+                    [isInvalidChoice]="submitted && tsoGroup.get('semiProduct').invalid">
+                    <ng-container *ngIf="submitted">
+                        <div *ngIf="tsoGroup.get('semiProduct').errors as errors" class="sc-invalid-feedback"
+                             i18n="@@productLabelStockProcessingOrderDetail.classification.semiProduct.error">
+                            El semi-producto es requerido
+                        </div>
+                    </ng-container>
+                </single-choice>
+            </div>
+            <div class="ml-4">
+                <div class="delete-output-icon"
+                     [class.disabled]="!canDelete"
+                     (click)="onRemoveOutput()">
+                    <fa-icon class="del-icon" [icon]="faTrashAlt"></fa-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FACILITY SELECTION -->
+    <div class="af-row">
+        <div class="af-c12">
+            <single-choice
+                *ngIf="tsoGroup.get('semiProduct').value"
+                label="Área"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.facility.label"
+                [formControlInput]="$any(tsoGroup.get('facility'))"
+                [codebookService]="getOutputFacilityCodebook()"
+                [clearable]="false"
+                style="min-width: 150px;"
+                [isInvalidChoice]="submitted && tsoGroup.get('facility').invalid">
+                <ng-container *ngIf="submitted">
+                    <div *ngIf="tsoGroup.get('facility').errors as errors" class="sc-invalid-feedback"
+                         i18n="@@productLabelStockProcessingOrderDetail.classification.facility.error">
+                        La área es requerida
+                    </div>
+                </ng-container>
+            </single-choice>
+        </div>
+    </div>
+
+
+    <!-- 🦐 CUSTODIA: NÚMERO DE LOTE INTERNO (propagado desde entradas) -->
+    <div class="af-row">
+        <div class="af-c3">
+            <textinput
+                [form]="procActionLotPrefixControl"
+                label="Prefijo"
+                style="width: 100%"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.lotPrefix.label">
+            </textinput>
+        </div>
+        <div class="af-c9">
+            <textinput
+                [form]="$any(tsoGroup.get('internalLotNumber'))"
+                label="Número de Lote"
+                style="width: 100%" 
+                placeholder="Heredado de la entrada"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.internalLotNumber.label"
+                i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.internalLotNumber.placeholder"
+                [isInvalid]="submitted && tsoGroup.get('internalLotNumber').invalid">
+                <ng-container *ngIf="submitted">
+                    <div *ngIf="tsoGroup.get('internalLotNumber').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.internalLotNumber.error">
+                            El número de lote es requerido
+                        </div>
+                    </div>
+                </ng-container>
+            </textinput>
+        </div>
+    </div>
+
+    <!-- 🦐 CUSTODIA: Campos de trazabilidad ocultos (se mantienen en el modelo pero no se muestran en UI)
+         Campos eliminados de visualización: N° Gavetas, N° Bines, Guía Remisión
+         Los valores se preservan internamente para trazabilidad -->
+    <!-- OCULTO: Esta sección fue removida por solicitud del usuario -->
+
+    <!-- OUTPUT QUANTITY -->
+    <div class="af-row">
+        <div class="af-c6">
+            <textinput
+                [form]="$any(tsoGroup.get('totalQuantity'))"
+                [label]="outputQuantityLabel + ' ' + (tsoGroup.get('measureUnitType')?.value ? tsoGroup.get('measureUnitType').value.label : '-')"
+                style="width: 100%"
+                placeholder="Ingrese cantidad"
+                i18n-placeholder="@@productLabelStockProcessingOrderDetail.classification.outputQuantity.placeholder"
+                [isInvalid]="submitted && tsoGroup.get('totalQuantity').invalid">
+                <ng-container *ngIf="submitted">
+                    <div *ngIf="tsoGroup.get('totalQuantity').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.outputQuantity.error.required">
+                            La cantidad es requerida
+                        </div>
+                    </div>
+                </ng-container>
+            </textinput>
+        </div>
+    </div>
+
+    <!-- CLASSIFICATION HEADER SECTION -->
+    <div class="af-row mt-4">
+        <div class="af-c12">
+            <h3 class="classification-section-title" i18n="@@productLabelStockProcessingOrderDetail.classification.header.title">
+                Detalles de Clasificación
+            </h3>
+        </div>
+    </div>
+
+    <!-- 🦐 TIPO DE PROCESO - Determinado automáticamente por el semi-producto seleccionado -->
+    <!-- No se muestran toggles, el tipo se detecta del semi-producto -->
+
+    <!-- START AND END DATE -->
+    <div class="af-row">
+        <div class="af-c6">
+            <app-datepicker
+                label="Fecha de inicio"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.startTime.label"
+                [form]="tsoGroup.get('classificationStartTime')"
+                [invalid]="submitted && tsoGroup.get('classificationStartTime').invalid">
+                <ng-container *ngIf="submitted">
+                    <div *ngIf="tsoGroup.get('classificationStartTime').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.startTime.error">
+                            La fecha de inicio es requerida
+                        </div>
+                    </div>
+                </ng-container>
+            </app-datepicker>
+        </div>
+        <div class="af-c6">
+            <app-datepicker
+                label="Fecha de fin"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.endTime.label"
+                [form]="tsoGroup.get('classificationEndTime')"
+                [invalid]="submitted && tsoGroup.get('classificationEndTime').invalid">
+                <ng-container *ngIf="submitted">
+                    <div *ngIf="tsoGroup.get('classificationEndTime').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.classification.endTime.error">
+                            La fecha de fin es requerida
+                        </div>
+                    </div>
+                </ng-container>
+            </app-datepicker>
+        </div>
+    </div>
+
+    <!-- PROVIDER NAME (movido de la sección anterior) -->
+    <!-- <div class="af-row">
+        <div class="af-c6">
+            <textinput
+                [form]="$any(tsoGroup.get('providerName'))"
+                label="Proveedor"
+                placeholder="Nombre del proveedor"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.providerName.label">
+            </textinput>
+        </div>
+    </div> -->
+    
+    <!-- 🦐 NOTA: Los campos de Orden de producción, Tipo de congelación, Máquina y Marca
+         ahora están en cada fila de la tabla de clasificación -->
+
+    <!-- 🦐 PESOS DE LIQUIDACIÓN (Formato DUFER)
+         Nota: 'Peso Recibido (lb)' se mantiene solo a nivel de modelo (autocalculado en TS)
+         y ya no se muestra en la UI; el usuario trabaja con 'Cantidad de salida en Libras'. -->
+    <div class="af-row">
+        <div class="af-c4">
+            <textinput
+                [form]="$any(tsoGroup.get('processedWeight'))"
+                label="Peso Procesado (lb)"
+                type="number"
+                placeholder="0.00"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.processedWeight.label">
+            </textinput>
+        </div>
+        <div class="af-c4" *ngIf="currentProcessType === 'HEAD_ON' && isProcessedOutput">
+            <textinput
+                [form]="$any(tsoGroup.get('rejectedWeight'))"
+                label="Rechazado (lb)"
+                type="number"
+                placeholder="0.00"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.rejectedWeight.label">
+            </textinput>
+        </div>
+        <div class="af-c4">
+            <textinput
+                [form]="$any(tsoGroup.get('wasteWeight'))"
+                label="Basura (lb)"
+                type="number"
+                placeholder="0.00"
+                i18n-label="@@productLabelStockProcessingOrderDetail.classification.wasteWeight.label">
+            </textinput>
+        </div>
+    </div>
+    
+    <!-- Validación en vivo: la suma de procesado + rechazado + basura no puede superar la cantidad de salida -->
+    <div class="af-row" *ngIf="headerTotalsExceededOutput()">
+        <div class="af-c12">
+            <div class="alert alert-danger d-flex align-items-center py-2 mb-0" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span>
+                    <strong>Error:</strong> La suma de Peso Procesado, Rechazado y Basura 
+                    (<strong>{{ ((tsoGroup.get('processedWeight')?.value || 0) + (tsoGroup.get('rejectedWeight')?.value || 0) + (tsoGroup.get('wasteWeight')?.value || 0)) | number:'1.2-2' }} lb</strong>)
+                    supera la Cantidad de salida 
+                    (<strong>{{ tsoGroup.get('totalQuantity')?.value | number:'1.2-2' }} lb</strong>).
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 🦐 DESTINO DEL RECHAZADO: Área de descabezado -->
+    <!-- El backend creará automáticamente un segundo StockOrder para el producto rechazado -->
+    <div class="af-row" *ngIf="tsoGroup.get('rejectedWeight')?.value > 0 && isProcessedOutput">
+        <div class="af-c6" [formGroup]="tsoGroup">
+            <label class="af-label" i18n="@@productLabelStockProcessingOrderDetail.classification.deheadingFacility.label">
+                Área destino para rechazado
+            </label>
+            <select class="form-control" formControlName="deheadingFacility" 
+                    (change)="onDeheadingFacilityChange($event)"
+                    [compareWith]="compareFacilities">
+                <option [ngValue]="null">-- Seleccione área de descabezado --</option>
+                <option *ngFor="let facility of deheadingFacilities" [ngValue]="facility">
+                    {{ facility.name }}
+                </option>
+            </select>
+            <small class="text-muted" i18n="@@productLabelStockProcessingOrderDetail.classification.deheadingFacility.hint">
+                El material rechazado ({{ tsoGroup.get('rejectedWeight')?.value }} lb) será enviado automáticamente a esta área
+            </small>
+            <div *ngIf="submitted && !tsoGroup.get('deheadingFacility')?.value" class="sc-invalid-feedback mt-1">
+                <span>
+                    Seleccione un área de descabezado cuando existe producto rechazado.
+                </span>
+            </div>
+        </div>
+        <!-- 🦐 Indicador informativo de que se creará automáticamente -->
+        <div class="af-c6 d-flex align-items-center">
+            <div class="alert alert-info mb-0 py-2 px-3" style="font-size: 0.85rem;">
+                <i class="fas fa-info-circle mr-2"></i>
+                Al guardar, se creará automáticamente una salida de <strong>{{ tsoGroup.get('rejectedWeight')?.value }} lb</strong> 
+                para el área de descabezado seleccionada.
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- 🦐 SECCIÓN 1: LIQUIDACIÓN CON CABEZA (HEAD_ON) - Camarón Entero        -->
+    <!-- Solo se muestra para outputs de tipo PROCESSED (no para REJECTED)      -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <div class="af-row mt-4" *ngIf="currentProcessType === 'HEAD_ON' && isProcessedOutput">
+        <div class="af-c12">
+            <div class="classification-section-box head-on-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="classification-table-title">
+                        🦐 LIQUIDACIÓN CON CABEZA (Entero)
+                        <small class="text-muted d-block">Tallas: 20-30 a Pomada</small>
+                    </h4>
+                    <button class="btn btn-solid round" type="button" (click)="addClassificationDetailForType('HEAD_ON')">
+                        <fa-icon [icon]="faPlus"></fa-icon>
+                        <span class="ml-2">Agregar talla</span>
+                    </button>
+                </div>
+
+                <div class="classification-table classification-table-expanded">
+                    <div class="classification-table-header">
+                        <div class="classification-col col-prod-order">Orden Prod.</div>
+                        <div class="classification-col col-freezing">Congelación</div>
+                        <div class="classification-col col-machine">Máquina</div>
+                        <div class="classification-col col-brand">Marca</div>
+                        <div class="classification-col col-size">Talla</div>
+                        <div class="classification-col col-boxes">Cajas</div>
+                        <div class="classification-col col-weight-box">Peso/Caja</div>
+                        <div class="classification-col col-total-weight">Peso Total</div>
+                        <div class="classification-col col-actions"></div>
+                    </div>
+
+                    <ng-container *ngFor="let detailGroup of classificationDetailsArray.controls; index as detailIndex">
+                        <div *ngIf="detailGroup.get('processType')?.value === 'HEAD_ON'" class="classification-table-row">
+                            <div class="classification-col col-prod-order">
+                                <textinput [form]="$any(detailGroup.get('productionOrder'))" placeholder="OP-001"></textinput>
+                            </div>
+                            <div class="classification-col col-freezing">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('freezingTypeCode'))">
+                                    <option value="" disabled selected>Tipo</option>
+                                    <option *ngFor="let ft of freezingTypeCatalog" [value]="ft.code">{{ ft.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-machine">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('machineCode'))">
+                                    <option value="" disabled selected>Máq.</option>
+                                    <option *ngFor="let m of machineCatalog" [value]="m.code">{{ m.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-brand">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('brandCode'))" (change)="onBrandChange(detailGroup, $event.target.value)">
+                                    <option value="" disabled selected>Marca</option>
+                                    <option *ngFor="let b of brandCatalog" [value]="b.code">{{ b.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-size">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('size'))">
+                                    <option value="" disabled selected>Talla</option>
+                                    <option *ngFor="let size of wholeSizeCatalog" [value]="size.code">{{ size.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-boxes">
+                                <textinput [form]="$any(detailGroup.get('boxes'))" type="number" min="0" step="1" placeholder="0"></textinput>
+                            </div>
+                            <div class="classification-col col-weight-box">
+                                <textinput [form]="$any(detailGroup.get('weightPerBox'))" type="number" min="0" step="0.01" placeholder="0.00"></textinput>
+                            </div>
+                            <div class="classification-col col-total-weight">
+                                <span class="calculated-value">{{ calculateTotalWeight(detailGroup) | number:'1.2-2' }}</span>
+                                <small class="unit-label" *ngIf="$any(detailGroup.get('weightFormat')?.value)">{{ detailGroup.get('weightFormat')?.value }}</small>
+                            </div>
+                            <div class="classification-col col-actions">
+                                <div class="delete-row-icon" (click)="removeClassificationDetail(detailIndex)">
+                                    <fa-icon class="del-icon" [icon]="faTrashAlt"></fa-icon>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-container>
+
+                    <!-- Totals HEAD_ON -->
+                    <div class="classification-table-row classification-totals-row">
+                        <div class="classification-col col-prod-order"></div>
+                        <div class="classification-col col-freezing"></div>
+                        <div class="classification-col col-machine"></div>
+                        <div class="classification-col col-brand"><strong>TOTAL ENTERO</strong></div>
+                        <div class="classification-col col-size"></div>
+                        <div class="classification-col col-boxes"><strong>{{ calculateTotalBoxesForType('HEAD_ON') }}</strong></div>
+                        <div class="classification-col col-weight-box"></div>
+                        <div class="classification-col col-format"></div>
+                        <div class="classification-col col-total-weight"><strong>{{ calculateTotalWeightForType('HEAD_ON') | number:'1.2-2' }}</strong></div>
+                        <div class="classification-col col-actions"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- 🦐 SECCIÓN 2: LIQUIDACIÓN EN COLA (SHELL_ON) - Camarón Descabezado      -->
+    <!-- Solo se muestra para outputs de tipo PROCESSED (no para REJECTED)      -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <div class="af-row mt-4" *ngIf="currentProcessType === 'SHELL_ON' && isProcessedOutput">
+        <div class="af-c12">
+            <div class="classification-section-box shell-on-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="classification-table-title">
+                        🦐 LIQUIDACIÓN EN COLA (Shell-On)
+                        <small class="text-muted d-block">Tallas: U-7 a 150+ | Con Clase A/B y Aspecto</small>
+                    </h4>
+                    <button class="btn btn-solid round" type="button" (click)="addClassificationDetailForType('SHELL_ON')">
+                        <fa-icon [icon]="faPlus"></fa-icon>
+                        <span class="ml-2">Agregar talla</span>
+                    </button>
+                </div>
+
+                <div class="classification-table classification-table-expanded">
+                    <div class="classification-table-header">
+                        <div class="classification-col col-prod-order">Orden Prod.</div>
+                        <div class="classification-col col-freezing">Congelación</div>
+                        <div class="classification-col col-machine">Máquina</div>
+                        <div class="classification-col col-brand">Marca</div>
+                        <div class="classification-col col-size">Talla</div>
+                        <div class="classification-col col-presentation">Aspecto</div>
+                        <div class="classification-col col-boxes">Cajas</div>
+                        <div class="classification-col col-weight-box">Peso/Caja</div>
+                        <div class="classification-col col-total-weight">Peso Total</div>
+                        <div class="classification-col col-actions"></div>
+                    </div>
+
+                    <ng-container *ngFor="let detailGroup of classificationDetailsArray.controls; index as detailIndex">
+                        <div *ngIf="detailGroup.get('processType')?.value === 'SHELL_ON'" class="classification-table-row">
+                            <div class="classification-col col-prod-order">
+                                <textinput [form]="$any(detailGroup.get('productionOrder'))" placeholder="OP-001"></textinput>
+                            </div>
+                            <div class="classification-col col-freezing">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('freezingTypeCode'))">
+                                    <option value="" disabled selected>Tipo</option>
+                                    <option *ngFor="let ft of freezingTypeCatalog" [value]="ft.code">{{ ft.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-machine">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('machineCode'))">
+                                    <option value="" disabled selected>Máq.</option>
+                                    <option *ngFor="let m of machineCatalog" [value]="m.code">{{ m.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-brand">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('brandCode'))" (change)="onBrandChange(detailGroup, $event.target.value)">
+                                    <option value="" disabled selected>Marca</option>
+                                    <option *ngFor="let b of brandCatalog" [value]="b.code">{{ b.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-size">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('size'))">
+                                    <option value="" disabled selected>Talla</option>
+                                    <option *ngFor="let size of tailSizeCatalog" [value]="size.code">{{ size.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-presentation">
+                                <select class="form-control" [formControl]="$any(detailGroup.get('presentationType'))">
+                                    <option value="" disabled selected>Aspecto</option>
+                                    <option *ngFor="let pres of presentationTypeCatalog" [value]="pres.code">{{ pres.label }}</option>
+                                </select>
+                            </div>
+                            <div class="classification-col col-boxes">
+                                <textinput [form]="$any(detailGroup.get('boxes'))" type="number" min="0" step="1" placeholder="0"></textinput>
+                            </div>
+                            <div class="classification-col col-weight-box">
+                                <textinput [form]="$any(detailGroup.get('weightPerBox'))" type="number" min="0" step="0.01" placeholder="0.00"></textinput>
+                            </div>
+                            <div class="classification-col col-total-weight">
+                                <span class="calculated-value">{{ calculateTotalWeight(detailGroup) | number:'1.2-2' }}</span>
+                                <small class="unit-label" *ngIf="$any(detailGroup.get('weightFormat')?.value)">{{ detailGroup.get('weightFormat')?.value }}</small>
+                            </div>
+                            <div class="classification-col col-actions">
+                                <div class="delete-row-icon" (click)="removeClassificationDetail(detailIndex)">
+                                    <fa-icon class="del-icon" [icon]="faTrashAlt"></fa-icon>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-container>
+
+                    <!-- Totals SHELL_ON -->
+                    <div class="classification-table-row classification-totals-row">
+                        <div class="classification-col col-prod-order"></div>
+                        <div class="classification-col col-freezing"></div>
+                        <div class="classification-col col-machine"></div>
+                        <div class="classification-col col-brand"><strong>TOTAL COLA</strong></div>
+                        <div class="classification-col col-size"></div>
+                        <div class="classification-col col-presentation"></div>
+                        <div class="classification-col col-boxes"><strong>{{ calculateTotalBoxesForType('SHELL_ON') }}</strong></div>
+                        <div class="classification-col col-weight-box"></div>
+                        <div class="classification-col col-total-weight">
+                            <strong>{{ calculateTotalWeightForType('SHELL_ON') | number:'1.2-2' }}</strong>
+                            <small class="unit-label" *ngIf="getShellOnUnitLabel()">{{ getShellOnUnitLabel() }}</small>
+                        </div>
+                        <div class="classification-col col-actions"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Validation Messages -->
+    <div class="af-row" *ngIf="submitted && classificationDetailsArray.length === 0 && !tsoGroup.get('semiProduct')?.value">
+        <div class="af-c12">
+            <div class="sc-invalid-feedback mt-2">
+                <span i18n="@@productLabelStockProcessingOrderDetail.classification.detailsRequired.error">
+                    Seleccione un tipo de semi-producto para ver las opciones de clasificación.
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🦐 EXPORTAR LIQUIDACIONES - Solo visible después de guardar -->
+    <div class="af-row mt-4" *ngIf="tsoGroup.get('id')?.value">
+        <div class="af-c12">
+            <div class="d-flex justify-content-end gap-2">
+                <button class="btn btn-outline-primary" 
+                        type="button" 
+                        [disabled]="exportingLiquidacion"
+                        (click)="exportLiquidacionPesca()">
+                    <span *ngIf="!exportingLiquidacion" i18n="@@productLabelStockProcessingOrderDetail.classification.exportLiquidacionPesca">Exportar Liquidación de Pesca</span>
+                    <span *ngIf="exportingLiquidacion">Exportando...</span>
+                </button>
+                <button class="btn btn-outline-success" 
+                        type="button" 
+                        [disabled]="exportingLiquidacion"
+                        (click)="exportLiquidacionCompra()">
+                    <span *ngIf="!exportingLiquidacion" i18n="@@productLabelStockProcessingOrderDetail.classification.exportLiquidacionCompra">Exportar Liquidación de Compra</span>
+                    <span *ngIf="exportingLiquidacion">Exportando...</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disabled overlay when right side is not enabled -->
+    <div *ngIf="!rightSideEnabled" class="disabled-section-overlay"></div>
+</div>

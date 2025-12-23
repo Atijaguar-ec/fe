@@ -5,7 +5,18 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 ARG BUILD_OPTIMIZATION=true
-RUN if [ "$BUILD_OPTIMIZATION" = "false" ]; then npm run build:fast; else npm run build:prod; fi
+ARG BUILD_CONFIG=production
+RUN if [ "$BUILD_OPTIMIZATION" = "false" ]; then \
+      npm run build:fast; \
+    elif [ "$BUILD_CONFIG" = "production-cocoa" ]; then \
+      npm run build:cocoa; \
+    elif [ "$BUILD_CONFIG" = "production-shrimp" ]; then \
+      npm run build:shrimp; \
+    elif [ "$BUILD_CONFIG" = "production-coffee" ]; then \
+      npm run build:coffee; \
+    else \
+      npm run build:prod; \
+    fi
 
 FROM nginx:stable-alpine as production-stage
 RUN mkdir /app

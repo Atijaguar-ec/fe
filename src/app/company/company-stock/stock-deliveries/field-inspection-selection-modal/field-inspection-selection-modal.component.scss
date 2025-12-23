@@ -1,0 +1,36 @@
+// Field Inspection Selection Modal Styles
+
+.table {
+  tr {
+    cursor: pointer;
+    
+    &.table-warning {
+      background-color: rgba(255, 193, 7, 0.15);
+    }
+    
+    &.table-active {
+      background-color: rgba(0, 123, 255, 0.15);
+    }
+  }
+}
+
+.text-success {
+  color: #28a745 !important;
+  font-weight: 500;
+}
+
+.text-danger {
+  color: #dc3545 !important;
+  font-weight: 500;
+}
+
+.modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.alert-warning {
+  background-color: #fff3cd;
+  border-color: #ffc107;
+  color: #856404;
+}

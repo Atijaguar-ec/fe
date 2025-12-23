@@ -37,7 +37,6 @@
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
             "aot": true,
-            "showCircularDependencies": false,
             "outputPath": "dist",
             "index": "src/index.html",
             "main": "src/main.ts",
@@ -102,8 +101,90 @@
                 }
               ]
             },
-            "dev": {},
+            "dev": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                }
+              ]
+            },
+            "dev-cocoa": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                },
+                {
+                  "replace": "src/assets/locale/es.json",
+                  "with": "src/assets/locale/cocoa/es.json"
+                },
+                {
+                  "replace": "src/assets/locale/en.json",
+                  "with": "src/assets/locale/cocoa/en.json"
+                }
+              ],
+              "optimization": false,
+              "sourceMap": true,
+              "extractCss": false,
+              "namedChunks": true,
+              "aot": true,
+              "vendorChunk": true,
+              "buildOptimizer": false
+            },
+            "dev-shrimp": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                },
+                {
+                  "replace": "src/assets/locale/es.json",
+                  "with": "src/assets/locale/shrimp/es.json"
+                },
+                {
+                  "replace": "src/assets/locale/en.json",
+                  "with": "src/assets/locale/shrimp/en.json"
+                }
+              ],
+              "optimization": false,
+              "sourceMap": true,
+              "extractCss": false,
+              "namedChunks": true,
+              "aot": true,
+              "vendorChunk": true,
+              "buildOptimizer": false
+            },
+            "dev-coffee": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                },
+                {
+                  "replace": "src/assets/locale/es.json",
+                  "with": "src/assets/locale/coffee/es.json"
+                },
+                {
+                  "replace": "src/assets/locale/en.json",
+                  "with": "src/assets/locale/coffee/en.json"
+                }
+              ],
+              "optimization": false,
+              "sourceMap": true,
+              "extractCss": false,
+              "namedChunks": true,
+              "aot": true,
+              "vendorChunk": true,
+              "buildOptimizer": false
+            },
             "test": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                }
+              ],
               "optimization": true,
               "aot": true,
               "buildOptimizer": true,
@@ -111,6 +192,114 @@
               "namedChunks": false,
               "vendorChunk": false,
               "extractLicenses": true
+            },
+            "production-cocoa": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                },
+                {
+                  "replace": "src/assets/locale/es.json",
+                  "with": "src/assets/locale/cocoa/es.json"
+                },
+                {
+                  "replace": "src/assets/locale/en.json",
+                  "with": "src/assets/locale/cocoa/en.json"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb"
+                }
+              ]
+            },
+            "production-shrimp": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                },
+                {
+                  "replace": "src/assets/locale/es.json",
+                  "with": "src/assets/locale/shrimp/es.json"
+                },
+                {
+                  "replace": "src/assets/locale/en.json",
+                  "with": "src/assets/locale/shrimp/en.json"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb"
+                }
+              ]
+            },
+            "production-coffee": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                },
+                {
+                  "replace": "src/assets/locale/es.json",
+                  "with": "src/assets/locale/coffee/es.json"
+                },
+                {
+                  "replace": "src/assets/locale/en.json",
+                  "with": "src/assets/locale/coffee/en.json"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb"
+                }
+              ]
             }
           }
         },
@@ -125,6 +314,15 @@
             },
             "dev": {
               "browserTarget": "inatrace-fe:build:dev"
+            },
+            "dev-cocoa": {
+              "browserTarget": "inatrace-fe:build:dev-cocoa"
+            },
+            "dev-shrimp": {
+              "browserTarget": "inatrace-fe:build:dev-shrimp"
+            },
+            "dev-coffee": {
+              "browserTarget": "inatrace-fe:build:dev-coffee"
             }
           }
         },

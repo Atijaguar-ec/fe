@@ -1,0 +1,302 @@
+.classification-section {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+
+  .classification-section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #3498db;
+  }
+
+  .classification-table-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #34495e;
+    margin: 0;
+  }
+}
+
+// 🦐 Nota: El tipo de proceso ahora se determina automáticamente
+// por el semi-producto seleccionado (no hay selector manual)
+
+// 🦐 Secciones de clasificación separadas
+.classification-section-box {
+  background: white;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  
+  &.head-on-section {
+    border: 2px solid #e67e22;
+    border-left-width: 5px;
+    
+    .classification-table-title {
+      color: #e67e22;
+    }
+    
+    .classification-table-header {
+      background: #e67e22 !important;
+    }
+  }
+  
+  &.shell-on-section {
+    border: 2px solid #2980b9;
+    border-left-width: 5px;
+    
+    .classification-table-title {
+      color: #2980b9;
+    }
+    
+    .classification-table-header {
+      background: #2980b9 !important;
+    }
+  }
+}
+
+.classification-table {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  overflow: hidden;
+
+  .classification-table-header {
+    display: flex;
+    background: #34495e;
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.75rem 0.5rem;
+    border-bottom: 2px solid #2c3e50;
+  }
+
+  .classification-table-row {
+    display: flex;
+    padding: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+    align-items: center;
+
+    &:hover {
+      background: #f8f9fa;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .classification-totals-row {
+    background: #ecf0f1;
+    font-weight: 600;
+    border-top: 2px solid #34495e;
+
+    &:hover {
+      background: #ecf0f1;
+    }
+  }
+
+  .classification-col {
+    padding: 0 0.25rem;
+    display: flex;
+    align-items: center;
+
+    // 🦐 Columnas optimizadas para mejor distribución visual
+    &.col-prod-order {
+      flex: 0 0 8%;
+      min-width: 90px;
+    }
+
+    &.col-freezing {
+      flex: 0 0 10%;
+      min-width: 110px;
+    }
+
+    &.col-machine {
+      flex: 0 0 9%;
+      min-width: 95px;
+    }
+
+    &.col-brand {
+      flex: 0 0 10%;
+      min-width: 110px;
+    }
+
+    &.col-size {
+      flex: 0 0 8%;
+      min-width: 85px;
+    }
+
+    &.col-presentation {
+      flex: 0 0 9%;
+      min-width: 100px;
+    }
+
+    &.col-quality {
+      flex: 0 0 7%;
+      min-width: 75px;
+    }
+
+    &.col-boxes {
+      flex: 0 0 7%;
+      min-width: 70px;
+    }
+
+    &.col-weight-box {
+      flex: 0 0 9%;
+      min-width: 95px;
+    }
+
+    &.col-format {
+      flex: 0 0 7%;
+      min-width: 70px;
+    }
+
+    &.col-total-weight {
+      flex: 0 0 10%;
+      min-width: 100px;
+    }
+
+    &.col-pounds {
+      flex: 0 0 9%;
+      min-width: 95px;
+    }
+
+    &.col-actions {
+      flex: 0 0 4%;
+      min-width: 50px;
+      justify-content: center;
+    }
+
+    // Remove margins from inputs inside table
+    ::ng-deep {
+      .af-form-element {
+        margin-bottom: 0 !important;
+      }
+
+      .form-control {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.5rem;
+      }
+
+      input[type="number"] {
+        text-align: right;
+      }
+    }
+  }
+
+  .calculated-value {
+    font-weight: 500;
+    color: #2c3e50;
+    text-align: right;
+    width: 100%;
+    display: block;
+  }
+
+  .delete-row-icon {
+    cursor: pointer;
+    color: #e74c3c;
+    transition: all 0.2s;
+    padding: 0.25rem;
+    border-radius: 4px;
+
+    &:hover:not(.disabled) {
+      background: #fee;
+      color: #c0392b;
+    }
+
+    &.disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .del-icon {
+      font-size: 1rem;
+    }
+  }
+}
+
+.delete-output-icon {
+  cursor: pointer;
+  color: #e74c3c;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+
+  &:hover:not(.disabled) {
+    background: #fee;
+    color: #c0392b;
+  }
+
+  &.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .del-icon {
+    font-size: 1.25rem;
+  }
+}
+
+// Tabla expandida con más columnas
+.classification-table-expanded {
+  .classification-table-header,
+  .classification-table-row {
+    min-width: 1400px; // Más ancho para las nuevas columnas
+  }
+
+  .classification-table-header {
+    font-size: 0.75rem; // Más pequeño para caber
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 1600px) {
+  .classification-table {
+    overflow-x: auto;
+
+    .classification-table-header,
+    .classification-table-row {
+      min-width: 1200px;
+    }
+  }
+
+  .classification-table-expanded {
+    .classification-table-header,
+    .classification-table-row {
+      min-width: 1500px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .classification-summary-card {
+    padding: 1.25rem;
+
+    .summary-item span {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// Button styling
+.btn-solid {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #2980b9;
+  }
+
+  &.round {
+    border-radius: 20px;
+  }
+}

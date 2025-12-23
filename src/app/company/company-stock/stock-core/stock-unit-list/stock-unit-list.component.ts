@@ -23,6 +23,7 @@ import { ToastrService } from 'ngx-toastr';
 import { FileSaverService } from 'ngx-filesaver';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { SelfOnboardingService } from '../../../../shared-services/self-onboarding.service';
+import { EnvironmentInfoService } from '../../../../core/environment-info.service';
 
 @Component({
   selector: 'app-stock-unit-list',
@@ -129,7 +130,8 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
     private processingOrderController: ProcessingOrderControllerService,
     private modalService: NgbModalImproved,
     private toasterService: ToastrService,
-    private selfOnboardingService: SelfOnboardingService
+    private selfOnboardingService: SelfOnboardingService,
+    private envInfo: EnvironmentInfoService
   ) { }
 
   ngOnInit(): void {
@@ -337,11 +339,25 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
         hide: ['PURCHASE_ORDERS'].indexOf(this.pageListingMode) >= 0,
       },
       {
+        key: 'approvedForPurchase',
+        name: $localize`:@@productLabelStockProcessingOrderDetail.checkbox.approvedForPurchase.label:Análisis aprobado para compra`,
+        inactive: true,
+        hide: !this.envInfo.isProductType('shrimp'),
+      },
+      {
         key: 'actions',
         name: $localize`:@@productLabelPurchaseOrder.sortOptions.actions.name:Actions`,
         inactive: true
       }
     ];
+
+    if (this.envInfo.isProductType('shrimp')) {
+      // 🦐 Shrimp deliveries: hide week number, net quantity and payable columns
+      this.sortOptions[6].hide = true;  // Week Number
+      this.sortOptions[8].hide = true;  // Deductions
+      this.sortOptions[9].hide = true;  // Net Quantity
+      this.sortOptions[12].hide = true; // Payable / Balance
+    }
 
     if (this.mode === 'PURCHASE') {
       this.sortingParams$.next({ sortBy: 'date', sort: 'DESC' });
@@ -657,6 +673,50 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
     }
     return '';
   }
+
+  private isFieldInspectionOrder(order: ApiStockOrder | null | undefined): boolean {
+    return !!order?.facility?.isFieldInspection;
+  }
+
+  getDisplayMeasureUnit(order: ApiStockOrder | null | undefined): string {
+    if (!order) {
+      return '';
+    }
+
+    if (this.envInfo.isProductType('shrimp') && this.isFieldInspectionOrder(order)) {
+      return $localize`:@@stockUnitList.measureUnit.units:Unidades`;
+    }
+
+    return order.measureUnitType?.label || '';
+  }
+
+  getApprovalLabel(order: ApiStockOrder | null | undefined): string {
+    if (!order) {
+      return '';
+    }
+
+    // 1. Primero verificar si hay análisis de laboratorio (approvedForPurchase)
+    const labApproval = (order as any).approvedForPurchase;
+    if (labApproval === true) {
+      return $localize`:@@productLabelStockProcessingOrderDetail.singleChoice.approvedForPurchase.yes:Sí`;
+    }
+    if (labApproval === false) {
+      return $localize`:@@productLabelStockProcessingOrderDetail.singleChoice.approvedForPurchase.no:No`;
+    }
+
+    // 2. Si no hay laboratorio, verificar inspección de campo (purchaseRecommended)
+    if (this.isFieldInspectionOrder(order)) {
+      const fieldApproval = order.purchaseRecommended;
+      if (fieldApproval === true) {
+        return $localize`:@@productLabelStockProcessingOrderDetail.singleChoice.approvedForPurchase.yes:Sí`;
+      }
+      if (fieldApproval === false) {
+        return $localize`:@@productLabelStockProcessingOrderDetail.singleChoice.approvedForPurchase.no:No`;
+      }
+    }
+
+    return '-';
+  }
   
   aggregateOrderItems(items: ApiStockOrder[]): AggregatedStockItem[] {
 
@@ -676,7 +736,7 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
         } else {
           acc.set(item.semiProduct.id, {
             amount: nextTotalQuantity,
-            measureUnit: item.measureUnitType.label,
+            measureUnit: this.getDisplayMeasureUnit(item),
             stockUnitName: item.semiProduct.name
           });
         }
@@ -699,7 +759,7 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
         } else {
           acc.set(item.finalProduct.id, {
             amount: nextTotalQuantity,
-            measureUnit: item.measureUnitType.label,
+            measureUnit: this.getDisplayMeasureUnit(item),
             stockUnitName: `${item.finalProduct.name} (${item.finalProduct.product.name})`
           });
         }
@@ -715,20 +775,48 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
 
   farmerName(farmer: ApiUserCustomer) {
 
+    
+
     if (farmer) {
+      const isLegal = farmer.personType === ApiUserCustomer.PersonTypeEnum.LEGAL || (farmer as any).personType === 'LEGAL';
+
+      const baseName = ((): string => {
+        if (isLegal) {
+          const companyName = farmer.companyName ? farmer.companyName.trim() : '';
+          if (companyName.length > 0) {
+            return companyName;
+          }
+
+          const legalName = farmer.name ? farmer.name.trim() : '';
+          if (legalName.length > 0 && legalName.toUpperCase() !== 'N/A') {
+            return legalName;
+          }
+
+          const legalSurname = farmer.surname ? farmer.surname.trim() : '';
+          if (legalSurname.length > 0 && legalSurname.toUpperCase() !== 'N/A') {
+            return legalSurname;
+          }
+        }
+
+        const namePart = farmer.name ? farmer.name.trim() : '';
+        const surnameRaw = farmer.surname ? farmer.surname.trim() : '';
+        const surnamePart = surnameRaw.toUpperCase() === 'N/A' ? '' : surnameRaw;
+        return `${namePart} ${surnamePart}`.trim();
+      })();
+
       if (farmer.location?.address?.country?.code === 'RW') {
 
         const cell = farmer.location.address.cell ? farmer.location.address.cell.substring(0, 2).toLocaleUpperCase() : '--';
         const village = farmer.location.address.village ? farmer.location.address.village.substring(0, 2).toLocaleUpperCase() : '--';
-        return farmer.name + ' ' + farmer.surname + ' (' + farmer.id + ', ' + village + '-' + cell + ')';
+        return `${baseName} (${farmer.id}, ${village}-${cell})`;
 
       } else if (farmer.location?.address?.country?.code === 'HN') {
         const municipality = farmer.location.address.hondurasMunicipality ? farmer.location.address.hondurasMunicipality : '--';
         const village = farmer.location.address.hondurasVillage ? farmer.location.address.hondurasVillage : '--';
-        return farmer.name + ' ' + farmer.surname + ' (' + farmer.id + ', ' + municipality + '-' + village + ')';
+        return `${baseName} (${farmer.id}, ${municipality}-${village})`;
       }
 
-      return farmer.name + ' ' + farmer.surname;
+      return baseName;
     }
 
     return '';

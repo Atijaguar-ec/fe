@@ -1,0 +1,177 @@
+<!-- N° de Muestra -->
+<div class="af-row" *ngIf="showSampleNumber">
+  <div class="af-c6">
+    <textinput
+      [form]="formGroup.get('sampleNumber')"
+      [label]="sampleNumberLabel"
+      [placeholder]="sampleNumberPlaceholder"
+      [isInvalid]="submitted && formGroup.get('sampleNumber')?.invalid">
+      <ng-container *ngIf="submitted && sampleNumberRequired">
+        <div *ngIf="formGroup.get('sampleNumber')?.errors as errors" class="sc-invalid-feedback">
+          <div *ngIf="errors.required">{{ sampleNumberError }}</div>
+        </div>
+      </ng-container>
+    </textinput>
+  </div>
+</div>
+
+<!-- ANÁLISIS SENSORIAL -->
+<div class="af-row mt-3">
+  <div class="af-c12">
+    <h4>{{ sensorialAnalysisTitle }}</h4>
+  </div>
+</div>
+
+<!-- CRUDO -->
+<div class="af-row">
+  <div class="af-c12">
+    <label class="font-weight-bold">{{ rawTitle }}</label>
+  </div>
+</div>
+<div class="af-row">
+  <!-- Olor (sin intensidad) -->
+  <div class="af-c2">
+    <single-choice
+      [formControlInput]="$any(formGroup.get('sensorialRawOdor'))"
+      [codebookService]="odorOptionsCodebook"
+      [label]="odorLabel"
+      style="width: 100%">
+    </single-choice>
+  </div>
+  <!-- Sabor + Intensidad -->
+  <div class="af-c2">
+    <single-choice
+      [formControlInput]="$any(formGroup.get('sensorialRawTaste'))"
+      [codebookService]="flavorOptionsCodebook"
+      [label]="tasteLabel"
+      style="width: 100%">
+    </single-choice>
+  </div>
+  <div class="af-c2" *ngIf="needsIntensity('sensorialRawTaste')">
+    <single-choice
+      [formControlInput]="$any(formGroup.get('sensorialRawTasteIntensity'))"
+      [codebookService]="intensityCodebook"
+      [label]="intensityLabel"
+      style="width: 100%">
+    </single-choice>
+  </div>
+  <!-- Color (sin intensidad) -->
+  <div class="af-c2">
+    <single-choice
+      [formControlInput]="$any(formGroup.get('sensorialRawColor'))"
+      [codebookService]="colorOptionsCodebook"
+      [label]="colorLabel"
+      style="width: 100%">
+    </single-choice>
+  </div>
+</div>
+
+<!-- COCIDO -->
+<div class="af-row mt-2">
+  <div class="af-c12">
+    <label class="font-weight-bold">{{ cookedTitle }}</label>
+  </div>
+</div>
+<div class="af-row">
+  <!-- Olor (sin intensidad) -->
+  <div class="af-c2">
+    <single-choice
+      [formControlInput]="$any(formGroup.get('sensorialCookedOdor'))"
+      [codebookService]="odorOptionsCodebook"
+      [label]="odorLabel"
+      style="width: 100%">
+    </single-choice>
+  </div>
+  <!-- Sabor + Intensidad -->
+  <div class="af-c2">
+    <single-choice
+      [formControlInput]="$any(formGroup.get('sensorialCookedTaste'))"
+      [codebookService]="flavorOptionsCodebook"
+      [label]="tasteLabel"
+      style="width: 100%">
+    </single-choice>
+  </div>
+  <div class="af-c2" *ngIf="needsIntensity('sensorialCookedTaste')">
+    <single-choice
+      [formControlInput]="$any(formGroup.get('sensorialCookedTasteIntensity'))"
+      [codebookService]="intensityCodebook"
+      [label]="intensityLabel"
+      style="width: 100%">
+    </single-choice>
+  </div>
+  <!-- Color (sin intensidad) -->
+  <div class="af-c2">
+    <single-choice
+      [formControlInput]="$any(formGroup.get('sensorialCookedColor'))"
+      [codebookService]="colorOptionsCodebook"
+      [label]="colorLabel"
+      style="width: 100%">
+    </single-choice>
+  </div>
+</div>
+
+<!-- METABISULFITO -->
+<div class="af-row mt-2">
+  <div class="af-c12">
+    <checkbox-input [form]="$any(formGroup.get('metabisulfiteLevelAcceptable'))">
+      <checkbox-input-rich-label>{{ metabisulfiteLabel }}</checkbox-input-rich-label>
+    </checkbox-input>
+  </div>
+</div>
+
+<!-- APROBACIÓN PARA COMPRA -->
+<div class="af-row mt-2">
+  <div class="af-c6">
+    <single-choice
+      [label]="approvedForPurchaseLabel"
+      [formControlInput]="$any(formGroup.get('approvedForPurchase'))"
+      [codebookService]="approvalCodebook"
+      style="min-width: 150px;"
+      [isInvalidChoice]="submitted && formGroup.get('approvedForPurchase')?.invalid">
+      <ng-container *ngIf="submitted">
+        <div *ngIf="formGroup.get('approvedForPurchase')?.errors as errors" class="sc-invalid-feedback">
+          <div *ngIf="errors.required">{{ approvedForPurchaseError }}</div>
+        </div>
+      </ng-container>
+    </single-choice>
+  </div>
+  <!-- NÚMERO DE LOTE - Solo visible cuando análisis aprobado para compra = Sí -->
+  <div class="af-c6" *ngIf="formGroup.get('approvedForPurchase')?.value === 'true' || formGroup.get('approvedForPurchase')?.value === true">
+    <textinput
+      [form]="formGroup.get('internalLotNumber')"
+      [label]="lotNumberLabel"
+      [placeholder]="lotNumberPlaceholder">
+    </textinput>
+  </div>
+</div>
+
+<!-- CALIDAD -->
+<div class="af-row mt-3">
+  <div class="af-c12">
+    <h4>{{ qualityTitle }}</h4>
+  </div>
+</div>
+<div class="af-row">
+  <div class="af-c12">
+    <attachment-uploader
+      [allowedMimeType]="['application/pdf']"
+      [allowedMimeTypeErrorMessage]="qualityDocumentMimeError"
+      mode="simpleAsTextField"
+      [label]="qualityDocumentLabel"
+      [form]="$any(formGroup.get('qualityDocument'))"
+      [attachmentUploaderId]="'qualityDocument' + fieldIndex"
+      [invalid]="submitted && formGroup.get('qualityDocument')?.invalid">
+      <attachment-uploader-content>{{ qualityDocumentContent }}</attachment-uploader-content>
+    </attachment-uploader>
+    <attachment-uploader-errors>
+      <ng-container *ngIf="submitted">
+        <div *ngIf="formGroup.get('qualityDocument')?.errors as errors" validation-error class="sc-invalid-feedback">
+          <div *ngIf="errors.required">
+            <span>{{ qualityDocumentError }}</span>
+          </div>
+        </div>
+      </ng-container>
+    </attachment-uploader-errors>
+  </div>
+</div>
+

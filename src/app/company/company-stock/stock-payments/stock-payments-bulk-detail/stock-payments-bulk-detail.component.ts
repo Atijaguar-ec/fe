@@ -33,6 +33,7 @@ import PaymentStatusEnum = ApiPayment.PaymentStatusEnum;
 import PreferredWayOfPaymentEnum = ApiPayment.PreferredWayOfPaymentEnum;
 import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
 import { SelectedUserCompanyService } from '../../../../core/selected-user-company.service';
+import { formatUserCustomerDisplayName } from '../../../../../shared/utils';
 
 enum BulkType {
   BONUS = 'BONUS',
@@ -487,6 +488,10 @@ export class StockPaymentsBulkDetailComponent implements OnInit, OnDestroy {
     return this.update
         || this.purchaseItemsNoBankAccount.controls.length > 0
         || this.purchaseItems.value.length === 0 && !this.update;
+  }
+
+  formatUserCustomer(user: any): string {
+    return formatUserCustomerDisplayName(user ?? null);
   }
 
 }

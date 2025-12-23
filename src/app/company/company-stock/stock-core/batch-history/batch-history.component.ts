@@ -12,6 +12,9 @@ import { ApiStockOrderHistory } from '../../../../../api/model/apiStockOrderHist
 import { ApiStockOrderHistoryTimelineItem } from '../../../../../api/model/apiStockOrderHistoryTimelineItem';
 import { ApiFacility } from '../../../../../api/model/apiFacility';
 import { ApiMeasureUnitType } from '../../../../../api/model/apiMeasureUnitType';
+import { ApiUserCustomer } from '../../../../../api/model/apiUserCustomer';
+import { formatUserCustomerDisplayName } from '../../../../../shared/utils';
+import { EnvironmentInfoService } from '../../../../core/environment-info.service';
 
 declare const $localize: (messageParts: TemplateStringsArray, ...expressions: unknown[]) => string;
 
@@ -108,8 +111,61 @@ export class BatchHistoryComponent implements OnInit, AfterViewInit {
     private router: Router,
     private route: ActivatedRoute,
     private stockOrderService: StockOrderControllerService,
-    private globalEventsManager: GlobalEventManagerService
+    private globalEventsManager: GlobalEventManagerService,
+    public envInfo: EnvironmentInfoService
   ) { }
+
+  /**
+   * Verifica si el producto es camarón
+   */
+  get isShrimp(): boolean {
+    return this.envInfo.isProductType('shrimp');
+  }
+
+  /**
+   * Verifica si la orden es de inspección en campo
+   */
+  isFieldInspectionOrder(order: ApiStockOrder): boolean {
+    return !!order?.facility?.isFieldInspection;
+  }
+
+  /**
+   * Obtiene la etiqueta del resultado de sabor
+   */
+  getFlavorTestResultLabel(result?: string): string {
+    if (!result) { return '-'; }
+    if (result === 'NORMAL') {
+      return $localize`:@@batchHistory.flavorResult.normal:Normal`;
+    }
+    if (result === 'DEFECT') {
+      return $localize`:@@batchHistory.flavorResult.defect:Con defecto`;
+    }
+    return result;
+  }
+
+  /**
+   * Obtiene la etiqueta de recomendación de compra
+   */
+  getPurchaseRecommendedLabel(recommended?: boolean): string {
+    if (recommended === true) {
+      return $localize`:@@batchHistory.purchaseRecommended.yes:Sí - Recomendado`;
+    }
+    if (recommended === false) {
+      return $localize`:@@batchHistory.purchaseRecommended.no:No - No recomendado`;
+    }
+    return '-';
+  }
+
+  /**
+   * Obtiene la unidad de medida correcta según el tipo de orden
+   */
+  getDisplayMeasureUnit(order: ApiStockOrder): string {
+    if (!order) { return ''; }
+    if (this.isShrimp && this.isFieldInspectionOrder(order)) {
+      return $localize`:@@batchHistory.measureUnit.units:Unidades`;
+    }
+    return order.measureUnitType?.label || '';
+  }
 
   getTargetStockOrders(timelineItem: ApiStockOrderHistoryTimelineItem) {
     return timelineItem.purchaseOrders?.length > 0 ? timelineItem.purchaseOrders : timelineItem.processingOrder.targetStockOrders;
@@ -398,10 +454,15 @@ export class BatchHistoryComponent implements OnInit, AfterViewInit {
     return unit ? `${formatted} ${unit}` : formatted;
   }
 
+  getUserCustomerDisplayName(user?: ApiUserCustomer | null): string {
+    return formatUserCustomerDisplayName(user ?? null);
+  }
+
   getGrossQuantity(order: ApiStockOrder): string {
     return this.formatQuantity(order, order?.totalGrossQuantity ?? 0);
   }
 
+  // ... (rest of the code remains the same)
   getNetQuantity(order: ApiStockOrder): string {
     return this.formatQuantity(order, order?.netQuantity ?? order?.totalQuantity ?? 0);
   }

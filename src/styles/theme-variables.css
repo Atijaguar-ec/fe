@@ -1,0 +1,179 @@
+/**
+ * 🎨 Dynamic Theme Variables
+ * 
+ * CSS Custom Properties for dynamic theming.
+ * These variables are set by ChainThemeService at runtime.
+ * 
+ * Default values are provided as fallbacks for:
+ * - Server-side rendering
+ * - Initial load before JavaScript executes
+ * - Development environments
+ * 
+ * Usage in SCSS:
+ * ```scss
+ * .my-component {
+ *   background-color: var(--theme-primary);
+ *   color: var(--theme-text);
+ * }
+ * ```
+ * 
+ * @author INATrace DevOps Team
+ * @version 1.0.0
+ */
+
+:root {
+  /* ============================================================================
+     BRAND COLORS
+     Primary colors that define the chain's visual identity
+     ============================================================================ */
+  --theme-primary: #4B382A;
+  --theme-primary-light: #A29891;
+  --theme-primary-lighter: #C5BFBB;
+  --theme-primary-lightest: #E8E6E4;
+  --theme-secondary: #281F18;
+  --theme-tertiary: #181B31;
+
+  /* ============================================================================
+     SEMANTIC COLORS
+     Colors with specific meanings (success, error, warning, etc.)
+     ============================================================================ */
+  --theme-success: #26AE60;
+  --theme-info: #1E90FF;
+  --theme-warning: #FFBB38;
+  --theme-danger: #DF1642;
+  --theme-light: #FCFCFC;
+  --theme-dark: #666666;
+
+  /* ============================================================================
+     NEUTRAL COLORS
+     Grays and blacks for text, borders, backgrounds
+     ============================================================================ */
+  --theme-gray-dark: #666666;
+  --theme-gray: #939393;
+  --theme-gray-semi: #E6E6E6;
+  --theme-gray-light: #FCFCFC;
+  --theme-black: #212121;
+
+  /* ============================================================================
+     ACCENT COLORS
+     Additional colors for highlights, badges, etc.
+     ============================================================================ */
+  --theme-blue: #1E90FF;
+  --theme-blue-light: #4BA6FF;
+  --theme-red: #DF1642;
+  --theme-red-light: #E95C7B;
+  --theme-yellow: #FFBB38;
+  --theme-yellow-light: #FFCF74;
+  --theme-green: #26AE60;
+
+  /* ============================================================================
+     B2C FRONTEND COLORS
+     Specific colors for consumer-facing product labels
+     ============================================================================ */
+  --theme-b2c-primary: #4B382A;
+  --theme-b2c-secondary: #281F18;
+  --theme-b2c-heading: #212121;
+  --theme-b2c-text: #666666;
+
+  /* ============================================================================
+     DERIVED/COMPUTED COLORS
+     Calculated based on theme colors for consistency
+     ============================================================================ */
+  --theme-text-primary: var(--theme-black);
+  --theme-text-secondary: var(--theme-gray-dark);
+  --theme-text-muted: var(--theme-gray);
+  --theme-border: var(--theme-gray-semi);
+  --theme-background: var(--theme-light);
+  --theme-background-alt: var(--theme-gray-light);
+
+  /* ============================================================================
+     INTERACTIVE STATES
+     Colors for hover, active, disabled states
+     ============================================================================ */
+  --theme-hover-opacity: 0.85;
+  --theme-active-opacity: 0.7;
+  --theme-disabled-opacity: 0.5;
+}
+
+/* ============================================================================
+   THEME-AWARE UTILITY CLASSES
+   Use these classes for quick theme-aware styling
+   ============================================================================ */
+
+.theme-bg-primary {
+  background-color: var(--theme-primary) !important;
+}
+
+.theme-bg-secondary {
+  background-color: var(--theme-secondary) !important;
+}
+
+.theme-text-primary {
+  color: var(--theme-primary) !important;
+}
+
+.theme-text-secondary {
+  color: var(--theme-secondary) !important;
+}
+
+.theme-border-primary {
+  border-color: var(--theme-primary) !important;
+}
+
+/* Success/Error/Warning States */
+.theme-success {
+  color: var(--theme-success) !important;
+}
+
+.theme-danger {
+  color: var(--theme-danger) !important;
+}
+
+.theme-warning {
+  color: var(--theme-warning) !important;
+}
+
+.theme-info {
+  color: var(--theme-info) !important;
+}
+
+/* ============================================================================
+   SMOOTH TRANSITIONS
+   Enable smooth color transitions when theme changes
+   ============================================================================ */
+
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 0.3s;
+  transition-timing-function: ease-in-out;
+}
+
+/* Disable transitions for specific elements */
+.no-theme-transition,
+.no-theme-transition * {
+  transition: none !important;
+}
+
+/* ============================================================================
+   ACCESSIBILITY
+   Ensure sufficient contrast ratios for theme colors
+   ============================================================================ */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --theme-text-primary: #000000;
+    --theme-background: #FFFFFF;
+    --theme-border: #000000;
+  }
+}
+
+/* Dark mode preparation (for future implementation) */
+/* Uncomment when implementing dark mode support
+@media (prefers-color-scheme: dark) {
+  :root {
+    --theme-background: #1a1a1a;
+    --theme-text-primary: #ffffff;
+  }
+}
+*/

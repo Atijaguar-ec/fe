@@ -5,6 +5,7 @@ import { FacilityControllerService } from '../../../../api/api/facilityControlle
 import { shareReplay, switchMap, take, tap } from 'rxjs/operators';
 import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
 import { ApiFacilityLocation } from '../../../../api/model/apiFacilityLocation';
+import { ApiFacility } from '../../../../api/model/apiFacility';
 import { GoogleMap, MapInfoWindow, MapMarker } from '@angular/google-maps';
 import { GlobalEventManagerService } from '../../../core/global-event-manager.service';
 import { ApiPaginatedResponseApiFacility } from '../../../../api/model/apiPaginatedResponseApiFacility';
@@ -75,6 +76,11 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
     {
       key: 'location',
       name: $localize`:@@productLabelFacilities.sortOptions.location.name:Location`,
+      inactive: true
+    },
+    {
+      key: 'order',
+      name: $localize`:@@productLabelFacilities.sortOptions.order.name:Order`,
       inactive: true
     },
     {
@@ -193,10 +199,21 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
   }
 
   locationName(location: ApiFacilityLocation) {
+    if (!location || !location.address) {
+      return '';
+    }
     if (location.address.cell != null && location.address.country) { return location.address.cell + ', ' + location.address.country.name; }
     if (location.address.city != null && location.address.country) { return location.address.city + ', ' + location.address.country.name; }
     if (location.address.country != null) { return location.address.country.name; }
     return '';
+  }
+
+  facilityOrderDisplay(facility: ApiFacility) {
+    if (!facility) {
+      return '';
+    }
+    const order = facility.level ?? facility.facilityType?.order;
+    return order != null ? order : '-';
   }
 
   showPagination() {

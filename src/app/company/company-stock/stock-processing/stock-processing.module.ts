@@ -17,6 +17,10 @@ import { ClipInputTransactionModalComponent } from './stock-processing-order-det
 import { StockProcessingOrderDetailsComponent } from './stock-processing-order-details/stock-processing-order-details.component';
 import { ProcessingOrderInputComponent } from './stock-processing-order-details/processing-order-input/processing-order-input.component';
 import { ProcessingOrderOutputComponent } from './stock-processing-order-details/processing-order-output/processing-order-output.component';
+import { ProcessingOrderOutputClassificationComponent } from './stock-processing-order-details/processing-order-output-classification/processing-order-output-classification.component';
+import { ProcessingOutputLabShrimpComponent } from './stock-processing-order-details/processing-order-output/processing-output-lab-shrimp.component';
+import { ProcessingOutputProductStrategy, processingOutputStrategyFactory } from './stock-processing-order-details/processing-order-output/processing-output-product-strategy';
+import { PRODUCT_CONTEXT } from '../../../core/product-context';
 
 @NgModule({
   declarations: [
@@ -27,7 +31,9 @@ import { ProcessingOrderOutputComponent } from './stock-processing-order-details
     ClipInputTransactionModalComponent,
     StockProcessingOrderDetailsComponent,
     ProcessingOrderInputComponent,
-    ProcessingOrderOutputComponent
+    ProcessingOrderOutputComponent,
+    ProcessingOrderOutputClassificationComponent,
+    ProcessingOutputLabShrimpComponent
   ],
     imports: [
         CommonModule,
@@ -41,6 +47,13 @@ import { ProcessingOrderOutputComponent } from './stock-processing-order-details
         NgbDropdownModule,
         FontAwesomeModule,
         NgbTooltipModule
-    ]
+    ],
+  providers: [
+    {
+      provide: ProcessingOutputProductStrategy,
+      useFactory: processingOutputStrategyFactory,
+      deps: [PRODUCT_CONTEXT]
+    }
+  ]
 })
 export class StockProcessingModule { }

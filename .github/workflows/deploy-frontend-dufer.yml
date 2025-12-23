@@ -1,57 +1,48 @@
-# =============================================================================
-# 🦐 INATrace Frontend - DUFER Pipeline (Camarón)
-# =============================================================================
-# Autor: DevOps Team
-# Descripción: Pipeline CI/CD exclusivo para DUFER (Staging + Production)
-# Producto: Camarón (Shrimp)
-# Dominio Test: inatrace-test.empacadoradufer.com
-# Dominio Prod: inatrace.empacadoradufer.com
-# =============================================================================
-
-name: 🦐 DUFER Frontend (Camarón)
+name: 🦐 Frontend DUFER
 
 on:
   push:
     branches: [staging, main]
     paths:
       - 'src/**'
-      - 'package*.json'
-      - 'angular.json'
+      - 'ci/**'
+      - 'package.json'
+      - 'package-lock.json'
       - 'Dockerfile'
+      - 'nginx.conf'
+      - 'generate-api.js'
       - '.github/workflows/deploy-frontend-dufer.yml'
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Ambiente destino'
+        description: 'Target environment'
         required: true
         default: 'staging'
         type: choice
         options:
           - staging
           - production
+      skip_quality:
+        description: 'Skip quality checks'
+        required: false
+        default: false
+        type: boolean
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}-inatrace
   NODE_VERSION: '14'
-  SWAGGER_DOCS_HOST: https://inatrace.atijaguar.com/api/v3/api-docs
-  # DUFER specific
   COMPANY_NAME: DUFER
-  COMPANY_THEME: camaronera
   PRIMARY_PRODUCT_TYPE: SHRIMP
+  COMPANY_THEME: camaronera
 
-# =============================================================================
-# JOBS
-# =============================================================================
 jobs:
-  # ---------------------------------------------------------------------------
-  # Quality Gate
-  # ---------------------------------------------------------------------------
   quality:
-    name: 🔍 Quality Gate
+    name: 🔍 Code Quality
     runs-on: ubuntu-latest
+    if: ${{ !inputs.skip_quality }}
     steps:
-      - name: 📥 Checkout
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
       - name: 📦 Setup Node.js
@@ -61,26 +52,22 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
 
-      - name: 🧹 Clean cache
-        run: npm cache clean --force
-
-      - name: 📚 Install dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: 🔍 Lint
+      - name: Lint code
         run: npm run lint
         continue-on-error: true
 
-      - name: 🧪 Unit tests
+      - name: Run unit tests
         run: npm run test -- --watch=false --progress=false
+        continue-on-error: true
 
-  # ---------------------------------------------------------------------------
-  # Build Docker Image
-  # ---------------------------------------------------------------------------
   build:
-    name: 🏗️ Build Docker Image
+    name: 🏗️ Build & Push
     runs-on: ubuntu-latest
-    needs: quality
+    needs: [quality]
+    if: always() && !cancelled()
     permissions:
       contents: read
       packages: write
@@ -88,10 +75,10 @@ jobs:
       image-tag: ${{ steps.meta.outputs.tag }}
       image-ref: ${{ steps.image_ref.outputs.image }}
     steps:
-      - name: 📥 Checkout
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🏷️ Generate tag
+      - name: 🏷️ Generate metadata
         id: meta
         run: |
           if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
@@ -101,23 +88,24 @@ jobs:
             TAG="dufer-staging-${GITHUB_SHA::7}"
           fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "🏷️ Tag: $TAG"
+          echo "🏷️ Generated tag: $TAG"
 
-      - name: 🔐 Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 📝 Compute image ref
+      - name: Compute image ref
         id: image_ref
         run: |
           IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
           IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
 
-      - name: 📦 Setup Node.js
+      - name: Set SWAGGER_DOCS_HOST
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            echo "SWAGGER_DOCS_HOST=https://inatrace.empacadoradufer.com/api/v3/api-docs" >> "$GITHUB_ENV"
+          else
+            echo "SWAGGER_DOCS_HOST=https://inatrace-test.empacadoradufer.com/api/v3/api-docs" >> "$GITHUB_ENV"
+          fi
+
+      - name: 📦 Setup Node.js (for API generation)
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -127,13 +115,26 @@ jobs:
       - name: 📚 Install dependencies
         run: npm ci
 
-      - name: 🔄 Generate API client
+      - name: 🔄 Generate API client (OpenAPI)
+        env:
+          SWAGGER_DOCS_AUTHORIZATION: ${{ secrets.SWAGGER_DOCS_AUTHORIZATION }}
+          SWAGGER_DOCS_HEADERS: ${{ secrets.SWAGGER_DOCS_HEADERS }}
+          SWAGGER_DOCS_BASIC_USER: ${{ secrets.SWAGGER_DOCS_BASIC_USER }}
+          SWAGGER_DOCS_BASIC_PASS: ${{ secrets.SWAGGER_DOCS_BASIC_PASS }}
+          GENERATE_API_OPTIONAL: 'true'
         run: npm run generate-api
 
-      - name: 🔧 Setup Docker Buildx
+      - name: 🔐 Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔧 Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: 🏗️ Build and push
+      - name: 🏗️ Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -141,16 +142,14 @@ jobs:
           push: true
           tags: |
             ${{ steps.image_ref.outputs.image }}:${{ steps.meta.outputs.tag }}
-            ${{ steps.image_ref.outputs.image }}:dufer-latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: BUILD_OPTIMIZATION=true
+          build-args: |
+            BUILD_OPTIMIZATION=true
+            BUILD_CONFIG=production-shrimp
 
-  # ---------------------------------------------------------------------------
-  # Deploy: DUFER Staging (Test)
-  # ---------------------------------------------------------------------------
   deploy-staging:
-    name: 🧪 DUFER Staging
+    name: 🧪 Deploy DUFER Staging
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/staging' || github.event.inputs.environment == 'staging'
@@ -158,17 +157,27 @@ jobs:
       name: dufer-staging
       url: https://inatrace-test.empacadoradufer.com
     steps:
-      - name: 📥 Checkout
+      - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
 
-      - name: 📁 Prepare remote directory
+      - name: 🔐 Preflight
+        run: |
+          missing=0
+          [ -z "${{ secrets.TEST_DUFER_HOST }}" ] && echo "❌ TEST_DUFER_HOST" && missing=1
+          [ -z "${{ secrets.TEST_DUFER_USER }}" ] && echo "❌ TEST_DUFER_USER" && missing=1
+          [ -z "${{ secrets.TEST_DUFER_SSH_KEY }}" ] && echo "❌ TEST_DUFER_SSH_KEY" && missing=1
+          [ "$missing" -ne 0 ] && exit 1
+          echo "✅ All secrets present"
+
+      - name: 📁 Ensure remote directory exists
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.TEST_DUFER_HOST }}
           username: ${{ secrets.TEST_DUFER_USER }}
           key: ${{ secrets.TEST_DUFER_SSH_KEY }}
-          port: ${{ secrets.TEST_DUFER_PORT || 22 }}
-          script: mkdir -p /opt/inatrace/frontend
+          port: ${{ secrets.TEST_DUFER_PORT || '22' }}
+          script: |
+            mkdir -p /opt/inatrace/frontend/test/dufer
 
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
@@ -176,9 +185,9 @@ jobs:
           host: ${{ secrets.TEST_DUFER_HOST }}
           username: ${{ secrets.TEST_DUFER_USER }}
           key: ${{ secrets.TEST_DUFER_SSH_KEY }}
-          port: ${{ secrets.TEST_DUFER_PORT || 22 }}
+          port: ${{ secrets.TEST_DUFER_PORT || '22' }}
           source: "ci/docker-compose.yml"
-          target: "/opt/inatrace/frontend"
+          target: "/opt/inatrace/frontend/test/dufer"
           strip_components: 1
 
       - name: 📤 Upload nginx.conf
@@ -187,40 +196,44 @@ jobs:
           host: ${{ secrets.TEST_DUFER_HOST }}
           username: ${{ secrets.TEST_DUFER_USER }}
           key: ${{ secrets.TEST_DUFER_SSH_KEY }}
-          port: ${{ secrets.TEST_DUFER_PORT || 22 }}
+          port: ${{ secrets.TEST_DUFER_PORT || '22' }}
           source: "nginx.conf"
-          target: "/opt/inatrace/frontend"
+          target: "/opt/inatrace/frontend/test/dufer"
 
-      - name: 📝 Prepare .env
+      - name: 📝 Prepare .env (staging)
         run: |
+          IMAGE="${{ needs.build.outputs.image-ref }}"
+          TAG_VALUE="${{ needs.build.outputs.image-tag }}"
           cat > .env <<EOF
-          IMAGE_NAME=${{ needs.build.outputs.image-ref }}
-          TAG=${{ needs.build.outputs.image-tag }}
+          FE_IMAGE_NAME=$IMAGE
+          FE_TAG=$TAG_VALUE
           NODE_ENV=test
+          COMPANY_NAME=${{ env.COMPANY_NAME }}
+          COMPANY_THEME=${{ env.COMPANY_THEME }}
+          DOMAIN=inatrace-test.empacadoradufer.com
           PRIMARY_PRODUCT_TYPE=${{ env.PRIMARY_PRODUCT_TYPE }}
           CONTAINER_NAME=inatrace-fe-test-dufer
           HOST_HTTP_PORT=8081
           FRONTEND_NETWORK=inatrace-frontend-dufer-network
           BACKEND_NETWORK=inatrace-backend-dufer-network
-          DOMAIN=inatrace-test.empacadoradufer.com
-          COMPANY_NAME=${{ env.COMPANY_NAME }}
-          COMPANY_THEME=${{ env.COMPANY_THEME }}
           TRAEFIK_ENABLE=true
           TRAEFIK_ROUTER_NAME=inatrace-fe-test-dufer
-          TRAEFIK_ROUTER_RULE=Host(\`inatrace-test.empacadoradufer.com\`)
+          TRAEFIK_ROUTER_RULE=Host(`inatrace-test.empacadoradufer.com`)
           TRAEFIK_ENTRYPOINTS=websecure
           TRAEFIK_CERT_RESOLVER=letsencrypt
+          HEALTHCHECK_URL=http://localhost/health
+          NGINX_CONF_PATH=./nginx.conf
           EOF
 
-      - name: 📤 Upload .env
+      - name: 📤 Upload .env (staging)
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.TEST_DUFER_HOST }}
           username: ${{ secrets.TEST_DUFER_USER }}
           key: ${{ secrets.TEST_DUFER_SSH_KEY }}
-          port: ${{ secrets.TEST_DUFER_PORT || 22 }}
+          port: ${{ secrets.TEST_DUFER_PORT || '22' }}
           source: ".env"
-          target: "/opt/inatrace/frontend"
+          target: "/opt/inatrace/frontend/test/dufer"
 
       - name: 🚀 Deploy Staging
         uses: appleboy/ssh-action@v1.0.0
@@ -228,43 +241,38 @@ jobs:
           host: ${{ secrets.TEST_DUFER_HOST }}
           username: ${{ secrets.TEST_DUFER_USER }}
           key: ${{ secrets.TEST_DUFER_SSH_KEY }}
-          port: ${{ secrets.TEST_DUFER_PORT || 22 }}
+          port: ${{ secrets.TEST_DUFER_PORT || '22' }}
           script: |
             set -e
-            echo "🦐 Deploying DUFER Staging..."
-            cd /opt/inatrace/frontend
-            
-            set -a && source .env && set +a
-            
-            # Networks
-            docker network inspect inatrace-frontend-dufer-network >/dev/null 2>&1 || docker network create inatrace-frontend-dufer-network
-            docker network inspect inatrace-backend-dufer-network >/dev/null 2>&1 || docker network create inatrace-backend-dufer-network
-            
-            # Deploy
+            cd /opt/inatrace/frontend/test/dufer
+
+            FRONTEND_NETWORK=$(grep '^FRONTEND_NETWORK=' .env | cut -d '=' -f2-)
+            FRONTEND_NETWORK=${FRONTEND_NETWORK:-inatrace-frontend-dufer-network}
+            BACKEND_NETWORK=$(grep '^BACKEND_NETWORK=' .env | cut -d '=' -f2-)
+            BACKEND_NETWORK=${BACKEND_NETWORK:-inatrace-backend-dufer-network}
+            docker network inspect "$FRONTEND_NETWORK" >/dev/null 2>&1 || docker network create "$FRONTEND_NETWORK"
+            docker network inspect "$BACKEND_NETWORK" >/dev/null 2>&1 || docker network create "$BACKEND_NETWORK"
+
             docker compose down 2>/dev/null || true
             docker compose pull
             docker compose up -d
-            
-            # Health check
-            echo "⏳ Health check..."
-            for i in {1..12}; do
+
+            echo "⏳ Waiting for health endpoint..."
+            for i in {1..10}; do
               sleep 10
-              if curl -sf http://localhost:8081/health; then
-                echo "✅ DUFER Staging deployed successfully!"
+              if curl -f "http://localhost:8081/health"; then
+                echo "✅ DUFER Staging frontend deployed!"
                 exit 0
               fi
-              echo "  Attempt $i/12..."
+              echo "  Attempt $i/10..."
             done
-            
+
             echo "❌ Health check failed"
             docker compose logs --tail=100
             exit 1
 
-  # ---------------------------------------------------------------------------
-  # Deploy: DUFER Production
-  # ---------------------------------------------------------------------------
   deploy-production:
-    name: 🏭 DUFER Production
+    name: 🚀 Deploy DUFER Production
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'production'
@@ -272,17 +280,27 @@ jobs:
       name: dufer-production
       url: https://inatrace.empacadoradufer.com
     steps:
-      - name: 📥 Checkout
+      - name: 📥 Checkout deployment configs
         uses: actions/checkout@v4
 
-      - name: 📁 Prepare remote directory
+      - name: 🔐 Preflight
+        run: |
+          missing=0
+          [ -z "${{ secrets.PROD_DUFER_HOST }}" ] && echo "❌ PROD_DUFER_HOST" && missing=1
+          [ -z "${{ secrets.PROD_DUFER_USER }}" ] && echo "❌ PROD_DUFER_USER" && missing=1
+          [ -z "${{ secrets.PROD_DUFER_SSH_KEY }}" ] && echo "❌ PROD_DUFER_SSH_KEY" && missing=1
+          [ "$missing" -ne 0 ] && exit 1
+          echo "✅ All secrets present"
+
+      - name: 📁 Ensure remote directory exists
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.PROD_DUFER_HOST }}
           username: ${{ secrets.PROD_DUFER_USER }}
           key: ${{ secrets.PROD_DUFER_SSH_KEY }}
-          port: ${{ secrets.PROD_DUFER_PORT || 22 }}
-          script: mkdir -p /opt/inatrace/frontend
+          port: ${{ secrets.PROD_DUFER_PORT || '22' }}
+          script: |
+            mkdir -p /opt/inatrace/frontend/prod/dufer
 
       - name: 📤 Upload docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
@@ -290,9 +308,9 @@ jobs:
           host: ${{ secrets.PROD_DUFER_HOST }}
           username: ${{ secrets.PROD_DUFER_USER }}
           key: ${{ secrets.PROD_DUFER_SSH_KEY }}
-          port: ${{ secrets.PROD_DUFER_PORT || 22 }}
+          port: ${{ secrets.PROD_DUFER_PORT || '22' }}
           source: "ci/docker-compose.yml"
-          target: "/opt/inatrace/frontend"
+          target: "/opt/inatrace/frontend/prod/dufer"
           strip_components: 1
 
       - name: 📤 Upload nginx.conf
@@ -301,40 +319,44 @@ jobs:
           host: ${{ secrets.PROD_DUFER_HOST }}
           username: ${{ secrets.PROD_DUFER_USER }}
           key: ${{ secrets.PROD_DUFER_SSH_KEY }}
-          port: ${{ secrets.PROD_DUFER_PORT || 22 }}
+          port: ${{ secrets.PROD_DUFER_PORT || '22' }}
           source: "nginx.conf"
-          target: "/opt/inatrace/frontend"
+          target: "/opt/inatrace/frontend/prod/dufer"
 
-      - name: 📝 Prepare .env
+      - name: 📝 Prepare .env (production)
         run: |
+          IMAGE="${{ needs.build.outputs.image-ref }}"
+          TAG_VALUE="${{ needs.build.outputs.image-tag }}"
           cat > .env <<EOF
-          IMAGE_NAME=${{ needs.build.outputs.image-ref }}
-          TAG=${{ needs.build.outputs.image-tag }}
+          FE_IMAGE_NAME=$IMAGE
+          FE_TAG=$TAG_VALUE
           NODE_ENV=production
+          COMPANY_NAME=${{ env.COMPANY_NAME }}
+          COMPANY_THEME=${{ env.COMPANY_THEME }}
+          DOMAIN=inatrace.empacadoradufer.com
           PRIMARY_PRODUCT_TYPE=${{ env.PRIMARY_PRODUCT_TYPE }}
           CONTAINER_NAME=inatrace-fe-prod-dufer
           HOST_HTTP_PORT=8081
           FRONTEND_NETWORK=inatrace-frontend-dufer-network
           BACKEND_NETWORK=inatrace-backend-dufer-network
-          DOMAIN=inatrace.empacadoradufer.com
-          COMPANY_NAME=${{ env.COMPANY_NAME }}
-          COMPANY_THEME=${{ env.COMPANY_THEME }}
           TRAEFIK_ENABLE=true
           TRAEFIK_ROUTER_NAME=inatrace-fe-prod-dufer
-          TRAEFIK_ROUTER_RULE=Host(\`inatrace.empacadoradufer.com\`)
+          TRAEFIK_ROUTER_RULE=Host(`inatrace.empacadoradufer.com`)
           TRAEFIK_ENTRYPOINTS=websecure
           TRAEFIK_CERT_RESOLVER=letsencrypt
+          HEALTHCHECK_URL=http://localhost/health
+          NGINX_CONF_PATH=./nginx.conf
           EOF
 
-      - name: 📤 Upload .env
+      - name: 📤 Upload .env (production)
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.PROD_DUFER_HOST }}
           username: ${{ secrets.PROD_DUFER_USER }}
           key: ${{ secrets.PROD_DUFER_SSH_KEY }}
-          port: ${{ secrets.PROD_DUFER_PORT || 22 }}
+          port: ${{ secrets.PROD_DUFER_PORT || '22' }}
           source: ".env"
-          target: "/opt/inatrace/frontend"
+          target: "/opt/inatrace/frontend/prod/dufer"
 
       - name: 🚀 Deploy Production
         uses: appleboy/ssh-action@v1.0.0
@@ -342,59 +364,32 @@ jobs:
           host: ${{ secrets.PROD_DUFER_HOST }}
           username: ${{ secrets.PROD_DUFER_USER }}
           key: ${{ secrets.PROD_DUFER_SSH_KEY }}
-          port: ${{ secrets.PROD_DUFER_PORT || 22 }}
+          port: ${{ secrets.PROD_DUFER_PORT || '22' }}
           script: |
             set -e
-            echo "🦐 Deploying DUFER Production..."
-            cd /opt/inatrace/frontend
-            
-            set -a && source .env && set +a
-            
-            # Networks
-            docker network inspect inatrace-frontend-dufer-network >/dev/null 2>&1 || docker network create inatrace-frontend-dufer-network
-            docker network inspect inatrace-backend-dufer-network >/dev/null 2>&1 || docker network create inatrace-backend-dufer-network
-            
-            # Deploy
+            cd /opt/inatrace/frontend/prod/dufer
+
+            FRONTEND_NETWORK=$(grep '^FRONTEND_NETWORK=' .env | cut -d '=' -f2-)
+            FRONTEND_NETWORK=${FRONTEND_NETWORK:-inatrace-frontend-dufer-network}
+            BACKEND_NETWORK=$(grep '^BACKEND_NETWORK=' .env | cut -d '=' -f2-)
+            BACKEND_NETWORK=${BACKEND_NETWORK:-inatrace-backend-dufer-network}
+            docker network inspect "$FRONTEND_NETWORK" >/dev/null 2>&1 || docker network create "$FRONTEND_NETWORK"
+            docker network inspect "$BACKEND_NETWORK" >/dev/null 2>&1 || docker network create "$BACKEND_NETWORK"
+
             docker compose down 2>/dev/null || true
             docker compose pull
             docker compose up -d
-            
-            # Health check
-            echo "⏳ Health check..."
+
+            echo "⏳ Waiting for health endpoint..."
             for i in {1..12}; do
               sleep 10
-              if curl -sf https://inatrace.empacadoradufer.com/health; then
-                echo "✅ DUFER Production deployed successfully!"
+              if curl -sf --max-time 5 "http://localhost:8081/health"; then
+                echo "✅ DUFER Production frontend deployed!"
                 exit 0
               fi
               echo "  Attempt $i/12..."
             done
-            
-            echo "❌ Health check failed"
-            docker compose logs --tail=100
-            exit 1
 
-  # ---------------------------------------------------------------------------
-  # Summary
-  # ---------------------------------------------------------------------------
-  summary:
-    name: 📊 Summary
-    runs-on: ubuntu-latest
-    needs: [deploy-staging, deploy-production]
-    if: always()
-    steps:
-      - name: 📊 Generate Summary
-        run: |
-          echo "## 🦐 DUFER Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Environment | Status | URL |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------------|--------|-----|" >> $GITHUB_STEP_SUMMARY
-          if [[ "${{ needs.deploy-staging.result }}" != "skipped" ]]; then
-            echo "| 🧪 Staging | ${{ needs.deploy-staging.result }} | https://inatrace-test.empacadoradufer.com |" >> $GITHUB_STEP_SUMMARY
-          fi
-          if [[ "${{ needs.deploy-production.result }}" != "skipped" ]]; then
-            echo "| 🏭 Production | ${{ needs.deploy-production.result }} | https://inatrace.empacadoradufer.com |" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Producto:** Camarón (SHRIMP)" >> $GITHUB_STEP_SUMMARY
-          echo "**Empresa:** DUFER" >> $GITHUB_STEP_SUMMARY
+            echo "❌ Health check failed"
+            docker compose logs --tail=150
+            exit 1

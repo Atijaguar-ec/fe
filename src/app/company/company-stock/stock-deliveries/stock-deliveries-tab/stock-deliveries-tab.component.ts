@@ -17,6 +17,10 @@ import { SelectedUserCompanyService } from '../../../../core/selected-user-compa
 import { StockOrderControllerService } from '../../../../../api/api/stockOrderController.service';
 import { SelfOnboardingService } from '../../../../shared-services/self-onboarding.service';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { EnvironmentInfoService } from '../../../../core/environment-info.service';
+import { NgbModalImproved } from '../../../../core/ngb-modal-improved/ngb-modal-improved.service';
+import { FieldInspectionSelectionModalComponent } from '../field-inspection-selection-modal/field-inspection-selection-modal.component';
+import { ApiFieldInspection } from '../../../../core/api/field-inspection.service';
 
 declare const $localize: any;
 
@@ -67,7 +71,9 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
       private codebookTranslations: CodebookTranslations,
       private fileSaverService: FileSaverService,
       protected selUserCompanyService: SelectedUserCompanyService,
-      protected selfOnboardingService: SelfOnboardingService
+      protected selfOnboardingService: SelfOnboardingService,
+      private envInfo: EnvironmentInfoService,
+      private modalService: NgbModalImproved
   ) {
     super(router, route, globalEventManager, facilityControllerService, authService, companyController, selUserCompanyService);
   }
@@ -85,14 +91,26 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
     this.subs = this.selfOnboardingService.guidedTourStep$.subscribe(step => {
 
       setTimeout(() => {
-        this.deliveriesTitleTooltip.close();
-        this.addDeliveryButtonTooltip.close();
+        if (this.deliveriesTitleTooltip) {
+          this.deliveriesTitleTooltip.close();
+        }
+        if (this.addDeliveryButtonTooltip) {
+          this.addDeliveryButtonTooltip.close();
+        }
       }, 50);
 
       if (step === 2) {
-        setTimeout(() => this.deliveriesTitleTooltip.open(), 50);
+        setTimeout(() => {
+          if (this.deliveriesTitleTooltip) {
+            this.deliveriesTitleTooltip.open();
+          }
+        }, 50);
       } else if (step === 3) {
-        setTimeout(() => this.addDeliveryButtonTooltip.open(), 50);
+        setTimeout(() => {
+          if (this.addDeliveryButtonTooltip) {
+            this.addDeliveryButtonTooltip.open();
+          }
+        }, 50);
       }
     });
   }
@@ -107,7 +125,7 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
     }
   }
 
-  newPurchaseOrder() {
+  async newPurchaseOrder() {
 
     if (!this.facilityForStockOrderForm.value) {
       const title = $localize`:@@productLabelStock.purchase.warning.title:Missing facility`;
@@ -116,10 +134,52 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
       return;
     }
 
-    this.router.navigate(['my-stock', 'deliveries', 'facility', this.selectedFacilityId, 'deliveries', 'new']).then();
+    const facility = this.facilityForStockOrderForm.value as ApiFacility;
+    const isShrimp = this.envInfo.isProductType('shrimp');
+    const isFieldInspection = facility && facility.isFieldInspection;
+    
+    // Para camarón: Si NO es inspección en campo, mostrar modales de selección
+    const canLinkFieldInspection = isShrimp && !isFieldInspection;
+
+    let selectedFieldInspection: ApiFieldInspection | null = null;
+
+    // 🔍 Paso 1: Mostrar modal de inspección de campo (opcional)
+    if (canLinkFieldInspection) {
+      try {
+        const fieldModalRef = this.modalService.open(FieldInspectionSelectionModalComponent, {
+          centered: true,
+          backdrop: 'static',
+          keyboard: false,
+          size: 'lg'
+        }, {
+          companyId: this.companyId,
+          onlyRecommended: false
+        });
+
+        const fieldResult = await fieldModalRef.result;
+        if (fieldResult === undefined) {
+          return;
+        }
+        selectedFieldInspection = fieldResult as ApiFieldInspection | null;
+      } catch (e) {
+        // User cancelled - abort navigation
+        return;
+      }
+    }
+
+    // Construir query params
+    const queryParams: any = {};
+    if (selectedFieldInspection) {
+      queryParams.fieldInspectionId = selectedFieldInspection.id;
+    }
+
+    this.router.navigate(
+      ['my-stock', 'deliveries', 'facility', this.selectedFacilityId, 'deliveries', 'new'],
+      { queryParams }
+    ).then();
   }
 
-  newPurchaseOrderBulk() {
+  async newPurchaseOrderBulk() {
 
     if (!this.facilityForStockOrderForm.value) {
       const title = $localize`:@@productLabelStock.purchase.warning.title:Missing facility`;
@@ -128,7 +188,46 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
       return;
     }
 
-    this.router.navigate(['my-stock', 'deliveries', 'facility', this.selectedFacilityId, 'deliveries', 'new-bulk']).then();
+    const facility = this.facilityForStockOrderForm.value as ApiFacility;
+    const isShrimp = this.envInfo.isProductType('shrimp');
+    const isFieldInspection = facility && facility.isFieldInspection;
+    
+    const canLinkFieldInspection = isShrimp && !isFieldInspection;
+
+    let selectedFieldInspection: ApiFieldInspection | null = null;
+
+    // 🔍 Paso 1: Mostrar modal de inspección de campo (opcional)
+    if (canLinkFieldInspection) {
+      try {
+        const fieldModalRef = this.modalService.open(FieldInspectionSelectionModalComponent, {
+          centered: true,
+          backdrop: 'static',
+          keyboard: false,
+          size: 'lg'
+        }, {
+          companyId: this.companyId,
+          onlyRecommended: false
+        });
+
+        const fieldResult = await fieldModalRef.result;
+        if (fieldResult === undefined) {
+          return;
+        }
+        selectedFieldInspection = fieldResult as ApiFieldInspection | null;
+      } catch (e) {
+        return;
+      }
+    }
+
+    const queryParams: any = {};
+    if (selectedFieldInspection) {
+      queryParams.fieldInspectionId = selectedFieldInspection.id;
+    }
+
+    this.router.navigate(
+      ['my-stock', 'deliveries', 'facility', this.selectedFacilityId, 'deliveries', 'new-bulk'],
+      { queryParams }
+    ).then();
   }
 
   async exportDeliveriesExcel(): Promise<void> {
@@ -156,7 +255,6 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
   searchPurchaseInput(event:any) {
     this.searchFarmerNameSurnamePing$.next(event);
   }
-  
   private setFacilitySemiProducts(facilityId: number) {
     if (facilityId !== null && facilityId !== undefined) {
       this.facilitySemiProducts = new FacilitySemiProductsCodebookService(this.facilityControllerService, facilityId, this.codebookTranslations);

@@ -45,10 +45,9 @@
 
           <div class="af-form-element">
             <div class="af-row">
-              <div class="af-c4">
+              <div class="af-c6">
                 <app-datepicker
-                        label="Delivery date"
-                        i18n-label="@@productLabelStockPurchaseOrdersModal.datepicker.date.label"
+                        [label]="inspectionDateLabel"
                         [form]="stockOrderForm.get('productionDate')"
                         [invalid]="submitted && stockOrderForm.get('productionDate').invalid">
                   <ng-container *ngIf="submitted">
@@ -60,6 +59,20 @@
                   </ng-container>
                 </app-datepicker>
               </div>
+
+               <!-- Hora de recepción (para todos) -->
+            
+              <div class="af-c4">
+                <textinput
+                  [form]="stockOrderForm.get('receptionTime')"
+                  [label]="inspectionTimeLabel"
+                  style="width: 100%"
+                  type="time"
+                  placeholder="Introduzca la hora de recepción"
+                  i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.receptionTime.placeholder">
+                </textinput>
+              </div>
+            
             </div>
 
             <div class="af-row">
@@ -225,7 +238,8 @@
               </div>
             </div>
 
-            <div class="af-row" *ngIf="displayPriceDeterminedLater">
+            <!-- 🎯 Precio determinado después: Oculto para SHRIMP -->
+            <div class="af-row" *ngIf="displayPriceDeterminedLater && (showPriceFields$ | async)">
               <div class="af-c6"></div>
               <div class="af-c6">
                 <checkbox-input [form]="stockOrderForm.get('priceDeterminedLater')" (onClick)="priceDeterminedLaterChanged()">
@@ -234,6 +248,7 @@
               </div>
             </div>
 
+            <!-- 🎯 Cantidad y Precio por unidad -->
             <div class="af-row">
               <div class="af-c6">
                 <textinput
@@ -253,7 +268,8 @@
                 </textinput>
               </div>
 
-              <div class="af-c6">
+              <!-- 🎯 Precio por unidad: Oculto para SHRIMP -->
+              <div class="af-c6" *ngIf="showPriceFields$ | async">
                 <textinput
                         [form]="stockOrderForm.get('pricePerUnit')"
                         [label]="pricePerUnitLabel"
@@ -298,8 +314,9 @@
                   </div>
                 </textinput>
               </div>
-              <div class="af-c6" *ngIf="showDamagedPriceDeduction">
-                <textinput *ngIf="showDamagedPriceDeduction"
+              <!-- 🎯 Deducción de precio: Oculto para SHRIMP -->
+              <div class="af-c6" *ngIf="showDamagedPriceDeduction && (showPriceFields$ | async)">
+                <textinput *ngIf="showDamagedPriceDeduction && (showPriceFields$ | async)"
                         [form]="stockOrderForm.get('damagedPriceDeduction')"
                         [label]="damagedPriceDeductionLabel"
                         [disabled]="stockOrderForm.get('priceDeterminedLater').value"
@@ -376,7 +393,7 @@
               </div>
             </div>
 
-            <div class="af-row">
+            <div class="af-row" *ngIf="isCocoa()">
               <div class="af-c6">
                 <textinput [form]="netWeightForm"
                            [label]="netLabel"
@@ -396,8 +413,181 @@
               </div>
             </div>
 
-             <!-- Final Price Discount moved to the end -->
-            <div class="af-row" *ngIf="showFinalPriceDiscount">
+            <!-- 🦐 Campos específicos de camarón (ingreso de camarón a la planta enpacadora) -->
+            <ng-container *ngIf="showShrimpFields$ | async">
+              
+              <div class="af-row">
+                <div class="af-c6">
+                  <textinput
+                    [form]="stockOrderForm.get('numberOfGavetas')"
+                    label="N° de Gavetas"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.numberOfGavetas.label"
+                    style="width: 100%"
+                    placeholder="Introduzca el número de gavetas"
+                    i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.numberOfGavetas.placeholder">
+                  </textinput>
+                </div>
+                
+                <div class="af-c6">
+                  <textinput
+                    [form]="stockOrderForm.get('numberOfBines')"
+                    label="N° de Bines"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.numberOfBines.label"
+                    style="width: 100%"
+                    placeholder="Introduzca el número de bines"
+                    i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.numberOfBines.placeholder">
+                  </textinput>
+                </div>
+              </div>
+
+              <div class="af-row">
+                <div class="af-c6">
+                  <textinput
+                    [form]="stockOrderForm.get('numberOfPiscinas')"
+                    label="N° de Piscinas"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.numberOfPiscinas.label"
+                    style="width: 100%"
+                    placeholder="Introduzca el número de piscinas"
+                    i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.numberOfPiscinas.placeholder">
+                  </textinput>
+                </div>
+                
+                <div class="af-c6">
+                  <textinput
+                    [form]="stockOrderForm.get('guiaRemisionNumber')"
+                    label="N° de Guía de Remisión"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.textinput.guiaRemisionNumber.label"
+                    style="width: 100%"
+                    placeholder="Introduzca el número de guía de remisión"
+                    i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textinput.guiaRemisionNumber.placeholder">
+                  </textinput>
+                </div>
+              </div>
+
+            </ng-container>
+
+            <!-- 🔍 Campos de Inspección Sensorial en Campo (solo para facility.isFieldInspection) -->
+            <ng-container *ngIf="showFieldInspectionFields$ | async">
+              
+              <h3 i18n="@@productLabelStockPurchaseOrdersModal.section.fieldInspection">Inspección Sensorial en Campo</h3>
+              
+              <div class="af-row">
+                <div class="af-c6">
+                  <single-choice
+                    [formControlInput]="$any(stockOrderForm.get('flavorTestResult'))"
+                    [codebookService]="flavorTestResultOptions"
+                    label="Resultado de Sabor"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.singleChoice.flavorTestResult.label"
+                    style="width: 100%"
+                    [isInvalidChoice]="submitted && stockOrderForm.get('flavorTestResult').invalid">
+                    <ng-container *ngIf="submitted">
+                      <div *ngIf="stockOrderForm.get('flavorTestResult').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockPurchaseOrdersModal.singleChoice.flavorTestResult.error.required">
+                          El resultado de sabor es obligatorio
+                        </div>
+                      </div>
+                    </ng-container>
+                  </single-choice>
+                </div>
+                
+                <div class="af-c6" *ngIf="stockOrderForm.get('flavorTestResult')?.value === 'DEFECT'">
+                  <single-choice
+                    [formControlInput]="$any(stockOrderForm.get('flavorDefectTypeId'))"
+                    [codebookService]="flavorDefectCodebook"
+                    label="Tipo de Defecto"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.singleChoice.flavorDefectType.label"
+                    style="width: 100%"
+                    [isInvalidChoice]="submitted && stockOrderForm.get('flavorDefectTypeId').invalid">
+                    <ng-container *ngIf="submitted">
+                      <div *ngIf="stockOrderForm.get('flavorDefectTypeId').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockPurchaseOrdersModal.singleChoice.flavorDefectType.error.required">
+                          El tipo de defecto es obligatorio cuando hay defecto
+                        </div>
+                      </div>
+                    </ng-container>
+                  </single-choice>
+                </div>
+              </div>
+
+              <div class="af-row">
+                <div class="af-c6">
+                  <single-choice
+                    [formControlInput]="$any(stockOrderForm.get('purchaseRecommended'))"
+                    [codebookService]="purchaseRecommendedOptions"
+                    label="Recomendación de Compra"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.singleChoice.purchaseRecommended.label"
+                    style="width: 100%"
+                    [isInvalidChoice]="submitted && stockOrderForm.get('purchaseRecommended').invalid">
+                    <ng-container *ngIf="submitted">
+                      <div *ngIf="stockOrderForm.get('purchaseRecommended').errors as errors" class="sc-invalid-feedback">
+                        <div *ngIf="errors.required" i18n="@@productLabelStockPurchaseOrdersModal.singleChoice.purchaseRecommended.error.required">
+                          La recomendación es obligatoria
+                        </div>
+                      </div>
+                    </ng-container>
+                  </single-choice>
+                </div>
+              </div>
+
+              <div class="af-row">
+                <div class="af-c12">
+                  <textinput
+                    [form]="stockOrderForm.get('inspectionNotes')"
+                    label="Notas de Inspección"
+                    i18n-label="@@productLabelStockPurchaseOrdersModal.textarea.inspectionNotes.label"
+                    style="width: 100%"
+                    placeholder="Introduzca observaciones de la inspección"
+                    i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textarea.inspectionNotes.placeholder"
+                    [textarea]="true"
+                    rows="3">
+                  </textinput>
+                </div>
+              </div>
+
+              <!-- 🔍 Alerta visual cuando NO se recomienda la compra -->
+              <div class="af-row" *ngIf="isPurchaseNotRecommended">
+                <div class="af-c12">
+                  <div class="alert alert-warning" role="alert">
+                    <strong>⚠️</strong>
+                    <span i18n="@@productLabelStockPurchaseOrdersModal.alert.purchaseNotRecommended">
+                      La compra NO está recomendada según la inspección sensorial en campo.
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+            </ng-container>
+
+            <!-- 🏭 Campos de Análisis Sensorial y Calidad (solo para centro de acopio de camarón) -->
+            <ng-container *ngIf="showSensorialQualityFields$ | async">
+              <app-sensorial-quality-fields
+                [formGroup]="stockOrderForm"
+                [submitted]="submitted"
+                [fieldIndex]="0"
+                [showSampleNumber]="true"
+                [sampleNumberRequired]="true">
+              </app-sensorial-quality-fields>
+            </ng-container>
+
+            <!-- Observación (alineada con la segunda columna) -->
+            <div class="af-row" *ngIf="showReceptionFields$ | async">
+              
+              <div class="af-c12">
+                <textinput
+                  [form]="stockOrderForm.get('comments')"
+                  label="Observación"
+                  i18n-label="@@productLabelStockPurchaseOrdersModal.textarea.comments.label"
+                  style="width: 100%"
+                  placeholder="Introduzca observaciones"
+                  i18n-placeholder="@@productLabelStockPurchaseOrdersModal.textarea.comments.placeholder"
+                  [textarea]="true"
+                  rows="3">
+                </textinput>
+              </div>
+            </div>
+
+            <!-- 🎯 Final Price Discount: Oculto para SHRIMP -->
+            <div class="af-row" *ngIf="showFinalPriceDiscount && (showPriceFields$ | async)">
               <div class="af-c12">
                 <textinput 
                         [form]="stockOrderForm.get('finalPriceDiscount')"
@@ -419,7 +609,8 @@
             </div>
 
 
-            <div class="af-row">
+            <!-- 🎯 Pago inicial (cost) y Saldo pendiente (balance): Ocultos para SHRIMP -->
+            <div class="af-row" *ngIf="showPriceFields$ | async">
               <div class="af-c6">
                 <textinput
                         [form]="stockOrderForm.get('cost')"
@@ -445,7 +636,8 @@
               </div>
             </div>
 
-            <div class="af-row">
+            <!-- 🎯 Forma de pago preferida: Oculta para SHRIMP -->
+            <div class="af-row" *ngIf="showPaymentFields$ | async">
               <div class="af-c12">
                 <single-choice
                         label="Preferred way of payment"

@@ -4,9 +4,9 @@
 
 El proyecto consta de tres componentes principales:
 
-- [Frontend Angular (este repositorio)](https://github.com/INATrace/fe/tree/main)
-- [Backend Java](https://github.com/INATrace/backend/tree/main)
-- [Red Coffee Network](https://github.com/INATrace/coffee-network/tree/main)
+- [Frontend Angular (este repositorio)](https://github.com/Atijaguar-ec/fe/tree/main)
+- [Backend Java](https://github.com/Atijaguar-ec/backend/tree/main)
+- [Red Coffee Network](https://github.com/Atijaguar-ec/coffee-network/tree/main)
 
 ---
 
@@ -46,7 +46,7 @@ Esta versión incluye:
 > **Nota:** Si usas una versión de Node superior, puedes encontrar errores de compatibilidad. Usa `nvm` para cambiar de versión si es necesario.
 
 # Instalación y primeros pasos
-1. Clona este repositorio: `git clone https://github.com/INATrace/fe.git`
+1. Clona este repositorio: `git clone https://github.com/Atijaguar-ec/fe.git`
 2. Instala dependencias: `npm install`
 3. Abre el proyecto en tu IDE preferido.
 4. Genera el cliente API desde el backend Java: `npm run generate-api` (requiere backend corriendo y configurado).

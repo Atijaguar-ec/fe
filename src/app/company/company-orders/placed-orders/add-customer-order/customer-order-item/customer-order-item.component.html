@@ -90,7 +90,8 @@
           </div>
         </div>
 
-        <div class="af-row">
+        <!-- 🎯 Campos de precio: Ocultos para SHRIMP -->
+        <div class="af-row" *ngIf="showPriceFields$ | async">
           <div class="af-c12">
             <single-choice
                     label="Currency for end-customer"
@@ -109,7 +110,7 @@
           </div>
         </div>
 
-        <div class="af-row">
+        <div class="af-row" *ngIf="showPriceFields$ | async">
           <div class="af-c12">
             <textinput
                     [form]="$any(form.get('pricePerUnitForEndCustomer'))"

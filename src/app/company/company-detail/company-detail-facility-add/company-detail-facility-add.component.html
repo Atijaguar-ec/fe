@@ -147,51 +147,113 @@
                                 </div>
                             </ng-container>
                         </single-choice>
-                        <checkbox-input [form]="form.get('displayMayInvolveCollectors')">
+                        <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayMayInvolveCollectors')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.mayInvolveCollectors.label">
                                 Display "May involve collectors"
                             </checkbox-input-rich-label>
                         </checkbox-input>
-                        <checkbox-input [form]="form.get('displayOrganic')">
+                        <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayOrganic')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.organic.label">
                                 Display "Organic"
                             </checkbox-input-rich-label>
                         </checkbox-input>
-                        <checkbox-input [form]="form.get('displayWomenOnly')">
+                        <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayWomenOnly')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.womenOnly.label">
                                 Display "Women only"
                             </checkbox-input-rich-label>
                         </checkbox-input>
-                        <checkbox-input [form]="form.get('displayTare')">
+                        <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayTare')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.tare.label">
                                 Display "Tare"
                             </checkbox-input-rich-label>
                         </checkbox-input>
-                        <checkbox-input [form]="form.get('displayPriceDeductionDamage')">
+                        <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayPriceDeductionDamage')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.priceReductionDamage.label">
                                 Display "Damaged price deduction"
                             </checkbox-input-rich-label>
                         </checkbox-input>
                        
-                        <checkbox-input [form]="form.get('displayWeightDeductionDamage')">
+                        <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayWeightDeductionDamage')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.weightReductionDamage.label">
                                 Display "Damaged weight deduction"
                             </checkbox-input-rich-label>
                         </checkbox-input>
-                        <checkbox-input [form]="form.get('displayMoisturePercentage')">
+                        <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayMoisturePercentage')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.moisturePercentage.label">
                                 Display "Moisture percentage deduction"
                             </checkbox-input-rich-label>
                         </checkbox-input>
-                        <checkbox-input [form]="form.get('displayPriceDeterminedLater')">
+                        <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayPriceDeterminedLater')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.priceDeterminedLater.label">
                                 Display "Price determined later"
                             </checkbox-input-rich-label>
                         </checkbox-input>
 
-                         <checkbox-input [form]="form.get('displayFinalPriceDiscount')">
+                         <checkbox-input *ngIf="!isShrimpProduct" [form]="form.get('displayFinalPriceDiscount')">
                             <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.finalPriceDiscount.label">
                                 Display "Final price discount"
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
+                        <!-- Checkbox específico para SHRIMP: Inspección sensorial en campo -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isFieldInspection')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isFieldInspection.label">
+                                Inspección sensorial en campo
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+                        <!-- Checkbox específico para SHRIMP: Actividades de clasificado -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isClassificationProcess')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isClassificationProcess.label">
+                                Actividades de clasificado
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
+                        <!-- Checkbox específico para SHRIMP: Congelación -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isFreezingProcess')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isFreezingProcess.label">
+                                Congelación
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
+                        <!-- Checkbox específico para SHRIMP: Actividades de cortado -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isCuttingProcess')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isCuttingProcess.label">
+                                Actividades de cortado
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
+                        <!-- Checkbox específico para SHRIMP: Actividades de Tratado -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isTreatmentProcess')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isTreatmentProcess.label">
+                                Actividades de tratado
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
+                        <!-- Checkbox específico para SHRIMP: Túnel de congelación -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isTunnelFreezing')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isTunnelFreezing.label">
+                                Túnel de congelación
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
+                        <!-- Checkbox específico para SHRIMP: Área de lavado -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isWashingArea')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isWashingArea.label">
+                                Área de lavado
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
+                        <!-- Checkbox específico para SHRIMP: Área de reposo -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isRestArea')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isRestArea.label">
+                                Área de reposo
+                            </checkbox-input-rich-label>
+                        </checkbox-input>
+
+                        <!-- Checkbox específico para SHRIMP: Área de descabezado -->
+                        <checkbox-input *ngIf="isShrimpProduct" [form]="form.get('isDeheadingProcess')">
+                            <checkbox-input-rich-label i18n="@@productLabelStockFacilityModal.checkbox.isDeheadingProcess.label">
+                                Área de descabezado
                             </checkbox-input-rich-label>
                         </checkbox-input>
 

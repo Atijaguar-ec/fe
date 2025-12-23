@@ -17,7 +17,16 @@
         <tr *ngIf="type === 'certification-types'"
             result-sorter [sortOptions]="sortOptionsCertificationTypes" (sortByKey)="changeSort($event)"></tr>
 
-        <tr *ngIf="type !== 'semi-products' && type !== 'processing-evidence-types' && type !== 'processing-evidence-fields' && type !== 'product-types' && type !== 'certification-types'"
+        <tr *ngIf="type === 'shrimp-size-grades'"
+            result-sorter [sortOptions]="sortOptionsShrimpSizeGrades" (sortByKey)="changeSort($event)"></tr>
+
+        <tr *ngIf="type === 'shrimp-flavor-defects' || type === 'shrimp-color-grades' || type === 'shrimp-process-types'"
+            result-sorter [sortOptions]="sortOptionsShrimpCatalogs" (sortByKey)="changeSort($event)"></tr>
+
+        <tr *ngIf="type === 'shrimp-presentation-types'"
+            result-sorter [sortOptions]="sortOptionsShrimpPresentationTypes" (sortByKey)="changeSort($event)"></tr>
+
+        <tr *ngIf="type !== 'semi-products' && type !== 'processing-evidence-types' && type !== 'processing-evidence-fields' && type !== 'product-types' && type !== 'certification-types' && type !== 'shrimp-size-grades' && type !== 'shrimp-flavor-defects' && type !== 'shrimp-color-grades' && type !== 'shrimp-process-types' && type !== 'shrimp-presentation-types'"
             result-sorter [sortOptions]="sortOptions" (sortByKey)="changeSort($event)"></tr>
       </thead>
       <tbody>
@@ -141,7 +150,88 @@
           </tr>
         </ng-container>
 
-        <ng-container *ngIf="(type !== 'semi-products' &&  type !== 'processing-evidence-types' && type !== 'processing-evidence-fields' && type !== 'product-types' && type !== 'certification-types')">
+        <!-- Shrimp Size Grades (con columna Tipo) -->
+        <ng-container *ngIf="type === 'shrimp-size-grades'">
+          <tr *ngFor="let item of types.items">
+            <td [attr.data-label]="sortOptionsShrimpSizeGrades[0].name"><span>{{ item.code }}</span></td>
+            <td [attr.data-label]="sortOptionsShrimpSizeGrades[1].name"><span>{{ translateShrimpSizeType(item.sizeType) }}</span></td>
+            <td [attr.data-label]="sortOptionsShrimpSizeGrades[2].name"><span>{{ item.displayOrder }}</span></td>
+            <td [attr.data-label]="sortOptionsShrimpSizeGrades[3].name"><span>{{ item.label }}</span></td>
+            <td [attr.data-label]="sortOptionsShrimpSizeGrades[4].name"><span>{{ translateCertificationStatus(item.status) }}</span></td>
+            <td [attr.data-label]="sortOptionsShrimpSizeGrades[5].name">
+              <span>
+                <a (click)="edit(item)"
+                   class="company-action"
+                   [class.enabled-action]="true">
+                  <span *ngIf="isRegionalAdmin; else editMode" i18n="@@settingsTypes.tableCol.view">View</span>
+                </a>
+                <a i18n="@@settingsTypes.tableCol.delete"
+                   (click)="delete(item)"
+                   class="company-action"
+                   [class.enabled-action]="!isRegionalAdmin"
+                   [class.disabled-action]="isRegionalAdmin">
+                  Delete
+                </a>
+              </span>
+            </td>
+          </tr>
+        </ng-container>
+
+        <!-- Otros catálogos de camarón (sin columna Tipo) -->
+        <ng-container *ngIf="type === 'shrimp-flavor-defects' || type === 'shrimp-color-grades' || type === 'shrimp-process-types'">
+          <tr *ngFor="let item of types.items">
+            <td [attr.data-label]="sortOptionsShrimpCatalogs[0].name"><span>{{ item.code }}</span></td>
+            <td [attr.data-label]="sortOptionsShrimpCatalogs[1].name"><span>{{ item.displayOrder }}</span></td>
+            <td [attr.data-label]="sortOptionsShrimpCatalogs[2].name"><span>{{ item.label }}</span></td>
+            <td [attr.data-label]="sortOptionsShrimpCatalogs[3].name"><span>{{ translateCertificationStatus(item.status) }}</span></td>
+            <td [attr.data-label]="sortOptionsShrimpCatalogs[4].name">
+              <span>
+                <a (click)="edit(item)"
+                   class="company-action"
+                   [class.enabled-action]="true">
+                  <span *ngIf="isRegionalAdmin; else editMode" i18n="@@settingsTypes.tableCol.view">View</span>
+                </a>
+                <a i18n="@@settingsTypes.tableCol.delete"
+                   (click)="delete(item)"
+                   class="company-action"
+                   [class.enabled-action]="!isRegionalAdmin"
+                   [class.disabled-action]="isRegionalAdmin">
+                  Delete
+                </a>
+              </span>
+            </td>
+          </tr>
+        </ng-container>
+
+        <!-- Shrimp Presentation Types (con columna Categoría) -->
+        <ng-container *ngIf="type === 'shrimp-presentation-types'">
+          <tr *ngFor="let item of types.items">
+            <td [attr.data-label]="sortOptionsShrimpPresentationTypes[0].name"><span>{{ item.code }}</span></td>
+            <td [attr.data-label]="sortOptionsShrimpPresentationTypes[1].name"><span>{{ translateShrimpPresentationCategory(item.category) }}</span></td>
+            <td [attr.data-label]="sortOptionsShrimpPresentationTypes[2].name"><span>{{ item.displayOrder }}</span></td>
+            <td [attr.data-label]="sortOptionsShrimpPresentationTypes[3].name"><span>{{ item.label }}</span></td>
+            <td [attr.data-label]="sortOptionsShrimpPresentationTypes[4].name"><span>{{ translateCertificationStatus(item.status) }}</span></td>
+            <td [attr.data-label]="sortOptionsShrimpPresentationTypes[5].name">
+              <span>
+                <a (click)="edit(item)"
+                   class="company-action"
+                   [class.enabled-action]="true">
+                  <span *ngIf="isRegionalAdmin; else editMode" i18n="@@settingsTypes.tableCol.view">View</span>
+                </a>
+                <a i18n="@@settingsTypes.tableCol.delete"
+                   (click)="delete(item)"
+                   class="company-action"
+                   [class.enabled-action]="!isRegionalAdmin"
+                   [class.disabled-action]="isRegionalAdmin">
+                  Delete
+                </a>
+              </span>
+            </td>
+          </tr>
+        </ng-container>
+
+        <!-- Otros tipos genéricos (facility-types, measurement-unit-types) -->
+        <ng-container *ngIf="type !== 'semi-products' && type !== 'processing-evidence-types' && type !== 'processing-evidence-fields' && type !== 'product-types' && type !== 'certification-types' && type !== 'shrimp-size-grades' && type !== 'shrimp-flavor-defects' && type !== 'shrimp-color-grades' && type !== 'shrimp-process-types' && type !== 'shrimp-presentation-types'">
           <tr *ngFor="let type of types.items">
             <td [attr.data-label]="sortOptions[0].name"><span>{{ type.code }}</span></td>
             <td [attr.data-label]="sortOptions[1].name"><span>{{ type.order }}</span></td>

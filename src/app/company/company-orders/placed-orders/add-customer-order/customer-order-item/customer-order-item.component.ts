@@ -16,6 +16,10 @@ import { ApiProcessingOrder } from '../../../../../../api/model/apiProcessingOrd
 import { ApiFacility } from '../../../../../../api/model/apiFacility';
 import { map, startWith } from 'rxjs/operators';
 import { CurrencyCodesService } from '../../../../../shared-services/currency-codes.service';
+import { ChainFieldConfigService } from '../../../../../shared-services/chain-field-config.service';
+import { Observable } from 'rxjs';
+
+declare const $localize: (messageParts: TemplateStringsArray, ...placeholders: any[]) => string;
 
 @Component({
   selector: 'app-customer-order-item',
@@ -46,32 +50,39 @@ export class CustomerOrderItemComponent extends GenericEditableItemComponent<Api
     this.companyIdLocal = value;
   }
 
-  get companyId(): number {
+  get companyId(): number | null {
     return this.companyIdLocal;
   }
 
   @Input()
-  outputFacility: ApiFacility;
+  outputFacility!: ApiFacility;
 
   globalOrderIdLocal = '-';
 
-  companyIdLocal = null;
+  companyIdLocal: number | null = null;
 
   globalOrderId$ = new BehaviorSubject<string>('-');
 
-  codebookOrderingProcessingActions: CompanyFinalProductQuoteOrderActionsService;
+  codebookOrderingProcessingActions!: CompanyFinalProductQuoteOrderActionsService;
 
-  inputFacilitiesCodebook: AvailableSellingFacilitiesForCompany;
+  inputFacilitiesCodebook: AvailableSellingFacilitiesForCompany | null = null;
 
-  internalLotSubs: Subscription;
+  internalLotSubs!: Subscription;
+
+  // Observables para visibilidad de campos
+  showPriceFields$: Observable<boolean>;
 
   constructor(
     protected globalEventsManager: GlobalEventManagerService,
     private processingActionController: ProcessingActionControllerService,
     private facilityController: FacilityControllerService,
-    public currencyCodesService: CurrencyCodesService
+    public currencyCodesService: CurrencyCodesService,
+    public fieldConfig: ChainFieldConfigService  // 🎯 Servicio de configuración
   ) {
     super(globalEventsManager);
+    
+    // Inicializar observables de visibilidad
+    this.showPriceFields$ = this.fieldConfig.isFieldVisible$('customerOrder', 'currencyForEndCustomer');
   }
 
   get name() {
@@ -85,16 +96,21 @@ export class CustomerOrderItemComponent extends GenericEditableItemComponent<Api
       }
 
       const procAction = stockOrder.processingOrder.processingAction;
+      const inputProduct = procAction.inputFinalProduct;
 
-      let res = `${ procAction.inputFinalProduct.name }: ${ stockOrder.totalQuantity } ${ procAction.inputFinalProduct.measurementUnitType.label }`;
-
-      if (stockOrder.pricePerUnitForEndCustomer) {
-        res += `, ${ stockOrder.pricePerUnitForEndCustomer } ${stockOrder.currencyForEndCustomer}/per ${ procAction.inputFinalProduct.measurementUnitType.label }`;
+      if (!inputProduct) {
+        return null;
       }
 
-      const kgFactor = (procAction.inputFinalProduct.measurementUnitType as ApiMeasureUnitType).weight;
+      let res = `${ inputProduct.name }: ${ stockOrder.totalQuantity ?? 0 } ${ inputProduct.measurementUnitType?.label ?? '' }`;
 
-      if (kgFactor) {
+      if (stockOrder.pricePerUnitForEndCustomer) {
+        res += `, ${ stockOrder.pricePerUnitForEndCustomer } ${stockOrder.currencyForEndCustomer ?? ''}/per ${ inputProduct.measurementUnitType?.label ?? '' }`;
+      }
+
+      const kgFactor = (inputProduct.measurementUnitType as ApiMeasureUnitType | undefined)?.weight;
+
+      if (kgFactor && stockOrder.totalQuantity) {
         res += ` (${ stockOrder.totalQuantity * kgFactor } kg)`;
       }
 
@@ -104,19 +120,18 @@ export class CustomerOrderItemComponent extends GenericEditableItemComponent<Api
     return '';
   }
 
-  private get processingAction(): ApiProcessingAction {
-    if (this.form.get('processingOrder.processingAction')) {
-      return this.form.get('processingOrder.processingAction').value as ApiProcessingAction;
+  private get processingAction(): ApiProcessingAction | null {
+    const control = this.form?.get('processingOrder.processingAction');
+    if (control) {
+      return control.value as ApiProcessingAction;
     }
     return null;
   }
 
-  private get measurementUnit(): string {
+  private get measurementUnit(): string | null {
     const prAction = this.processingAction;
-    if (prAction) {
-      return prAction.outputFinalProduct.measurementUnitType.label;
-    }
-    return null;
+    const unitType = prAction?.outputFinalProduct?.measurementUnitType as ApiMeasureUnitType | undefined;
+    return unitType?.label ?? null;
   }
 
   get outputQuantityLabel() {
@@ -127,7 +142,8 @@ export class CustomerOrderItemComponent extends GenericEditableItemComponent<Api
   }
 
   get selectedCurrency() {
-    return this.form.get('currencyForEndCustomer').value;
+    const control = this.form?.get('currencyForEndCustomer');
+    return control ? control.value : null;
   }
 
   get selectedCurrencyLabel() {
@@ -145,25 +161,33 @@ export class CustomerOrderItemComponent extends GenericEditableItemComponent<Api
   ngOnInit(): void {
 
     super.ngOnInit();
-    this.codebookOrderingProcessingActions =
-      new CompanyFinalProductQuoteOrderActionsService(this.processingActionController, this.companyId,  this.outputFacility);
+    if (this.companyId) {
+      this.codebookOrderingProcessingActions =
+        new CompanyFinalProductQuoteOrderActionsService(this.processingActionController, this.companyId, this.outputFacility);
+    }
 
     // Set the internal LOT number (name) automatically from the other fields
-    this.internalLotSubs = combineLatest([
-      this.form.get('totalQuantity').valueChanges.pipe(startWith(0)),
-      this.form.get('processingOrder.processingAction').valueChanges.pipe(startWith(null)),
-      this.globalOrderId$
-    ]).pipe(
-      map(([totalQuantity, processingAction, globalOrderId]) => {
-        if (totalQuantity && processingAction && globalOrderId) {
-          return `${ globalOrderId } (${ processingAction.inputFinalProduct.name }, ${ totalQuantity } ${ processingAction.inputFinalProduct.measurementUnitType.label })`;
-        }
-        return '-';
-      })
-    ).subscribe(internalLotName => {
-      this.form.get('internalLotNumber').setValue(internalLotName);
-      this.form.updateValueAndValidity();
-    });
+    const totalQuantityControl = this.form?.get('totalQuantity');
+    const processingActionControl = this.form?.get('processingOrder.processingAction');
+    const internalLotControl = this.form?.get('internalLotNumber');
+
+    if (totalQuantityControl && processingActionControl && internalLotControl) {
+      this.internalLotSubs = combineLatest([
+        totalQuantityControl.valueChanges.pipe(startWith(0)),
+        processingActionControl.valueChanges.pipe(startWith(null)),
+        this.globalOrderId$
+      ]).pipe(
+        map(([totalQuantity, processingAction, globalOrderId]) => {
+          if (totalQuantity && processingAction && globalOrderId) {
+            return `${ globalOrderId } (${ processingAction.inputFinalProduct.name }, ${ totalQuantity } ${ processingAction.inputFinalProduct.measurementUnitType.label })`;
+          }
+          return '-';
+        })
+      ).subscribe(internalLotName => {
+        internalLotControl.setValue(internalLotName);
+        this.form.updateValueAndValidity();
+      });
+    }
   }
 
   ngOnDestroy(): void {
@@ -176,14 +200,40 @@ export class CustomerOrderItemComponent extends GenericEditableItemComponent<Api
 
     const form = generateFormFromMetadata(ApiStockOrder.formMetadata(), value, ApiStockOrderValidationScheme);
     form.setControl('processingOrder', generateFormFromMetadata(ApiProcessingOrder.formMetadata(), {}, ApiProcessingOrderValidationScheme));
+    
+    // 🎯 Aplicar configuración de campos dinámica
+    this.applyFieldConfiguration(form);
+    
     form.updateValueAndValidity();
 
     return form;
   }
 
+  /**
+   * 🎯 Aplica configuración dinámica de campos según el tipo de producto
+   */
+  private applyFieldConfiguration(form: FormGroup): void {
+    // Campos de precio (currency y pricePerUnit)
+    const currencyConfig = this.fieldConfig.getFieldConfig('customerOrder', 'currencyForEndCustomer');
+    const priceConfig = this.fieldConfig.getFieldConfig('customerOrder', 'pricePerUnitForEndCustomer');
+    const currencyControl = form.get('currencyForEndCustomer');
+    const priceControl = form.get('pricePerUnitForEndCustomer');
+
+    // Ajustar validaciones dinámicamente
+    if (currencyControl && !currencyConfig.required) {
+      currencyControl.clearValidators();
+      currencyControl.updateValueAndValidity();
+    }
+
+    if (priceControl && !priceConfig.required) {
+      priceControl.clearValidators();
+      priceControl.updateValueAndValidity();
+    }
+  }
+
   setProcessingAction(event: ApiProcessingAction) {
-    if (event) {
-      this.inputFacilitiesCodebook = new AvailableSellingFacilitiesForCompany(this.facilityController, this.companyId, null, event.inputFinalProduct.id);
+    if (event && this.companyId) {
+      this.inputFacilitiesCodebook = new AvailableSellingFacilitiesForCompany(this.facilityController, this.companyId, undefined, event.inputFinalProduct.id);
     } else {
       this.inputFacilitiesCodebook = null;
     }

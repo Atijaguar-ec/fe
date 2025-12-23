@@ -48,7 +48,8 @@
                 <td [attr.data-label]="sortOptions[1].name"><span>{{facility.facilityType | translateCodebook: 'label'}}</span></td>
                 <td [attr.data-label]="sortOptions[2].name"><span>{{publicSort(facility.isPublic)}}</span></td>
                 <td [attr.data-label]="sortOptions[3].name"><span>{{locationName(facility.facilityLocation)}}</span></td>
-                <td [attr.data-label]="sortOptions[4].name">
+                <td [attr.data-label]="sortOptions[4].name"><span>{{facilityOrderDisplay(facility)}}</span></td>
+                <td [attr.data-label]="sortOptions[5].name">
                   <span>
                     <a i18n="@@productLabelFacilities.tableCol.edit"
                        [routerLink]="['/', 'companies', companyId, 'facilities', facility.id, 'edit']"
