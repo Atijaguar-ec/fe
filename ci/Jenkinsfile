@@ -339,31 +339,6 @@ git fetch --tags --prune origin
 
           echo "\n🚀 Iniciando despliegue remoto: ${deploy.name}"
 
-          def envContent = """
-# Frontend-specific variables (not backend)
-FE_IMAGE_NAME=${env.IMAGE_REPOSITORY}
-FE_TAG=${env.DEPLOY_TAG}
-CONTAINER_NAME=${containerName}
-HOST_HTTP_PORT=${hostPort}
-FRONTEND_NETWORK=${frontendNetwork}
-BACKEND_NETWORK=${backendNetwork}
-TRAEFIK_ENABLE=true
-TRAEFIK_ROUTER_NAME=${traefikRouter}
-TRAEFIK_ROUTER_RULE=${traefikRule}
-TRAEFIK_ENTRYPOINTS=${traefikEntrypoints}
-TRAEFIK_CERT_RESOLVER=${traefikResolver}
-HEALTHCHECK_URL=http://localhost/health
-HEALTHCHECK_INTERVAL=15s
-HEALTHCHECK_TIMEOUT=5s
-HEALTHCHECK_RETRIES=3
-HEALTHCHECK_START_PERIOD=10s
-NGINX_CONF_PATH=./nginx.conf
-COMPANY_NAME=Fortaleza del Valle
-COMPANY_LOGO=/assets/landing-page/fortaleza-logo.jpg
-PRIMARY_PRODUCT_TYPE=COCOA
-""".stripIndent().trim() + '\n'
-          writeFile file: "${env.WORKSPACE}/ci/.env.deploy", text: envContent
-
           def remoteScript = """#!/bin/bash
 set -euo pipefail
 
@@ -412,6 +387,7 @@ exit 1
 
           if (params.BRANCH == 'main') {
             withCredentials([
+              file(credentialsId: 'fortaleza-frontend-env-prod', variable: 'PROD_ENVFILE'),
               sshUserPrivateKey(
                 credentialsId: 'usuario-prod-ssh',
                 keyFileVariable: 'SSH_KEY_FILE',
@@ -427,6 +403,12 @@ exit 1
                 SSH_KEY_PATH="\$SSH_KEY_FILE"
 
                 chmod 600 "\$SSH_KEY_PATH" || true
+
+                echo "📝 Preparando archivo .env de producción..."
+                cp "\$PROD_ENVFILE" "${env.WORKSPACE}/ci/.env.deploy"
+                
+                # Actualizar FE_TAG dinámicamente con el tag del build actual
+                sed -i "s|FE_TAG=.*|FE_TAG=${env.DEPLOY_TAG}|g" "${env.WORKSPACE}/ci/.env.deploy"
 
                 echo "📁 Creando directorio remoto si no existe..."
                 ssh -i "\$SSH_KEY_PATH" -p "\$SSH_PORT" -o StrictHostKeyChecking=no "\$SSH_TARGET" "mkdir -p \$REMOTE_DIR"

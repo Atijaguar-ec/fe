@@ -1,0 +1,43 @@
+# =============================================================================
+# FORTALEZA DEL VALLE - PRODUCCIÓN
+# =============================================================================
+# Este archivo debe cargarse en Jenkins como credencial de tipo "Secret file"
+# con ID: fortaleza-frontend-env-prod
+
+# Docker Image Configuration
+FE_IMAGE_NAME=ghcr.io/atijaguar-ec/fe-inatrace
+FE_TAG=latest
+
+# Environment
+NODE_ENV=production
+
+# Company Configuration
+COMPANY_NAME=Fortaleza del Valle
+COMPANY_LOGO=/assets/landing-page/fortaleza-logo.jpg
+COMPANY_THEME=cocoa
+PRIMARY_PRODUCT_TYPE=COCOA
+
+# Container Configuration
+CONTAINER_NAME=inatrace-fe-prod-fortaleza
+HOST_HTTP_PORT=8081
+
+# Network Configuration
+FRONTEND_NETWORK=inatrace-frontend-fortaleza-network
+BACKEND_NETWORK=inatrace-backend-fortaleza-network
+
+# Traefik Configuration
+TRAEFIK_ENABLE=true
+TRAEFIK_ROUTER_NAME=inatrace-fe-prod-fortaleza
+TRAEFIK_ROUTER_RULE=Host(`inatrace.espam.edu.ec`)
+TRAEFIK_ENTRYPOINTS=websecure
+TRAEFIK_CERT_RESOLVER=letsencrypt
+
+# Healthcheck Configuration
+HEALTHCHECK_URL=http://localhost/health
+HEALTHCHECK_INTERVAL=15s
+HEALTHCHECK_TIMEOUT=5s
+HEALTHCHECK_RETRIES=3
+HEALTHCHECK_START_PERIOD=10s
+
+# Nginx Configuration
+NGINX_CONF_PATH=./nginx.conf
