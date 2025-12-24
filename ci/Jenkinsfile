@@ -407,8 +407,14 @@ exit 1
                 echo "📝 Preparando archivo .env de producción..."
                 cp "\$PROD_ENVFILE" "${env.WORKSPACE}/ci/.env.deploy"
                 
+                echo "🔍 DEBUG: Contenido del archivo .env antes de modificar:"
+                cat "${env.WORKSPACE}/ci/.env.deploy"
+                
                 # Actualizar FE_TAG dinámicamente con el tag del build actual
                 sed -i "s|FE_TAG=.*|FE_TAG=${env.DEPLOY_TAG}|g" "${env.WORKSPACE}/ci/.env.deploy"
+                
+                echo "🔍 DEBUG: Contenido del archivo .env después de modificar:"
+                cat "${env.WORKSPACE}/ci/.env.deploy"
 
                 echo "📁 Creando directorio remoto si no existe..."
                 ssh -i "\$SSH_KEY_PATH" -p "\$SSH_PORT" -o StrictHostKeyChecking=no "\$SSH_TARGET" "mkdir -p \$REMOTE_DIR"
