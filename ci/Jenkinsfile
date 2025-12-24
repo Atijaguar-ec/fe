@@ -358,6 +358,9 @@ HEALTHCHECK_TIMEOUT=5s
 HEALTHCHECK_RETRIES=3
 HEALTHCHECK_START_PERIOD=10s
 NGINX_CONF_PATH=./nginx.conf
+COMPANY_NAME=Fortaleza del Valle
+COMPANY_LOGO=/assets/landing-page/fortaleza-logo.jpg
+PRIMARY_PRODUCT_TYPE=COCOA
 """.stripIndent().trim() + '\n'
           writeFile file: "${env.WORKSPACE}/ci/.env.deploy", text: envContent
 
