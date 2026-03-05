@@ -14,7 +14,7 @@ name: 🦐 Frontend DUFER
 
 on:
   push:
-    branches: [develop, main, staging]
+    branches: [develop]
     tags:
       - "dufer-fe-v*"
   workflow_dispatch:
