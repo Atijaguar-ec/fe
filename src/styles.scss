@@ -659,7 +659,7 @@ a:not([href]):hover {
 #content {
   padding-top: 150px;
   padding-bottom: 150px;
-  background-image: url(assets/landing-page/landing-background.jpg);
+  background-image: var(--theme-landing-background, url(assets/landing-page/landing-background.jpg));
   background-repeat: no-repeat;
   background-size: cover;
   background-attachment: fixed;
@@ -898,21 +898,51 @@ a:not([href]):hover {
 }
 
 footer.main-footer {
-  background-color: white;
+  background-color: var(--theme-footer-background, white);
   color: $theme-primary-text;
   padding-top: 20px;
   padding-bottom: 20px;
 }
 
 footer.main-footer a {
-  color: $gray;
-  font-size: 1rem;
+  color: var(--theme-text-muted, #939393);
+  font-size: 0.9rem;
   font-weight: 400;
+  transition: opacity 0.2s;
+
+  &:hover {
+    color: var(--theme-text-primary, #333);
+    text-decoration: none;
+    opacity: 0.8;
+  }
 }
 
 footer.main-footer .logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+
   img {
-    height: 100px;
+    height: auto;
+    max-height: 50px;
+    width: auto;
+    object-fit: contain;
+    filter: grayscale(10%) contrast(90%);
+    transition: filter 0.3s ease;
+
+    &:hover {
+      filter: none;
+    }
+  }
+
+  @media (max-width: 991px) {
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    
+    img {
+      max-height: 40px;
+    }
   }
 }
 

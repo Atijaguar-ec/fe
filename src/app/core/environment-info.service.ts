@@ -34,7 +34,7 @@ export class EnvironmentInfoService {
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9\-]/g, '');
 
-    return `/assets/landing-page/${slug}-logo.jpg`;
+    return `assets/landing-page/${slug}-logo.jpg`;
   }
 
   get primaryProductType(): string {

@@ -56,6 +56,10 @@ export interface ThemePalette {
   b2cSecondaryColor?: string;
   b2cHeadingColor?: string;
   b2cTextColor?: string;
+
+  // Background and UI Images
+  landingBackground: string;
+  footerBackground: string;
 }
 
 export interface ChainThemes {
@@ -104,7 +108,11 @@ const DEFAULT_THEME: ThemePalette = {
   b2cPrimaryColor: '#4B382A',
   b2cSecondaryColor: '#281F18',
   b2cHeadingColor: '#212121',
-  b2cTextColor: '#666666'
+  b2cTextColor: '#666666',
+
+  // Background and UI Images
+  landingBackground: 'assets/landing-page/landing-background.jpg',
+  footerBackground: '#FFFFFF'
 };
 
 /**
@@ -162,7 +170,11 @@ export const CHAIN_THEMES: ChainThemes = {
     b2cPrimaryColor: '#0077BE',
     b2cSecondaryColor: '#00BFA5',
     b2cHeadingColor: '#263238',
-    b2cTextColor: '#546E7A'
+    b2cTextColor: '#546E7A',
+
+    // Background and UI Images
+    landingBackground: 'assets/landing-page/landing-background-shrimp.jpg', // Should be added or updated
+    footerBackground: '#F5FBFF'
   },
 
   // ============================================================================
@@ -223,7 +235,11 @@ export function getThemeCSSVariables(theme: ThemePalette): Record<string, string
     '--theme-b2c-primary': theme.b2cPrimaryColor || theme.primary,
     '--theme-b2c-secondary': theme.b2cSecondaryColor || theme.secondary,
     '--theme-b2c-heading': theme.b2cHeadingColor || theme.black,
-    '--theme-b2c-text': theme.b2cTextColor || theme.grayDark
+    '--theme-b2c-text': theme.b2cTextColor || theme.grayDark,
+
+    // Background and UI images
+    '--theme-landing-background': `url(${theme.landingBackground})`,
+    '--theme-footer-background': theme.footerBackground
   };
 }
 
