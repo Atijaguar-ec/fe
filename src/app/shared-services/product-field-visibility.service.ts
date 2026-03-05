@@ -15,6 +15,8 @@ export class ProductFieldVisibilityService {
   private readonly hiddenFieldsByProductType = {
     COFFEE: [
       'weekNumber',
+      'parcelLot',
+      'variety',
       'fermentationDays',
       'dryingMethod'
     ],
@@ -25,6 +27,8 @@ export class ProductFieldVisibilityService {
     ],
     SHRIMP: [
       'weekNumber',
+      'parcelLot',
+      'variety',
       'numberOfPlants',
       'processingMethod',
       'fermentationDays',
