@@ -14,18 +14,9 @@ name: 🍫 Frontend UNOCACE
 
 on:
   push:
-    branches: [develop]
+    branches: [develop, main, staging]
     tags:
       - "unocace-fe-v*"
-    paths:
-      - "src/**"
-      - "ci/**"
-      - "package.json"
-      - "package-lock.json"
-      - "Dockerfile"
-      - "nginx.conf"
-      - "generate-api.js"
-      - ".github/workflows/deploy-frontend-unocace.yml"
   workflow_dispatch:
     inputs:
       environment:

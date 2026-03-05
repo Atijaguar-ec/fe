@@ -14,18 +14,9 @@ name: 🦐 Frontend DUFER
 
 on:
   push:
-    branches: [develop]
+    branches: [develop, main, staging]
     tags:
       - "dufer-fe-v*"
-    paths:
-      - "src/**"
-      - "ci/**"
-      - "package.json"
-      - "package-lock.json"
-      - "Dockerfile"
-      - "nginx.conf"
-      - "generate-api.js"
-      - ".github/workflows/deploy-frontend-dufer.yml"
   workflow_dispatch:
     inputs:
       environment:
