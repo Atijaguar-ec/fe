@@ -32,6 +32,7 @@ import { ApiUserGet } from '../../../../../api/model/apiUserGet';
 import { Subscription } from 'rxjs';
 import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
 import { EnvironmentInfoService } from '../../../../core/environment-info.service';
+import { ProductFieldVisibilityService } from '../../../../shared-services/product-field-visibility.service';
 
 @Component({
   selector: 'app-stock-delivery-details',
@@ -113,6 +114,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     private selUserCompanyService: SelectedUserCompanyService,
     private pdfGeneratorService: PdfGeneratorService,
     private envInfo: EnvironmentInfoService,
+    public productFieldVisibilityService: ProductFieldVisibilityService,
   ) { }
 
   // Additional proof item factory methods (used when creating ListEditorManger)
@@ -1014,10 +1016,6 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   private translateName(obj) {
     return this.codebookTranslations.translate(obj, 'name');
-  }
-  isCocoa(): boolean {
-    return this.envInfo.isProductType('cocoa');
-    
   }
   // Determines if current selected semi-product is Cacao/Cocoa
   // isCacaoSelected(): boolean {
