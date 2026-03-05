@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { faCut, faLeaf, faQrcode, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FormArray, FormControl } from '@angular/forms';
 import { ApiFacility } from '../../../../../../api/model/apiFacility';
@@ -22,6 +22,8 @@ import { ApiSemiProduct } from '../../../../../../api/model/apiSemiProduct';
 import { ApiFinalProduct } from '../../../../../../api/model/apiFinalProduct';
 import StatusEnum = ApiTransaction.StatusEnum;
 import OrderTypeEnum = ApiStockOrder.OrderTypeEnum;
+import { ApiUserCustomer } from '../../../../../../api/model/apiUserCustomer';
+import { formatUserCustomerDisplayName } from '../../../../../../shared/utils';
 
 @Component({
   selector: 'app-processing-order-input',
@@ -76,6 +78,9 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
   inputFacilityControl: FormControl;
 
   @Input()
+  inspectionTimeControl: FormControl;
+
+  @Input()
   totalInputQuantityControl: FormControl;
 
   @Input()
@@ -105,7 +110,8 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
 
   constructor(
     private stockOrderController: StockOrderControllerService,
-    private modalService: NgbModalImproved
+    private modalService: NgbModalImproved,
+    private cdr: ChangeDetectorRef
   ) { }
 
   get actionType(): ProcessingActionType {
@@ -122,6 +128,10 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
     }
   }
 
+  formatUserCustomer(user: ApiUserCustomer | null | undefined): string {
+    return formatUserCustomerDisplayName(user ?? null);
+  }
+
   get leftSideEnabled() {
     const facility = this.inputFacilityControl.value as ApiFacility;
     if (!facility) { return true; }
@@ -131,7 +141,17 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
 
   get hideAvailableStock() {
     const facility = this.inputFacilityControl.value as ApiFacility;
-    return !facility || facility.company?.id !== this.companyId;
+    if (!facility) {
+      return true;
+    }
+    
+    // 🦐 For classification facilities, always show available stock regardless of company ownership
+    if (facility.isClassificationProcess) {
+      return false;
+    }
+    
+    // For other facilities, only show stock if facility belongs to current company
+    return facility.company?.id !== this.companyId;
   }
 
   get oneInputStockOrderRequired() {
@@ -154,8 +174,11 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
 
     this.clearInputPropsAndControls();
-    this.clearInputFacility();
 
+    // Do not clear inputFacilityControl here: it is owned and managed by the parent
+    // component (StockProcessingOrderDetailsComponent). Clearing it on destroy would
+    // reset the selected facility when the layout toggles (e.g. when switching to
+    // classification mode), even though the parent still holds a valid selection.
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
@@ -178,16 +201,27 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
     const from = this.dateFromFilterControl.value;
     const to = this.dateToFilterControl.value;
 
+    // Check if this is a classification facility:
+    // 1. By the explicit flag isClassificationProcess
+    // 2. By facility name containing "Clasificad" (fallback for when flag is not populated)
+    const isClassificationFacility = this.selectedInputFacility.isClassificationProcess === true
+      || (this.selectedInputFacility.name?.toLowerCase().includes('clasificad') ?? false);
+
     // Prepare initial request params
     const requestParams: GetAvailableStockForStockUnitInFacility.PartialParamMap = {
       limit: 500,
       offset: 0,
       facilityId: this.selectedInputFacility.id,
-      semiProductId: this.selectedProcAction.inputSemiProduct?.id,
-      finalProductId: this.selectedProcAction.inputFinalProduct?.id,
       organicOnly: this.organicOnlyFilterControl.value,
       internalLotName: this.internalLotNameSearchControl.value
     };
+
+    // For classification facilities, do NOT restrict by semi/final product so that
+    // all balances present in the classification area are visible.
+    if (!isClassificationFacility) {
+      requestParams.semiProductId = this.selectedProcAction.inputSemiProduct?.id;
+      requestParams.finalProductId = this.selectedProcAction.inputFinalProduct?.id;
+    }
 
     // Prepare date filters
     if (from && to) {
@@ -269,18 +303,21 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
         }),
         map(availableStockOrders => {
 
+          let filtered = availableStockOrders;
+
           // If generating QR code, filter all the stock orders that have already generated QR code tag
           if (this.selectedProcAction.type === 'GENERATE_QR_CODE') {
-            return availableStockOrders.filter(apiStockOrder => !apiStockOrder.qrCodeTag);
+            filtered = availableStockOrders.filter(apiStockOrder => !apiStockOrder.qrCodeTag);
           } else if (finalProduct) {
 
             // If final product action (final processing of Quote or Transfer order for a final product)
             // filter the stock orders that have QR code tag for different final products than the selected one (from the Proc. action)
-            return availableStockOrders.filter(apiStockOrder => !apiStockOrder.qrCodeTag || apiStockOrder.qrCodeTagFinalProduct.id === finalProduct.id);
-
-          } else {
-            return availableStockOrders;
+            filtered = availableStockOrders.filter(apiStockOrder => !apiStockOrder.qrCodeTag || apiStockOrder.qrCodeTagFinalProduct.id === finalProduct.id);
           }
+
+          // 🦐 All available stock orders are shown without special laboratory filtering
+          // The isLaboratory flag is no longer used for filtering inputs
+          return filtered;
         })
       )
       .toPromise();
@@ -293,15 +330,36 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
     if (facility) {
       this.selectedInputFacility = facility;
 
+      // Check if this is a classification facility:
+      // 1. By the explicit flag isClassificationProcess
+      // 2. By facility name containing "Clasificad" (fallback for when flag is not populated)
+      const isClassificationFacility = facility.isClassificationProcess === true
+        || (facility.name?.toLowerCase().includes('clasificad') ?? false);
+
+      console.log('[setInputFacility] facility:', facility.name);
+      console.log('isClassificationProcess:', facility.isClassificationProcess);
+      console.log('detected as classification:', isClassificationFacility);
+
       const requestParams: GetAvailableStockForStockUnitInFacility.PartialParamMap = {
         limit: 500,
         offset: 0,
-        facilityId: facility.id,
-        semiProductId: this.selectedProcAction.inputSemiProduct?.id,
-        finalProductId: this.selectedProcAction.inputFinalProduct?.id
+        facilityId: facility.id
       };
 
+      // For classification facilities, load all available stock in the area,
+      // regardless of semi/final product. For other facilities, keep the
+      // existing filters by input semi/final product of the processing action.
+      if (!isClassificationFacility) {
+        requestParams.semiProductId = this.selectedProcAction.inputSemiProduct?.id;
+        requestParams.finalProductId = this.selectedProcAction.inputFinalProduct?.id;
+      }
+
+      console.log('[setInputFacility] requestParams:', requestParams);
       this.availableInputStockOrders = await this.fetchAvailableStockOrders(requestParams);
+      console.log('[setInputFacility] availableInputStockOrders count:', this.availableInputStockOrders?.length, 'hideAvailableStock:', this.hideAvailableStock);
+
+      // Force change detection to ensure the view updates with the new data
+      this.cdr.detectChanges();
     } else {
       this.clearInputFacility();
     }
@@ -648,17 +706,53 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
     const targetStockOrders: ApiStockOrder[] = [];
 
     for (const [index, selectedStockOrder] of this.selectedInputStockOrders.entries()) {
+      // 🦐 Usar internalLotNumber si existe, sino usar identifier como fallback (para entregas iniciales)
+      const baseLotNumber = sourceStockOrder.internalLotNumber || selectedStockOrder.identifier || selectedStockOrder.id?.toString() || '';
       const newStockOrder: ApiStockOrder = {
         facility: sourceStockOrder.facility,
         semiProduct: selectedStockOrder.semiProduct,
         finalProduct: selectedStockOrder.finalProduct,
-        internalLotNumber: `${sourceStockOrder.internalLotNumber}/${index + 1 + 0}`,
+        internalLotNumber: this.selectedInputStockOrders.length > 1 ? `${baseLotNumber}/${index + 1}` : baseLotNumber,
         weekNumber: selectedStockOrder.weekNumber ?? sourceStockOrder.weekNumber,
+        // 🦐 Traceability: always inherit shrimp-specific custody fields when transferring
+        numberOfGavetas: selectedStockOrder.numberOfGavetas ?? sourceStockOrder.numberOfGavetas,
+        numberOfBines: selectedStockOrder.numberOfBines ?? sourceStockOrder.numberOfBines,
+        numberOfPiscinas: selectedStockOrder.numberOfPiscinas ?? sourceStockOrder.numberOfPiscinas,
+        guiaRemisionNumber: selectedStockOrder.guiaRemisionNumber ?? sourceStockOrder.guiaRemisionNumber,
         creatorId: this.processingUserId,
         productionDate: selectedStockOrder.productionDate ? selectedStockOrder.productionDate : (dateISOString(new Date()) as any),
         orderType: OrderTypeEnum.TRANSFERORDER,
         totalQuantity: selectedStockOrder.availableQuantity
       };
+
+      // Propagate laboratory analysis fields and classification fields from the temporary output form
+      // so they are preserved in TRANSFER-type processing actions.
+      const labSource: any = sourceStockOrder as any;
+      const labTarget: any = newStockOrder as any;
+      [
+        'sensorialRawOdor',
+        'sensorialRawTaste',
+        'sensorialRawColor',
+        'sensorialCookedOdor',
+        'sensorialCookedTaste',
+        'sensorialCookedColor',
+        'qualityNotes',
+        'metabisulfiteLevelAcceptable',
+        'approvedForPurchase',
+        'qualityDocument',
+        // Classification fields
+        'classificationStartTime',
+        'classificationEndTime',
+        'productionOrder',
+        'freezingType',
+        'machine',
+        'brandHeader',
+        'classificationDetails'
+      ].forEach(fieldName => {
+        if (labSource[fieldName] !== undefined) {
+          labTarget[fieldName] = labSource[fieldName];
+        }
+      });
 
       // Set the temporary object that holds the processing evidence fields
       newStockOrder['requiredProcEvidenceFieldGroup'] = sourceStockOrder['requiredProcEvidenceFieldGroup'];

@@ -164,5 +164,167 @@
       (showing)="onShow($event, 'certification-types')">
     </app-type-list>
 
+    <!-- =====================================================
+         SHRIMP CATALOGS (Catálogos de Camarón)
+         Only visible when PRIMARY_PRODUCT_TYPE = SHRIMP
+         ===================================================== -->
+    <ng-container *ngIf="isShrimp">
+
+      <!-- SHRIMP FLAVOR DEFECTS (Defectos de Sabor) -->
+      <div class="main-inside-top content-element">
+        <div class="d-flex justify-content-between main-inside-top--row1">
+          <div class="title-page content-element--title" i18n="@@settingsPage.title.shrimpFlavorDefects">Defectos de sabor (Camarón)</div>
+          <button class="btn btn-solid round btn-table-new content-element--btn" (click)="newType('shrimp-flavor-defects')" i18n="@@settingsPage.button.newShrimpFlavorDefect">
+            <span>+ Agregar</span>
+          </button>
+        </div>
+        <div class="d-flex align-items-start main-inside-top--row2">
+          <div>
+            <div class="sub-title-page content-element--subtitle" i18n="@@settingsPage.subTitle.listOfShrimpFlavorDefects">Lista de defectos de sabor</div>
+            <div class="counting-page content-element--counting" i18n="@@settingsPage.subTitle.showingShrimpFlavorDefects">Mostrando {{showedShrimpFlavorDefects}}/{{allShrimpFlavorDefects}}</div>
+          </div>
+        </div>
+      </div>
+      <app-type-list
+        [parentReload]="parentReloadShrimpFlavorDefects"
+        type='shrimp-flavor-defects'
+        (countAll)="onCountAll($event, 'shrimp-flavor-defects')"
+        (showing)="onShow($event, 'shrimp-flavor-defects')">
+      </app-type-list>
+
+      <!-- SHRIMP SIZE GRADES (Tallas de Camarón) -->
+      <div class="main-inside-top content-element">
+        <div class="d-flex justify-content-between main-inside-top--row1">
+          <div class="title-page content-element--title" i18n="@@settingsPage.title.shrimpSizeGrades">Tallas de camarón</div>
+          <button class="btn btn-solid round btn-table-new content-element--btn" (click)="newType('shrimp-size-grades')" i18n="@@settingsPage.button.newShrimpSizeGrade">
+            <span>+ Agregar</span>
+          </button>
+        </div>
+        <div class="d-flex align-items-start main-inside-top--row2">
+          <div>
+            <div class="sub-title-page content-element--subtitle" i18n="@@settingsPage.subTitle.listOfShrimpSizeGrades">Lista de tallas</div>
+            <div class="counting-page content-element--counting" i18n="@@settingsPage.subTitle.showingShrimpSizeGrades">Mostrando {{showedShrimpSizeGrades}}/{{allShrimpSizeGrades}}</div>
+          </div>
+        </div>
+      </div>
+      <app-type-list
+        [parentReload]="parentReloadShrimpSizeGrades"
+        type='shrimp-size-grades'
+        (countAll)="onCountAll($event, 'shrimp-size-grades')"
+        (showing)="onShow($event, 'shrimp-size-grades')">
+      </app-type-list>
+
+      <!-- SHRIMP COLOR GRADES (Grados de Color) -->
+      <div class="main-inside-top content-element">
+        <div class="d-flex justify-content-between main-inside-top--row1">
+          <div class="title-page content-element--title" i18n="@@settingsPage.title.shrimpColorGrades">Grados de color (Camarón)</div>
+          <button class="btn btn-solid round btn-table-new content-element--btn" (click)="newType('shrimp-color-grades')" i18n="@@settingsPage.button.newShrimpColorGrade">
+            <span>+ Agregar</span>
+          </button>
+        </div>
+        <div class="d-flex align-items-start main-inside-top--row2">
+          <div>
+            <div class="sub-title-page content-element--subtitle" i18n="@@settingsPage.subTitle.listOfShrimpColorGrades">Lista de grados de color</div>
+            <div class="counting-page content-element--counting" i18n="@@settingsPage.subTitle.showingShrimpColorGrades">Mostrando {{showedShrimpColorGrades}}/{{allShrimpColorGrades}}</div>
+          </div>
+        </div>
+      </div>
+      <app-type-list
+        [parentReload]="parentReloadShrimpColorGrades"
+        type='shrimp-color-grades'
+        (countAll)="onCountAll($event, 'shrimp-color-grades')"
+        (showing)="onShow($event, 'shrimp-color-grades')">
+      </app-type-list>
+
+      <!-- SHRIMP PROCESS TYPES (Tipos de Proceso) -->
+      <div class="main-inside-top content-element">
+        <div class="d-flex justify-content-between main-inside-top--row1">
+          <div class="title-page content-element--title" i18n="@@settingsPage.title.shrimpProcessTypes">Tipos de proceso (Camarón)</div>
+          <button class="btn btn-solid round btn-table-new content-element--btn" (click)="newType('shrimp-process-types')" i18n="@@settingsPage.button.newShrimpProcessType">
+            <span>+ Agregar</span>
+          </button>
+        </div>
+        <div class="d-flex align-items-start main-inside-top--row2">
+          <div>
+            <div class="sub-title-page content-element--subtitle" i18n="@@settingsPage.subTitle.listOfShrimpProcessTypes">Lista de tipos de proceso</div>
+            <div class="counting-page content-element--counting" i18n="@@settingsPage.subTitle.showingShrimpProcessTypes">Mostrando {{showedShrimpProcessTypes}}/{{allShrimpProcessTypes}}</div>
+          </div>
+        </div>
+      </div>
+      <app-type-list
+        [parentReload]="parentReloadShrimpProcessTypes"
+        type='shrimp-process-types'
+        (countAll)="onCountAll($event, 'shrimp-process-types')"
+        (showing)="onShow($event, 'shrimp-process-types')">
+      </app-type-list>
+
+      <!-- SHRIMP PRESENTATION TYPES (Tipos de Presentación) -->
+      <div class="main-inside-top content-element">
+        <div class="d-flex justify-content-between main-inside-top--row1">
+          <div class="title-page content-element--title" i18n="@@settingsPage.title.shrimpPresentationTypes">Tipos de presentación (Camarón)</div>
+          <button class="btn btn-solid round btn-table-new content-element--btn" (click)="newType('shrimp-presentation-types')" i18n="@@settingsPage.button.newShrimpPresentationType">
+            <span>+ Agregar</span>
+          </button>
+        </div>
+        <div class="d-flex align-items-start main-inside-top--row2">
+          <div>
+            <div class="sub-title-page content-element--subtitle" i18n="@@settingsPage.subTitle.listOfShrimpPresentationTypes">Lista de tipos de presentación</div>
+            <div class="counting-page content-element--counting" i18n="@@settingsPage.subTitle.showingShrimpPresentationTypes">Mostrando {{showedShrimpPresentationTypes}}/{{allShrimpPresentationTypes}}</div>
+          </div>
+        </div>
+      </div>
+      <app-type-list
+        [parentReload]="parentReloadShrimpPresentationTypes"
+        type='shrimp-presentation-types'
+        (countAll)="onCountAll($event, 'shrimp-presentation-types')"
+        (showing)="onShow($event, 'shrimp-presentation-types')">
+      </app-type-list>
+
+      <!-- SHRIMP QUALITY GRADES (Grados de Calidad) -->
+      <div class="main-inside-top content-element">
+        <div class="d-flex justify-content-between main-inside-top--row1">
+          <div class="title-page content-element--title" i18n="@@settingsPage.title.shrimpQualityGrades">Grados de calidad (Camarón)</div>
+          <button class="btn btn-solid round btn-table-new content-element--btn" (click)="newType('shrimp-quality-grades')" i18n="@@settingsPage.button.newShrimpQualityGrade">
+            <span>+ Agregar</span>
+          </button>
+        </div>
+        <div class="d-flex align-items-start main-inside-top--row2">
+          <div>
+            <div class="sub-title-page content-element--subtitle" i18n="@@settingsPage.subTitle.listOfShrimpQualityGrades">Lista de grados de calidad</div>
+            <div class="counting-page content-element--counting" i18n="@@settingsPage.subTitle.showingShrimpQualityGrades">Mostrando {{showedShrimpQualityGrades}}/{{allShrimpQualityGrades}}</div>
+          </div>
+        </div>
+      </div>
+      <app-type-list
+        [parentReload]="parentReloadShrimpQualityGrades"
+        type='shrimp-quality-grades'
+        (countAll)="onCountAll($event, 'shrimp-quality-grades')"
+        (showing)="onShow($event, 'shrimp-quality-grades')">
+      </app-type-list>
+
+      <!-- SHRIMP TREATMENT TYPES (Tipos de Tratamiento) -->
+      <div class="main-inside-top content-element">
+        <div class="d-flex justify-content-between main-inside-top--row1">
+          <div class="title-page content-element--title" i18n="@@settingsPage.title.shrimpTreatmentTypes">Tipos de tratamiento (Camarón)</div>
+          <button class="btn btn-solid round btn-table-new content-element--btn" (click)="newType('shrimp-treatment-types')" i18n="@@settingsPage.button.newShrimpTreatmentType">
+            <span>+ Agregar</span>
+          </button>
+        </div>
+        <div class="d-flex align-items-start main-inside-top--row2">
+          <div>
+            <div class="sub-title-page content-element--subtitle" i18n="@@settingsPage.subTitle.listOfShrimpTreatmentTypes">Lista de tipos de tratamiento</div>
+            <div class="counting-page content-element--counting" i18n="@@settingsPage.subTitle.showingShrimpTreatmentTypes">Mostrando {{showedShrimpTreatmentTypes}}/{{allShrimpTreatmentTypes}}</div>
+          </div>
+        </div>
+      </div>
+      <app-type-list
+        [parentReload]="parentReloadShrimpTreatmentTypes"
+        type='shrimp-treatment-types'
+        (countAll)="onCountAll($event, 'shrimp-treatment-types')"
+        (showing)="onShow($event, 'shrimp-treatment-types')">
+      </app-type-list>
+
+    </ng-container>
+
   </div>
 </app-authorised-layout>

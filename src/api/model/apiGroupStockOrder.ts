@@ -58,6 +58,10 @@ export interface ApiGroupStockOrder {
      */
     facilityName?: string;
     /**
+     * Farmer name
+     */
+    farmerName?: string;
+    /**
      * Semi product name
      */
     semiProductName?: string;
@@ -144,6 +148,10 @@ export namespace ApiGroupStockOrder {
          * Facility (area) name
          */
         facilityName = 'facilityName',
+        /**
+         * Farmer name
+         */
+        farmerName = 'farmerName',
         /**
          * Semi product name
          */
@@ -300,6 +308,17 @@ export namespace ApiGroupStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'farmerName',
+                    classname: 'ApiGroupStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'semiProductName',
                     classname: 'ApiGroupStockOrder',
                     dataType: 'string',
@@ -446,6 +465,8 @@ export namespace ApiGroupStockOrder {
                 ],
                 facilityName: [
                 ],
+                farmerName: [
+                ],
                 semiProductName: [
                 ],
                 finalProductName: [
@@ -499,6 +520,9 @@ export namespace ApiGroupStockOrder {
   //                   validators: []
   //               },
   //               facilityName: {
+  //                   validators: []
+  //               },
+  //               farmerName: {
   //                   validators: []
   //               },
   //               semiProductName: {

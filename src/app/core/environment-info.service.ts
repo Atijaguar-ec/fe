@@ -19,7 +19,22 @@ export class EnvironmentInfoService {
   }
 
   get companyName(): string {
-    return this.env.COMPANY_NAME || 'INATrace';
+    return this.env.COMPANY_NAME || 'ECUADOR';
+  }
+
+  get companyLogo(): string {
+    if (this.env.COMPANY_LOGO) {
+      return this.env.COMPANY_LOGO;
+    }
+
+    const rawName = this.env.COMPANY_NAME || this.companyName || 'default';
+    const slug = (rawName || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9\-]/g, '');
+
+    return `/assets/landing-page/${slug}-logo.jpg`;
   }
 
   get primaryProductType(): string {

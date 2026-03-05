@@ -17,4 +17,12 @@ export class CookieBannerComponent implements OnInit {
     ngOnInit() {
     }
 
+    acceptCookies(event: Event): void {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        this.onAccept.emit(true);
+    }
+
 }

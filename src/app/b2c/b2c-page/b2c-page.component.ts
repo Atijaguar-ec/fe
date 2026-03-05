@@ -2,17 +2,10 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { take } from 'rxjs/operators';
 import { PublicControllerService } from '../../../api/api/publicController.service';
 import { ActivatedRoute } from '@angular/router';
-import { B2cJourneyComponent } from './b2c-journey/b2c-journey.component';
 import { B2CTab } from '../b2c-tabs/b2c-tabs.component';
-import { B2cFairPricesComponent } from './b2c-fair-prices/b2c-fair-prices.component';
-import { B2cProducersComponent } from './b2c-producers/b2c-producers.component';
-import { B2cQualityComponent } from './b2c-quality/b2c-quality.component';
-import { B2cFeedbackComponent } from './b2c-feedback/b2c-feedback.component';
 import { ApiBusinessToCustomerSettings } from '../../../api/model/apiBusinessToCustomerSettings';
 import { ApiProductLabelFieldValue } from '../../../api/model/apiProductLabelFieldValue';
 import { ViewportScroller } from '@angular/common';
-import { B2cTermsComponent } from './b2c-terms/b2c-terms.component';
-import { B2cPrivacyComponent } from './b2c-privacy/b2c-privacy.component';
 import { environment } from 'src/environments/environment';
 import { ApiProductLabelValuesExtended } from '../../../api/model/apiProductLabelValuesExtended';
 import { ApiQRTagPublic } from '../../../api/model/apiQRTagPublic';
@@ -28,37 +21,29 @@ export class B2cPageComponent implements OnInit {
   uuid = this.route.snapshot.params.uuid;
   qrTag = this.route.snapshot.params.qrTag;
 
-  tab: B2CTab;
+  tab: B2CTab = B2CTab.NONE;
 
   constructor(
       private route: ActivatedRoute,
       private publicController: PublicControllerService,
       private scroll: ViewportScroller
   ) {
-    route.url.subscribe({
+    this.route.url.subscribe({
       next: () => {
-        switch (route.snapshot.firstChild.component) {
-          case B2cJourneyComponent:
-            this.tab = B2CTab.JOURNEY;
+        const childPath = this.route.snapshot.firstChild?.routeConfig?.path;
+        switch (childPath) {
+          case B2CTab.JOURNEY:
+          case B2CTab.FAIR_PRICES:
+          case B2CTab.PRODUCERS:
+          case B2CTab.QUALITY:
+          case B2CTab.FEEDBACK:
+            this.tab = childPath as B2CTab;
             break;
-          case B2cFairPricesComponent:
-            this.tab = B2CTab.FAIR_PRICES;
-            break;
-          case B2cProducersComponent:
-            this.tab = B2CTab.PRODUCERS;
-            break;
-          case B2cQualityComponent:
-            this.tab = B2CTab.QUALITY;
-            break;
-          case B2cFeedbackComponent:
-            this.tab = B2CTab.FEEDBACK;
-            break;
-          case B2cTermsComponent:
-          case B2cPrivacyComponent:
+          case 'terms-of-use':
+          case 'privacy-policy':
+          default:
             this.tab = B2CTab.NONE;
             break;
-          default:
-            this.tab = undefined;
         }
       }
     });

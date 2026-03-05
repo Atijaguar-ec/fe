@@ -29,8 +29,9 @@ export class CompanyDetailProcessingActionsListComponent implements OnInit {
   pagingParams$ = new BehaviorSubject({});
   sortingParams$ = new BehaviorSubject({ sortBy: 'name', sort: 'ASC' });
   paging$ = new BehaviorSubject<number>(1);
-  page = 0;
+  page = 1;
   pageSize = 10;
+  fetchLimit = 1000;
   showed = 0;
   all = 0;
 
@@ -77,30 +78,50 @@ export class CompanyDetailProcessingActionsListComponent implements OnInit {
   processingActions$ = combineLatest(this.reloadPingList$, this.paging$, this.searchParams$, this.sortingParams$,
       (ping: boolean, page: number, search: any, sorting: any) => {
         return {
-          ...search,
-          ...sorting,
-          offset: (page - 1) * this.pageSize,
-          limit: this.pageSize
+          page,
+          params: {
+            ...search,
+            ...sorting,
+            offset: 0,
+            limit: this.fetchLimit
+          }
         };
       }).pipe(
       tap(() => this.globalEventsManager.showLoading(true)),
-      switchMap(params => {
+      switchMap(({ page, params }) => {
         return this.processingActionControllerService.listProcessingActionsByCompanyByMap({
           ...params,
           id: this.organizationId
-        });
+        }).pipe(map(resp => ({ resp, page })));
       }),
-      map((resp: ApiPaginatedResponseApiProcessingAction) => {
+      map(({ resp, page }: { resp: ApiPaginatedResponseApiProcessingAction; page: number }) => {
         if (resp) {
+          // Filtrar processing actions que solo tienen facilities de inspección en campo
+          // Estas áreas no realizan procesos, solo inspección sensorial
+          const allItems = (resp.data && resp.data.items) ? resp.data.items : [];
+          const filteredItems = allItems.filter(pa => {
+            // Si no tiene facilities, lo mostramos
+            if (!pa.supportedFacilities || pa.supportedFacilities.length === 0) {
+              return true;
+            }
+            // Excluir si TODOS los facilities son de inspección en campo
+            const allFieldInspection = pa.supportedFacilities.every(f => f.isFieldInspection === true);
+            return !allFieldInspection;
+          });
 
-          if (resp.data && resp.data.count && (this.pageSize - resp.data.count > 0)) {
-            this.showed = resp.data.count;
-          } else {
-            const temp = resp.data.count - (this.pageSize * (this.page - 1));
-            this.showed = temp >= this.pageSize ? this.pageSize : temp;
+          const totalCount = filteredItems.length;
+          const start = (page - 1) * this.pageSize;
+          const pageItems = filteredItems.slice(start, start + this.pageSize);
+
+          if (resp.data) {
+            resp.data.items = pageItems;
+            resp.data.count = totalCount;
           }
 
-          this.all = resp.data.count;
+          this.page = page;
+          this.showed = pageItems.length;
+          this.all = totalCount;
+
           this.showing.emit(this.showed);
           this.countAll.emit(this.all);
 
@@ -157,7 +178,7 @@ export class CompanyDetailProcessingActionsListComponent implements OnInit {
   }
 
   showPagination() {
-    return ((this.showed - this.pageSize) === 0 && this.all > this.pageSize) || this.page > 1;
+    return this.all > this.pageSize || this.page > 1;
   }
 
   onPageChange(event) {

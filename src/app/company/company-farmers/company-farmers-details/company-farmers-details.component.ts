@@ -81,6 +81,11 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
     DIVERSE: $localize`:@@collectorDetail.gender.diverse:Diverse`
   });
 
+  personTypeCodebook = EnumSifrant.fromObject({
+    NATURAL: $localize`:@@collectorDetail.personType.natural:Persona natural`,
+    LEGAL: $localize`:@@collectorDetail.personType.legal:Persona jurídica`
+  });
+
   readonly farmerType = UserCustomerTypeEnum.FARMER;
 
   // payments table parameters
@@ -439,6 +444,7 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
 
     this.setupMaxProductionQuantityListener();
     this.setupOrganicFieldDependencies();
+    this.setupPersonTypeDependencies();
   }
 
   editFarmer() {
@@ -454,6 +460,7 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
     this.prefillFarmPlantInformation();
     this.setupMaxProductionQuantityListener();
     this.setupOrganicFieldDependencies();
+    this.setupPersonTypeDependencies();
   }
 
   /**
@@ -475,6 +482,111 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
         })
       );
     }
+  }
+
+  private setupPersonTypeDependencies(): void {
+    if (!this.farmerForm) {
+      return;
+    }
+
+    const personTypeControl = this.farmerForm.get('personType') as FormControl;
+    const companyNameControl = this.farmerForm.get('companyName') as FormControl;
+    const legalRepresentativeControl = this.farmerForm.get('legalRepresentative') as FormControl;
+    const nameControl = this.farmerForm.get('name') as FormControl;
+    const surnameControl = this.farmerForm.get('surname') as FormControl;
+    const genderControl = this.farmerForm.get('gender') as FormControl;
+
+    if (!personTypeControl) {
+      return;
+    }
+
+    const updateValidators = (value: any) => {
+      const isLegal = value === 'LEGAL';
+
+      // Company name & representative are required only for legal entities
+      if (companyNameControl) {
+        companyNameControl.clearValidators();
+        if (isLegal) {
+          companyNameControl.setValidators([Validators.required]);
+        }
+        if (!isLegal) {
+          companyNameControl.reset(null, { emitEvent: false });
+        }
+        companyNameControl.updateValueAndValidity({ emitEvent: false });
+      }
+
+      if (legalRepresentativeControl) {
+        legalRepresentativeControl.clearValidators();
+        if (isLegal) {
+          legalRepresentativeControl.setValidators([Validators.required]);
+        }
+        if (!isLegal) {
+          legalRepresentativeControl.reset(null, { emitEvent: false });
+        }
+        legalRepresentativeControl.updateValueAndValidity({ emitEvent: false });
+      }
+
+      // Manage name / surname / gender when person is legal entity
+      if (nameControl || surnameControl || genderControl) {
+        if (isLegal) {
+          if (nameControl) {
+            // Mantener opcional, pero asegurarse de que tenga un valor si el backend lo requiere
+            nameControl.clearValidators();
+            if (!nameControl.value && companyNameControl && companyNameControl.value) {
+              nameControl.setValue(companyNameControl.value, { emitEvent: false });
+            }
+            nameControl.updateValueAndValidity({ emitEvent: false });
+          }
+
+          if (surnameControl) {
+            // Quitar requerido y poner un valor neutro
+            surnameControl.clearValidators();
+            if (!surnameControl.value) {
+              surnameControl.setValue('N/A', { emitEvent: false });
+            }
+            surnameControl.updateValueAndValidity({ emitEvent: false });
+          }
+
+          if (genderControl) {
+            // Quitar requerido y fijar género N_A para personas jurídicas
+            genderControl.clearValidators();
+            if (!genderControl.value) {
+              genderControl.setValue('N_A', { emitEvent: false });
+            }
+            genderControl.updateValueAndValidity({ emitEvent: false });
+          }
+        } else {
+          // Restaurar validaciones originales para persona natural
+          if (surnameControl) {
+            surnameControl.setValidators([Validators.required]);
+            surnameControl.updateValueAndValidity({ emitEvent: false });
+          }
+
+          if (genderControl) {
+            genderControl.setValidators([Validators.required]);
+            genderControl.updateValueAndValidity({ emitEvent: false });
+          }
+
+          if (nameControl) {
+            // Nombre siempre fue opcional: sin Validators.required
+            nameControl.clearValidators();
+            nameControl.updateValueAndValidity({ emitEvent: false });
+          }
+        }
+      }
+    };
+
+    if (!personTypeControl.value) {
+      personTypeControl.setValue('NATURAL', { emitEvent: false });
+    }
+
+    updateValidators(personTypeControl.value);
+
+    this.subscriptions.push(
+      personTypeControl.valueChanges.subscribe(value => {
+        updateValidators(value);
+      })
+    );
   }
 
   private setupOrganicFieldDependencies(): void {
@@ -572,6 +684,7 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
     farmer.farm = defaultEmptyObject(ApiFarmInformation.formMetadata()) as ApiFarmInformation;
     farmer.location = defaultEmptyObject(ApiLocation.formMetadata()) as ApiLocation;
     farmer.location.address = defaultEmptyObject(ApiAddress.formMetadata()) as ApiAddress;
+    (farmer as any).personType = 'NATURAL';
 
     return farmer;
   }

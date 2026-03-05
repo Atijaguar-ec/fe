@@ -8,7 +8,9 @@ import {
   ApiMeasureUnitTypeValidationScheme,
   ApiProcessingEvidenceTypeValidationScheme,
   ApiSemiProductValidationScheme,
-  ApiProcessingEvidenceFieldValidationScheme, ApiProductTypeValidationScheme, ApiCertificationTypeValidationScheme
+  ApiProcessingEvidenceFieldValidationScheme,
+  ApiProductTypeValidationScheme,
+  ApiCertificationTypeValidationScheme
 } from './validation';
 import _ from 'lodash-es';
 import { EnumSifrant } from '../../shared-services/enum-sifrant';
@@ -29,6 +31,19 @@ import { ProductTypeControllerService } from '../../../api/api/productTypeContro
 import { ApiProductType } from '../../../api/model/apiProductType';
 import { CertificationTypeControllerService } from '../../../api/api/certificationTypeController.service';
 import { ApiCertificationType } from '../../../api/model/apiCertificationType';
+import { ApiShrimpFlavorDefect } from '../../../api/model/apiShrimpFlavorDefect';
+import { ApiShrimpColorGrade } from '../../../api/model/apiShrimpColorGrade';
+import { ApiShrimpSizeGrade } from '../../../api/model/apiShrimpSizeGrade';
+import { ApiShrimpProcessType } from '../../../api/model/apiShrimpProcessType';
+import { ShrimpFlavorDefectControllerService } from '../../../api/api/shrimpFlavorDefectController.service';
+import { ShrimpColorGradeControllerService } from '../../../api/api/shrimpColorGradeController.service';
+import { ShrimpSizeGradeControllerService } from '../../../api/api/shrimpSizeGradeController.service';
+import { ShrimpProcessTypeControllerService } from '../../../api/api/shrimpProcessTypeController.service';
+import { ShrimpPresentationTypeControllerService } from '../../../api/api/shrimpPresentationTypeController.service';
+// TODO: Uncomment after regenerating API TypeScript
+// import { ShrimpQualityGradeControllerService } from '../../../api/api/shrimpQualityGradeController.service';
+// import { ShrimpTreatmentTypeControllerService } from '../../../api/api/shrimpTreatmentTypeController.service';
+import { ApiShrimpPresentationType } from '../../../api/model/apiShrimpPresentationType';
 import { AuthService } from '../../core/auth.service';
 
 @Component({
@@ -60,6 +75,8 @@ export class TypeDetailModalComponent implements OnInit {
   codebookProcessingEvidenceFieldType = EnumSifrant.fromObject(this.processingEvidenceFieldType);
   codebookCertificationCategoryType = EnumSifrant.fromObject(this.certificationCategoryType);
   codebookCertificationStatusType = EnumSifrant.fromObject(this.certificationStatusType);
+  codebookShrimpSizeType = EnumSifrant.fromObject(this.shrimpSizeType);
+  codebookShrimpPresentationCategory = EnumSifrant.fromObject(this.shrimpPresentationCategory);
 
   // Allow English and Spanish for facility types and translations
   languages = [LanguageEnum.EN, LanguageEnum.ES];
@@ -76,6 +93,14 @@ export class TypeDetailModalComponent implements OnInit {
     private semiProductService: SemiProductControllerService,
     private productTypeService: ProductTypeControllerService,
     private certificationTypeService: CertificationTypeControllerService,
+    private shrimpFlavorDefectService: ShrimpFlavorDefectControllerService,
+    private shrimpColorGradeService: ShrimpColorGradeControllerService,
+    private shrimpSizeGradeService: ShrimpSizeGradeControllerService,
+    private shrimpProcessTypeService: ShrimpProcessTypeControllerService,
+    private shrimpPresentationTypeService: ShrimpPresentationTypeControllerService,
+    // TODO: Uncomment after regenerating API TypeScript
+    // private shrimpQualityGradeService: ShrimpQualityGradeControllerService,
+    // private shrimpTreatmentTypeService: ShrimpTreatmentTypeControllerService,
     public activeMeasureUnitTypeService: ActiveMeasureUnitTypeService,
     private authService: AuthService
   ) { }
@@ -98,6 +123,21 @@ export class TypeDetailModalComponent implements OnInit {
     const obj = {};
     obj['ACTIVE'] = $localize`:@@certificationType.status.active:Active`;
     obj['INACTIVE'] = $localize`:@@certificationType.status.inactive:Inactive`;
+    return obj;
+  }
+
+  get shrimpSizeType() {
+    const obj = {};
+    obj['WHOLE'] = $localize`:@@shrimpSizeGrade.sizeType.whole:Entero`;
+    obj['TAIL'] = $localize`:@@shrimpSizeGrade.sizeType.tail:Cola`;
+    return obj;
+  }
+
+  get shrimpPresentationCategory() {
+    const obj = {};
+    obj['SHELL_ON'] = $localize`:@@shrimpPresentationType.category.shellOn:Shell-On (Cola)`;
+    obj['BROKEN'] = $localize`:@@shrimpPresentationType.category.broken:Quebrado`;
+    obj['OTHER'] = $localize`:@@shrimpPresentationType.category.other:Otros`;
     return obj;
   }
 
@@ -184,9 +224,136 @@ export class TypeDetailModalComponent implements OnInit {
       this.updateCertificationTypeTranslations();
     }
 
+    if (this.type === 'shrimp-flavor-defects') {
+      if (!this.update) {
+        this.form = generateFormFromMetadata(
+          ApiShrimpFlavorDefect.formMetadata(),
+          defaultEmptyObject(ApiShrimpFlavorDefect.formMetadata()) as ApiShrimpFlavorDefect
+        );
+        this.form.get('status')?.setValue(ApiShrimpFlavorDefect.StatusEnum.ACTIVE);
+      } else {
+        this.form = generateFormFromMetadata(
+          ApiShrimpFlavorDefect.formMetadata(), this.typeElement as ApiShrimpFlavorDefect
+        );
+      }
+      this.updateShrimpCatalogTranslations();
+    }
+
+    if (this.type === 'shrimp-color-grades') {
+      if (!this.update) {
+        this.form = generateFormFromMetadata(
+          ApiShrimpColorGrade.formMetadata(),
+          defaultEmptyObject(ApiShrimpColorGrade.formMetadata()) as ApiShrimpColorGrade
+        );
+        this.form.get('status')?.setValue(ApiShrimpColorGrade.StatusEnum.ACTIVE);
+      } else {
+        this.form = generateFormFromMetadata(
+          ApiShrimpColorGrade.formMetadata(), this.typeElement as ApiShrimpColorGrade
+        );
+      }
+    }
+
+    if (this.type === 'shrimp-size-grades') {
+      if (!this.update) {
+        this.form = generateFormFromMetadata(
+          ApiShrimpSizeGrade.formMetadata(),
+          defaultEmptyObject(ApiShrimpSizeGrade.formMetadata()) as ApiShrimpSizeGrade
+        );
+        this.form.get('status')?.setValue(ApiShrimpSizeGrade.StatusEnum.ACTIVE);
+      } else {
+        this.form = generateFormFromMetadata(
+          ApiShrimpSizeGrade.formMetadata(), this.typeElement as ApiShrimpSizeGrade
+        );
+      }
+    }
+
+    if (this.type === 'shrimp-process-types') {
+      if (!this.update) {
+        this.form = generateFormFromMetadata(
+          ApiShrimpProcessType.formMetadata(),
+          defaultEmptyObject(ApiShrimpProcessType.formMetadata()) as ApiShrimpProcessType
+        );
+        this.form.get('status')?.setValue(ApiShrimpProcessType.StatusEnum.ACTIVE);
+      } else {
+        this.form = generateFormFromMetadata(
+          ApiShrimpProcessType.formMetadata(), this.typeElement as ApiShrimpProcessType
+        );
+      }
+      this.updateShrimpCatalogTranslations();
+    }
+
+    if (this.type === 'shrimp-presentation-types') {
+      if (!this.update) {
+        this.form = generateFormFromMetadata(
+          ApiShrimpPresentationType.formMetadata(),
+          defaultEmptyObject(ApiShrimpPresentationType.formMetadata()) as ApiShrimpPresentationType
+        );
+        this.form.get('status')?.setValue(ApiShrimpPresentationType.StatusEnum.ACTIVE);
+        this.form.get('category')?.setValue(ApiShrimpPresentationType.CategoryEnum.SHELLON);
+      } else {
+        this.form = generateFormFromMetadata(
+          ApiShrimpPresentationType.formMetadata(), this.typeElement as ApiShrimpPresentationType
+        );
+      }
+      this.updateShrimpPresentationTypeTranslations();
+    }
+
+    if (this.type === 'shrimp-quality-grades') {
+      this.initSimpleShrimpCatalog('shrimp-quality-grades');
+    }
+
+    if (this.type === 'shrimp-treatment-types') {
+      this.initSimpleShrimpCatalog('shrimp-treatment-types');
+    }
+
     // If in edit mode and logged in as a Regional admin, disable the form (Regional admin cannot edit, only create)
     if (this.update && this.isRegionalAdmin) {
       this.form.disable();
+    }
+  }
+
+  initSimpleShrimpCatalog(catalogType: string) {
+    const defaultObj = {
+      code: '',
+      label: '',
+      description: '',
+      displayOrder: 1,
+      status: 'ACTIVE',
+      translations: []
+    };
+    if (!this.update) {
+      this.form = new FormGroup({
+        code: new FormControl(''),
+        label: new FormControl(''),
+        description: new FormControl(''),
+        displayOrder: new FormControl(1),
+        status: new FormControl('ACTIVE'),
+        translations: new FormArray([])
+      });
+    } else {
+      this.form = new FormGroup({
+        id: new FormControl(this.typeElement?.id),
+        code: new FormControl(this.typeElement?.code),
+        label: new FormControl(this.typeElement?.label),
+        description: new FormControl(this.typeElement?.description),
+        displayOrder: new FormControl(this.typeElement?.displayOrder),
+        status: new FormControl(this.typeElement?.status),
+        translations: new FormArray([])
+      });
+    }
+    this.updateSimpleShrimpCatalogTranslations();
+  }
+
+  updateSimpleShrimpCatalogTranslations() {
+    const translations = this.form.get('translations') as FormArray;
+    translations.clear();
+    for (const lang of this.languages) {
+      const existingTrans = this.typeElement?.translations?.find((t: any) => t.language === lang);
+      translations.push(new FormGroup({
+        language: new FormControl(lang),
+        label: new FormControl(existingTrans?.label || ''),
+        description: new FormControl(existingTrans?.description || '')
+      }));
     }
   }
 
@@ -260,6 +427,34 @@ export class TypeDetailModalComponent implements OnInit {
     if (this.type === 'certification-types') {
       res = await this.certificationTypeService.createOrUpdateCertificationType(data).pipe(take(1)).toPromise();
     }
+
+    if (this.type === 'shrimp-flavor-defects') {
+      res = await this.shrimpFlavorDefectService.createOrUpdateShrimpFlavorDefect(data).pipe(take(1)).toPromise();
+    }
+
+    if (this.type === 'shrimp-color-grades') {
+      res = await this.shrimpColorGradeService.createOrUpdateShrimpColorGrade(data).pipe(take(1)).toPromise();
+    }
+
+    if (this.type === 'shrimp-size-grades') {
+      res = await this.shrimpSizeGradeService.createOrUpdateShrimpSizeGrade(data).pipe(take(1)).toPromise();
+    }
+
+    if (this.type === 'shrimp-process-types') {
+      res = await this.shrimpProcessTypeService.createOrUpdateShrimpProcessType(data).pipe(take(1)).toPromise();
+    }
+
+    if (this.type === 'shrimp-presentation-types') {
+      res = await this.shrimpPresentationTypeService.createOrUpdateShrimpPresentationType(data).pipe(take(1)).toPromise();
+    }
+
+    // TODO: Uncomment after regenerating API TypeScript
+    // if (this.type === 'shrimp-quality-grades') {
+    //   res = await this.shrimpQualityGradeService.createOrUpdateShrimpQualityGrade(data).pipe(take(1)).toPromise();
+    // }
+    // if (this.type === 'shrimp-treatment-types') {
+    //   res = await this.shrimpTreatmentTypeService.createOrUpdateShrimpTreatmentType(data).pipe(take(1)).toPromise();
+    // }
 
     if (res && res.status === 'OK') {
       if (this.saveCallback) { this.saveCallback(); }
@@ -365,6 +560,61 @@ export class TypeDetailModalComponent implements OnInit {
       const translation = translations.find(t => t.language === lang);
       (this.form.get('translations') as FormArray).push(new FormGroup({
         name: new FormControl(translation ? translation.name : ''),
+        language: new FormControl(lang)
+      }));
+    }
+  }
+
+  updateShrimpCatalogTranslations() {
+    if (!this.form.contains('translations')) {
+      this.form.addControl('translations', new FormArray([]));
+    }
+
+    const translations = this.form.get('translations').value || [];
+    this.form.removeControl('translations');
+    this.form.addControl('translations', new FormArray([]));
+
+    for (const lang of this.languages) {
+      const translation = translations.find(t => t.language === lang);
+      (this.form.get('translations') as FormArray).push(new FormGroup({
+        name: new FormControl(translation ? translation.name : ''),
+        language: new FormControl(lang)
+      }));
+    }
+  }
+
+  isShrimpCatalogType(): boolean {
+    return this.type === 'shrimp-flavor-defects' ||
+           this.type === 'shrimp-color-grades' ||
+           this.type === 'shrimp-size-grades' ||
+           this.type === 'shrimp-process-types' ||
+           this.type === 'shrimp-presentation-types' ||
+           this.type === 'shrimp-quality-grades' ||
+           this.type === 'shrimp-treatment-types';
+  }
+
+  shrimpCatalogHasTranslations(): boolean {
+    return this.type === 'shrimp-flavor-defects' || 
+           this.type === 'shrimp-process-types' || 
+           this.type === 'shrimp-presentation-types' ||
+           this.type === 'shrimp-quality-grades' ||
+           this.type === 'shrimp-treatment-types';
+  }
+
+  updateShrimpPresentationTypeTranslations() {
+    if (!this.form.contains('translations')) {
+      this.form.addControl('translations', new FormArray([]));
+    }
+
+    const translations = this.form.get('translations').value || [];
+    this.form.removeControl('translations');
+    this.form.addControl('translations', new FormArray([]));
+
+    for (const lang of this.languages) {
+      const translation = translations.find(t => t.language === lang);
+      (this.form.get('translations') as FormArray).push(new FormGroup({
+        label: new FormControl(translation ? translation.label : ''),
+        description: new FormControl(translation ? translation.description : ''),
         language: new FormControl(lang)
       }));
     }

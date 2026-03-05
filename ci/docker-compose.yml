@@ -8,6 +8,11 @@ services:
       - NODE_ENV=${NODE_ENV:-production}
       - PRIMARY_PRODUCT_TYPE=${PRIMARY_PRODUCT_TYPE:-CACAO}
       - COMPANY_THEME=${COMPANY_THEME:-cacao}
+      - COMPANY_NAME=${COMPANY_NAME:-Fortaleza del Valle}
+      - USE_MAPS_GOOGLE=${USE_MAPS_GOOGLE:-false}
+      - MAPTILER_API_KEY=${MAPTILER_API_KEY:-}
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-}
+      - MAPBOX_ACCESS_TOKEN=${MAPBOX_ACCESS_TOKEN:-}
     networks:
       - frontend
     ports:

@@ -109,26 +109,41 @@
 
             <app-closable
               [nonClosable]="true">
-              <google-map
-                *ngIf="isGoogleMapsLoaded"
-                width="100%"
-                height="380px"
-                [zoom]="defaultZoom"
-                [center]="defaultCenter"
-                [options]="{disableDoubleClickZoom: true}"
-                (mapDblclick)="dblClick($event)">
-                <map-marker
-                  #gMarker="mapMarker"
-                  *ngFor="let marker of markers; index as i"
-                  [position]="marker.position"
-                  [label]="marker.label"
-                  [options]="{draggable:true}"
-                  (mapRightclick)="removeOriginLocation(i)"
-                  (mapDragend)="dragend($event, i)"
-                  (mapClick)="openInfoWindow(gMarker, marker)">
-                </map-marker>
-                <map-info-window>{{gInfoWindowText}}</map-info-window>
-              </google-map>
+              <ng-container *ngIf="useMapsGoogle; else maplibreMap">
+                <google-map
+                  *ngIf="isGoogleMapsLoaded"
+                  width="100%"
+                  height="380px"
+                  [zoom]="defaultZoom"
+                  [center]="defaultCenter"
+                  [options]="{disableDoubleClickZoom: true}"
+                  (mapDblclick)="dblClick($event)">
+                  <map-marker
+                    #gMarker="mapMarker"
+                    *ngFor="let marker of markers; index as i"
+                    [position]="marker.position"
+                    [label]="marker.label"
+                    [options]="{draggable:true}"
+                    (mapRightclick)="removeOriginLocation(i)"
+                    (mapDragend)="dragend($event, i)"
+                    (mapClick)="openInfoWindow(gMarker, marker)">
+                  </map-marker>
+                  <map-info-window>{{gInfoWindowText}}</map-info-window>
+                </google-map>
+              </ng-container>
+
+              <ng-template #maplibreMap>
+                <app-map
+                  style="width: 100%; display: block; height: 380px;"
+                  [mapId]="mapId"
+                  [editable]="true"
+                  [editMode]="true"
+                  [initialLat]="defaultCenter.lat"
+                  [initialLng]="defaultCenter.lng"
+                  [plotCoordinates]="plotCoordinates"
+                  (plotCoordinatesChange)="onMapCoordinatesChange($event)">
+                </app-map>
+              </ng-template>
               <small i18n="@@batchDetail.locations.small">
                 Double click on the map to drop a pin and mark the locations of farmers / suppliers. Indicate the number of farmers / suppliers you work with directly or indirectly at each location. You can also name each location.
               </small>

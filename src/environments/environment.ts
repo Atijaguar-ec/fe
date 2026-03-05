@@ -2,33 +2,47 @@
 // `ng build --prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
+const env: any = (window as any).env || {};
+
+const parseBoolean = (value: any, defaultValue: boolean): boolean => {
+    if (value === true || value === 'true') {
+        return true;
+    }
+    if (value === false || value === 'false') {
+        return false;
+    }
+    return defaultValue;
+};
+
 export const environment = {
     production: false,
-    environmentName: (window['env'] && window['env']['environmentName']) || 'development',
+    environmentName: env.environmentName || 'development',
     basePath: '',
-    appBaseUrl: (window['env'] && window['env']['appBaseUrl']) || '',
-    qrCodeBasePath: (window['env'] && window['env']['qrCodeBasePath']) || 'q-cd',
+    appBaseUrl: env.appBaseUrl || '',
+    qrCodeBasePath: env.qrCodeBasePath || 'q-cd',
     chainRelativeFileUploadUrl: '',
     chainRelativeFileDownloadUrl: '',
-    relativeFileUploadUrl: (window['env'] && window['env']['relativeFileUploadUrl']) || '/api/common/document',
-    relativeFileUploadUrlManualType: (window['env'] && window['env']['relativeFileUploadUrlManualType']) || '/api/common/document?type=',
-    relativeImageUploadUrl: (window['env'] && window['env']['relativeImageUploadUrl']) || '/api/common/image',
-    relativeImageUploadUrlAllSizes: (window['env'] && window['env']['relativeImageUploadUrlAllSizes']) || '/api/common/image',
+    relativeFileUploadUrl: env.relativeFileUploadUrl || '/api/common/document',
+    relativeFileUploadUrlManualType: env.relativeFileUploadUrlManualType || '/api/common/document?type=',
+    relativeImageUploadUrl: env.relativeImageUploadUrl || '/api/common/image',
+    relativeImageUploadUrlAllSizes: env.relativeImageUploadUrlAllSizes || '/api/common/image',
     version: '2.40.0-SNAPSHOT',
 
-    googleMapsApiKey: (window['env'] && window['env']['googleMapsApiKey']) || 'AIzaSyAP1JuiYWi0A_Zf8BK0YIfl4nCKoxHnPHU',
+    useMapsGoogle: parseBoolean(env.useMapsGoogle, false),
+    googleMapsApiKey: env.googleMapsApiKey || '',
     googleAnalyticsId: '',
-    mapboxAccessToken: (window['env'] && window['env']['mapboxAccessToken']) || 'pk.eyJ1IjoiYWx2YXJvZ2VvdmFuaSIsImEiOiJjbWN5bDFkbG0wcGt4Mm5xNngydnZ0cTUxIn0.e15Wl5VmuU4S2QIiO5242A',
-    facebookPixelId: null,
+    mapboxAccessToken: env.mapboxAccessToken || '',
+    maptilerApiKey: env.maptilerApiKey || '',
+    facebookPixelId: env.facebookPixelId || null,
     intercomAppId: null,
     chatApp: null,
     rocketChatServer: null,
-    tokenForPublicLogRoute: (window['env'] && window['env']['tokenForPublicLogRoute']) || '',
+    tokenForPublicLogRoute: env.tokenForPublicLogRoute || '',
     appName: 'INATrace',
     reloadDelay: 500,
     harcodedLabelForPrivacyOnRegisterPage: '',
-    beycoAuthURL: (window['env'] && window['env']['beycoAuthURL']) || '',
-    beycoClientId: (window['env'] && window['env']['beycoClientId']) || ''
+    beycoAuthURL: env.beycoAuthURL || '',
+    beycoClientId: env.beycoClientId || ''
 };
 
 /*

@@ -42,6 +42,22 @@ export class SettingsComponent extends ComponentCanDeactivate implements OnInit,
   allCertificationTypes = 0;
   showedCertificationTypes = 0;
 
+  // Shrimp catalogs
+  allShrimpFlavorDefects = 0;
+  showedShrimpFlavorDefects = 0;
+  allShrimpSizeGrades = 0;
+  showedShrimpSizeGrades = 0;
+  allShrimpColorGrades = 0;
+  showedShrimpColorGrades = 0;
+  allShrimpProcessTypes = 0;
+  showedShrimpProcessTypes = 0;
+  allShrimpPresentationTypes = 0;
+  showedShrimpPresentationTypes = 0;
+  allShrimpQualityGrades = 0;
+  showedShrimpQualityGrades = 0;
+  allShrimpTreatmentTypes = 0;
+  showedShrimpTreatmentTypes = 0;
+
   parentReloadProcEvidTypes = false;
   parentReloadProcEvidFields = false;
   parentReloadFacility = false;
@@ -50,6 +66,15 @@ export class SettingsComponent extends ComponentCanDeactivate implements OnInit,
   parentReloadSemiProducts = false;
   parentReloadProductTypes = false;
   parentReloadCertificationTypes = false;
+
+  // Shrimp catalogs reload flags
+  parentReloadShrimpFlavorDefects = false;
+  parentReloadShrimpSizeGrades = false;
+  parentReloadShrimpColorGrades = false;
+  parentReloadShrimpProcessTypes = false;
+  parentReloadShrimpPresentationTypes = false;
+  parentReloadShrimpQualityGrades = false;
+  parentReloadShrimpTreatmentTypes = false;
 
   allSemiProducts = 0;
   showedSemiProducts = 0;
@@ -115,6 +140,14 @@ export class SettingsComponent extends ComponentCanDeactivate implements OnInit,
     if (type === 'semi-products') { this.showedSemiProducts = event; }
     if (type === 'product-types') { this.showedProductTypes = event; }
     if (type === 'certification-types') { this.showedCertificationTypes = event; }
+    // Shrimp catalogs
+    if (type === 'shrimp-flavor-defects') { this.showedShrimpFlavorDefects = event; }
+    if (type === 'shrimp-size-grades') { this.showedShrimpSizeGrades = event; }
+    if (type === 'shrimp-color-grades') { this.showedShrimpColorGrades = event; }
+    if (type === 'shrimp-process-types') { this.showedShrimpProcessTypes = event; }
+    if (type === 'shrimp-presentation-types') { this.showedShrimpPresentationTypes = event; }
+    if (type === 'shrimp-quality-grades') { this.showedShrimpQualityGrades = event; }
+    if (type === 'shrimp-treatment-types') { this.showedShrimpTreatmentTypes = event; }
   }
 
   onCountAll(event, type) {
@@ -126,6 +159,14 @@ export class SettingsComponent extends ComponentCanDeactivate implements OnInit,
     if (type === 'semi-products') { this.allSemiProducts = event; }
     if (type === 'product-types') { this.allProductTypes = event; }
     if (type === 'certification-types') { this.allCertificationTypes = event; }
+    // Shrimp catalogs
+    if (type === 'shrimp-flavor-defects') { this.allShrimpFlavorDefects = event; }
+    if (type === 'shrimp-size-grades') { this.allShrimpSizeGrades = event; }
+    if (type === 'shrimp-color-grades') { this.allShrimpColorGrades = event; }
+    if (type === 'shrimp-process-types') { this.allShrimpProcessTypes = event; }
+    if (type === 'shrimp-presentation-types') { this.allShrimpPresentationTypes = event; }
+    if (type === 'shrimp-quality-grades') { this.allShrimpQualityGrades = event; }
+    if (type === 'shrimp-treatment-types') { this.allShrimpTreatmentTypes = event; }
   }
 
   ngOnDestroy() {
@@ -190,6 +231,14 @@ export class SettingsComponent extends ComponentCanDeactivate implements OnInit,
     if (type === 'semi-products') { addTitle = $localize`:@@settingsPage.newSemiProducts.addTitle:Add new semi-product`; }
     if (type === 'product-types') { addTitle = $localize`:@@settingsPage.newProductTypes.addTitle:Add new product type`; }
     if (type === 'certification-types') { addTitle = $localize`:@@settingsPage.newCertificationType.addTitle:Add new certification type`; }
+    // Shrimp catalogs
+    if (type === 'shrimp-flavor-defects') { addTitle = $localize`:@@settingsPage.newShrimpFlavorDefect.addTitle:Agregar defecto de sabor`; }
+    if (type === 'shrimp-size-grades') { addTitle = $localize`:@@settingsPage.newShrimpSizeGrade.addTitle:Agregar talla`; }
+    if (type === 'shrimp-color-grades') { addTitle = $localize`:@@settingsPage.newShrimpColorGrade.addTitle:Agregar grado de color`; }
+    if (type === 'shrimp-process-types') { addTitle = $localize`:@@settingsPage.newShrimpProcessType.addTitle:Agregar tipo de proceso`; }
+    if (type === 'shrimp-presentation-types') { addTitle = $localize`:@@settingsPage.newShrimpPresentationType.addTitle:Agregar tipo de presentación`; }
+    if (type === 'shrimp-quality-grades') { addTitle = $localize`:@@settingsPage.newShrimpQualityGrade.addTitle:Agregar grado de calidad`; }
+    if (type === 'shrimp-treatment-types') { addTitle = $localize`:@@settingsPage.newShrimpTreatmentType.addTitle:Agregar tipo de tratamiento`; }
 
     this.modalService.open(TypeDetailModalComponent, {
       centered: true
@@ -205,6 +254,14 @@ export class SettingsComponent extends ComponentCanDeactivate implements OnInit,
         if (type === 'semi-products') { this.parentReloadSemiProducts = !this.parentReloadSemiProducts; }
         if (type === 'product-types') { this.parentReloadProductTypes = !this.parentReloadProductTypes; }
         if (type === 'certification-types') { this.parentReloadCertificationTypes = !this.parentReloadCertificationTypes; }
+        // Shrimp catalogs
+        if (type === 'shrimp-flavor-defects') { this.parentReloadShrimpFlavorDefects = !this.parentReloadShrimpFlavorDefects; }
+        if (type === 'shrimp-size-grades') { this.parentReloadShrimpSizeGrades = !this.parentReloadShrimpSizeGrades; }
+        if (type === 'shrimp-color-grades') { this.parentReloadShrimpColorGrades = !this.parentReloadShrimpColorGrades; }
+        if (type === 'shrimp-process-types') { this.parentReloadShrimpProcessTypes = !this.parentReloadShrimpProcessTypes; }
+        if (type === 'shrimp-presentation-types') { this.parentReloadShrimpPresentationTypes = !this.parentReloadShrimpPresentationTypes; }
+        if (type === 'shrimp-quality-grades') { this.parentReloadShrimpQualityGrades = !this.parentReloadShrimpQualityGrades; }
+        if (type === 'shrimp-treatment-types') { this.parentReloadShrimpTreatmentTypes = !this.parentReloadShrimpTreatmentTypes; }
       }
     });
   }

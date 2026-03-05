@@ -1,8 +1,13 @@
+// 🎨 Import dynamic theme variables FIRST
+@import 'styles/theme-variables.css';
+
 @import 'scss/unit.scss';
 @import 'variables';
 @import '~bootstrap/scss/bootstrap';
 @import "~@ng-select/ng-select/scss/default.theme.scss";
 @import '~ngx-toastr/toastr';
+@import '~mapbox-gl/dist/mapbox-gl.css';
+@import '~maplibre-gl/dist/maplibre-gl.css';
 @import 'scss/fontawesome.scss';
 @import 'scss/solid.scss';
 @import 'scss/pathway-gothic-one-regular';

@@ -151,7 +151,7 @@
             <h4 class="text-color-primary" i18n="@@collectorDetail.section.plots">Plots</h4>
             <div class="main-inside-main">
                 <app-map style="width: 100%"
-                         [mapId]="'map-viewer'"
+                         [mapId]="'map-viewer-company-' + (selectedCompany?.id || 'new')"
                          [plots]="companyPlots"
                          [plotCoordinates]="[]"
                          [initialLat]="selectedCompany?.headquarters?.country?.latitude"

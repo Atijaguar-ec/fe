@@ -119,6 +119,8 @@
                             <div class="af-c9 pl-3">
                                 <div>
                                     <span>{{ tx.sourceStockOrder.lotPrefix }} {{ tx.sourceStockOrder.identifier }} {{ tx.sourceStockOrder.internalLotNumber }} ({{ tx.status }})</span>
+                                    <span *ngIf="tx.sourceStockOrder.sampleNumber" class="ml-2 badge badge-info" i18n="@@productLabelStockProcessingOrderDetail.list.sampleNumber">🔬 Muestra {{ tx.sourceStockOrder.sampleNumber }}</span>
+                                    <span *ngIf="tx.sourceStockOrder.productionDate" class="ml-2 text-muted">{{ tx.sourceStockOrder.productionDate | date:'dd/MM/yyyy' }}</span>
                                     <span *ngIf="tx.sourceStockOrder.qrCodeTag"
                                           (click)="openInputStockOrderQRCode(tx.sourceStockOrder)"
                                           class="cursor-pointer">
@@ -128,6 +130,13 @@
                             <fa-icon [icon]="faLeaf" class="sorter-icon pl-2" title="Organic coffee"
                                      i18n-title="@@productLabelStockProcessingOrderDetail.icon.organicCoffee.title"></fa-icon>
                           </span>
+                                </div>
+                                <!-- Información adicional de camarón (entrada normal) -->
+                                <div *ngIf="tx.sourceStockOrder.numberOfGavetas || tx.sourceStockOrder.numberOfBines || tx.sourceStockOrder.numberOfPiscinas || tx.sourceStockOrder.guiaRemisionNumber" class="mt-1" style="font-size: 0.9em; color: #666;">
+                                    <span *ngIf="tx.sourceStockOrder.numberOfGavetas" class="mr-3">🧺 Gavetas: {{ tx.sourceStockOrder.numberOfGavetas }}</span>
+                                    <span *ngIf="tx.sourceStockOrder.numberOfBines" class="mr-3">📦 Bines: {{ tx.sourceStockOrder.numberOfBines }}</span>
+                                    <span *ngIf="tx.sourceStockOrder.numberOfPiscinas" class="mr-3">🏊 Piscinas: {{ tx.sourceStockOrder.numberOfPiscinas }}</span>
+                                    <span *ngIf="tx.sourceStockOrder.guiaRemisionNumber" class="mr-3">📄 Guía: {{ tx.sourceStockOrder.guiaRemisionNumber }}</span>
                                 </div>
                                 <div *ngIf="tx.status === 'CANCELED'" class="canceled">{{ tx.rejectComment }}</div>
                             </div>
@@ -172,17 +181,39 @@
                         </div>
                         <div class="af-c8">
                             <ng-container *ngIf="item.orderType === 'PURCHASE_ORDER'">
-                                <span>{{ item.identifier }} ({{ item.producerUserCustomer.name }} {{ item.producerUserCustomer.surname }})</span>
-                                <span *ngIf="item.weekNumber" class="ml-2 text-muted" i18n="@@productLabelStockProcessingOrderDetail.list.weekNumber">Semana {{ item.weekNumber }}</span>
+                                <div>
+                                    <span>{{ item.lotPrefix }} {{ item.identifier }} {{ item.internalLotNumber }} ({{ formatUserCustomer(item.producerUserCustomer) }})</span>
+                                    <span *ngIf="item.sampleNumber" class="ml-2 badge badge-info" i18n="@@productLabelStockProcessingOrderDetail.list.sampleNumber">🔬 Muestra {{ item.sampleNumber }}</span>
+                                    <span *ngIf="item.weekNumber" class="ml-2 text-muted" i18n="@@productLabelStockProcessingOrderDetail.list.weekNumber">Semana {{ item.weekNumber }}</span>
+                                    <span *ngIf="item.productionDate" class="ml-2 text-muted">{{ item.productionDate | date:'dd/MM/yyyy' }}</span>
+                                </div>
+                                <!-- Información adicional de camarón (entrada normal) -->
+                                <div *ngIf="item.numberOfGavetas || item.numberOfBines || item.numberOfPiscinas || item.guiaRemisionNumber" class="mt-1" style="font-size: 0.9em; color: #666;">
+                                    <span *ngIf="item.numberOfGavetas" class="mr-3">🧺 Gavetas: {{ item.numberOfGavetas }}</span>
+                                    <span *ngIf="item.numberOfBines" class="mr-3">📦 Bines: {{ item.numberOfBines }}</span>
+                                    <span *ngIf="item.numberOfPiscinas" class="mr-3">🏊 Piscinas: {{ item.numberOfPiscinas }}</span>
+                                    <span *ngIf="item.guiaRemisionNumber" class="mr-3">📄 Guía: {{ item.guiaRemisionNumber }}</span>
+                                </div>
                             </ng-container>
                             <ng-container *ngIf="item.orderType != 'PURCHASE_ORDER'">
-                                <span>{{ item.lotPrefix }} {{ item.identifier }} {{ item.internalLotNumber }}</span>
-                                <span *ngIf="item.weekNumber" class="ml-2 text-muted" i18n="@@productLabelStockProcessingOrderDetail.list.weekNumber">Semana {{ item.weekNumber }}</span>
-                                <span *ngIf="item.qrCodeTag"
-                                      (click)="openInputStockOrderQRCode(item)"
-                                      class="cursor-pointer">
-                        <fa-icon [icon]="faQrcode" class="sorter-icon pl-2"></fa-icon>
-                      </span>
+                                <div>
+                                    <span>{{ item.lotPrefix }} {{ item.identifier }} {{ item.internalLotNumber }}</span>
+                                    <span *ngIf="item.sampleNumber" class="ml-2 badge badge-info" i18n="@@productLabelStockProcessingOrderDetail.list.sampleNumber">🔬 Muestra {{ item.sampleNumber }}</span>
+                                    <span *ngIf="item.weekNumber" class="ml-2 text-muted" i18n="@@productLabelStockProcessingOrderDetail.list.weekNumber">Semana {{ item.weekNumber }}</span>
+                                    <span *ngIf="item.productionDate" class="ml-2 text-muted">{{ item.productionDate | date:'dd/MM/yyyy' }}</span>
+                                    <span *ngIf="item.qrCodeTag"
+                                          (click)="openInputStockOrderQRCode(item)"
+                                          class="cursor-pointer">
+                            <fa-icon [icon]="faQrcode" class="sorter-icon pl-2"></fa-icon>
+                          </span>
+                                </div>
+                                <!-- Información adicional de camarón (entrada normal) -->
+                                <div *ngIf="item.numberOfGavetas || item.numberOfBines || item.numberOfPiscinas || item.guiaRemisionNumber" class="mt-1" style="font-size: 0.9em; color: #666;">
+                                    <span *ngIf="item.numberOfGavetas" class="mr-3">🧺 Gavetas: {{ item.numberOfGavetas }}</span>
+                                    <span *ngIf="item.numberOfBines" class="mr-3">📦 Bines: {{ item.numberOfBines }}</span>
+                                    <span *ngIf="item.numberOfPiscinas" class="mr-3">🏊 Piscinas: {{ item.numberOfPiscinas }}</span>
+                                    <span *ngIf="item.guiaRemisionNumber" class="mr-3">📄 Guía: {{ item.guiaRemisionNumber }}</span>
+                                </div>
                             </ng-container>
                             <span *ngIf="item.organic">
                       <fa-icon [icon]="faLeaf" class="sorter-icon pl-2" title="Organic coffee"

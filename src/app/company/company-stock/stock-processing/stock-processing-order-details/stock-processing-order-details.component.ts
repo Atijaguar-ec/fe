@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { GlobalEventManagerService } from '../../../../core/global-event-manager.service';
-import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { CompanyProcessingActionsService } from '../../../../shared-services/company-processing-actions.service';
 import { CompanyProcessingActionsService as CompanyProcessingActionsApiService } from '../../../../core/api/company-processing-actions.service';
 import { ApiCompanyProcessingAction } from '../../../../../api/model/apiCompanyProcessingAction';
@@ -12,7 +12,7 @@ import { Location } from '@angular/common';
 import { ListEditorManager } from '../../../../shared/list-editor/list-editor-manager';
 import { ApiActivityProof } from '../../../../../api/model/apiActivityProof';
 import { ApiActivityProofValidationScheme } from '../../stock-core/additional-proof-item/validation';
-import { dateISOString, deleteNullFields, generateFormFromMetadata } from '../../../../../shared/utils';
+import { dateISOString, deleteNullFields, generateFormFromMetadata, uuidv4 } from '../../../../../shared/utils';
 import { CompanyFacilitiesForStockUnitProductService } from '../../../../shared-services/company-facilities-for-stock-unit-product.service';
 import { AvailableSellingFacilitiesForCompany } from '../../../../shared-services/available-selling-facilities-for.company';
 import { StockOrderControllerService } from '../../../../../api/api/stockOrderController.service';
@@ -32,14 +32,24 @@ import { ApiProcessingOrderValidationScheme, ApiStockOrderValidationScheme } fro
 import { StaticSemiProductsService } from './static-semi-products.service';
 import { StockProcessingOrderDetailsHelper } from './stock-processing-order-details.helper';
 import { ApiStockOrderSelectable } from './stock-processing-order-details.model';
+import { ApiFacility } from '../../../../../api/model/apiFacility';
 import TypeEnum = ApiProcessingAction.TypeEnum;
 import OrderTypeEnum = ApiStockOrder.OrderTypeEnum;
-import { uuidv4 } from 'src/shared/utils';
 import { SelectedUserCompanyService } from '../../../../core/selected-user-company.service';
 import { ProcessingOrderInputComponent } from './processing-order-input/processing-order-input.component';
 import { ProcessingOrderOutputComponent } from './processing-order-output/processing-order-output.component';
 
+declare const $localize: (messageParts: TemplateStringsArray, ...expressions: unknown[]) => string;
+
 type PageMode = 'create' | 'edit';
+
+type ApiStockOrderClassificationPayload = ApiStockOrder & {
+  processedWeight?: number;
+  rejectedWeight?: number;
+  poundsRejected?: number;
+  wasteWeight?: number;
+  deheadingFacility?: ApiFacility;
+};
 
 interface RepackedTargetStockOrder extends ApiStockOrder {
   repackedOutputsArray: ApiStockOrder[];
@@ -75,6 +85,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
   // Properties and controls used for display and selection of input facility
   inputFacilitiesCodebook: CompanyFacilitiesForStockUnitProductService | AvailableSellingFacilitiesForCompany;
   inputFacilityControl = new FormControl(null, Validators.required);
+  inspectionTimeControl = new FormControl(null);
 
   // Input stock orders properties and controls
   totalInputQuantityControl = new FormControl({ value: null, disabled: true });
@@ -106,6 +117,10 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
 
   submitted = false;
   editing = false;
+
+  // Cached flag to avoid ExpressionChangedAfterItHasBeenCheckedError when toggling
+  // classification layout based on the selected input facility.
+  private isClassificationModeFlag = false;
 
   saveInProgress = false;
 
@@ -149,6 +164,26 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     }
 
     return true;
+  }
+
+  /**
+   * Check if current processing is in classification mode.
+   * When true, the classification table will be rendered in a full-width row
+   * for better UX (more space for the table columns).
+   */
+  get isClassificationMode(): boolean {
+    return this.isClassificationModeFlag;
+  }
+
+  /**
+   * Label for output quantity field, used by classification component.
+   */
+  get targetStockOrderOutputQuantityLabel(): string {
+    if (this.actionType === 'SHIPMENT') {
+      return $localize`:@@productLabelStockProcessingOrderDetail.textinput.orderedQuantityLabelWithUnits.label: Ordered quantity in`;
+    } else {
+      return $localize`:@@productLabelStockProcessingOrderDetail.textinput.outputQuantityLabelWithUnits.label: Output quantity in`;
+    }
   }
 
   get inputTransactions(): ApiTransaction[] {
@@ -197,10 +232,11 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     let quantityFrom = '/';
     let quantityTo = '/';
 
-    if (this.totalInputQuantity) {
+    const unitLabel = this.currentInputStockUnit?.measurementUnitType?.label ?? '';
 
-      let expectedOutputQuantity;
-      expectedOutputQuantity = this.totalInputQuantity * this.selectedProcAction.estimatedOutputQuantityPerUnit;
+    if (this.totalInputQuantity && this.selectedProcAction) {
+
+      const expectedOutputQuantity = this.totalInputQuantity * this.selectedProcAction.estimatedOutputQuantityPerUnit;
 
       this.totalOutQuantityRangeLow = Number(expectedOutputQuantity * 0.8);
       this.totalOutQuantityRangeHigh = Math.min(Number(expectedOutputQuantity * 1.2), this.totalInputQuantity);
@@ -209,12 +245,14 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       quantityTo = this.totalOutQuantityRangeHigh.toFixed(2);
     } else {
 
-      this.totalOutQuantityRangeLow = null;
+      this.totalOutQuantityRangeLow = null; 
       this.totalOutQuantityRangeHigh = null;
+      quantityFrom = '--';
+      quantityTo = '--';
     }
 
     return $localize`:@@productLabelStockProcessingOrderDetail.textinput.outputQuantity.expectedOutputHelpText:Expected output quantity range:` +
-        ` ${quantityFrom} ~ ${quantityTo} (${this.currentInputStockUnit.measurementUnitType.label})`;
+        ` ${quantityFrom} ~ ${quantityTo}${unitLabel ? ` (${unitLabel})` : ''}`;
   }
 
   get targetStockOrdersArray(): FormArray {
@@ -292,7 +330,32 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
   }
 
   ngOnInit(): void {
+    // Initialise classification mode flag based on initial facility (if any)
+    const initialFacility = this.inputFacilityControl.value;
+    this.isClassificationModeFlag = initialFacility?.isClassificationProcess === true;
 
+    // Keep flag in sync with facility changes, but update in next microtask
+    // to avoid ExpressionChangedAfterItHasBeenCheckedError when layout toggles.
+    const sub = this.inputFacilityControl.valueChanges.subscribe(facility => {
+      const wasClassificationMode = this.isClassificationModeFlag;
+      const willBeClassificationMode = facility?.isClassificationProcess === true;
+
+      Promise.resolve().then(() => {
+        this.isClassificationModeFlag = willBeClassificationMode;
+
+        // If layout changed (switched between classification and standard modes),
+        // the input component was destroyed and recreated. We need to reload the
+        // facility data into the new component instance after Angular processes
+        // the layout change.
+        if (wasClassificationMode !== willBeClassificationMode && facility) {
+          setTimeout(() => {
+            this.input?.setInputFacility(facility);
+          }, 0);
+        }
+      });
+    });
+
+    this.subscriptions.push(sub);
   }
 
   ngAfterViewInit(): void {
@@ -314,7 +377,14 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
 
   // Prefill and lock lot info on outputs based on selected input stock orders
   onSelectedInputsChanged(selected: ApiStockOrderSelectable[]) {
-    if (this.editing) { return; }
+    console.log('=== onSelectedInputsChanged ===');
+    console.log('Selected inputs:', selected);
+    console.log('Target stock orders array length:', this.targetStockOrdersArray?.length);
+    
+    if (this.editing) { 
+      console.log('Editing mode - skipping propagation');
+      return; 
+    }
 
     // Enable editing when no inputs selected
     if (!selected || selected.length === 0) {
@@ -323,42 +393,199 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
         if (iln && iln.disabled) { iln.enable({ emitEvent: false }); }
         const wn = group.get('weekNumber');
         if (wn && wn.disabled) { wn.enable({ emitEvent: false }); }
+        // Clear propagated values when no inputs selected
+        this.clearPropagatedValues(group);
       });
       return;
     }
 
     const ref = selected[0];
-    const sameLot = selected.every(s => s.internalLotNumber === ref.internalLotNumber);
+    
+    // Para el número de lote, usar internalLotNumber si existe, sino usar identifier como fallback
+    const getLotNumber = (s: any) => s.internalLotNumber || s.identifier || null;
+    const refLotNumber = getLotNumber(ref);
+    const sameLot = selected.every(s => getLotNumber(s) === refLotNumber);
+    
     const sameWeek = selected.every(s => s.weekNumber === ref.weekNumber);
+    const sameProducer = selected.every(s => 
+      s.producerUserCustomer?.id === ref.producerUserCustomer?.id);
+    const sameRepresentative = selected.every(s => 
+      s.representativeOfProducerUserCustomer?.id === ref.representativeOfProducerUserCustomer?.id);
+    const sameOrganic = selected.every(s => s.organic === ref.organic);
+    const sameWomenShare = selected.every(s => s.womenShare === ref.womenShare);
+    const sameProductionDate = selected.every(s => s.productionDate === ref.productionDate);
+    const sameSampleNumber = selected.every(s => s.sampleNumber === ref.sampleNumber);
+    
+    // Check if all inputs share same shrimp-specific fields for custody/traceability
+    const sameGavetas = selected.every(s => s.numberOfGavetas === ref.numberOfGavetas);
+    const sameBines = selected.every(s => s.numberOfBines === ref.numberOfBines);
+    const samePiscinas = selected.every(s => s.numberOfPiscinas === ref.numberOfPiscinas);
+    const sameGuia = selected.every(s => s.guiaRemisionNumber === ref.guiaRemisionNumber);
 
-    // If inputs share same internal lot number, use it; otherwise let user type
-    if (sameLot && ref.internalLotNumber) {
-      this.targetStockOrdersArray.controls.forEach(group => {
-        const iln = group.get('internalLotNumber');
-        if (iln) {
-          iln.setValue(ref.internalLotNumber, { emitEvent: false });
-          iln.disable({ emitEvent: false });
-        }
-      });
-    } else {
-      // Different lot numbers selected – keep field editable
-      this.targetStockOrdersArray.controls.forEach(group => {
-        const iln = group.get('internalLotNumber');
-        if (iln && iln.disabled) { iln.enable({ emitEvent: false }); }
-      });
-    }
-
-    // If inputs share the same week number and it exists, use it and lock the field; otherwise keep editable
     this.targetStockOrdersArray.controls.forEach(group => {
+      // Handle internal lot number - propagate and lock if all inputs share the same lot
+      // Usar internalLotNumber si existe, sino usar identifier como fallback (para entregas iniciales)
+      const iln = group.get('internalLotNumber');
+      if (sameLot && refLotNumber && iln) {
+        iln.setValue(refLotNumber, { emitEvent: false });
+        iln.disable({ emitEvent: false });
+        console.log(' Número de lote propagado:', refLotNumber);
+      } else if (iln && iln.disabled) {
+        iln.enable({ emitEvent: false });
+      }
+
+      // Handle week number
       const wn = group.get('weekNumber');
-      if (!wn) { return; }
-      if (sameWeek && ref.weekNumber != null) {
-        wn.setValue(ref.weekNumber, { emitEvent: false });
-        wn.disable({ emitEvent: false });
-      } else if (wn.disabled) {
-        wn.enable({ emitEvent: false });
+      if (wn) {
+        if (sameWeek && ref.weekNumber != null) {
+          wn.setValue(ref.weekNumber, { emitEvent: false });
+          wn.disable({ emitEvent: false });
+        } else if (wn.disabled) {
+          wn.enable({ emitEvent: false });
+        }
+      }
+
+      // Propagate producer information
+      if (sameProducer && ref.producerUserCustomer) {
+        const producer = group.get('producerUserCustomer');
+        if (producer) {
+          producer.setValue(ref.producerUserCustomer, { emitEvent: false });
+        }
+      }
+
+      // Propagate representative information
+      if (sameRepresentative && ref.representativeOfProducerUserCustomer) {
+        const representative = group.get('representativeOfProducerUserCustomer');
+        if (representative) {
+          representative.setValue(ref.representativeOfProducerUserCustomer, { emitEvent: false });
+        }
+      }
+
+      // Propagate organic status
+      if (sameOrganic && ref.organic !== undefined) {
+        const organic = group.get('organic');
+        if (organic) {
+          organic.setValue(ref.organic, { emitEvent: false });
+        }
+      }
+
+      // Propagate women share
+      if (sameWomenShare && ref.womenShare !== undefined) {
+        const womenShare = group.get('womenShare');
+        if (womenShare) {
+          womenShare.setValue(ref.womenShare, { emitEvent: false });
+        }
+      }
+
+      // Propagate production date
+      if (sameProductionDate && ref.productionDate) {
+        const productionDate = group.get('productionDate');
+        if (productionDate) {
+          productionDate.setValue(ref.productionDate, { emitEvent: false });
+        }
+      }
+
+      // Propagate production location if all inputs share the same location
+      if (ref.productionLocation) {
+        const sameLocation = selected.every(s => 
+          s.productionLocation?.address?.address === ref.productionLocation?.address?.address &&
+          s.productionLocation?.address?.city === ref.productionLocation?.address?.city);
+        
+        if (sameLocation) {
+          const productionLocation = group.get('productionLocation');
+          if (productionLocation) {
+            productionLocation.setValue(ref.productionLocation, { emitEvent: false });
+          }
+        }
+      }
+
+      // Propagate sample number for laboratory deliveries
+      if (sameSampleNumber && ref.sampleNumber != null) {
+        const sampleNumber = group.get('sampleNumber');
+        if (sampleNumber) {
+          sampleNumber.setValue(ref.sampleNumber, { emitEvent: false });
+          console.log(' Propagated sample number:', ref.sampleNumber);
+        }
+      }
+
+      // Propagate total quantity from selected inputs
+      const totalQuantity = group.get('totalQuantity');
+      if (totalQuantity && selected.length > 0) {
+        const sumQuantity = selected.reduce((sum, s) => sum + (s.selectedQuantity || 0), 0);
+        if (sumQuantity > 0) {
+          totalQuantity.setValue(sumQuantity.toFixed(2), { emitEvent: false });
+          console.log(' Propagated total quantity:', sumQuantity.toFixed(2));
+        }
+      }
+
+      // CUSTODIA: Propagate shrimp-specific traceability fields
+      // These fields must be preserved through the entire processing chain
+      if (sameGavetas && ref.numberOfGavetas != null) {
+        const gavetas = group.get('numberOfGavetas');
+        if (gavetas) {
+          gavetas.setValue(ref.numberOfGavetas, { emitEvent: false });
+          console.log(' Custodiado N° de Gavetas:', ref.numberOfGavetas);
+        }
+      }
+
+      if (sameBines && ref.numberOfBines != null) {
+        const bines = group.get('numberOfBines');
+        if (bines) {
+          bines.setValue(ref.numberOfBines, { emitEvent: false });
+          console.log(' Custodiado N° de Bines:', ref.numberOfBines);
+        }
+      }
+
+      if (samePiscinas && ref.numberOfPiscinas != null) {
+        const piscinas = group.get('numberOfPiscinas');
+        if (piscinas) {
+          piscinas.setValue(ref.numberOfPiscinas, { emitEvent: false });
+          console.log(' Custodiado N° de Piscinas:', ref.numberOfPiscinas);
+        }
+      }
+
+      if (sameGuia && ref.guiaRemisionNumber != null) {
+        const guia = group.get('guiaRemisionNumber');
+        if (guia) {
+          guia.setValue(ref.guiaRemisionNumber, { emitEvent: false });
+          console.log(' Custodiado N° de Guía de Remisión:', ref.guiaRemisionNumber);
+        }
       }
     });
+  }
+
+  private clearPropagatedValues(group: AbstractControl) {
+    // Clear values that were propagated from input selection
+    const fieldsToReset = [
+      'producerUserCustomer',
+      'representativeOfProducerUserCustomer', 
+      'organic',
+      'womenShare',
+      'productionDate',
+      'productionLocation',
+      'sampleNumber',
+      'totalQuantity',
+      // Shrimp-specific traceability fields
+      'numberOfGavetas',
+      'numberOfBines',
+      'numberOfPiscinas',
+      'guiaRemisionNumber'
+    ];
+
+    fieldsToReset.forEach(fieldName => {
+      const control = group.get(fieldName);
+      if (control && !control.disabled) {
+        control.setValue(null, { emitEvent: false });
+      }
+    });
+  }
+
+  onNewOutputAdded() {
+    // When a new output is added, synchronize values from selected inputs
+    if (this.input?.selectedInputStockOrders?.length) {
+      console.log('New output added - synchronizing values from selected inputs');
+      this.onSelectedInputsChanged(this.input.selectedInputStockOrders);
+    }
   }
 
   processingActionSelected(event: ApiProcessingAction): void {
@@ -372,7 +599,6 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
 
     StockProcessingOrderDetailsHelper.setRequiredProcessingEvidence(procAction, this.requiredProcessingEvidenceArray).then();
     this.input?.clearInputPropsAndControls();
-    this.input?.clearInputFacility();
     this.clearOutputPropsAndControls();
 
     if (procAction) {
@@ -402,8 +628,12 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
         }
       });
 
-      // Load and the facilities that are applicable for the processing action
-      await this.loadFacilities();
+      // Load the facilities that are applicable for the processing action in the next tick
+      // to avoid ExpressionChangedAfterItHasBeenCheckedError when bindings that depend on
+      // the selected input facility are checked twice in dev mode.
+      setTimeout(() => {
+        this.loadFacilities().then();
+      });
 
     } else {
 
@@ -422,6 +652,34 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     }
 
     this.submitted = true;
+
+    // Asegurar que el campo "Área destino para rechazado" no bloquee el guardado
+    // si el usuario ya seleccionó un valor. Limpiamos errores residuales en
+    // targetStockOrders[*].deheadingFacility cuando hay rejectedWeight > 0 y
+    // existe un facility seleccionado.
+    if (this.targetStockOrdersArray && this.targetStockOrdersArray.controls) {
+      this.targetStockOrdersArray.controls.forEach((tsoGroup: FormGroup, index: number) => {
+        const rejected = Number(tsoGroup.get('rejectedWeight')?.value) || 0;
+        const deheadingCtrl = tsoGroup.get('deheadingFacility');
+        if (rejected > 0 && deheadingCtrl && deheadingCtrl.value) {
+          if (deheadingCtrl.errors) {
+            console.warn(` DEBUG deheadingFacility errors for targetStockOrders.${index}`, deheadingCtrl.errors);
+          }
+          deheadingCtrl.setErrors(null);
+          deheadingCtrl.updateValueAndValidity({ emitEvent: false });
+        }
+      });
+    }
+
+    // Debug: Log validation state
+    if (this.procOrderGroup.invalid) {
+      console.error(' Form is invalid. Checking errors...');
+      this.logFormErrors(this.procOrderGroup);
+    }
+    
+    if (this.input.oneInputStockOrderRequired) {
+      console.error(' At least one input stock order is required');
+    }
 
     if (this.procOrderGroup.invalid || this.input.oneInputStockOrderRequired) {
       return;
@@ -446,6 +704,20 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
 
       // Get the raw value from the form group
       const processingOrder = this.procOrderGroup.getRawValue() as ApiProcessingOrder;
+
+      // Normalize laboratory approval field coming from EnumSifrant ("true"/"false" strings)
+      if (processingOrder.targetStockOrders) {
+        processingOrder.targetStockOrders.forEach(tso => {
+          const anyTso: any = tso as any;
+          if (anyTso && typeof anyTso.approvedForPurchase === 'string') {
+            if (anyTso.approvedForPurchase === 'true') {
+              anyTso.approvedForPurchase = true;
+            } else if (anyTso.approvedForPurchase === 'false') {
+              anyTso.approvedForPurchase = false;
+            }
+          }
+        });
+      }
 
       // Create input transactions from the selected Stock orders
       processingOrder.inputTransactions.push(...this.input.prepInputTransactionsFromStockOrders());
@@ -478,6 +750,9 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
 
       // Add common shared data (processing evidences, comments, etc.) to all target output Stock order
       this.enrichTargetStockOrders(processingOrder.targetStockOrders);
+
+      // Debug: Log targetStockOrders to verify rejectedWeight and deheadingFacility are being sent
+      console.log(' Sending targetStockOrders:', JSON.stringify(processingOrder.targetStockOrders, null, 2));
 
       const res = await this.processingOrderController
         .createOrUpdateProcessingOrder(processingOrder).pipe(take(1)).toPromise();
@@ -989,7 +1264,12 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       const newStockOrder = {...repackedSacUnit};
       newStockOrder.creatorId = sourceStockOrder.creatorId;
       newStockOrder.internalLotNumber = sourceStockOrder.internalLotNumber;
+      // Traceability: inherit week number and shrimp custody fields from the source TSO
       newStockOrder.weekNumber = sourceStockOrder.weekNumber;
+      newStockOrder.numberOfGavetas = sourceStockOrder.numberOfGavetas;
+      newStockOrder.numberOfBines = sourceStockOrder.numberOfBines;
+      newStockOrder.numberOfPiscinas = sourceStockOrder.numberOfPiscinas;
+      newStockOrder.guiaRemisionNumber = sourceStockOrder.guiaRemisionNumber;
       newStockOrder.facility = sourceStockOrder.facility;
       newStockOrder.semiProduct = sourceStockOrder.semiProduct;
       newStockOrder.finalProduct = sourceStockOrder.finalProduct;
@@ -1012,7 +1292,16 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     const requiredEvidenceTypeValues = StockProcessingOrderDetailsHelper.prepareRequiredEvidenceTypeValues(this.requiredProcessingEvidenceArray);
     const otherEvidenceDocuments = StockProcessingOrderDetailsHelper.prepareOtherEvidenceDocuments(this.otherProcessingEvidenceArray);
 
-    targetStockOrders.forEach(tso => {
+    targetStockOrders.forEach((tso, index) => {
+
+      const tsoFormGroup = this.targetStockOrdersArray.at(index) as FormGroup | null;
+      const getNumeric = (value: any): number | null => {
+        if (value === null || value === undefined || value === '') {
+          return null;
+        }
+        const parsed = Number(value);
+        return isNaN(parsed) ? null : parsed;
+      };
 
       // Set shared properties
       tso.requiredEvidenceTypeValues = requiredEvidenceTypeValues;
@@ -1020,6 +1309,38 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       tso.comments = this.commentsControl.value;
       tso.fulfilledQuantity = 0;
       tso.availableQuantity = 0;
+
+      // Extra fields capturados en el formulario de clasificación
+      if (tsoFormGroup) {
+        const tsoPayload = tso as ApiStockOrderClassificationPayload;
+        const processedWeight = getNumeric(tsoFormGroup.get('processedWeight')?.value);
+        if (processedWeight != null) {
+          tsoPayload.processedWeight = processedWeight;
+          // En clasificación la cantidad real enviada a congelación es el peso procesado
+          tso.totalQuantity = processedWeight;
+        }
+
+        const rejectedWeight = getNumeric(tsoFormGroup.get('rejectedWeight')?.value);
+        if (rejectedWeight != null) {
+          tsoPayload.rejectedWeight = rejectedWeight;
+          tsoPayload.poundsRejected = rejectedWeight;
+        }
+
+        const wasteWeight = getNumeric(tsoFormGroup.get('wasteWeight')?.value);
+        if (wasteWeight != null) {
+          tsoPayload.wasteWeight = wasteWeight;
+        }
+
+        const deheadingFacility = tsoFormGroup.get('deheadingFacility')?.value;
+        console.log(' DEBUG deheadingFacility control value:', deheadingFacility);
+        console.log(' DEBUG rejectedWeight:', rejectedWeight);
+        if (deheadingFacility) {
+          tsoPayload.deheadingFacility = deheadingFacility;
+          console.log(' DEBUG deheadingFacility assigned to tso:', tsoPayload.deheadingFacility);
+        } else {
+          console.warn(' DEBUG deheadingFacility is null/undefined, not assigned');
+        }
+      }
 
       // Set specific properties
       tso.requiredEvidenceFieldValues = StockProcessingOrderDetailsHelper.prepareRequiredEvidenceFieldValues(tso['requiredProcEvidenceFieldGroup'], this.selectedProcAction);
@@ -1036,6 +1357,22 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       // Delete null and not need properties
       delete tso['requiredProcEvidenceFieldGroup'];
       deleteNullFields(tso);
+    });
+  }
+
+  /**
+   * 🐛 Debug helper: Log form validation errors recursively
+   */
+  private logFormErrors(formGroup: FormGroup | FormArray, path: string = ''): void {
+    Object.keys(formGroup.controls).forEach(key => {
+      const control = formGroup.get(key);
+      const controlPath = path ? `${path}.${key}` : key;
+      
+      if (control instanceof FormGroup || control instanceof FormArray) {
+        this.logFormErrors(control, controlPath);
+      } else if (control?.errors) {
+        console.error(`  ❌ ${controlPath}:`, control.errors);
+      }
     });
   }
 

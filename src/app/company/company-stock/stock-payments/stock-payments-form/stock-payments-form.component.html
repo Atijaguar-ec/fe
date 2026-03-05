@@ -304,7 +304,7 @@
                                     [isInvalidChoice]="submitted && paymentForm.get('currency').invalid">
                                 <ng-container *ngIf="submitted">
                                     <div *ngIf="paymentForm.get('currency').errors as errors" class="sc-invalid-feedback">
-                                        <div *ngIf="errors.required" i18n="@@paymentpaymentForm.textinput.currency.error">
+                                        <div *ngIf="errors.required" i18n="@@paymentForm.textinput.currency.error">
                                             Currency is required
                                         </div>
                                     </div>
@@ -365,7 +365,7 @@
                                 [readOnly]="viewOnly">
                             <ng-container *ngIf="submitted">
                                 <div *ngIf="paymentForm.get('receiptNumber').errors as errors" class="sc-invalid-feedback">
-                                    <div *ngIf="errors.required" i18n="@@paymentpaymentForm.textinput.receiptNumber.error">
+                                    <div *ngIf="errors.required" i18n="@@paymentForm.textinput.receiptNumber.error">
                                         Receipt number is required
                                     </div>
                                 </div>

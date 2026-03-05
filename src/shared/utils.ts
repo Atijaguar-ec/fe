@@ -3,6 +3,7 @@ import {SimpleValidationScheme} from 'src/interfaces/Validation';
 import {ActivatedRoute, ActivatedRouteSnapshot, Router} from '@angular/router';
 import {take} from 'rxjs/operators';
 import {GeneralSifrantService} from 'src/app/shared-services/general-sifrant.service';
+import { ApiUserCustomer } from 'src/api/model/apiUserCustomer';
 
 /**
  * Like map() on lists, but for js/ts objects.
@@ -305,6 +306,47 @@ export function getValidatorParameter(validators: Array<any>, parameterName: str
 
 export function idEquals(a: any, b: any) {
   return (a === b) || (a != null && b != null && a.id === b.id);
+}
+
+/**
+ * Formats a user customer name for display.
+ * - If personType is LEGAL and companyName is present, returns companyName.
+ * - Otherwise returns "name surname" (trimmed).
+ * - Falls back to companyName or id string if no name fields are available.
+ */
+export function formatUserCustomerDisplayName(user?: ApiUserCustomer | null): string {
+  if (!user) {
+    return '';
+  }
+
+  const isLegal = user.personType === (ApiUserCustomer as any).PersonTypeEnum?.LEGAL
+    || (user as any).personType === 'LEGAL';
+
+  const companyName = (user.companyName || '').trim();
+  if (isLegal && companyName.length > 0) {
+    return companyName;
+  }
+
+  const namePart = (user.name || '').trim();
+  let surnamePart = (user.surname || '').trim();
+  if (surnamePart.toUpperCase() === 'N/A') {
+    surnamePart = '';
+  }
+  const fullName = `${namePart} ${surnamePart}`.trim();
+
+  if (fullName.length > 0) {
+    return fullName;
+  }
+
+  if (!isLegal && companyName.length > 0) {
+    return companyName;
+  }
+
+  if (user.id != null) {
+    return String(user.id);
+  }
+
+  return '';
 }
 
 export function uuidv4() {

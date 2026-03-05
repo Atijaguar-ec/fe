@@ -5,6 +5,8 @@ import { GlobalEventManagerService } from '../../../core/global-event-manager.se
 import { Subject } from 'rxjs/internal/Subject';
 import { takeUntil } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
+import { environment } from '../../../../environments/environment';
+import { ApiPlotCoordinate } from '../../../../api/model/apiPlotCoordinate';
 
 @Component({
     selector: 'app-pathline-map',
@@ -16,6 +18,8 @@ export class PathlineMapComponent implements OnInit, OnChanges, OnDestroy {
     private destroy$ = new Subject<boolean>();
     
     isGoogleMapsLoaded = false;
+    mapId = `pathline-map-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+    plotCoordinates: ApiPlotCoordinate[] = [];
 
     defaultCenter = {
         lat: -1.831239,
@@ -156,6 +160,36 @@ export class PathlineMapComponent implements OnInit, OnChanges, OnDestroy {
                 lng: ctrl.get('longitude').value,
             };
         });
+        this.updatePlotCoordinates();
+    }
+
+    get useMapsGoogle(): boolean {
+        return environment.useMapsGoogle;
+    }
+
+    private updatePlotCoordinates(): void {
+        this.plotCoordinates = this.markersForm.controls.map(ctrl => ({
+            latitude: ctrl.get('latitude').value,
+            longitude: ctrl.get('longitude').value,
+        }));
+    }
+
+    onMapCoordinatesChange(coords: ApiPlotCoordinate[]): void {
+        // Clear existing markers
+        while (this.markersForm.length > 0) {
+            this.markersForm.removeAt(0);
+        }
+
+        // Add new markers from map
+        for (const coord of coords) {
+            this.markersForm.push(new FormGroup({
+                latitude: new FormControl(coord.latitude),
+                longitude: new FormControl(coord.longitude),
+            }));
+        }
+
+        this.markersForm.markAsDirty();
+        this.plotCoordinates = coords;
     }
 
 }

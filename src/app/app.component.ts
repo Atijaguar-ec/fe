@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { GlobalEventManagerService } from './core/global-event-manager.service';
-import { environment } from 'src/environments/environment';
+import { environment } from '../environments/environment';
 import { CookieManagementService } from './shared/directives/cookie-management.service';
 
 @Component({
@@ -18,14 +18,21 @@ export class AppComponent implements OnInit {
     ){}
 
   ngOnInit() {
-    this.loadGoogleMaps();
+    if (environment.useMapsGoogle && !!environment.googleMapsApiKey) {
+      this.loadGoogleMaps();
+    }
     this.cookieManagementService.loadConsentedCookies();
   }
 
   loadGoogleMaps(): void {
-    window['initMap'] = () => {
+    if ((window as any).google) {
+      this.globalEventsManager.loadedGoogleMaps(true);
+      return;
+    }
+    (window as any).initMap = () => {
       this.globalEventsManager.loadedGoogleMaps(true);
     };
+
     const gmScript = document.createElement('script');
     gmScript.src = `https://maps.googleapis.com/maps/api/js?key=${environment.googleMapsApiKey}&callback=initMap`;
     gmScript.defer = true;

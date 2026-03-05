@@ -38,6 +38,7 @@ import {
 } from './company/company-detail/company-processing-actions/company-detail-processing-actions-detail/company-detail-processing-actions-detail.component';
 import { AdminOrCompanyAdminGuardService } from './core/guards/admin-or-company-admin-guard.service';
 import { ActivatedUserGuardService } from './core/guards/activated-user-guard.service';
+declare const $localize: (messageParts: TemplateStringsArray, ...placeholders: any[]) => string;
 import { CompanyAdminGuardService } from './core/guards/company-admin-guard.service';
 import { CompanyDashboardComponent } from './company/company-dashboard/company-dashboard.component';
 

@@ -1,0 +1,121 @@
+<div class="modal-header">
+  <h4 class="modal-title">
+    {{ titleLabel }}
+  </h4>
+  <button type="button" class="close" aria-label="Close" (click)="cancel()">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<div class="modal-body" *ngIf="!loading; else loadingTpl">
+  <div *ngIf="loadError" class="alert alert-danger mb-3">
+    {{ loadError }}
+  </div>
+
+  <ng-container *ngIf="!loadError">
+    <div *ngIf="!analyses || analyses.length === 0" class="alert alert-info mb-0">
+      {{ emptyMessage }}
+    </div>
+
+    <table *ngIf="analyses && analyses.length > 0" class="table table-hover table-sm mb-0">
+      <thead>
+      <tr>
+        <th style="width: 40px;"></th>
+        <th>{{ sampleNumberLabel }}</th>
+        <th>{{ analysisDateLabel }}</th>
+        <th>{{ metabisulfiteLabel }}</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let a of analyses" (click)="select(a)" [class.table-active]="isSelected(a)">
+        <td>
+          <input
+            type="radio"
+            name="selectedAnalysis"
+            [value]="a.id"
+            [checked]="isSelected(a)"
+            (click)="$event.stopPropagation(); select(a)"
+          />
+        </td>
+        <td>{{ a.stockOrderId }}</td>
+        <td>{{ a.analysisDate | date:'short' }}</td>
+        <td>
+          <span *ngIf="a.metabisulfiteLevelAcceptable === true" class="text-success">
+            {{ metabisulfiteYesLabel }}
+          </span>
+          <span *ngIf="a.metabisulfiteLevelAcceptable === false" class="text-danger">
+            {{ metabisulfiteNoLabel }}
+          </span>
+          <span *ngIf="a.metabisulfiteLevelAcceptable == null" class="text-muted">
+            {{ metabisulfiteUnknownLabel }}
+          </span>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="selectedAnalysis" class="mt-3">
+      <h6 class="mb-2">{{ detailsTitleLabel }}</h6>
+
+      <div class="table-responsive mb-2">
+        <table class="table table-sm mb-0">
+          <thead>
+          <tr>
+            <th style="width: 30%">{{ sensorialParameterLabel }}</th>
+            <th style="width: 35%">{{ sensorialRawLabel }}</th>
+            <th style="width: 35%">{{ sensorialCookedLabel }}</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>{{ sensorialOdorLabel }}</td>
+            <td>{{ selectedAnalysis.sensorialRawOdor || '-' }}</td>
+            <td>{{ selectedAnalysis.sensorialCookedOdor || '-' }}</td>
+          </tr>
+          <tr>
+            <td>{{ sensorialTasteLabel }}</td>
+            <td>{{ selectedAnalysis.sensorialRawTaste || '-' }}</td>
+            <td>{{ selectedAnalysis.sensorialCookedTaste || '-' }}</td>
+          </tr>
+          <tr>
+            <td>{{ sensorialColorLabel }}</td>
+            <td>{{ selectedAnalysis.sensorialRawColor || '-' }}</td>
+            <td>{{ selectedAnalysis.sensorialCookedColor || '-' }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="form-group mb-0">
+        <label class="font-weight-bold d-block mb-1">{{ qualityNotesLabel }}</label>
+        <div class="border rounded p-2 bg-light" style="min-height: 3rem; white-space: pre-wrap;">
+          {{ selectedAnalysis.qualityNotes || qualityNotesEmptyLabel }}
+        </div>
+      </div>
+
+      <div *ngIf="selectedAnalysis.qualityDocument" class="mt-2">
+        <button type="button" class="btn btn-link p-0" (click)="downloadQualityDocument()">
+          {{ qualityDocumentLinkLabel }}
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="modal-body text-center">
+    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+    <span class="ml-2">
+      {{ loadingLabel }}
+    </span>
+  </div>
+</ng-template>
+
+<div class="modal-footer" *ngIf="!loading && (!analyses || analyses.length > 0)">
+  <button type="button" class="btn btn-outline-secondary" (click)="cancel()">
+    {{ cancelLabel }}
+  </button>
+  <button type="button" class="btn btn-primary" [disabled]="!selectedId" (click)="continue()">
+    {{ continueLabel }}
+  </button>
+</div>

@@ -14,6 +14,7 @@ import { PrefillLocationsFromProductModalComponent } from './prefill-locations-f
 import { GlobalEventManagerService } from 'src/app/core/global-event-manager.service';
 import { Subscription } from 'rxjs';
 import { NgbModalImproved } from 'src/app/core/ngb-modal-improved/ngb-modal-improved.service';
+import { ApiPlotCoordinate } from 'src/api/model/apiPlotCoordinate';
 
 
 @Component({
@@ -77,6 +78,8 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
   bounds: any;
   initialBounds: any = [];
   isGoogleMapsLoaded = false;
+  mapId = `batch-detail-map-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+  plotCoordinates: ApiPlotCoordinate[] = [];
 
   batch: ApiProductLabelBatch = {};
 
@@ -349,6 +352,34 @@ export class BatchDetailPageComponent implements OnInit, OnDestroy {
     this.initializeMarkers(prodLocations);
     this.fitBounds();
     this.batchDetailForm.markAsDirty();
+  }
+
+  get useMapsGoogle(): boolean {
+    return environment.useMapsGoogle;
+  }
+
+  initializePlotCoordinates(): void {
+    this.plotCoordinates = this.originLocations.value.map((loc: any) => ({
+      latitude: loc.latitude,
+      longitude: loc.longitude
+    }));
+  }
+
+  onMapCoordinatesChange(coords: ApiPlotCoordinate[]): void {
+    // Clear existing locations
+    while (this.originLocations.length > 0) {
+      this.originLocations.removeAt(0);
+    }
+    this.markers = [];
+    this.initialBounds = [];
+
+    // Add new locations from map
+    for (const coord of coords) {
+      const loc = { lat: coord.latitude, lng: coord.longitude };
+      this.addOriginLocations(loc);
+    }
+
+    this.plotCoordinates = coords;
   }
 
 }

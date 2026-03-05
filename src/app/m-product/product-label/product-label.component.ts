@@ -54,6 +54,7 @@ import { maxActiveArrayControls } from '../../../shared/validation';
 import { SelectedUserCompanyService } from '../../core/selected-user-company.service';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { SelfOnboardingService } from '../../shared-services/self-onboarding.service';
+import { ApiPlotCoordinate } from '../../../api/model/apiPlotCoordinate';
 
 @Component({
   selector: 'app-product-label',
@@ -117,6 +118,10 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
 
   get isGoogleMapsLoaded() {  // fix of a Google Maps glitch
     return !!window.google;
+  }
+
+  get useMapsGoogle(): boolean {
+    return environment.useMapsGoogle;
   }
 
   get labelChanged() {
@@ -183,6 +188,8 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
   defaultZoom = 7;
   bounds: any;
   initialBounds: any = [];
+  mapId = `product-label-map-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+  plotCoordinates: ApiPlotCoordinate[] = [];
 
   faTimes = faTimes;
   faArrowsAlt = faArrowsAlt;
@@ -923,6 +930,7 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
 
   initializeMarkers(): void {
     this.markers = [];
+    this.plotCoordinates = [];
     for (const loc of this.originLocations.value) {
       const tmp = {
         position: {
@@ -936,7 +944,29 @@ export class ProductLabelComponent extends ComponentCanDeactivate implements OnI
       };
       this.markers.push(tmp);
       this.initialBounds.push(tmp.position);
+      this.plotCoordinates.push({ latitude: loc.latitude, longitude: loc.longitude });
     }
+  }
+
+  onMapCoordinatesChange(coords: ApiPlotCoordinate[]): void {
+    if (!this.canEdit()) {
+      return;
+    }
+
+    // Clear existing locations
+    while (this.originLocations.length > 0) {
+      this.originLocations.removeAt(0);
+    }
+    this.markers = [];
+    this.initialBounds = [];
+
+    // Add new locations from map
+    for (const coord of coords) {
+      const loc = { lat: coord.latitude, lng: coord.longitude };
+      this.addOriginLocations(loc);
+    }
+
+    this.plotCoordinates = coords;
   }
 
   addOriginLocations(loc) {

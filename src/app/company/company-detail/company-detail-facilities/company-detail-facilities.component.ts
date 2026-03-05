@@ -5,6 +5,7 @@ import { FacilityControllerService } from '../../../../api/api/facilityControlle
 import { shareReplay, switchMap, take, tap } from 'rxjs/operators';
 import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
 import { ApiFacilityLocation } from '../../../../api/model/apiFacilityLocation';
+import { ApiFacility } from '../../../../api/model/apiFacility';
 import { GoogleMap, MapInfoWindow, MapMarker } from '@angular/google-maps';
 import { GlobalEventManagerService } from '../../../core/global-event-manager.service';
 import { ApiPaginatedResponseApiFacility } from '../../../../api/model/apiPaginatedResponseApiFacility';
@@ -15,6 +16,7 @@ import { CompanyControllerService } from '../../../../api/api/companyController.
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { SelfOnboardingService } from '../../../shared-services/self-onboarding.service';
 import { NgbModalImproved } from '../../../core/ngb-modal-improved/ngb-modal-improved.service';
+import { environment } from '../../../../environments/environment';
 import {
   CompanyDetailFacilityAddWizardComponent
 } from '../company-detail-facility-add-wizard/company-detail-facility-add-wizard.component';
@@ -35,9 +37,11 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
   pageSize = 10;
   page = 0;
 
-  gMap = null;
+  useGoogle = environment.useMapsGoogle;
+  gMap: GoogleMap | null = null;
   isGoogleMapsLoaded = false;
-  markers: any = [];
+  googleMarkers: any[] = [];
+  maplibreMarkers: Array<{ lat: number; lng: number; infoText?: string }> = [];
   defaultCenter = {
     lat: -1.831239,
     lng: -78.183406
@@ -75,6 +79,11 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
       inactive: true
     },
     {
+      key: 'order',
+      name: $localize`:@@productLabelFacilities.sortOptions.order.name:Order`,
+      inactive: true
+    },
+    {
       key: 'actions',
       name: $localize`:@@productLabelFacilities.sortOptions.actions.name:Actions`,
       inactive: true
@@ -93,7 +102,10 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
   countAll = new EventEmitter<number>();
 
   @ViewChild(GoogleMap) set map(map: GoogleMap) {
-    if (map) { this.gMap = map; this.fitBounds(); }
+    if (map) {
+      this.gMap = map;
+      this.fitBounds();
+    }
   }
 
   @ViewChild(MapInfoWindow, { static: false })
@@ -121,11 +133,13 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
     this.companyId = this.route.snapshot.params.id;
     this.initializeFacilitiesObservable();
 
-    this.globalEventsManager.loadedGoogleMapsEmitter.subscribe(loaded => {
-      if (loaded) {
-        this.isGoogleMapsLoaded = true;
-      }
-    });
+    if (this.useGoogle) {
+      this.globalEventsManager.loadedGoogleMapsEmitter.subscribe(loaded => {
+        if (loaded) {
+          this.isGoogleMapsLoaded = true;
+        }
+      });
+    }
   }
 
   ngAfterViewInit() {
@@ -185,10 +199,21 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
   }
 
   locationName(location: ApiFacilityLocation) {
+    if (!location || !location.address) {
+      return '';
+    }
     if (location.address.cell != null && location.address.country) { return location.address.cell + ', ' + location.address.country.name; }
     if (location.address.city != null && location.address.country) { return location.address.city + ', ' + location.address.country.name; }
     if (location.address.country != null) { return location.address.country.name; }
     return '';
+  }
+
+  facilityOrderDisplay(facility: ApiFacility) {
+    if (!facility) {
+      return '';
+    }
+    const order = facility.level ?? facility.facilityType?.order;
+    return order != null ? order : '-';
   }
 
   showPagination() {
@@ -205,27 +230,43 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
   }
 
   fitBounds() {
-    if (!this.gMap || this.gMap == null) { return; }
-    this.bounds = new google.maps.LatLngBounds();
+    if (!this.useGoogle) {
+      return;
+    }
+    if (!this.gMap || this.gMap == null) {
+      return;
+    }
+
+    const g = (window as any).google;
+    if (!g?.maps) {
+      return;
+    }
+
+    const googleMap = this.gMap.googleMap;
+    if (!googleMap) {
+      return;
+    }
+
+    this.bounds = new g.maps.LatLngBounds();
     for (const bound of this.initialBounds) {
       this.bounds.extend(bound);
     }
     if (this.bounds.isEmpty()) {
-      this.gMap.googleMap.setCenter(this.defaultCenter);
-      this.gMap.googleMap.setZoom(this.defaultZoom);
+      googleMap.setCenter(this.defaultCenter);
+      googleMap.setZoom(this.defaultZoom);
       return;
     }
     const center = this.bounds.getCenter();
     const offset = 0.02;
-    const northEast = new google.maps.LatLng(
+    const northEast = new g.maps.LatLng(
         center.lat() + offset,
         center.lng() + offset
     );
-    const southWest = new google.maps.LatLng(
+    const southWest = new g.maps.LatLng(
         center.lat() - offset,
         center.lng() - offset
     );
-    const minBounds = new google.maps.LatLngBounds(southWest, northEast);
+    const minBounds = new g.maps.LatLngBounds(southWest, northEast);
     this.gMap.fitBounds(this.bounds.union(minBounds));
   }
 
@@ -275,18 +316,24 @@ export class CompanyDetailFacilitiesComponent extends CompanyDetailTabManagerCom
     if (!data) {
       return;
     }
-    this.markers = [];
+    this.googleMarkers = [];
+    this.maplibreMarkers = [];
     this.initialBounds = [];
     for (const item of data.items) {
       if (item.facilityLocation && item.facilityLocation.publiclyVisible && item.facilityLocation.latitude && item.facilityLocation.longitude) {
+        const lat = item.facilityLocation.latitude;
+        const lng = item.facilityLocation.longitude;
+
         const tmp = {
           position: {
-            lat: item.facilityLocation.latitude,
-            lng: item.facilityLocation.longitude
+            lat,
+            lng
           },
           infoText: item.name
         };
-        this.markers.push(tmp);
+
+        this.googleMarkers.push(tmp);
+        this.maplibreMarkers.push({ lat, lng, infoText: item.name });
         this.initialBounds.push(tmp.position);
       }
     }

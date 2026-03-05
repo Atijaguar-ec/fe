@@ -326,7 +326,192 @@
         </ng-container>
       </ng-container>
 
-      <ng-container *ngIf="this.type !== 'semi-products' && this.type !== 'product-types' && this.type !== 'certification-types'">
+      <!-- Shrimp Catalogs: shrimp-flavor-defects, shrimp-color-grades, shrimp-size-grades, shrimp-process-types -->
+      <ng-container *ngIf="isShrimpCatalogType()">
+        <textinput
+          hideAsterisk="true"
+          [form]="$any(form.get('code'))"
+          label="Código"
+          style="width: 100%"
+          placeholder="Ingresa el código"
+          i18n-label="@@shrimpCatalogDetail.textinput.code.label"
+          i18n-placeholder="@@shrimpCatalogDetail.textinput.code.placeholder"
+          [isInvalid]="submitted && form.get('code').invalid"
+          [readOnly]="this.update">
+          <ng-container *ngIf="submitted">
+            <div *ngIf="form.get('code').errors as errors" class="sc-invalid-feedback">
+              <div *ngIf="errors.required" i18n="@@shrimpCatalogDetail.textinput.code.errorRequired">
+                El código es obligatorio
+              </div>
+            </div>
+          </ng-container>
+        </textinput>
+
+        <textinput
+          hideAsterisk="true"
+          [form]="$any(form.get('label'))"
+          label="Etiqueta"
+          style="width: 100%"
+          placeholder="Ingresa la etiqueta"
+          i18n-label="@@shrimpCatalogDetail.textinput.label.label"
+          i18n-placeholder="@@shrimpCatalogDetail.textinput.label.placeholder"
+          [isInvalid]="submitted && form.get('label').invalid">
+          <ng-container *ngIf="submitted">
+            <div *ngIf="form.get('label').errors as errors" class="sc-invalid-feedback">
+              <div *ngIf="errors.required" i18n="@@shrimpCatalogDetail.textinput.label.error">
+                La etiqueta es obligatoria
+              </div>
+            </div>
+          </ng-container>
+        </textinput>
+
+        <single-choice
+          *ngIf="this.type === 'shrimp-size-grades'"
+          label="Tipo"
+          i18n-label="@@shrimpSizeGradeDetail.singleChoice.sizeType.label"
+          [formControlInput]="$any(form.get('sizeType'))"
+          [codebookService]="codebookShrimpSizeType"
+          [isInvalidChoice]="submitted && form.get('sizeType').invalid">
+          <ng-container *ngIf="submitted">
+            <div *ngIf="form.get('sizeType').errors as errors" class="sc-invalid-feedback">
+              <div *ngIf="errors.required" i18n="@@shrimpSizeGradeDetail.singleChoice.sizeType.error">
+                El tipo es obligatorio
+              </div>
+            </div>
+          </ng-container>
+        </single-choice>
+
+        <single-choice
+          *ngIf="this.type === 'shrimp-presentation-types'"
+          label="Categoría"
+          i18n-label="@@shrimpPresentationTypeDetail.singleChoice.category.label"
+          [formControlInput]="$any(form.get('category'))"
+          [codebookService]="codebookShrimpPresentationCategory"
+          [isInvalidChoice]="submitted && form.get('category').invalid">
+          <ng-container *ngIf="submitted">
+            <div *ngIf="form.get('category').errors as errors" class="sc-invalid-feedback">
+              <div *ngIf="errors.required" i18n="@@shrimpPresentationTypeDetail.singleChoice.category.error">
+                La categoría es obligatoria
+              </div>
+            </div>
+          </ng-container>
+        </single-choice>
+
+        <textinput
+          hideAsterisk="true"
+          [form]="$any(form.get('displayOrder'))"
+          label="Orden"
+          style="width: 100%"
+          placeholder="Ingresa el orden de visualización"
+          i18n-label="@@shrimpCatalogDetail.textinput.displayOrder.label"
+          i18n-placeholder="@@shrimpCatalogDetail.textinput.displayOrder.placeholder"
+          type="number">
+        </textinput>
+
+        <single-choice
+          label="Estado"
+          i18n-label="@@shrimpCatalogDetail.singleChoice.status.label"
+          [formControlInput]="$any(form.get('status'))"
+          [codebookService]="codebookCertificationStatusType"
+          [isInvalidChoice]="submitted && form.get('status').invalid">
+          <ng-container *ngIf="submitted">
+            <div *ngIf="form.get('status').errors as errors" class="sc-invalid-feedback">
+              <div *ngIf="errors.required" i18n="@@shrimpCatalogDetail.singleChoice.status.error">
+                El estado es obligatorio
+              </div>
+            </div>
+          </ng-container>
+        </single-choice>
+
+        <ng-container *ngIf="shrimpCatalogHasTranslations()">
+          <div class="spacer-title-section"></div>
+
+          <small i18n="@@shrimpCatalogDetail.hint.translations">
+            Especifica la etiqueta en inglés y agrega traducciones para todos los idiomas utilizados.
+          </small>
+
+          <div class="d-flex af-translation-language">
+            <div (click)="selectLanguage(languageEnum.EN)"
+                 [ngClass]="selectedLanguage === languageEnum.EN
+                                    ? 'af-translation-language--selected'
+                                    : (submitted && this.form.get('translations').errors && this.form.get('translations').errors.required
+                                        ? 'af-translation-language--error'
+                                        : '')">
+              <img src="../../../assets/icons/icon-flag--united-kingdom.svg" alt="Selected EN lang">
+              <span>EN</span>
+            </div>
+            <div (click)="selectLanguage(languageEnum.ES)"
+                 [ngClass]="selectedLanguage === languageEnum.ES ? 'af-translation-language--selected' : ''">
+              <img src="../../../assets/icons/icon-flag--spain.svg" alt="Select ES lang">
+              <span>ES</span>
+            </div>
+          </div>
+
+          <div class="spacer-title-section"></div>
+
+          <!-- Traducciones para shrimp-flavor-defects y shrimp-process-types (usan 'name') -->
+          <ng-container *ngIf="this.type !== 'shrimp-presentation-types'">
+            <ng-container *ngFor="let translation of this.form.get('translations')['controls']; index as i">
+              <ng-container *ngIf="translation.value.language === selectedLanguage">
+                <textinput
+                  label="Etiqueta"
+                  placeholder="Ingresa la etiqueta"
+                  i18n-label="@@shrimpCatalogDetail.translation.label"
+                  i18n-placeholder="@@shrimpCatalogDetail.translation.placeholder"
+                  [form]="$any(this.form.get('translations.' + i + '.name'))"
+                  [isInvalid]="translation.value.language === languageEnum.EN && submitted && !this.form.get('translations.' + i + '.name').value"
+                  [markRequired]="translation.value.language === languageEnum.EN"
+                  style="width: 100%">
+                  <ng-container *ngIf="submitted && translation.value.language === languageEnum.EN && !this.form.get('translations.' + i + '.name').value">
+                    <div *ngIf="this.form.get('translations').errors as errors" class="sc-invalid-feedback">
+                      <div *ngIf="errors.required" i18n="@@shrimpCatalogDetail.translation.error">
+                        La traducción al inglés es obligatoria
+                      </div>
+                    </div>
+                  </ng-container>
+                </textinput>
+              </ng-container>
+            </ng-container>
+          </ng-container>
+
+          <!-- Traducciones para shrimp-presentation-types (usan 'label' y 'description') -->
+          <ng-container *ngIf="this.type === 'shrimp-presentation-types'">
+            <ng-container *ngFor="let translation of this.form.get('translations')['controls']; index as i">
+              <ng-container *ngIf="translation.value.language === selectedLanguage">
+                <textinput
+                  label="Etiqueta"
+                  placeholder="Ingresa la etiqueta"
+                  i18n-label="@@shrimpPresentationTypeDetail.translation.label"
+                  i18n-placeholder="@@shrimpPresentationTypeDetail.translation.placeholder"
+                  [form]="$any(this.form.get('translations.' + i + '.label'))"
+                  [isInvalid]="translation.value.language === languageEnum.EN && submitted && !this.form.get('translations.' + i + '.label').value"
+                  [markRequired]="translation.value.language === languageEnum.EN"
+                  style="width: 100%">
+                  <ng-container *ngIf="submitted && translation.value.language === languageEnum.EN && !this.form.get('translations.' + i + '.label').value">
+                    <div *ngIf="this.form.get('translations').errors as errors" class="sc-invalid-feedback">
+                      <div *ngIf="errors.required" i18n="@@shrimpPresentationTypeDetail.translation.error">
+                        La traducción al inglés es obligatoria
+                      </div>
+                    </div>
+                  </ng-container>
+                </textinput>
+
+                <textinput
+                  label="Descripción"
+                  placeholder="Ingresa la descripción"
+                  [textarea]="true"
+                  i18n-label="@@shrimpPresentationTypeDetail.translation.description.label"
+                  i18n-placeholder="@@shrimpPresentationTypeDetail.translation.description.placeholder"
+                  [form]="$any(this.form.get('translations.' + i + '.description'))"
+                  style="width: 100%">
+                </textinput>
+              </ng-container>
+            </ng-container>
+          </ng-container>
+        </ng-container>
+      </ng-container>
+
+      <ng-container *ngIf="this.type !== 'semi-products' && this.type !== 'product-types' && this.type !== 'certification-types' && !isShrimpCatalogType()">
         <textinput *ngIf="this.type !== 'processing-evidence-fields'"
                 hideAsterisk="true"
                 [form]="$any(form.get('code'))"

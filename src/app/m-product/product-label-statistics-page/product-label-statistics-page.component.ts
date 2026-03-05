@@ -6,6 +6,8 @@ import { GoogleMap } from '@angular/google-maps';
 import { FormGroup, FormControl } from '@angular/forms';
 import { GlobalEventManagerService } from 'src/app/core/global-event-manager.service';
 import { take } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
+import { JourneyMarker } from 'src/app/shared/maplibre-journey-map/maplibre-journey-map.component';
 
 @Component({
   selector: 'app-product-label-statistics-page',
@@ -31,6 +33,7 @@ export class ProductLabelStatisticsPageComponent implements OnInit, OnDestroy {
   zoomForOnePin = 10;
   bounds: any;
   isGoogleMapsLoaded = false;
+  mapId = `statistics-map-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
 
   initialBoundsAuth: any = [];
   initialBoundsOrig: any = [];
@@ -174,6 +177,30 @@ export class ProductLabelStatisticsPageComponent implements OnInit, OnDestroy {
     this.fitBounds();
   }
 
+
+  get useMapsGoogle(): boolean {
+    return environment.useMapsGoogle;
+  }
+
+  get maplibreMarkers(): JourneyMarker[] {
+    const markers: JourneyMarker[] = [];
+    if (this.locationsForm.get('visitLoc').value) {
+      this.visitMarkers.forEach((m: any) => {
+        markers.push({ lat: m.position.lat, lng: m.position.lng, label: '' });
+      });
+    }
+    if (this.locationsForm.get('authLoc').value) {
+      this.authMarkers.forEach((m: any) => {
+        markers.push({ lat: m.position.lat, lng: m.position.lng, label: '' });
+      });
+    }
+    if (this.locationsForm.get('origLoc').value) {
+      this.origMarkers.forEach((m: any) => {
+        markers.push({ lat: m.position.lat, lng: m.position.lng, label: '' });
+      });
+    }
+    return markers;
+  }
 
   fitBounds() {
     if (!this.gMap) { return; }

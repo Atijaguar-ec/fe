@@ -166,7 +166,15 @@ export class CookieManagementService {
   getForKey(key: string) {
     const kkey = this.allCookieKeys[key];
     if (kkey) {
-      return JSON.parse(localStorage.getItem(kkey));
+      const raw = localStorage.getItem(kkey);
+      if (raw === null || raw === undefined) {
+        return null;
+      }
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
     }
     return null;
   }

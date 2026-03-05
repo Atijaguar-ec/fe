@@ -2,6 +2,7 @@
 
 # Env files
 /src/environments/environment.dev.ts
+/src/assets/env.local.js
 
 # compiled output
 /dist
@@ -50,3 +51,7 @@ Thumbs.db
 
 analisis/*
 .env
+PRODUCT_CONFIG.md
+PRODUCT_CONFIG.md
+README-es.md
+README-es.md
