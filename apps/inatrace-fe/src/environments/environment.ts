@@ -5,7 +5,7 @@
 export const environment = {
   production: false,
   environmentName: (window['env'] || {})['environmentName'] || '',
-  basePath: '',
+  basePath: ((window['env'] || {})['apiBaseUrl'] || 'http://localhost:8082/api').replace(/\/api$/, ''),
   appBaseUrl: (window['env'] || {})['appBaseUrl'] || '',
   qrCodeBasePath: (window['env'] || {})['qrCodeBasePath'] || '',
   chainRelativeFileUploadUrl: '',
@@ -31,6 +31,10 @@ export const environment = {
   harcodedLabelForPrivacyOnRegisterPage: '',
   beycoAuthURL: (window['env'] || {})['beycoAuthURL'] || '',
   beycoClientId: (window['env'] || {})['beycoClientId'] || '',
+  apiBaseUrl: (window['env'] || {})['apiBaseUrl'] || 'http://localhost:8082/api',
+  keycloakUrl: (window['env'] || {})['keycloakUrl'] || 'http://localhost:8080/',
+  keycloakRealm: (window['env'] || {})['keycloakRealm'] || 'inatrace',
+  keycloakClientId: (window['env'] || {})['keycloakClientId'] || 'inatrace-frontend'
 };
 
 /*

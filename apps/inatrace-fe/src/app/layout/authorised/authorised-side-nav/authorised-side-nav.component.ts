@@ -45,9 +45,14 @@ export class AuthorisedSideNavComponent
   ngOnInit() {
     this.sub = this.authService.userProfile$.subscribe((user) => {
       this.user = user;
-      this.isAdmin =
-        user.role === 'SYSTEM_ADMIN' || user.role === 'REGIONAL_ADMIN';
-      this.isConfirmedOnly = user.status === 'CONFIRMED_EMAIL';
+      if (user) {
+        this.isAdmin =
+          user.role === 'SYSTEM_ADMIN' || user.role === 'REGIONAL_ADMIN';
+        this.isConfirmedOnly = user.status === 'CONFIRMED_EMAIL';
+      } else {
+        this.isAdmin = false;
+        this.isConfirmedOnly = false;
+      }
     });
   }
 

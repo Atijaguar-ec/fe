@@ -53,10 +53,7 @@ export function loginMatcher(url) {
 const routes: Routes = [
   {
     matcher: loginMatcher,
-    component: GuestLayoutComponent,
-    children: [
-      { path: '', component: LoginComponent, pathMatch: 'full' },
-    ]
+    redirectTo: 'home'
   },
   {
     path: 'app-version',
@@ -64,6 +61,11 @@ const routes: Routes = [
   },
   {
     path: '',
+    redirectTo: 'home',
+    pathMatch: 'full'
+  },
+  {
+    path: 'landing',
     component: LandingPageLayoutComponent,
     children: [
       { path: '', component: LandingPageComponent, pathMatch: 'full' },

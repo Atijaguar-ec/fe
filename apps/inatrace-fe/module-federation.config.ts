@@ -23,6 +23,18 @@ const config: ModuleFederationConfig = {
         strictVersion: true,
       };
     }
+    if (libraryName === '@turf/turf') {
+      return {
+        ...defaultConfig,
+        requiredVersion: '^6.5.0',
+      };
+    }
+    if (libraryName === 'mapbox-gl') {
+      return {
+        ...defaultConfig,
+        requiredVersion: '3.3.0',
+      };
+    }
     return defaultConfig;
   },
 };

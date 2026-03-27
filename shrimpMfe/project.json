@@ -53,6 +53,14 @@
           "extractLicenses": false,
           "sourceMap": true,
           "namedChunks": true
+        },
+        "dev": {
+          "buildOptimizer": false,
+          "optimization": false,
+          "vendorChunk": true,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "namedChunks": true
         }
       },
       "defaultConfiguration": "production"
@@ -61,6 +69,7 @@
       "continuous": true,
       "executor": "@nx/angular:dev-server",
       "options": {
+        "buildTarget": "shrimpMfe:build",
         "port": 4201,
         "publicHost": "http://localhost:4201"
       },
@@ -70,10 +79,12 @@
         },
         "development": {
           "buildTarget": "shrimpMfe:build:development"
+        },
+        "dev": {
+          "buildTarget": "shrimpMfe:build:dev"
         }
       },
-      "defaultConfiguration": "development",
-      "dependsOn": ["inatrace-fe:serve"]
+      "defaultConfiguration": "development"
     },
     "extract-i18n": {
       "executor": "@angular-devkit/build-angular:extract-i18n",

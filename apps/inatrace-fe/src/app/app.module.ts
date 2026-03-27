@@ -3,6 +3,7 @@ import { APP_BASE_HREF, registerLocaleData } from '@angular/common';
 import {
   HTTP_INTERCEPTORS,
   provideHttpClient,
+  withInterceptors,
   withInterceptorsFromDi,
 } from '@angular/common/http';
 import localeDe from '@angular/common/locales/de';
@@ -57,7 +58,8 @@ import { SettingsComponent } from './settings/settings.component';
 import { SharedModule } from './shared/shared.module';
 import { SystemLeftPanelComponent } from './system-left-panel/system-left-panel.component';
 import { CoreModule } from './core/core.module';
-import { keycloakProviders } from '@inatrace/shared-auth';
+import { provideInatraceAuth } from '@inatrace/shared-auth';
+import { includeBearerTokenInterceptor } from 'keycloak-angular';
 import { TypeDetailModalComponent } from './settings/type-detail-modal/type-detail-modal.component';
 import { TypeListComponent } from './settings/type-list/type-list.component';
 import { UserDetailComponent } from './user/user-detail/user-detail.component';
@@ -196,7 +198,12 @@ export function getConfiguration(): Configuration {
     NgbTooltipModule,
   ],
   providers: [
-    ...keycloakProviders,
+    ...provideInatraceAuth({
+      keycloakUrl: environment.keycloakUrl,
+      keycloakRealm: environment.keycloakRealm,
+      keycloakClientId: environment.keycloakClientId,
+      apiBaseUrl: environment.apiBaseUrl
+    }),
     {
       provide: HTTP_INTERCEPTORS,
       useClass: LanguageInterceptor,
@@ -213,7 +220,10 @@ export function getConfiguration(): Configuration {
       provide: LOCALE_ID,
       useFactory: () => LanguageCodeHelper.getCurrentLocale(),
     },
-    provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClient(
+      withInterceptors([includeBearerTokenInterceptor]),
+      withInterceptorsFromDi()
+    ),
   ],
 })
 export class AppModule {}

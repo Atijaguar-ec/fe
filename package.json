@@ -3,19 +3,19 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "nx serve",
-    "build": "nx build",
-    "build:test": "nx build --configuration=test --aot=true --buildOptimizer=true --optimization=true",
-    "build:prod": "nx build --configuration production=true --aot=true --buildOptimizer=true --optimization=true",
-    "test": "nx test",
-    "lint": "nx lint",
-    "e2e": "nx e2e",
+    "start": "nx serve inatrace-fe",
+    "build": "nx build inatrace-fe",
+    "build:test": "nx build inatrace-fe --configuration=test --aot=true --buildOptimizer=true --optimization=true",
+    "build:prod": "nx build inatrace-fe --configuration production=true --aot=true --buildOptimizer=true --optimization=true",
+    "test": "nx test inatrace-fe",
+    "lint": "nx lint inatrace-fe",
+    "e2e": "nx e2e inatrace-fe-e2e",
     "generate-api": "node generate-api.js",
     "generate-chain-api": "node generate-chain-api.js",
     "update-version": "node update-version.js",
     "extract-i18n-generate-translations": "node generate-translations.js",
-    "dev": "nx serve --configuration=dev --host 0.0.0.0 --proxy-config proxy.INATrace-local.conf.json",
-    "dev-poll": "nx serve --configuration=dev --host 0.0.0.0 --proxy-config proxy.INATrace-local.conf.json --poll 2000"
+    "dev": "nx serve inatrace-fe --devRemotes=shrimpMfe --host 0.0.0.0 --proxy-config proxy.INATrace-local.conf.json",
+    "dev-poll": "nx serve inatrace-fe --devRemotes=shrimpMfe --host 0.0.0.0 --proxy-config proxy.INATrace-local.conf.json --poll 2000"
   },
   "private": true,
   "dependencies": {

@@ -7,15 +7,10 @@
   "implicitDependencies": ["inatrace-fe"],
   "targets": {
     "e2e": {
-      "executor": "@angular-devkit/build-angular:protractor",
+      "executor": "@nx/playwright:playwright",
+      "outputs": ["{workspaceRoot}/dist/.playwright/apps/inatrace-fe-e2e"],
       "options": {
-        "protractorConfig": "apps/inatrace-fe-e2e/protractor.conf.js",
-        "devServerTarget": "inatrace-fe:serve"
-      },
-      "configurations": {
-        "production": {
-          "devServerTarget": "inatrace-fe:serve:production"
-        }
+        "config": "apps/inatrace-fe-e2e/playwright.config.ts"
       }
     },
     "lint": {
