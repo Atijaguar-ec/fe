@@ -343,6 +343,10 @@ const routes: Routes = [
     loadChildren: () => import('./m-product/m-product.module').then(m => m.MProductModule)
   },
   {
+    path: 'shrimp',
+    loadChildren: () => import('shrimpMfe/Module').then((m) => m.RemoteEntryModule),
+  },
+  {
     path: 'account-activation',
     component: GuestLayoutComponent,
     children: [
