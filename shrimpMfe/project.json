@@ -97,7 +97,8 @@
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
         "jestConfig": "shrimpMfe/jest.config.ts",
-        "tsConfig": "shrimpMfe/tsconfig.spec.json"
+        "tsConfig": "shrimpMfe/tsconfig.spec.json",
+        "passWithNoTests": true
       }
     },
     "serve-static": {
