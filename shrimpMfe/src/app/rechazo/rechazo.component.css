@@ -1,0 +1,63 @@
+.page { max-width: 1000px; margin: 0 auto; }
+.helper-text { color: #718096; font-size: 0.95rem; margin-top: -10px; margin-bottom: 15px; }
+
+.conversion-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+  background: #fdfdfd;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #edf2f7;
+}
+
+.conv-input, .conv-output {
+  flex: 1;
+}
+
+.conv-input label, .conv-output label {
+  display: block;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 8px;
+}
+
+.conv-arrow {
+  margin: 0 30px;
+  font-size: 2rem;
+  padding-top: 20px;
+}
+
+.shrinkage-indicator {
+  margin-top: 25px;
+  padding: 16px;
+  background: #fffaf0;
+  border-left: 4px solid #dd6b20;
+  border-radius: 4px;
+  color: #c05621;
+}
+
+.shrinkage-pct {
+  margin-left: 10px;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.btn-primary {
+  background: var(--ina-secondary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(200,119,17,0.3);
+}
+
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }

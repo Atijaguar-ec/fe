@@ -1,0 +1,25 @@
+{
+  "reception_lots": [
+    {
+      "id": "rl-100",
+      "base_lot_number": "250121",
+      "gross_weight_lbs": 2400,
+      "bins_count": 50,
+      "product_type": "ENTERO",
+      "reception_date": "2026-03-27T10:00:00Z"
+    }
+  ],
+  "classification_outputs": [
+    {
+      "id": "co-101",
+      "reception_lot_id": "rl-100",
+      "size_grade": "21_25",
+      "destination": "BLOQUE",
+      "lot_suffix": "250121",
+      "cajetas_count": 300,
+      "weight_lbs": 0,
+      "machine_line": 1,
+      "created_at": "2026-03-27T12:00:00Z"
+    }
+  ]
+}

@@ -25,16 +25,16 @@ import { RouterModule } from '@angular/router';
           <a routerLink="clasificacion" routerLinkActive="active" class="nav-item">
             <span class="nav-text">Clasificación</span>
           </a>
-          <a class="nav-item nav-disabled">
+          <a routerLink="destinos" routerLinkActive="active" class="nav-item">
             <span class="nav-text">Destinos</span>
           </a>
-          <a class="nav-item nav-disabled">
+          <a routerLink="rechazo" routerLinkActive="active" class="nav-item">
             <span class="nav-text">Rechazo</span>
           </a>
-          <a class="nav-item nav-disabled">
+          <a routerLink="liquidacion" routerLinkActive="active" class="nav-item">
             <span class="nav-text">Liquidación</span>
           </a>
-          <a class="nav-item nav-disabled">
+          <a routerLink="masterizado" routerLinkActive="active" class="nav-item">
             <span class="nav-text">Masterizado</span>
           </a>
         </nav>

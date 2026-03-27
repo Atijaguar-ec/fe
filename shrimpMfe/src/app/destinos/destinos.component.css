@@ -1,0 +1,95 @@
+.page {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  background: white;
+}
+
+.data-table th {
+  background: #f8f9fa;
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #4a5568;
+  border-bottom: 2px solid #edf2f7;
+}
+
+.data-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #edf2f7;
+  vertical-align: middle;
+}
+
+.data-table tbody tr:hover {
+  background: #fdfdfd;
+}
+
+.lote-badge {
+  background: var(--ina-primary);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.bloque { background: #e2e8f0; color: #4a5568; }
+.status-badge.iqf { background: #bee3f8; color: #2b6cb0; }
+.status-badge.va { background: #fefcbf; color: #b7791f; }
+.status-badge.salmuera { background: #c6f6d5; color: #2f855a; }
+
+.btn-primary {
+  background: var(--ina-secondary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(200,119,17,0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #4a5568;
+  border: 1px solid #cbd5e0;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-outline:hover {
+  background: #f7fafc;
+}

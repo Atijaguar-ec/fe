@@ -2,7 +2,10 @@
   "defaultBase": "main",
   "namedInputs": {
     "sharedGlobals": [],
-    "default": ["{projectRoot}/**/*", "sharedGlobals"],
+    "default": [
+      "{projectRoot}/**/*",
+      "sharedGlobals"
+    ],
     "production": [
       "default",
       "!{projectRoot}/tsconfig.spec.json",
@@ -19,12 +22,21 @@
   },
   "targetDefaults": {
     "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["production", "^production"],
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "production",
+        "^production"
+      ],
       "cache": true
     },
     "test": {
-      "inputs": ["default", "^production", "{workspaceRoot}/karma.conf.js"],
+      "inputs": [
+        "default",
+        "^production",
+        "{workspaceRoot}/karma.conf.js"
+      ],
       "cache": true
     },
     "lint": {
@@ -36,7 +48,10 @@
       "cache": true
     },
     "e2e": {
-      "inputs": ["default", "^production"],
+      "inputs": [
+        "default",
+        "^production"
+      ],
       "cache": true
     },
     "@nx/eslint:lint": {
@@ -50,7 +65,9 @@
     },
     "@nx/angular:webpack-browser": {
       "cache": true,
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "inputs": [
         "production",
         "^production",
@@ -61,12 +78,21 @@
     },
     "@angular-devkit/build-angular:browser": {
       "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["production", "^production"]
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "production",
+        "^production"
+      ]
     },
     "@nx/jest:jest": {
       "cache": true,
-      "inputs": ["default", "^production", "{workspaceRoot}/jest.preset.js"],
+      "inputs": [
+        "default",
+        "^production",
+        "{workspaceRoot}/jest.preset.js"
+      ],
       "options": {
         "passWithNoTests": true
       },
