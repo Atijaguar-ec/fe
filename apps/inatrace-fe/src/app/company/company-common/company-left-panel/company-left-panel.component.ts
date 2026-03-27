@@ -23,7 +23,7 @@ export class CompanyLeftPanelComponent implements OnInit, OnDestroy {
 
   private companyId: number;
   companyTitle: string;
-  imgStorageKey: string = null;
+  imgStorageKey: string | undefined | null = null;
 
   isSystemOrRegionalAdmin = false;
   isCompanyAdmin = false;
@@ -57,7 +57,7 @@ export class CompanyLeftPanelComponent implements OnInit, OnDestroy {
           if (user && companyProfile) {
             this.companyId = companyProfile.id;
             this.companyTitle = companyProfile.name;
-            this.imgStorageKey = companyProfile.logo.storageKey;
+            this.imgStorageKey = companyProfile.logo?.storageKey;
 
             if (
               user.role === ApiUserGet.RoleEnum.SYSTEMADMIN ||

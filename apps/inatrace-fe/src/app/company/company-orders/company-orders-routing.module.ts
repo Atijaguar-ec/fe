@@ -8,6 +8,7 @@ const routes: Routes = [
   {
     path: '',
     redirectTo: 'received-orders',
+    pathMatch: 'full',
   },
   {
     path: 'received-orders',

@@ -199,9 +199,10 @@ export function generateFormFromMetadata(
   valScheme?: SimpleValidationScheme<any>,
 ): UntypedFormGroup {
   let result = new UntypedFormGroup({});
+  const modelToUse = model ?? {};
   for (let varInfo of metadata.vars) {
     let name = varInfo.name;
-    let value = model[varInfo.name];
+    let value = modelToUse[varInfo.name];
     let validators =
       valScheme &&
       valScheme.fields &&

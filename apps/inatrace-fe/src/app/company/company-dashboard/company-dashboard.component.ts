@@ -524,8 +524,8 @@ export class CompanyDashboardComponent implements OnInit {
 
           // If larger label use only value
           const yAxisLabel =
-            next.data.measureUnitType.label.length < 5
-              ? next.data.measureUnitType.label
+            (next.data.measureUnitType?.label?.length ?? 0) < 5
+              ? next.data.measureUnitType?.label ?? ''
               : '';
 
           this.processingPerformanceMergeOptions = {
@@ -541,11 +541,15 @@ export class CompanyDashboardComponent implements OnInit {
             ],
             series: [
               {
-                name: `${this.graphTranslations.input} (${this.graphTranslations.in} ${next.data.measureUnitType.label})`,
+                name: `${this.graphTranslations.input} (${
+                  this.graphTranslations.in
+                } ${next.data.measureUnitType?.label ?? ''})`,
                 data: inputQuantityData,
               },
               {
-                name: `${this.graphTranslations.output} (${this.graphTranslations.in} ${next.data.measureUnitType.label})`,
+                name: `${this.graphTranslations.output} (${
+                  this.graphTranslations.in
+                } ${next.data.measureUnitType?.label ?? ''})`,
                 data: outputQuantityData,
               },
               {

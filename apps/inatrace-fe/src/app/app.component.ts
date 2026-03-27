@@ -23,6 +23,10 @@ export class AppComponent implements OnInit {
   }
 
   loadGoogleMaps(): void {
+    if (!environment.googleMapsApiKey) {
+      console.warn('Google Maps API key is missing. Skipping script load.');
+      return;
+    }
     window['initMap'] = () => {
       this.globalEventsManager.loadedGoogleMaps(true);
     };

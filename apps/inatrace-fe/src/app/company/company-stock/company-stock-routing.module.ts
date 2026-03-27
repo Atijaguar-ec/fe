@@ -5,6 +5,7 @@ const routes: Routes = [
   {
     path: '',
     redirectTo: 'deliveries',
+    pathMatch: 'full',
   },
   {
     path: 'deliveries',
@@ -30,6 +31,7 @@ const routes: Routes = [
   {
     path: 'orders', // Used for Beyco redirect - after login they redirect to orders
     redirectTo: 'all-stock',
+    pathMatch: 'full',
   },
   {
     path: 'all-stock',

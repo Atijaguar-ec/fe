@@ -39,19 +39,19 @@ import { SelfOnboardingService } from '../../../shared-services/self-onboarding.
 export class CompanyFarmersListComponent
   implements OnInit, OnDestroy, AfterViewInit
 {
-  organizationId;
-  selectedCompany: ApiCompany;
+  organizationId!: number;
+  selectedCompany!: ApiCompany;
   page = 1;
   pageSize = 10;
 
-  showing;
-  farmerCount;
+  showing!: number;
+  farmerCount!: number;
 
   searchNameFarmers = new UntypedFormControl('');
   byCategory = 'BY_NAME';
 
-  farmers$: Observable<any>;
-  plots$: Observable<ApiPlot[]>;
+  farmers$!: Observable<any>;
+  plots$!: Observable<ApiPlot[]>;
   sorting$ = new BehaviorSubject<{ key: string; sortOrder: SortOrder }>({
     key: 'BY_NAME',
     sortOrder: 'ASC',
@@ -188,10 +188,10 @@ export class CompanyFarmersListComponent
 
   isSystemOrRegionalAdmin = false;
 
-  subs: Subscription;
+  subs!: Subscription;
 
   @ViewChild('addFarmerButtonTooltip')
-  addFarmerButtonTooltip: NgbTooltip;
+  addFarmerButtonTooltip!: NgbTooltip;
 
   constructor(
     private globalEventsManager: GlobalEventManagerService,
@@ -280,7 +280,7 @@ export class CompanyFarmersListComponent
         this.companyController.getUserCustomersForCompanyAndTypeByMap(params),
       ),
       map((response) => {
-        if (response) {
+        if (response?.data) {
           this.farmerCount = response.data.count;
           this.showing =
             this.farmerCount >= this.pageSize
@@ -289,6 +289,7 @@ export class CompanyFarmersListComponent
 
           return response.data;
         }
+        return { items: [], count: 0 };
       }),
       tap(() => this.globalEventsManager.showLoading(false)),
       shareReplay(1),
@@ -296,7 +297,7 @@ export class CompanyFarmersListComponent
 
     this.plots$ = this.companyController
       .getUserCustomersPlotsForCompany(this.organizationId)
-      .pipe(map((response) => response.data));
+      .pipe(map((response) => response?.data ?? []));
   }
 
   async addFarmer() {

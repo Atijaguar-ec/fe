@@ -291,7 +291,7 @@ export class ProductLabelComponent
       return ping && id != null ? Number(id) : null;
     },
   ).pipe(
-    filter((val) => val != null),
+    filter((val) => val != null && !isNaN(val)),
     tap(() => {
       this.globalEventsManager.showLoading(true);
     }),
@@ -331,13 +331,13 @@ export class ProductLabelComponent
 
       const pricingTransparencyForm = generateFormFromMetadata(
         pricingTransparencyFormMetadata(),
-        product.settings.pricingTransparency,
+        product.settings?.pricingTransparency ?? null,
         pricingTransparencyValidationScheme,
       );
-      (this.productForm.get('settings') as UntypedFormGroup).setControl(
-        'pricingTransparency',
-        pricingTransparencyForm,
-      );
+      const settingsGroup = this.productForm.get('settings') as UntypedFormGroup;
+      if (settingsGroup && settingsGroup.setControl) {
+        settingsGroup.setControl('pricingTransparency', pricingTransparencyForm);
+      }
 
       const companyFormMediaLinks =
         CompanyDetailComponent.generateSocialMediaForm();
@@ -346,14 +346,14 @@ export class ProductLabelComponent
         ...companyFormMediaLinks.value,
         ...oldMediaLinks,
       });
-      (this.productForm.get('company') as UntypedFormGroup).setControl(
-        'mediaLinks',
-        companyFormMediaLinks,
-      );
+      const companyGroup = this.productForm.get('company') as UntypedFormGroup;
+      if (companyGroup && companyGroup.setControl) {
+        companyGroup.setControl('mediaLinks', companyFormMediaLinks);
+      }
 
       const businessToCustomerSettings = generateFormFromMetadata(
         ApiBusinessToCustomerSettings.formMetadata(),
-        product.businessToCustomerSettings,
+        product.businessToCustomerSettings ?? null,
         ApiBusinessToCustomerSettingsValidationScheme,
       );
       this.productForm.setControl(
@@ -827,10 +827,10 @@ export class ProductLabelComponent
       {},
       pricingTransparencyValidationScheme,
     );
-    (this.productForm.get('settings') as UntypedFormGroup).setControl(
-      'pricingTransparency',
-      pricingTransparencyForm,
-    );
+    const settingsGroup = this.productForm.get('settings') as UntypedFormGroup;
+    if (settingsGroup && settingsGroup.setControl) {
+      settingsGroup.setControl('pricingTransparency', pricingTransparencyForm);
+    }
 
     const originForm = generateFormFromMetadata(
       ApiProductOrigin.formMetadata(),
@@ -869,10 +869,10 @@ export class ProductLabelComponent
 
     const companyFormMediaLinks =
       CompanyDetailComponent.generateSocialMediaForm();
-    (this.productForm.get('company') as UntypedFormGroup).setControl(
-      'mediaLinks',
-      companyFormMediaLinks,
-    );
+    const companyGroup = this.productForm.get('company') as UntypedFormGroup;
+    if (companyGroup && companyGroup.setControl) {
+      companyGroup.setControl('mediaLinks', companyFormMediaLinks);
+    }
     this.productForm.updateValueAndValidity();
     const companyId = this.route.snapshot.params.companyId;
     const valueChainId = this.route.snapshot.params.valueChainId;
@@ -1220,7 +1220,7 @@ export class ProductLabelComponent
   }
 
   googleMapsIsLoaded() {
-    if (this.initialBounds.length === 0) {
+    if (!this.isGoogleMapsLoaded || this.initialBounds.length === 0) {
       return;
     }
     this.bounds = new google.maps.LatLngBounds();

@@ -84,7 +84,7 @@ export class StockPaymentsTabComponent
     await super.ngOnInit();
 
     if (this.companyProfile) {
-      this.currency = this.companyProfile.currency.code;
+      this.currency = this.companyProfile.currency?.code;
     }
   }
 

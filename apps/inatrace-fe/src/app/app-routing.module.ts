@@ -106,7 +106,8 @@ const routes: Routes = [
   },
   {
     path: 'settings',
-    redirectTo: 'settings/additional'
+    redirectTo: 'settings/additional',
+    pathMatch: 'full'
   },
   {
     path: 'settings/additional',
@@ -149,7 +150,8 @@ const routes: Routes = [
   },
   {
     path: 'value-chains/:id',
-    redirectTo: 'value-chains/:id/value-chain'
+    redirectTo: 'value-chains/:id/value-chain',
+    pathMatch: 'full'
   },
   {
     path: 'value-chains/:id/value-chain',
@@ -209,7 +211,8 @@ const routes: Routes = [
   },
   {
     path: 'companies/:id',
-    redirectTo: 'companies/:id/company'
+    redirectTo: 'companies/:id/company',
+    pathMatch: 'full'
   },
   {
     path: 'companies/:id/company',

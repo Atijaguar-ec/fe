@@ -730,7 +730,7 @@ export class StockUnitListComponent
         } else {
           acc.set(item.semiProduct.id, {
             amount: nextTotalQuantity,
-            measureUnit: item.measureUnitType.label,
+            measureUnit: item.measureUnitType?.label,
             stockUnitName: item.semiProduct.name,
           });
         }

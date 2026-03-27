@@ -24,7 +24,7 @@ export class ClipInputTransactionModalComponent implements OnInit {
   constructor(public activeModal: NgbActiveModal) {}
 
   get inputHelpText() {
-    const measureUnitLabel = this.stockOrder.measureUnitType.label;
+    const measureUnitLabel = this.stockOrder?.measureUnitType?.label;
     return (
       $localize`:@@productLabelStockProcessingOrderDetail.clipInputModal.inputQuantity.helpText:Available quantity` +
       `: ${this.stockOrder.availableQuantity} ${measureUnitLabel}`

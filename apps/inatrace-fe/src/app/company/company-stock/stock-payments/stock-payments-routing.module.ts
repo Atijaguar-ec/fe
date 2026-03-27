@@ -8,6 +8,7 @@ const routes: Routes = [
   {
     path: '',
     redirectTo: 'tab',
+    pathMatch: 'full',
   },
   {
     path: 'tab',

@@ -56,16 +56,16 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   plots: Array<ApiPlot>; // used for viewing multiple plots
 
   @Input()
-  pin: ApiPlotCoordinate;
+  pin!: ApiPlotCoordinate;
 
   @Input()
-  farmerId: number;
+  farmerId!: number;
 
   @Input()
-  initialLat: number;
+  initialLat!: number;
 
   @Input()
-  initialLng: number;
+  initialLng!: number;
 
   @Output()
   plotCoordinatesChange = new EventEmitter<Array<ApiPlotCoordinate>>();
@@ -80,7 +80,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   showPlotVisible = false;
 
   @Input()
-  editable: boolean;
+  editable!: boolean;
 
   subscriptions: Subscription = new Subscription();
   markers: Array<mapboxgl.Marker> = [];
@@ -267,20 +267,31 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     // Subscribe to Map style radio group changes
     this.subscriptions.add(
       this.mapStyle.valueChanges.subscribe((value) => {
-        this.map.setStyle(`${this.MAPBOX_STYLE_BASE_PATH}${value}`);
+        if (this.map) {
+          this.map.setStyle(`${this.MAPBOX_STYLE_BASE_PATH}${value}`);
+        }
       }),
     );
   }
 
   flyToCurrentPosition(): void {
     navigator.geolocation.getCurrentPosition((position) => {
-      this.map.flyTo({
-        center: [position.coords.longitude, position.coords.latitude],
-      });
+      if (this.map) {
+        this.map.flyTo({
+          center: [position.coords.longitude, position.coords.latitude],
+        });
+      }
     });
   }
 
   buildMap(): void {
+    if (!environment.mapboxAccessToken) {
+      console.warn(
+        'Mapbox Access Token is missing. Map will not be initialized.',
+      );
+      return;
+    }
+ 
     this.map = new mapboxgl.Map({
       accessToken: environment.mapboxAccessToken,
       container: this.mapId, // id of div that holds the map
@@ -428,7 +439,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   refreshGeoId(farmerId: number, plot: ApiPlot, buttonId: string) {
     this.companyControllerService
-      .refreshGeoIDForUserCustomerPlot(farmerId, plot.id)
+      .refreshGeoIDForUserCustomerPlot(farmerId, plot.id!)
       .subscribe((res) => {
         const data = res.data;
 

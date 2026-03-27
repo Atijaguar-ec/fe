@@ -235,7 +235,7 @@ export class StockPaymentsBulkDetailComponent implements OnInit, OnDestroy {
     if (this.payingCompany) {
       this.bulkPaymentForm.get('payingCompany').setValue(this.payingCompany);
       this.payableFromForm.setValue(this.payingCompany.name);
-      this.currency = this.payingCompany.currency.code;
+      this.currency = this.payingCompany?.currency?.code;
     }
   }
 

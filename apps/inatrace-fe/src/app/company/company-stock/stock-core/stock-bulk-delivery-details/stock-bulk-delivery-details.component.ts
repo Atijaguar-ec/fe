@@ -333,7 +333,7 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
 
     if (this.companyProfile) {
       const obj = {};
-      for (const user of this.companyProfile.users) {
+      for (const user of this.companyProfile.users ?? []) {
         obj[user.id.toString()] = user.name + ' ' + user.surname;
       }
       this.codebookUsers = EnumSifrant.fromObject(obj);

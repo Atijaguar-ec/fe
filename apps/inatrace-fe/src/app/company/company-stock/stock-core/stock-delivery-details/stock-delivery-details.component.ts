@@ -38,6 +38,7 @@ import { SelectedUserCompanyService } from '../../../../core/selected-user-compa
 import { ApiUserGet } from '../../../../../api/model/apiUserGet';
 import { Subscription } from 'rxjs';
 import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
+import { FieldVisibilityService, VisibilityRules } from '../../../../shared-services/field-visibility.service';
 
 @Component({
   selector: 'app-stock-delivery-details',
@@ -108,6 +109,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     private codebookTranslations: CodebookTranslations,
     private authService: AuthService,
     private selUserCompanyService: SelectedUserCompanyService,
+    private fieldVisibilityService: FieldVisibilityService
   ) {}
 
   // Additional proof item factory methods (used when creating ListEditorManger)
@@ -410,7 +412,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
     if (this.companyProfile) {
       const obj = {};
-      for (const user of this.companyProfile.users) {
+      for (const user of this.companyProfile.users ?? []) {
         obj[user.id.toString()] = user.name + ' ' + user.surname;
       }
       this.codebookUsers = EnumSifrant.fromObject(obj);
@@ -434,6 +436,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       ApiStockOrderValidationScheme(this.orderType),
     );
 
+    this.addShrimpControls();
+
     // Initialize preferred way of payments
     this.codebookPreferredWayOfPayment = EnumSifrant.fromObject(
       this.preferredWayOfPaymentList,
@@ -445,6 +449,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
 
     this.stockOrderForm.get('orderType').setValue(this.orderType);
+    this.addShrimpControls();
     this.setDate();
 
     // Set current logged-in user as employee
@@ -469,6 +474,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.order,
       ApiStockOrderValidationScheme(this.orderType),
     );
+
+    this.addShrimpControls();
 
     // Initialize preferred way of payments
     this.codebookPreferredWayOfPayment = EnumSifrant.fromObject(
@@ -590,6 +597,37 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.tareInvalidCheck ||
       this.damagedPriceDeductionInvalidCheck
     );
+  }
+
+  private addShrimpControls() {
+    if (this.stockOrderForm && !this.stockOrderForm.get('flavorTestResult')) {
+      this.stockOrderForm.addControl('flavorTestResult', new UntypedFormControl(this.order ? (this.order as any).flavorTestResult : null));
+    }
+    if (this.stockOrderForm && !this.stockOrderForm.get('purchaseRecommended')) {
+      this.stockOrderForm.addControl('purchaseRecommended', new UntypedFormControl(this.order ? (this.order as any).purchaseRecommended : null));
+    }
+  }
+
+  get flavorTestOptions() {
+    return {
+      'PASSED': $localize`:@@shrimp.flavorTest.passed:Aprobado`,
+      'FAILED': $localize`:@@shrimp.flavorTest.failed:Rechazado`
+    };
+  }
+
+  get purchaseRecommendedOptions() {
+    return {
+      'YES': $localize`:@@shrimp.purchase.recommended.yes:Sí`,
+      'NO': $localize`:@@shrimp.purchase.recommended.no:No`
+    };
+  }
+
+  get codebookFlavorTest() {
+    return EnumSifrant.fromObject(this.flavorTestOptions);
+  }
+
+  get codebookPurchaseRecommended() {
+    return EnumSifrant.fromObject(this.purchaseRecommendedOptions);
   }
 
   onSelectedType(type: StockOrderType) {
@@ -735,59 +773,60 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.location.back();
   }
 
+  get isShrimp(): boolean {
+    const hasShrimpSemiProduct = !!(this.order?.semiProduct?.name?.toUpperCase().includes('CAMARON') || 
+                                  this.order?.semiProduct?.name?.toUpperCase().includes('SHRIMP'));
+    
+    const hasShrimpValueChain = !!(this.facility?.facilityValueChains?.some(vc => 
+      vc.name?.toUpperCase().includes('CAMARON') || 
+      vc.name?.toUpperCase().includes('SHRIMP')
+    ));
+
+    return hasShrimpSemiProduct || hasShrimpValueChain;
+  }
+
+  get visibilityRules(): VisibilityRules {
+    return this.fieldVisibilityService.getVisibilityRules(this.facility, this.order, this.isShrimp);
+  }
+
   get showCollector() {
-    return this.facility && this.facility.displayMayInvolveCollectors;
+    return this.visibilityRules.showCollector;
   }
 
   get readonlyCollector() {
-    return this.facility && !this.facility.displayMayInvolveCollectors;
+    return !this.visibilityRules.showCollector;
   }
 
   get showOrganic() {
-    return (
-      (this.facility && this.facility.displayOrganic) ||
-      this.stockOrderForm.get('organic').value
-    );
+    return this.visibilityRules.showOrganic;
   }
 
   get readonlyOrganic() {
-    return this.facility && !this.facility.displayOrganic;
+    return !this.visibilityRules.showOrganic;
   }
 
   get showWomensOnly() {
-    return (
-      (this.facility && this.facility.displayWomenOnly) ||
-      this.searchWomenCoffeeForm.value
-    );
+    return this.visibilityRules.showWomensOnly;
   }
 
   get readonlyWomensOnly() {
-    return this.facility && !this.facility.displayWomenOnly;
+    return !this.visibilityRules.showWomensOnly;
   }
 
   get showTare() {
-    return (
-      (this.facility && this.facility.displayTare) ||
-      this.stockOrderForm.get('tare').value
-    );
+    return this.visibilityRules.showTare;
   }
 
   get readonlyTare() {
-    return this.facility && !this.facility.displayTare;
+    return !this.visibilityRules.showTare;
   }
 
   get showDamagedPriceDeduction() {
-    return (
-      (this.facility && this.facility.displayPriceDeductionDamage) ||
-      this.stockOrderForm.get('damagedPriceDeduction').value
-    );
+    return this.visibilityRules.showDamagedPriceDeduction;
   }
 
   get showDamagedWeightDeduction() {
-    return (
-      (this.facility && this.facility.displayWeightDeductionDamage) ||
-      this.stockOrderForm.get('damagedWeightDeduction').value
-    );
+    return this.visibilityRules.showDamagedWeightDeduction;
   }
 
   get readonlyDamagedPriceDeduction() {

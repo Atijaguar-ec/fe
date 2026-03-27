@@ -95,7 +95,7 @@ export class CompanyOrdersListComponent implements OnInit {
   }
 
   kgsOf(order: ApiStockOrder) {
-    if (order.measureUnitType.weight) {
+    if (order.measureUnitType?.weight) {
       return order.measureUnitType.weight * order.totalQuantity;
     }
     return '-';

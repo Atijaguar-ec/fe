@@ -60,7 +60,7 @@ export class LabelSelectorCardComponent implements OnInit {
         .pipe(take(1))
         .toPromise();
       if (res && res.status === 'OK' && res.data) {
-        this.qrCodeLink = `${environment.appBaseUrl}/${res.data.settings.language.toLowerCase()}/${environment.qrCodeBasePath}/${this.label.uuid}`;
+        this.qrCodeLink = `${environment.appBaseUrl}/${res.data?.settings?.language?.toLowerCase() ?? 'en'}/${environment.qrCodeBasePath}/${this.label.uuid}`;
       }
     }
   }

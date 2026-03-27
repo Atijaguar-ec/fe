@@ -6,6 +6,7 @@ const routes: Routes = [
   {
     path: '',
     redirectTo: 'value-chain',
+    pathMatch: 'full',
   },
   {
     path: 'value-chain',
