@@ -1,0 +1,45 @@
+<div class="modal-container">
+  <div class="modal-header">
+    <h4 class="modal-title sp-faq-modal-title">{{ title }}</h4>
+  </div>
+  <ng-container *ngIf="codebookMyCompanies">
+    <div class="modal-body">
+      <ng-container *ngIf="userHasCompanies; else userHasNoCompaniesLabel">
+        <div *ngIf="instructionsHtml" [innerHTML]="instructionsHtml"></div>
+        <single-choice
+          [label]="null"
+          [formControlInput]="companyForm"
+          [codebookService]="codebookMyCompanies"
+        >
+        </single-choice>
+      </ng-container>
+      <ng-template #userHasNoCompaniesLabel>
+        <div i18n="@@selectUserCompany.modal.userHasNoCompanies.message">
+          Currently you have no companies assigned. Contact your administrator.
+        </div>
+      </ng-template>
+    </div>
+    <div class="modal-footer">
+      <button
+        *ngIf="userHasCompanies; else userHasNoCompaniesLogoutButton"
+        type="button"
+        class="btn"
+        [class.disabled]="!companyForm.value"
+        (click)="onConfirm()"
+        i18n="@@selectUserCompany.modal.button.confirm"
+      >
+        <span>Confirm</span>
+      </button>
+      <ng-template #userHasNoCompaniesLogoutButton>
+        <button
+          type="button"
+          class="btn"
+          (click)="logout()"
+          i18n="@@selectUserCompany.modal.button.logout"
+        >
+          Logout
+        </button>
+      </ng-template>
+    </div>
+  </ng-container>
+</div>

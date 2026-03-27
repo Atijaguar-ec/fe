@@ -1,0 +1,29 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "./dist/out-tsc",
+    "sourceMap": true,
+    "declaration": false,
+    "module": "es2020",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "target": "es2015",
+    "typeRoots": ["node_modules/@types"],
+    "lib": ["es2018", "dom"],
+    "skipLibCheck": true,
+    "paths": {
+      "@app/*": ["apps/inatrace-fe/src/app/*"],
+      "src/*": ["apps/inatrace-fe/src/*"],
+      "shrimpMfe/Module": ["shrimpMfe/src/app/remote-entry/entry.module.ts"],
+      "@inatrace/shared-ui": ["shared/ui/src/index.ts"],
+      "@inatrace/shared-models": ["shared/models/src/index.ts"],
+      "@inatrace/shared-auth": ["shared/auth/src/index.ts"]
+    },
+    "rootDir": "."
+  },
+  "exclude": ["node_modules", "tmp"]
+}

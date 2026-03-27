@@ -1,0 +1,25 @@
+{
+  "name": "inatrace-fe-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/inatrace-fe-e2e/src",
+  "projectType": "application",
+  "tags": [],
+  "implicitDependencies": ["inatrace-fe"],
+  "targets": {
+    "e2e": {
+      "executor": "@angular-devkit/build-angular:protractor",
+      "options": {
+        "protractorConfig": "apps/inatrace-fe-e2e/protractor.conf.js",
+        "devServerTarget": "inatrace-fe:serve"
+      },
+      "configurations": {
+        "production": {
+          "devServerTarget": "inatrace-fe:serve:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

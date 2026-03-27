@@ -1,0 +1,160 @@
+{
+  "name": "inatrace-fe",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/inatrace-fe/src",
+  "prefix": "app",
+  "generators": {
+    "@schematics/angular:component": {
+      "style": "scss",
+      "skipTests": true
+    },
+    "@schematics/angular:class": {
+      "skipTests": true
+    },
+    "@schematics/angular:directive": {
+      "skipTests": true
+    },
+    "@schematics/angular:guard": {
+      "skipTests": true
+    },
+    "@schematics/angular:module": {},
+    "@schematics/angular:pipe": {
+      "skipTests": true
+    },
+    "@schematics/angular:service": {
+      "skipTests": true
+    }
+  },
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:webpack-browser",
+      "options": {
+        "outputPath": "dist/apps/inatrace-fe",
+        "index": "apps/inatrace-fe/src/index.html",
+        "polyfills": ["apps/inatrace-fe/src/polyfills.ts"],
+        "tsConfig": "apps/inatrace-fe/tsconfig.app.json",
+        "assets": [
+          "apps/inatrace-fe/src/assets",
+          {
+            "glob": "**/*",
+            "input": "node_modules/tinymce/skins",
+            "output": "/tinymce/skins/"
+          },
+          {
+            "glob": "**/*",
+            "input": "node_modules/tinymce/themes",
+            "output": "/tinymce/themes/"
+          },
+          {
+            "glob": "**/*",
+            "input": "node_modules/tinymce/plugins",
+            "output": "/tinymce/plugins/"
+          },
+          {
+            "glob": "**/*",
+            "input": "node_modules/tinymce/icons",
+            "output": "/tinymce/icons/"
+          }
+        ],
+        "styles": ["apps/inatrace-fe/src/styles.scss"],
+        "scripts": ["node_modules/tinymce/tinymce.min.js"],
+        "extractLicenses": false,
+        "sourceMap": true,
+        "optimization": false,
+        "namedChunks": true,
+        "main": "apps/inatrace-fe/src/main.ts",
+        "stylePreprocessorOptions": {
+          "includePaths": [".", "apps/inatrace-fe"]
+        },
+        "customWebpackConfig": {
+          "path": "apps/inatrace-fe/webpack.config.ts"
+        }
+      },
+      "configurations": {
+        "production": {
+          "fileReplacements": [
+            {
+              "replace": "apps/inatrace-fe/src/environments/environment.ts",
+              "with": "apps/inatrace-fe/src/environments/environment.prod.ts"
+            }
+          ],
+          "optimization": true,
+          "outputHashing": "all",
+          "sourceMap": false,
+          "namedChunks": false,
+          "extractLicenses": true,
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "2mb",
+              "maximumError": "5mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "6kb"
+            }
+          ],
+          "customWebpackConfig": {
+            "path": "apps/inatrace-fe/webpack.prod.config.ts"
+          }
+        },
+        "dev": {
+          "fileReplacements": [
+            {
+              "replace": "apps/inatrace-fe/src/environments/environment.ts",
+              "with": "apps/inatrace-fe/src/environments/environment.dev.ts"
+            }
+          ]
+        }
+      },
+      "defaultConfiguration": "",
+      "outputs": ["{options.outputPath.base}"]
+    },
+    "serve": {
+      "executor": "@nx/angular:module-federation-dev-server",
+      "options": {
+        "buildTarget": "inatrace-fe:build",
+        "publicHost": "http://localhost:4200"
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "inatrace-fe:build:production"
+        },
+        "dev": {
+          "buildTarget": "inatrace-fe:build:dev"
+        }
+      }
+    },
+    "extract-i18n": {
+      "executor": "@angular-devkit/build-angular:extract-i18n",
+      "options": {
+        "buildTarget": "inatrace-fe:build"
+      }
+    },
+    "test": {
+      "executor": "@angular-devkit/build-angular:karma",
+      "options": {
+        "main": "apps/inatrace-fe/src/test.ts",
+        "polyfills": "apps/inatrace-fe/src/polyfills.ts",
+        "tsConfig": "apps/inatrace-fe/tsconfig.spec.json",
+        "karmaConfig": "apps/inatrace-fe/karma.conf.js",
+        "assets": ["apps/inatrace-fe/src/assets"],
+        "styles": ["apps/inatrace-fe/src/styles.scss"],
+        "stylePreprocessorOptions": {
+          "includePaths": [".", "apps/inatrace-fe"]
+        },
+        "scripts": []
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": [
+          "apps/inatrace-fe/**/*.ts",
+          "apps/inatrace-fe/**/*.html"
+        ]
+      }
+    }
+  }
+}
