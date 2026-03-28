@@ -1,3 +1,4 @@
+import { InjectionToken } from '@angular/core';
 import { 
   provideKeycloak, 
   withAutoRefreshToken, 
@@ -7,6 +8,19 @@ import {
   UserActivityService,
   INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG
 } from 'keycloak-angular';
+
+/**
+ * DI token that exposes the configured API base URL to any service in the
+ * Nx workspace (host or MFE). Provided automatically by `provideInatraceAuth()`.
+ *
+ * Usage:
+ * ```ts
+ * constructor(@Inject(INATRACE_API_BASE_URL) private apiUrl: string) {}
+ * ```
+ */
+export const INATRACE_API_BASE_URL = new InjectionToken<string>(
+  'INATRACE_API_BASE_URL'
+);
 
 export interface InatraceAuthConfig {
   keycloakUrl: string;
@@ -51,6 +65,10 @@ export function provideInatraceAuth(config: InatraceAuthConfig) {
     {
       provide: INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG,
       useValue: [apiCondition]
+    },
+    {
+      provide: INATRACE_API_BASE_URL,
+      useValue: config.apiBaseUrl
     }
   ];
 }

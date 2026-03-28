@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, Optional } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, BehaviorSubject } from 'rxjs';
 import { map, tap, catchError, switchMap } from 'rxjs/operators';
 import * as mockDb from '../data/shrimp-mock-db.json';
+import { INATRACE_API_BASE_URL } from '@inatrace/shared-auth';
 
 export interface ShrimpFacility {
   id: number;
@@ -40,35 +41,42 @@ export interface ReceptionLot {
   providedIn: 'root'
 })
 export class ShrimpDataService {
-  // Use the same base URL configured in the host app so Keycloak interceptor matches it
-  private baseUrl = (window as any)?.['env']?.['apiBaseUrl'] || 'http://localhost:8082/api';
+  /**
+   * API base URL resolved via dependency injection priority chain:
+   *  1. INATRACE_API_BASE_URL token (provided by host via provideInatraceAuth)
+   *  2. window.env.apiBaseUrl (runtime config injected by Docker/CI)
+   *  3. Dev-only fallback for standalone `nx serve shrimpMfe`
+   */
+  private readonly baseUrl: string;
 
   // We keep the mock data in memory so we can "push" to it during the demo.
   private mockState = { ...mockDb };
   private receptionLotsSubject = new BehaviorSubject<ReceptionLot[]>(
     (this.mockState.reception_lots || []).map((lot: any) => ({
       ...lot,
-      supplier_id: lot.supplier_id ?? null,
-      supplier_name: lot.supplier_name ?? 'N/A'
+      supplier_name: lot.supplier_name || 'N/A'
     }))
   );
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    @Optional() @Inject(INATRACE_API_BASE_URL) injectedApiBaseUrl: string | null
+  ) {
+    this.baseUrl = injectedApiBaseUrl
+      ?? (window as any)?.['env']?.['apiBaseUrl']
+      ?? 'http://localhost:8082/api'; // dev-only fallback — never reached when hosted
+  }
 
   /**
    * 1. LIVE API: Get Active Company Details
    * Calls the real INATrace backend
    */
   getActiveCompany(): Observable<any> {
-    // Uses the profile endpoint to determine the logged-in user's company
     return this.http.get<any>(`${this.baseUrl}/user/profile`).pipe(
-      map(res => {
-        const companyId = res?.data?.companyIds?.[0] || 1;
-        return { id: companyId, name: 'Dufer Cia. Ltda.' };
-      }),
-      catchError(err => {
-        console.warn('Could not fetch active company, using fallback', err);
-        return of({ id: 1, name: 'Dufer Cia. Ltda.' });
+      catchError((err) => {
+        console.warn('Could not fetch active company via API, using shrimp demo fallback (ID 10)');
+        // Fallback to company ID 10 (Dufer) so data is visible even during CORS issues
+        return of({ id: 10, name: 'Empacadora Dufer Cia Ltda' });
       })
     );
   }
@@ -81,12 +89,8 @@ export class ShrimpDataService {
     return this.http.get<any>(`${this.baseUrl}/chain/facility/list/collecting/company/${companyId}?limit=100&offset=0`).pipe(
       map(res => res?.data?.items || []),
       catchError(err => {
-        console.warn('Could not fetch facilities, using fallback', err);
-        return of([
-          { id: 101, name: 'Planta Dufer - Recepción' },
-          { id: 102, name: 'Planta Dufer - Clasificadora' },
-          { id: 103, name: 'Planta Dufer - Túnel IQF' }
-        ]);
+        console.warn('Could not fetch facilities via API, using shrimp fallback', err);
+        return of(this.mockState.facilities);
       })
     );
   }
@@ -148,11 +152,8 @@ export class ShrimpDataService {
         );
       }),
       catchError(err => {
-        console.warn('Could not fetch semi-products, using fallback', err);
-        return of([
-          { id: 49, name: 'Entero' },
-          { id: 50, name: 'Cola' }
-        ]);
+        console.warn('Could not fetch semi-products via API, using shrimp fallback', err);
+        return of(this.mockState.semi_products || []);
       })
     );
   }
@@ -230,7 +231,7 @@ export class ShrimpDataService {
     );
   }
 
-  // ─── Local State & Queries ─────────────────────────────
+  // ─── LOCAL STATE & QUERIES ─────────────────────────────
 
   /**
    * 6. LIVE API: Get Today's Reception Records
@@ -265,8 +266,88 @@ export class ShrimpDataService {
         });
       }),
       catchError(err => {
-        console.warn('Could not fetch today receptions', err);
+        console.warn('Could not fetch today receptions from API, using internal mock fallback', err);
+        // Fallback to internal mocks to avoid "empty" screen if backend is unreachable
+        const mappedMocks = (this.mockState.reception_lots || []).map((mock: any) => ({
+          id: Date.now() + Math.floor(Math.random() * 1000), // Virtual UI ID
+          coreStockOrderId: parseInt(mock.id.replace('rl-', ''), 10) || null, // Convert mock rl-id to number to simulate core id
+          lotNumber: mock.base_lot_number || 'Desconocido',
+          supplierName: mock.supplier_name || 'Proveedor Mock',
+          supplierId: mock.supplier_id || null,
+          pesoBruto: mock.gross_weight_lbs || 0,
+          bines: mock.bins_count || 0,
+          tipo: mock.product_type === 'ENTERO' ? 'Entero' : 'Cola',
+          fecha: new Date(mock.reception_date || new Date()),
+          saved: false // Indicate it's just a mock
+        }));
+        return of(mappedMocks);
+      })
+    );
+  }
+
+  // ─── MÓDULO: CLASIFICACIÓN ─────────────────────────────
+
+  /**
+   * C1. LIVE API: Get Available Reception Lots
+   * Requests open balances for the company that are Entero or Cola
+   */
+  getAvailableForClassification(companyId: number): Observable<any[]> {
+    const params = `isOpenBalanceOnly=true&limit=100&offset=0`;
+    return this.http.get<any>(`${this.baseUrl}/chain/stock-order/list/company/${companyId}?${params}`).pipe(
+      map(res => {
+        const items = res?.data?.items || [];
+        // Only keep "Entero" or "Cola" (which are typically inputs for Clasificación)
+        return items
+          .filter((item: any) => {
+            const name = item.semiProduct?.name || '';
+            return name === 'Entero' || name === 'Cola';
+          })
+          .map((item: any) => ({
+            coreStockOrderId: item.id,
+            lotNumber: item.internalLotNumber || 'Desconocido',
+            pesoBruto: item.totalGrossQuantity || 0,
+            tipo: item.semiProduct?.name || 'Entero',
+            facilityId: item.facility?.id,
+            fecha: new Date(item.productionDate)
+          }));
+      }),
+      tap(l => console.log('[ShrimpDataService] Got stock for classification:', l.length)),
+      catchError(err => {
+        console.warn('Could not fetch stock for classification:', err);
         return of([]);
+      })
+    );
+  }
+
+  /**
+   * C2. LIVE API: Get Classification action definition
+   * Fetches the specific ProcessingAction linked to 'CLAS'
+   */
+  getClassificationAction(companyId: number): Observable<any> {
+    const params = 'actionType=PROCESSING&limit=50';
+    return this.http.get<any>(`${this.baseUrl}/chain/processing-action/list/company/${companyId}?${params}`).pipe(
+      map(res => {
+        const items = res?.data?.items || [];
+        return items.find((pa: any) => pa.prefix === 'CLAS');
+      }),
+      catchError(err => {
+        console.warn('Error fetching classification PA:', err);
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * C3. LIVE API: Submit Classification Order
+   * Performs the multi-target StockOrder depletion -> creation map
+   */
+  submitClassificationOrder(payload: any): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/chain/processing-order`, payload).pipe(
+      map(res => ({ id: res?.data?.id || res?.id, success: true })),
+      tap(result => console.log('[ShrimpDataService] Classification executed:', result)),
+      catchError(err => {
+        console.error('[ShrimpDataService] Error processing classification:', err);
+        throw err;
       })
     );
   }

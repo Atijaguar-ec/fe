@@ -1,9 +1,9 @@
 <ng-container *ngIf="facilities$ | async as facilities">
   <div class="container container--bare">
-    <div class="row" style="margin-top: 30px" *ngIf="categoryOne.length > 0">
+    <div *ngFor="let category of categoriesOrder" class="row" style="margin-top: 30px">
       <div
         class="col-md-6 col-lg-4 col--bare"
-        *ngFor="let facility of categoryOne; index as i"
+        *ngFor="let facility of categories[category]; index as i"
       >
         <app-facility-card
           [facility]="facility"
@@ -12,62 +12,6 @@
           [actions]="processingActions"
         >
         </app-facility-card>
-      </div>
-    </div>
-
-    <div class="row" style="margin-top: 30px" *ngIf="categoryTwo.length > 0">
-      <div
-        class="col-md-6 col-lg-4 col--bare"
-        *ngFor="let facility of categoryTwo; index as i"
-      >
-        <app-facility-card
-          [facility]="facility"
-          [indexInList]="i"
-          [companyId]="companyId"
-          [actions]="processingActions"
-        ></app-facility-card>
-      </div>
-    </div>
-
-    <div class="row" style="margin-top: 30px" *ngIf="categoryThree.length > 0">
-      <div
-        class="col-md-6 col-lg-4 col--bare"
-        *ngFor="let facility of categoryThree; index as i"
-      >
-        <app-facility-card
-          [facility]="facility"
-          [indexInList]="i"
-          [companyId]="companyId"
-          [actions]="processingActions"
-        ></app-facility-card>
-      </div>
-    </div>
-
-    <div class="row" style="margin-top: 30px" *ngIf="categoryFour.length > 0">
-      <div
-        class="col-md-6 col-lg-4 col--bare"
-        *ngFor="let facility of categoryFour; index as i"
-      >
-        <app-facility-card
-          [facility]="facility"
-          [indexInList]="i"
-          [companyId]="companyId"
-          [actions]="processingActions"
-        ></app-facility-card>
-      </div>
-    </div>
-
-    <div class="row" style="margin-top: 30px" *ngIf="categoryFive.length > 0">
-      <div
-        class="col-md-6 col-lg-4 col--bare"
-        *ngFor="let facility of categoryFive; index as i"
-      >
-        <app-facility-card
-          [facility]="facility"
-          [indexInList]="i"
-          [companyId]="companyId"
-          [actions]="processingActions"
-        ></app-facility-card>
       </div>
     </div>
   </div>

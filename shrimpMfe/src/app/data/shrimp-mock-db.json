@@ -2,12 +2,37 @@
   "reception_lots": [
     {
       "id": "rl-100",
-      "base_lot_number": "250121",
+      "base_lot_number": "270326-001",
+      "supplier_id": 1,
+      "supplier_name": "Productor GIZ 1",
       "gross_weight_lbs": 2400,
       "bins_count": 50,
       "product_type": "ENTERO",
       "reception_date": "2026-03-27T10:00:00Z"
+    },
+    {
+      "id": "rl-101",
+      "base_lot_number": "270326-002",
+      "supplier_id": 2,
+      "supplier_name": "Productor GIZ 2",
+      "gross_weight_lbs": 1800,
+      "bins_count": 40,
+      "product_type": "COLA",
+      "reception_date": "2026-03-27T11:30:00Z"
     }
+  ],
+  "facilities": [
+    { "id": 101, "name": "Planta Dufer - Recepción", "code": "RECEPCION" },
+    { "id": 102, "name": "Planta Dufer - Clasificadora", "code": "CLASIFICADORA" },
+    { "id": 103, "name": "Planta Dufer - Túnel IQF", "code": "TUNEL" }
+  ],
+  "suppliers": [
+    { "id": 1, "name": "Camaronera", "surname": "Los Ríos", "displayName": "Camaronera Los Ríos", "type": "FARMER" },
+    { "id": 2, "name": "Estero", "surname": "Hondo S.A.", "displayName": "Estero Hondo S.A.", "type": "FARMER" }
+  ],
+  "semi_products": [
+    { "id": 501, "name": "Entero" },
+    { "id": 502, "name": "Cola" }
   ],
   "classification_outputs": [
     {

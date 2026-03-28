@@ -71,7 +71,8 @@
       "options": {
         "buildTarget": "shrimpMfe:build",
         "port": 4201,
-        "publicHost": "http://localhost:4201"
+        "publicHost": "http://localhost:4201",
+        "proxyConfig": "proxy.INATrace-local.conf.json"
       },
       "configurations": {
         "production": {
