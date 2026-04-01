@@ -416,11 +416,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     const sameProductionDate = selected.every(s => s.productionDate === ref.productionDate);
     const sameSampleNumber = selected.every(s => s.sampleNumber === ref.sampleNumber);
     
-    // Check if all inputs share same shrimp-specific fields for custody/traceability
-    const sameGavetas = selected.every(s => s.numberOfGavetas === ref.numberOfGavetas);
-    const sameBines = selected.every(s => s.numberOfBines === ref.numberOfBines);
-    const samePiscinas = selected.every(s => s.numberOfPiscinas === ref.numberOfPiscinas);
-    const sameGuia = selected.every(s => s.guiaRemisionNumber === ref.guiaRemisionNumber);
+
 
     this.targetStockOrdersArray.controls.forEach(group => {
       // Handle internal lot number - propagate and lock if all inputs share the same lot
@@ -518,39 +514,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
         }
       }
 
-      // CUSTODIA: Propagate shrimp-specific traceability fields
-      // These fields must be preserved through the entire processing chain
-      if (sameGavetas && ref.numberOfGavetas != null) {
-        const gavetas = group.get('numberOfGavetas');
-        if (gavetas) {
-          gavetas.setValue(ref.numberOfGavetas, { emitEvent: false });
-          console.log(' Custodiado N° de Gavetas:', ref.numberOfGavetas);
-        }
-      }
 
-      if (sameBines && ref.numberOfBines != null) {
-        const bines = group.get('numberOfBines');
-        if (bines) {
-          bines.setValue(ref.numberOfBines, { emitEvent: false });
-          console.log(' Custodiado N° de Bines:', ref.numberOfBines);
-        }
-      }
-
-      if (samePiscinas && ref.numberOfPiscinas != null) {
-        const piscinas = group.get('numberOfPiscinas');
-        if (piscinas) {
-          piscinas.setValue(ref.numberOfPiscinas, { emitEvent: false });
-          console.log(' Custodiado N° de Piscinas:', ref.numberOfPiscinas);
-        }
-      }
-
-      if (sameGuia && ref.guiaRemisionNumber != null) {
-        const guia = group.get('guiaRemisionNumber');
-        if (guia) {
-          guia.setValue(ref.guiaRemisionNumber, { emitEvent: false });
-          console.log(' Custodiado N° de Guía de Remisión:', ref.guiaRemisionNumber);
-        }
-      }
     });
   }
 
@@ -563,13 +527,7 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       'womenShare',
       'productionDate',
       'productionLocation',
-      'sampleNumber',
-      'totalQuantity',
-      // Shrimp-specific traceability fields
-      'numberOfGavetas',
-      'numberOfBines',
-      'numberOfPiscinas',
-      'guiaRemisionNumber'
+
     ];
 
     fieldsToReset.forEach(fieldName => {
@@ -1264,12 +1222,8 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
       const newStockOrder = {...repackedSacUnit};
       newStockOrder.creatorId = sourceStockOrder.creatorId;
       newStockOrder.internalLotNumber = sourceStockOrder.internalLotNumber;
-      // Traceability: inherit week number and shrimp custody fields from the source TSO
+      // Traceability: inherit week number from the source TSO
       newStockOrder.weekNumber = sourceStockOrder.weekNumber;
-      newStockOrder.numberOfGavetas = sourceStockOrder.numberOfGavetas;
-      newStockOrder.numberOfBines = sourceStockOrder.numberOfBines;
-      newStockOrder.numberOfPiscinas = sourceStockOrder.numberOfPiscinas;
-      newStockOrder.guiaRemisionNumber = sourceStockOrder.guiaRemisionNumber;
       newStockOrder.facility = sourceStockOrder.facility;
       newStockOrder.semiProduct = sourceStockOrder.semiProduct;
       newStockOrder.finalProduct = sourceStockOrder.finalProduct;

@@ -706,7 +706,7 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
     const targetStockOrders: ApiStockOrder[] = [];
 
     for (const [index, selectedStockOrder] of this.selectedInputStockOrders.entries()) {
-      // 🦐 Usar internalLotNumber si existe, sino usar identifier como fallback (para entregas iniciales)
+      // Usar internalLotNumber si existe, sino usar identifier como fallback (para entregas iniciales)
       const baseLotNumber = sourceStockOrder.internalLotNumber || selectedStockOrder.identifier || selectedStockOrder.id?.toString() || '';
       const newStockOrder: ApiStockOrder = {
         facility: sourceStockOrder.facility,
@@ -714,11 +714,7 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
         finalProduct: selectedStockOrder.finalProduct,
         internalLotNumber: this.selectedInputStockOrders.length > 1 ? `${baseLotNumber}/${index + 1}` : baseLotNumber,
         weekNumber: selectedStockOrder.weekNumber ?? sourceStockOrder.weekNumber,
-        // 🦐 Traceability: always inherit shrimp-specific custody fields when transferring
-        numberOfGavetas: selectedStockOrder.numberOfGavetas ?? sourceStockOrder.numberOfGavetas,
-        numberOfBines: selectedStockOrder.numberOfBines ?? sourceStockOrder.numberOfBines,
-        numberOfPiscinas: selectedStockOrder.numberOfPiscinas ?? sourceStockOrder.numberOfPiscinas,
-        guiaRemisionNumber: selectedStockOrder.guiaRemisionNumber ?? sourceStockOrder.guiaRemisionNumber,
+
         creatorId: this.processingUserId,
         productionDate: selectedStockOrder.productionDate ? selectedStockOrder.productionDate : (dateISOString(new Date()) as any),
         orderType: OrderTypeEnum.TRANSFERORDER,

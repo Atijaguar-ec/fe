@@ -19,8 +19,7 @@ import { SelfOnboardingService } from '../../../../shared-services/self-onboardi
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { EnvironmentInfoService } from '../../../../core/environment-info.service';
 import { NgbModalImproved } from '../../../../core/ngb-modal-improved/ngb-modal-improved.service';
-import { FieldInspectionSelectionModalComponent } from '../field-inspection-selection-modal/field-inspection-selection-modal.component';
-import { ApiFieldInspection } from '../../../../core/api/field-inspection.service';
+
 
 declare const $localize: any;
 
@@ -134,48 +133,8 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
       return;
     }
 
-    const facility = this.facilityForStockOrderForm.value as ApiFacility;
-    const isShrimp = this.envInfo.isProductType('shrimp');
-    const isFieldInspection = facility && facility.isFieldInspection;
-    
-    // Para camarón: Si NO es inspección en campo, mostrar modales de selección
-    const canLinkFieldInspection = isShrimp && !isFieldInspection;
-
-    let selectedFieldInspection: ApiFieldInspection | null = null;
-
-    // 🔍 Paso 1: Mostrar modal de inspección de campo (opcional)
-    if (canLinkFieldInspection) {
-      try {
-        const fieldModalRef = this.modalService.open(FieldInspectionSelectionModalComponent, {
-          centered: true,
-          backdrop: 'static',
-          keyboard: false,
-          size: 'lg'
-        }, {
-          companyId: this.companyId,
-          onlyRecommended: false
-        });
-
-        const fieldResult = await fieldModalRef.result;
-        if (fieldResult === undefined) {
-          return;
-        }
-        selectedFieldInspection = fieldResult as ApiFieldInspection | null;
-      } catch (e) {
-        // User cancelled - abort navigation
-        return;
-      }
-    }
-
-    // Construir query params
-    const queryParams: any = {};
-    if (selectedFieldInspection) {
-      queryParams.fieldInspectionId = selectedFieldInspection.id;
-    }
-
     this.router.navigate(
-      ['my-stock', 'deliveries', 'facility', this.selectedFacilityId, 'deliveries', 'new'],
-      { queryParams }
+      ['my-stock', 'deliveries', 'facility', this.selectedFacilityId, 'deliveries', 'new']
     ).then();
   }
 
@@ -188,45 +147,8 @@ export class StockDeliveriesTabComponent extends StockCoreTabComponent implement
       return;
     }
 
-    const facility = this.facilityForStockOrderForm.value as ApiFacility;
-    const isShrimp = this.envInfo.isProductType('shrimp');
-    const isFieldInspection = facility && facility.isFieldInspection;
-    
-    const canLinkFieldInspection = isShrimp && !isFieldInspection;
-
-    let selectedFieldInspection: ApiFieldInspection | null = null;
-
-    // 🔍 Paso 1: Mostrar modal de inspección de campo (opcional)
-    if (canLinkFieldInspection) {
-      try {
-        const fieldModalRef = this.modalService.open(FieldInspectionSelectionModalComponent, {
-          centered: true,
-          backdrop: 'static',
-          keyboard: false,
-          size: 'lg'
-        }, {
-          companyId: this.companyId,
-          onlyRecommended: false
-        });
-
-        const fieldResult = await fieldModalRef.result;
-        if (fieldResult === undefined) {
-          return;
-        }
-        selectedFieldInspection = fieldResult as ApiFieldInspection | null;
-      } catch (e) {
-        return;
-      }
-    }
-
-    const queryParams: any = {};
-    if (selectedFieldInspection) {
-      queryParams.fieldInspectionId = selectedFieldInspection.id;
-    }
-
     this.router.navigate(
-      ['my-stock', 'deliveries', 'facility', this.selectedFacilityId, 'deliveries', 'new-bulk'],
-      { queryParams }
+      ['my-stock', 'deliveries', 'facility', this.selectedFacilityId, 'deliveries', 'new-bulk']
     ).then();
   }
 

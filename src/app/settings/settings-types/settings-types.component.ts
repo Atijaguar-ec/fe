@@ -5,7 +5,6 @@ import { GlobalEventManagerService } from 'src/app/core/global-event-manager.ser
 import { NgbModalImproved } from 'src/app/core/ngb-modal-improved/ngb-modal-improved.service';
 import { SettingsComponent } from '../settings.component';
 import { AuthService } from '../../core/auth.service';
-import { EnvironmentInfoService } from '../../core/environment-info.service';
 
 @Component({
   selector: 'app-settings-types',
@@ -21,18 +20,12 @@ export class SettingsTypesComponent extends SettingsComponent {
     protected commonController: CommonControllerService,
     protected modalService: NgbModalImproved,
     protected router: Router,
-    protected authService: AuthService,
-    public environmentService: EnvironmentInfoService
+    protected authService: AuthService
   ) {
     super(
         globalEventsManager, commonController, modalService, router, authService);
   }
 
-  /**
-   * Check if shrimp catalogs should be displayed
-   */
-  get isShrimp(): boolean {
-    return this.environmentService.isProductType('shrimp');
-  }
+
 
 }

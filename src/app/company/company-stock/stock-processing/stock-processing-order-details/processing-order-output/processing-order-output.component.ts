@@ -151,12 +151,7 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
     return this.productStrategy.isClassificationMode(this.selectedInputFacility);
   }
 
-  // Backwards-compatible wrapper for legacy template binding
-  // The template still uses shouldShowLaboratoryFields(tsoGroup),
-  // so delegate to the new strategy method shouldShowLaboratorySection.
-  shouldShowLaboratoryFields(tsoGroup: AbstractControl): boolean {
-    return this.productStrategy.shouldShowLaboratorySection(tsoGroup, this.selectedInputFacility);
-  }
+
 
   getTSOGroupRepackedOutputsArray(tsoGroup: AbstractControl): FormArray {
     return tsoGroup.get('repackedOutputsArray') as FormArray;
@@ -175,11 +170,11 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
     this.calcRemainingQuantity.emit();
   }
 
-  private ensureLaboratoryControls(tsoGroup: FormGroup): void {
+  private ensureExtraControls(tsoGroup: FormGroup): void {
     this.productStrategy.ensureExtraControls(tsoGroup);
   }
 
-  private updateLaboratoryFieldValidators(tsoGroup: FormGroup): void {
+  private updateExtraFieldValidators(tsoGroup: FormGroup): void {
     this.productStrategy.updateValidators(tsoGroup, this.selectedInputFacility);
   }
 
@@ -432,8 +427,8 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
 
     tsoGroup.setControl('requiredProcEvidenceFieldGroup', requiredProcEvidenceFieldGroup);
 
-    this.ensureLaboratoryControls(tsoGroup);
-    this.updateLaboratoryFieldValidators(tsoGroup);
+    this.ensureExtraControls(tsoGroup);
+    this.updateExtraFieldValidators(tsoGroup);
 
     // Register value change listeners for specific fields
     const totalQuantityControl = tsoGroup.get('totalQuantity');
@@ -465,7 +460,7 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
     const facilityControl = tsoGroup.get('facility');
     if (facilityControl) {
       this.subscriptions.push(facilityControl.valueChanges
-        .subscribe(() => this.updateLaboratoryFieldValidators(tsoGroup)));
+        .subscribe(() => this.updateExtraFieldValidators(tsoGroup)));
     }
 
     // Set specific fields to default disabled state

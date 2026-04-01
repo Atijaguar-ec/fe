@@ -214,7 +214,7 @@
                                 <div class="readonly-value">{{ plantInfo.plantCultivatedArea || '—' }} {{ farmer.farm?.areaUnit || '' }}</div>
                                 <div *ngIf="plantInfo.numberOfPlants" class="readonly-field">
                                     <label>
-                                        {{ isShrimpSystem() ? 'Número de piscinas de ' : 'Número de plantas de ' }}{{ plantInfo.productType?.name }}
+                                        Número de plantas de {{ plantInfo.productType?.name }}
                                     </label>
                                     <div class="readonly-value">{{ plantInfo.numberOfPlants }}</div>
                                 </div>

@@ -5,7 +5,6 @@ import { ProductContext } from '../../../core/product-context';
  * Base abstract strategy for product-specific behavior in CompanyDetailFacilityAddComponent.
  */
 export abstract class FacilityProductStrategy {
-  abstract readonly isShrimpProduct: boolean;
 
   abstract ensureClassificationProcessControl(form: FormGroup, initialValue: boolean): void;
 
@@ -16,7 +15,6 @@ export abstract class FacilityProductStrategy {
  * Default strategy for products without shrimp-specific facility behavior (e.g. cocoa, coffee).
  */
 class DefaultFacilityProductStrategy extends FacilityProductStrategy {
-  readonly isShrimpProduct = false;
 
   ensureClassificationProcessControl(form: FormGroup, initialValue: boolean): void {
     let control = form.get('isClassificationProcess') as FormControl | null;
@@ -49,7 +47,6 @@ class DefaultFacilityProductStrategy extends FacilityProductStrategy {
  * Strategy for shrimp-specific facility behavior.
  */
 class ShrimpFacilityProductStrategy extends FacilityProductStrategy {
-  readonly isShrimpProduct = true;
 
   ensureClassificationProcessControl(form: FormGroup, initialValue: boolean): void {
     let control = form.get('isClassificationProcess') as FormControl | null;

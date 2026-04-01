@@ -110,9 +110,7 @@ export class CompanyFarmersReportComponent implements OnInit, OnDestroy {
     return this.farmer?.id ? `${this.farmer.id}` : '';
   }
 
-  isShrimpSystem(): boolean {
-    return this.fieldVisibilityService.isSystemConfiguredFor('SHRIMP');
-  }
+
 
   shouldShowField(fieldName: string): boolean {
     return this.fieldVisibilityService.shouldShowField(fieldName);

@@ -35,7 +35,7 @@ import { SelectedUserCompanyService } from '../../../../core/selected-user-compa
 import { ApiUserGet } from '../../../../../api/model/apiUserGet';
 import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
 import { Subscription } from 'rxjs';
-import { LaboratoryAnalysisService } from '../../../../core/api/laboratory-analysis.service';
+
 declare const $localize: (messageParts: TemplateStringsArray, ...placeholders: any[]) => string;
 
 @Component({
@@ -72,7 +72,6 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   private facility: ApiFacility;
 
-  private labAnalysisId: number | null = null;
   private srcStockOrderId: number | null = null;
 
   updatePOInProgress = false;
@@ -106,11 +105,9 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
       private stockOrderControllerService: StockOrderControllerService,
       private codebookTranslations: CodebookTranslations,
       private authService: AuthService,
-      private selUserCompanyService: SelectedUserCompanyService,
-      private laboratoryAnalysisService: LaboratoryAnalysisService
+      private selUserCompanyService: SelectedUserCompanyService
   ) {
     const qp = this.route.snapshot.queryParams || {};
-    this.labAnalysisId = qp.labAnalysisId != null ? Number(qp.labAnalysisId) : null;
     this.srcStockOrderId = qp.srcStockOrderId != null ? Number(qp.srcStockOrderId) : null;
   }
 
@@ -396,15 +393,6 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
         const po = res.data;
         const firstFarmer = po && po.farmers && po.farmers.length > 0 ? po.farmers[0] : null;
         const destId = firstFarmer && firstFarmer.id ? firstFarmer.id : null;
-
-        if (this.labAnalysisId && destId) {
-          try {
-            await this.laboratoryAnalysisService
-              .markUsed(this.labAnalysisId, destId)
-              .pipe(take(1))
-              .toPromise();
-          } catch (_) {}
-        }
 
         if (close) {
           this.dismiss();

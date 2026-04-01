@@ -1,8 +1,6 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { EnumSifrant } from '../../shared-services/enum-sifrant';
-import { ShrimpFlavorDefectControllerService } from '../../../api/api/shrimpFlavorDefectController.service';
-import { ShrimpColorGradeControllerService } from '../../../api/api/shrimpColorGradeController.service';
 import { take } from 'rxjs/operators';
 
 declare const $localize: (messageParts: TemplateStringsArray, ...placeholders: any[]) => string;
@@ -55,10 +53,7 @@ export class SensorialQualityFieldsComponent implements OnInit {
     FUERTE: $localize`:@@sensorialQualityFields.intensity.fuerte:Fuerte`
   });
 
-  constructor(
-    private shrimpFlavorDefectService: ShrimpFlavorDefectControllerService,
-    private shrimpColorGradeService: ShrimpColorGradeControllerService
-  ) {}
+  constructor() {}
 
   ngOnInit(): void {
     this.ensureFormControls();
@@ -71,53 +66,10 @@ export class SensorialQualityFieldsComponent implements OnInit {
    * - Color: del catálogo ShrimpColorGrade (A1, A2, A3, A4)
    */
   private async loadSensorialOptions(): Promise<void> {
-    // Cargar defectos de sabor para Olor y Sabor
-    try {
-      const res = await this.shrimpFlavorDefectService
-        .getActiveShrimpFlavorDefects('ES')
-        .pipe(take(1))
-        .toPromise();
-      
-      const items = res?.data || [];
-      
-      // Construir codebook: primero "Normal", luego todos los defectos
-      const map: Record<string, string> = {
-        NORMAL: this.normalLabel
-      };
-      
-      items.forEach(defect => {
-        if (defect && defect.id != null) {
-          map[String(defect.id)] = defect.label || defect.code;
-        }
-      });
-      
-      this.flavorOptionsCodebook = EnumSifrant.fromObject(map);
-    } catch (_) {
-      this.flavorOptionsCodebook = EnumSifrant.fromObject({
-        NORMAL: this.normalLabel
-      });
-    }
-
-    // Cargar grados de color
-    try {
-      const res = await this.shrimpColorGradeService
-        .getActiveShrimpColorGrades()
-        .pipe(take(1))
-        .toPromise();
-      
-      const items = res?.data || [];
-      const map: Record<string, string> = {};
-      
-      items.forEach(grade => {
-        if (grade && grade.id != null) {
-          map[String(grade.id)] = grade.label || grade.code;
-        }
-      });
-      
-      this.colorOptionsCodebook = EnumSifrant.fromObject(map);
-    } catch (_) {
-      this.colorOptionsCodebook = EnumSifrant.fromObject({});
-    }
+    this.flavorOptionsCodebook = EnumSifrant.fromObject({
+      NORMAL: this.normalLabel
+    });
+    this.colorOptionsCodebook = EnumSifrant.fromObject({});
   }
 
   /**

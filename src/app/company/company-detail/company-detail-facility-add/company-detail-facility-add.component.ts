@@ -185,8 +185,6 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
     this.form = generateFormFromMetadata(ApiFacility.formMetadata(), this.emptyObject(), ApiFacilityValidationScheme);
     (this.form as FormGroup).setControl('valueChains', this.selectedCompanyValueChainsControl);
     this.finalizeForm();
-    this.ensureClassificationProcessControl(false);
-    this.ensureFreezingProcessControl(false);
     this.initializeLevelControl(null);
     this.registerFacilityTypeLevelDefaults();
     this.registerValidatorsOnUpdate();
@@ -224,8 +222,6 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
       if (tmpCollection != null) { isCollection?.setValue(tmpCollection.toString()); }
 
       this.finalizeForm();
-      this.ensureClassificationProcessControl(Boolean(facilityData.isClassificationProcess));
-      this.ensureFreezingProcessControl(Boolean(facilityData.isFreezingProcess));
       this.registerFacilityTypeLevelDefaults();
       this.registerValidatorsOnUpdate();
       this.registerValueChainSubs();
@@ -252,15 +248,6 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
     object.company = defaultEmptyObject(ApiCompanyBase.formMetadata()) as ApiCompanyBase;
     object.facilityLocation = defaultEmptyObject(ApiFacilityLocation.formMetadata()) as ApiFacilityLocation;
     object.facilityLocation.address = defaultEmptyObject(ApiAddress.formMetadata()) as ApiAddress;
-    object.isFieldInspection = false;
-    object.isClassificationProcess = false;
-    object.isFreezingProcess = false;
-    object.isCuttingProcess = false;
-    object.isTreatmentProcess = false;
-    object.isTunnelFreezing = false;
-    object.isWashingArea = false;
-    object.isRestArea = false;
-    object.isDeheadingProcess = false;
     return object;
   }
 
@@ -440,27 +427,6 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
     return LanguageEnum;
   }
 
-  /**
-   * Ensure the form contains the isClassificationProcess checkbox control
-   * and apply default visibility rules. The flag only applies for shrimp.
-   */
-  private ensureClassificationProcessControl(initialValue: boolean) {
-    this.facilityProductStrategy.ensureClassificationProcessControl(this.form, initialValue);
-  }
 
-  /**
-   * Ensure the form contains the isFreezingProcess checkbox control
-   * and apply default visibility rules. The flag only applies for shrimp.
-   */
-  private ensureFreezingProcessControl(initialValue: boolean) {
-    this.facilityProductStrategy.ensureFreezingProcessControl(this.form, initialValue);
-  }
-
-  /**
-   * Check if the current product type is SHRIMP
-   */
-  get isShrimpProduct(): boolean {
-    return this.facilityProductStrategy.isShrimpProduct;
-  }
 
 }

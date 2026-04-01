@@ -626,14 +626,7 @@
             </div>
         </ng-container>
         
-        <!-- CAMPOS ESPECÍFICOS PARA LABORATORIO SEGÚN PRODUCTO -->
-        <ng-container *ngIf="shouldShowLaboratoryFields(tsoGroup)">
-            <app-processing-output-lab-shrimp
-                [tsoGroup]="$any(tsoGroup)"
-                [submitted]="submitted"
-                [tsoIndex]="tsoGroupIndex">
-            </app-processing-output-lab-shrimp>
-        </ng-container>
+
 
         <!-- DISPLAY THE PROCESSING EVIDENCE FIELDS -->
         <ng-container *ngIf="selectedProcAction.requiredEvidenceFields">

@@ -18,9 +18,9 @@ import { StockProcessingOrderDetailsComponent } from './stock-processing-order-d
 import { ProcessingOrderInputComponent } from './stock-processing-order-details/processing-order-input/processing-order-input.component';
 import { ProcessingOrderOutputComponent } from './stock-processing-order-details/processing-order-output/processing-order-output.component';
 import { ProcessingOrderOutputClassificationComponent } from './stock-processing-order-details/processing-order-output-classification/processing-order-output-classification.component';
-import { ProcessingOutputLabShrimpComponent } from './stock-processing-order-details/processing-order-output/processing-output-lab-shrimp.component';
+
 import { ProcessingOutputProductStrategy, processingOutputStrategyFactory } from './stock-processing-order-details/processing-order-output/processing-output-product-strategy';
-import { PRODUCT_CONTEXT } from '../../../core/product-context';
+
 
 @NgModule({
   declarations: [
@@ -32,8 +32,7 @@ import { PRODUCT_CONTEXT } from '../../../core/product-context';
     StockProcessingOrderDetailsComponent,
     ProcessingOrderInputComponent,
     ProcessingOrderOutputComponent,
-    ProcessingOrderOutputClassificationComponent,
-    ProcessingOutputLabShrimpComponent
+    ProcessingOrderOutputClassificationComponent
   ],
     imports: [
         CommonModule,
@@ -51,8 +50,7 @@ import { PRODUCT_CONTEXT } from '../../../core/product-context';
   providers: [
     {
       provide: ProcessingOutputProductStrategy,
-      useFactory: processingOutputStrategyFactory,
-      deps: [PRODUCT_CONTEXT]
+      useFactory: processingOutputStrategyFactory
     }
   ]
 })
