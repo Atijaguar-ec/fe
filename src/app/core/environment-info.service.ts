@@ -118,8 +118,6 @@ export class EnvironmentInfoService {
         return 'Café';
       case 'cocoa':
         return 'Cacao';
-      case 'shrimp':
-        return 'Camarón';
       default:
         return this.capitalize(normalized || 'producto');
     }
@@ -132,8 +130,6 @@ export class EnvironmentInfoService {
         return '/assets/icons/icon-coffee.png';
       case 'cocoa':
         return '/assets/icons/icon-cocoa.png';
-      case 'shrimp':
-        return '/assets/icons/icon-shrimp.png';
       default:
         return '/assets/icons/icon-self-onboarding-assistant.png';
     }
@@ -142,7 +138,7 @@ export class EnvironmentInfoService {
   /**
    * Check if the current product type matches a specific type
    */
-  isProductType(type: 'coffee' | 'cocoa' | 'shrimp'): boolean {
+  isProductType(type: 'coffee' | 'cocoa'): boolean {
     return this.normalizeProductType(this.primaryProductType) === type;
   }
 

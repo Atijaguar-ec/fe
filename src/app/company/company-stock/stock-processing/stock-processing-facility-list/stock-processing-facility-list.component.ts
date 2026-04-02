@@ -61,9 +61,7 @@ export class StockProcessingFacilityListComponent implements OnInit {
         map((res: ApiPaginatedResponseApiFacility) => {
           const data = (res?.data ?? { items: [], count: 0 }) as ApiPaginatedListApiFacility;
 
-          // Filtrar instalaciones que son solo puntos de inspección de campo
-          // Estas áreas no realizan procesos de transformación
-          const filteredItems: ApiFacility[] = (data.items ?? []).filter(f => f.isFieldInspection !== true);
+          const filteredItems: ApiFacility[] = data.items ?? [];
 
           const filteredCount = filteredItems.length;
           this.showedFacilities = filteredCount;

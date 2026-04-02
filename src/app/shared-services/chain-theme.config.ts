@@ -64,7 +64,6 @@ export interface ThemePalette {
 
 export interface ChainThemes {
   cocoa: ThemePalette;
-  shrimp: ThemePalette;
   coffee: ThemePalette;
 }
 
@@ -128,53 +127,6 @@ export const CHAIN_THEMES: ChainThemes = {
   // ============================================================================
   cocoa: {
     ...DEFAULT_THEME
-  },
-
-  // ============================================================================
-  // SHRIMP - Aquatic blue/turquoise theme
-  // ============================================================================
-  shrimp: {
-    // Brand Colors - Ocean blues and turquoise
-    primary: '#0077BE',           // Deep ocean blue
-    primaryLight: '#4DA6D8',      // Light blue
-    primaryLighter: '#87CEEB',    // Sky blue
-    primaryLightest: '#E0F4FF',   // Very light blue
-    secondary: '#004F7C',         // Dark navy
-    tertiary: '#00BFA5',          // Turquoise accent
-
-    // Semantic Colors - Adjusted for aquatic theme
-    success: '#00BFA5',           // Turquoise (growth, sustainability)
-    info: '#0077BE',              // Primary blue
-    warning: '#FFA726',           // Orange (caution)
-    danger: '#EF5350',            // Red (alert)
-    light: '#F5FBFF',             // Very light blue tint
-    dark: '#263238',              // Dark blue-gray
-
-    // Neutral Colors - Cool tones
-    grayDark: '#546E7A',          // Blue-gray dark
-    gray: '#90A4AE',              // Blue-gray medium
-    graySemi: '#CFD8DC',          // Blue-gray light
-    grayLight: '#ECEFF1',         // Blue-gray very light
-    black: '#263238',             // Dark blue-gray
-
-    // Accent Colors - Aquatic palette
-    blue: '#0077BE',              // Primary blue
-    blueLight: '#4DA6D8',         // Light blue
-    red: '#EF5350',               // Coral red
-    redLight: '#FF7F7F',          // Light coral
-    yellow: '#FFC107',            // Amber
-    yellowLight: '#FFD54F',       // Light amber
-    green: '#00BFA5',             // Turquoise
-
-    // B2C Specific - Shrimp branding
-    b2cPrimaryColor: '#0077BE',
-    b2cSecondaryColor: '#00BFA5',
-    b2cHeadingColor: '#263238',
-    b2cTextColor: '#546E7A',
-
-    // Background and UI Images
-    landingBackground: 'assets/landing-page/landing-background-shrimp.jpg', // Should be added or updated
-    footerBackground: '#F5FBFF'
   },
 
   // ============================================================================

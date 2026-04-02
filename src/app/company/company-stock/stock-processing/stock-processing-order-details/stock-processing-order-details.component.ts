@@ -118,9 +118,9 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
   submitted = false;
   editing = false;
 
-  // Cached flag to avoid ExpressionChangedAfterItHasBeenCheckedError when toggling
-  // classification layout based on the selected input facility.
-  private isClassificationModeFlag = false;
+  // Reference list with form group fields where changes must be detected so
+  // recalculation can happen and target stock order defaults can be properly propagated
+  private tsoRecalcDetectFields = [];
 
   saveInProgress = false;
 
@@ -164,15 +164,6 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
     }
 
     return true;
-  }
-
-  /**
-   * Check if current processing is in classification mode.
-   * When true, the classification table will be rendered in a full-width row
-   * for better UX (more space for the table columns).
-   */
-  get isClassificationMode(): boolean {
-    return this.isClassificationModeFlag;
   }
 
   /**
@@ -330,32 +321,6 @@ export class StockProcessingOrderDetailsComponent implements OnInit, AfterViewIn
   }
 
   ngOnInit(): void {
-    // Initialise classification mode flag based on initial facility (if any)
-    const initialFacility = this.inputFacilityControl.value;
-    this.isClassificationModeFlag = initialFacility?.isClassificationProcess === true;
-
-    // Keep flag in sync with facility changes, but update in next microtask
-    // to avoid ExpressionChangedAfterItHasBeenCheckedError when layout toggles.
-    const sub = this.inputFacilityControl.valueChanges.subscribe(facility => {
-      const wasClassificationMode = this.isClassificationModeFlag;
-      const willBeClassificationMode = facility?.isClassificationProcess === true;
-
-      Promise.resolve().then(() => {
-        this.isClassificationModeFlag = willBeClassificationMode;
-
-        // If layout changed (switched between classification and standard modes),
-        // the input component was destroyed and recreated. We need to reload the
-        // facility data into the new component instance after Angular processes
-        // the layout change.
-        if (wasClassificationMode !== willBeClassificationMode && facility) {
-          setTimeout(() => {
-            this.input?.setInputFacility(facility);
-          }, 0);
-        }
-      });
-    });
-
-    this.subscriptions.push(sub);
   }
 
   ngAfterViewInit(): void {

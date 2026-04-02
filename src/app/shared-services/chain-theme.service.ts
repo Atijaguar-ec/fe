@@ -23,7 +23,7 @@
  *   const primaryColor = this.chainTheme.currentTheme$.value.primary;
  * 
  *   // Switch theme manually (if needed)
- *   this.chainTheme.setTheme('shrimp');
+ *   this.chainTheme.setTheme('coffee');
  * }
  * ```
  * 
@@ -168,10 +168,6 @@ export class ChainThemeService {
     }
 
     const normalized = productType.toLowerCase();
-    
-    if (normalized === 'shrimp' || normalized === 'camaron') {
-      return 'shrimp';
-    }
     
     if (normalized === 'coffee' || normalized === 'cafe') {
       return 'coffee';

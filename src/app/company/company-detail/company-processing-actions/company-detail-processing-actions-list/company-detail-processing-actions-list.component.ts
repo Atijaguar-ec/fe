@@ -99,16 +99,7 @@ export class CompanyDetailProcessingActionsListComponent implements OnInit {
           // Filtrar processing actions que solo tienen facilities de inspección en campo
           // Estas áreas no realizan procesos, solo inspección sensorial
           const allItems = (resp.data && resp.data.items) ? resp.data.items : [];
-          const filteredItems = allItems.filter(pa => {
-            // Si no tiene facilities, lo mostramos
-            if (!pa.supportedFacilities || pa.supportedFacilities.length === 0) {
-              return true;
-            }
-            // Excluir si TODOS los facilities son de inspección en campo
-            const allFieldInspection = pa.supportedFacilities.every(f => f.isFieldInspection === true);
-            return !allFieldInspection;
-          });
-
+          const filteredItems = allItems;
           const totalCount = filteredItems.length;
           const start = (page - 1) * this.pageSize;
           const pageItems = filteredItems.slice(start, start + this.pageSize);

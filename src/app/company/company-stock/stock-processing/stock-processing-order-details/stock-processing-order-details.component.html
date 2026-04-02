@@ -9,124 +9,6 @@
         </div>
       </div>
 
-      <!-- 🦐 CLASSIFICATION MODE LAYOUT: Activity(c6) + Material(c6) on top, Output(c12) below -->
-      <ng-container *ngIf="isClassificationMode; else standardLayout">
-        <!-- Row 1: Activity + Material -->
-        <div class="af-form-row">
-          <!-- LEFT COLUMN: Activity selection -->
-          <div class="af-form-block--c6">
-            <div class="mb-4">
-              <div class="processing-icon input"></div>
-            </div>
-            <div>
-              <h2 i18n="@@productLabelStockProcessingOrderDetail.section.processing">Choose activity that you want to record</h2>
-              <div class="af-form-element position-relative processing-section input">
-                <div class="af-row">
-                  <div class="af-c12">
-                    <single-choice
-                        label="Processing"
-                        i18n-label="@@productLabelStockProcessingOrderDetail.processingActionForm.label"
-                        [formControlInput]="$any(procOrderGroup.get('processingAction'))"
-                        [codebookService]="procActionsCodebook"
-                        style="min-width: 150px;"
-                        (onChange)="processingActionSelected($event)"
-                        [isInvalidChoice]="submitted && procOrderGroup.get('processingAction').invalid">
-                      <ng-container *ngIf="submitted">
-                        <div *ngIf="procOrderGroup.get('processingAction').errors as errors" class="sc-invalid-feedback"
-                             i18n="@@productLabelStockProcessingOrderDetail.processingActionForm.error">
-                          Action is required
-                        </div>
-                      </ng-container>
-                    </single-choice>
-                  </div>
-                </div>
-                <div class="af-row">
-                  <div class="af-c6">
-                    <app-datepicker [label]="processingDateLabel"
-                                    [form]="$any(procOrderGroup.get('processingDate'))"
-                                    [invalid]="submitted && procOrderGroup.get('processingDate').invalid"
-                                    style="width: 100%;">
-                      <ng-container>
-                        <div *ngIf="procOrderGroup.get('processingDate').errors as errors" class="sc-invalid-feedback">
-                          <div *ngIf="errors.required" i18n="@@productLabelStockProcessingOrderDetail.datepicker.processingDate.error">
-                            Processing date is required
-                          </div>
-                        </div>
-                      </ng-container>
-                    </app-datepicker>
-                  </div>
-                  <div class="af-c6" *ngIf="inspectionTimeControl as inspectionTime">
-                    <textinput
-                            [form]="inspectionTime"
-                            type="time"
-                            label="Hora"
-                            i18n-label="@@productLabelStockProcessingOrderDetail.textinput.inspectionTime.label"
-                            placeholder="HH:MM"
-                            i18n-placeholder="@@productLabelStockProcessingOrderDetail.textinput.inspectionTime.placeholder"
-                            style="width: 100%;">
-                    </textinput>
-                  </div>
-                </div>
-                <div *ngIf="!rightSideEnabled" class="disabled-section-overlay"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- RIGHT COLUMN: Material to register -->
-          <div class="af-form-block--c6" *ngIf="selectedProcAction">
-            <app-processing-order-input #input
-                                        [processingUserId]="processingUserId"
-                                        [editing]="editing"
-                                        [submitted]="submitted"
-                                        [companyId]="companyId"
-                                        [selectedProcAction]="selectedProcAction"
-                                        [inputFacilitiesCodebook]="inputFacilitiesCodebook"
-                                        [inputFacilityControl]="inputFacilityControl"
-                                        [inspectionTimeControl]="inspectionTimeControl"
-                                        [totalInputQuantityControl]="totalInputQuantityControl"
-                                        [currentInputStockUnit]="currentInputStockUnit"
-                                        [remainingQuantityControl]="remainingQuantityControl"
-                                        [targetStockOrdersArray]="targetStockOrdersArray"
-                                        [inputTransactionsArray]="inputTransactionsArray"
-                                        [inputTransactions]="inputTransactions"
-                                        [totalOutputQuantity]="totalOutputQuantity"
-                                        (selectedInputsChanged)="onSelectedInputsChanged($event)"
-                                        (calcRemainingQuantity)="calcRemainingQuantity()">
-            </app-processing-order-input>
-          </div>
-        </div>
-
-        <!-- Row 2: Output (full width for classification table) -->
-        <div class="af-form-row" *ngIf="selectedProcAction">
-          <div class="af-form-block--c12">
-            <div class="mb-4">
-              <div class="processing-icon output"></div>
-            </div>
-            <app-processing-order-output #output
-                                         [editing]="editing"
-                                         [submitted]="submitted"
-                                         [processingUserId]="processingUserId"
-                                         [productOrderId]="productOrderId"
-                                         [selectedProcAction]="selectedProcAction"
-                                         [procActionLotPrefixControl]="procActionLotPrefixControl"
-                                         [rightSideEnabled]="rightSideEnabled"
-                                         [targetStockOrdersArray]="targetStockOrdersArray"
-                                         [finalProductOutputFacilitiesCodebook]="finalProductOutputFacilitiesCodebook"
-                                         [semiProductOutputFacilitiesCodebooks]="semiProductOutputFacilitiesCodebooks"
-                                         [currentOutputFinalProduct]="currentOutputFinalProduct"
-                                         [outputFinalProductNameControl]="outputFinalProductNameControl"
-                                         [outputSemiProductsCodebook]="outputSemiProductsCodebook"
-                                         [selectedInputFacility]="inputFacilityControl.value"
-                                         (calcTotalOutputQuantity)="calcTotalOutputQuantity()"
-                                         (calcRemainingQuantity)="calcRemainingQuantity()"
-                                         (newOutputAdded)="onNewOutputAdded()">
-            </app-processing-order-output>
-          </div>
-        </div>
-      </ng-container>
-
-      <!-- STANDARD LAYOUT: Input(c6) | Output(c6) side by side -->
-      <ng-template #standardLayout>
         <div class="af-form-row">
           <!-- INPUT SECTION -->
           <div class="af-form-block--c6">
@@ -276,7 +158,6 @@
             </app-processing-order-output>
           </div>
         </div>
-      </ng-template>
 
       <!-- SECTION FOR DISPLAYING TOTAL QUANTITES -->
       <div class="af-form-row">

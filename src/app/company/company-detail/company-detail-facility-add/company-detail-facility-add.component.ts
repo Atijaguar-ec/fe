@@ -28,7 +28,6 @@ import { SemiProductsForValueChainsService } from '../../../shared-services/semi
 import { ListNotEmptyValidator } from '../../../../shared/validation';
 import { CompanyValueChainsService } from '../../../shared-services/company-value-chains.service';
 import { CompanyControllerService } from '../../../../api/api/companyController.service';
-import { FacilityProductStrategy } from './facility-product-strategy';
 import LanguageEnum = ApiFacilityTranslation.LanguageEnum;
 
 declare const $localize: (messageParts: TemplateStringsArray, ...expressions: any[]) => string;
@@ -82,8 +81,7 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
       private semiProductControllerService: SemiProductControllerService,
       private codebookTranslations: CodebookTranslations,
       private companyController: CompanyControllerService,
-      private finalProductController: FinalProductControllerService,
-      private facilityProductStrategy: FacilityProductStrategy
+      private finalProductController: FinalProductControllerService
   ) { }
 
   ngOnInit(): void {

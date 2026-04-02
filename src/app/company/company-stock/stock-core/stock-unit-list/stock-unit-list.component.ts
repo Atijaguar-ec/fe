@@ -339,25 +339,11 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
         hide: ['PURCHASE_ORDERS'].indexOf(this.pageListingMode) >= 0,
       },
       {
-        key: 'approvedForPurchase',
-        name: $localize`:@@productLabelStockProcessingOrderDetail.checkbox.approvedForPurchase.label:Análisis aprobado para compra`,
-        inactive: true,
-        hide: !this.envInfo.isProductType('shrimp'),
-      },
-      {
         key: 'actions',
         name: $localize`:@@productLabelPurchaseOrder.sortOptions.actions.name:Actions`,
         inactive: true
       }
     ];
-
-    if (this.envInfo.isProductType('shrimp')) {
-      // 🦐 Shrimp deliveries: hide week number, net quantity and payable columns
-      this.sortOptions[6].hide = true;  // Week Number
-      this.sortOptions[8].hide = true;  // Deductions
-      this.sortOptions[9].hide = true;  // Net Quantity
-      this.sortOptions[12].hide = true; // Payable / Balance
-    }
 
     if (this.mode === 'PURCHASE') {
       this.sortingParams$.next({ sortBy: 'date', sort: 'DESC' });
@@ -674,47 +660,15 @@ export class StockUnitListComponent implements OnInit, OnDestroy, AfterViewInit 
     return '';
   }
 
-  private isFieldInspectionOrder(order: ApiStockOrder | null | undefined): boolean {
-    return !!order?.facility?.isFieldInspection;
-  }
-
   getDisplayMeasureUnit(order: ApiStockOrder | null | undefined): string {
     if (!order) {
       return '';
-    }
-
-    if (this.envInfo.isProductType('shrimp') && this.isFieldInspectionOrder(order)) {
-      return $localize`:@@stockUnitList.measureUnit.units:Unidades`;
     }
 
     return order.measureUnitType?.label || '';
   }
 
   getApprovalLabel(order: ApiStockOrder | null | undefined): string {
-    if (!order) {
-      return '';
-    }
-
-    // 1. Primero verificar si hay análisis de laboratorio (approvedForPurchase)
-    const labApproval = (order as any).approvedForPurchase;
-    if (labApproval === true) {
-      return $localize`:@@productLabelStockProcessingOrderDetail.singleChoice.approvedForPurchase.yes:Sí`;
-    }
-    if (labApproval === false) {
-      return $localize`:@@productLabelStockProcessingOrderDetail.singleChoice.approvedForPurchase.no:No`;
-    }
-
-    // 2. Si no hay laboratorio, verificar inspección de campo (purchaseRecommended)
-    if (this.isFieldInspectionOrder(order)) {
-      const fieldApproval = order.purchaseRecommended;
-      if (fieldApproval === true) {
-        return $localize`:@@productLabelStockProcessingOrderDetail.singleChoice.approvedForPurchase.yes:Sí`;
-      }
-      if (fieldApproval === false) {
-        return $localize`:@@productLabelStockProcessingOrderDetail.singleChoice.approvedForPurchase.no:No`;
-      }
-    }
-
     return '-';
   }
   

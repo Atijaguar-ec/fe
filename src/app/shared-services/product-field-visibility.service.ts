@@ -12,7 +12,7 @@ export class ProductFieldVisibilityService {
   private readonly systemProductType: string;
   
   // Configuración simple: campos ocultos por tipo de producto
-  private readonly hiddenFieldsByProductType = {
+  private readonly hiddenFieldsByProductType: Record<string, string[]> = {
     COFFEE: [
       'weekNumber',
       'parcelLot',
@@ -24,16 +24,6 @@ export class ProductFieldVisibilityService {
       'numberOfPlants',
       'processingMethod',
       'Colector'
-    ],
-    SHRIMP: [
-      'weekNumber',
-      'parcelLot',
-      'variety',
-      'numberOfPlants',
-      'processingMethod',
-      'fermentationDays',
-      'dryingMethod',
-      'maxProductionQuantity' 
     ]
   };
 

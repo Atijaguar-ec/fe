@@ -69,7 +69,6 @@ import { ValueChainConfigItemComponent } from './value-chain/value-chain-detail/
 import { CompanyDetailUsersComponent } from './company/company-detail/company-detail-users/company-detail-users.component';
 import { CompanyDetailFacilitiesComponent } from './company/company-detail/company-detail-facilities/company-detail-facilities.component';
 import { CompanyDetailFacilityAddComponent } from './company/company-detail/company-detail-facility-add/company-detail-facility-add.component';
-import { FacilityProductStrategy, facilityProductStrategyFactory } from './company/company-detail/company-detail-facility-add/facility-product-strategy';
 import { CompanyDetailProcessingActionsDetailComponent } from './company/company-detail/company-processing-actions/company-detail-processing-actions-detail/company-detail-processing-actions-detail.component';
 import { CompanyProcessingActionsComponent } from './company/company-detail/company-processing-actions/company-processing-actions.component';
 import { CompanyDetailProcessingActionsListComponent } from './company/company-detail/company-processing-actions/company-detail-processing-actions-list/company-detail-processing-actions-list.component';
@@ -237,11 +236,6 @@ export function getConfiguration(): Configuration {
       provide: PRODUCT_CONTEXT,
       useFactory: productContextFactory,
       deps: [EnvironmentInfoService]
-    },
-    {
-      provide: FacilityProductStrategy,
-      useFactory: facilityProductStrategyFactory,
-      deps: [PRODUCT_CONTEXT]
     }
   ],
   exports: [],

@@ -145,11 +145,6 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
       return true;
     }
     
-    // 🦐 For classification facilities, always show available stock regardless of company ownership
-    if (facility.isClassificationProcess) {
-      return false;
-    }
-    
     // For other facilities, only show stock if facility belongs to current company
     return facility.company?.id !== this.companyId;
   }
@@ -201,12 +196,6 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
     const from = this.dateFromFilterControl.value;
     const to = this.dateToFilterControl.value;
 
-    // Check if this is a classification facility:
-    // 1. By the explicit flag isClassificationProcess
-    // 2. By facility name containing "Clasificad" (fallback for when flag is not populated)
-    const isClassificationFacility = this.selectedInputFacility.isClassificationProcess === true
-      || (this.selectedInputFacility.name?.toLowerCase().includes('clasificad') ?? false);
-
     // Prepare initial request params
     const requestParams: GetAvailableStockForStockUnitInFacility.PartialParamMap = {
       limit: 500,
@@ -216,12 +205,8 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
       internalLotName: this.internalLotNameSearchControl.value
     };
 
-    // For classification facilities, do NOT restrict by semi/final product so that
-    // all balances present in the classification area are visible.
-    if (!isClassificationFacility) {
-      requestParams.semiProductId = this.selectedProcAction.inputSemiProduct?.id;
-      requestParams.finalProductId = this.selectedProcAction.inputFinalProduct?.id;
-    }
+    requestParams.semiProductId = this.selectedProcAction.inputSemiProduct?.id;
+    requestParams.finalProductId = this.selectedProcAction.inputFinalProduct?.id;
 
     // Prepare date filters
     if (from && to) {
@@ -332,13 +317,7 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
 
       // Check if this is a classification facility:
       // 1. By the explicit flag isClassificationProcess
-      // 2. By facility name containing "Clasificad" (fallback for when flag is not populated)
-      const isClassificationFacility = facility.isClassificationProcess === true
-        || (facility.name?.toLowerCase().includes('clasificad') ?? false);
-
       console.log('[setInputFacility] facility:', facility.name);
-      console.log('isClassificationProcess:', facility.isClassificationProcess);
-      console.log('detected as classification:', isClassificationFacility);
 
       const requestParams: GetAvailableStockForStockUnitInFacility.PartialParamMap = {
         limit: 500,
@@ -346,13 +325,8 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
         facilityId: facility.id
       };
 
-      // For classification facilities, load all available stock in the area,
-      // regardless of semi/final product. For other facilities, keep the
-      // existing filters by input semi/final product of the processing action.
-      if (!isClassificationFacility) {
-        requestParams.semiProductId = this.selectedProcAction.inputSemiProduct?.id;
-        requestParams.finalProductId = this.selectedProcAction.inputFinalProduct?.id;
-      }
+      requestParams.semiProductId = this.selectedProcAction.inputSemiProduct?.id;
+      requestParams.finalProductId = this.selectedProcAction.inputFinalProduct?.id;
 
       console.log('[setInputFacility] requestParams:', requestParams);
       this.availableInputStockOrders = await this.fetchAvailableStockOrders(requestParams);

@@ -1,7 +1,7 @@
 import { InjectionToken } from '@angular/core';
 import { EnvironmentInfoService } from './environment-info.service';
 
-export type ProductType = 'coffee' | 'cocoa' | 'shrimp' | 'mixed';
+export type ProductType = 'coffee' | 'cocoa' | 'mixed';
 
 export interface ProductContext {
   primaryProductType: ProductType;
@@ -17,8 +17,6 @@ function normalizeProductType(value: string): ProductType {
       return 'coffee';
     case 'cocoa':
       return 'cocoa';
-    case 'shrimp':
-      return 'shrimp';
     case 'mixed':
       return 'mixed';
     default:

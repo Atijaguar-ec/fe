@@ -48,18 +48,18 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
   // FontAwesome icons
   faTrashAlt = faTrashAlt;
 
-  title: string = null;
+  title: string | null = null;
 
-  purchaseOrderBulkForm: FormGroup;
+  purchaseOrderBulkForm!: FormGroup;
 
-  codebookPreferredWayOfPayment: EnumSifrant;
+  codebookPreferredWayOfPayment!: EnumSifrant;
 
   searchCollectors = new FormControl(null);
-  farmersCodebook: CompanyUserCustomersByRoleService;
-  collectorsCodebook: CompanyUserCustomersByRoleService;
+  farmersCodebook!: CompanyUserCustomersByRoleService;
+  collectorsCodebook!: CompanyUserCustomersByRoleService;
 
   employeeForm = new FormControl(null, Validators.required);
-  codebookUsers: EnumSifrant;
+  codebookUsers!: EnumSifrant;
 
   facilityNameForm = new FormControl(null);
 
@@ -70,7 +70,7 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
   companyProfile: ApiCompanyGet | null = null;
   private currentLoggedInUser: ApiUserGet | null = null;
 
-  private facility: ApiFacility;
+  private facility!: ApiFacility;
 
   private srcStockOrderId: number | null = null;
 
@@ -92,7 +92,7 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
   netWeightFormArray: FormControl[] = [new FormControl(null)];
   finalPriceFormArray: FormControl[] = [new FormControl(null)];
 
-  private userProfileSubs: Subscription;
+  private userProfileSubs!: Subscription;
 
   constructor(
       private route: ActivatedRoute,
@@ -131,7 +131,7 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   get preferredWayOfPaymentList() {
 
-    const obj = {};
+    const obj: Record<string, string> = {};
     obj['CASH'] = $localize`:@@productLabelStockPurchaseOrdersModal.preferredWayOfPayment.cash:Cash`;
 
     if (this.purchaseOrderBulkForm &&
@@ -196,14 +196,14 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   private get womenCoffeeList() {
-    const obj = {};
+    const obj: Record<string, string> = {};
     obj['YES'] = $localize`:@@productLabelStockPurchaseOrdersModal.womensCoffeeList.yes:Yes`;
     obj['NO'] = $localize`:@@productLabelStockPurchaseOrdersModal.womensCoffeeList.no:No`;
     return obj;
   }
 
   get yesNo() {
-    const obj = {};
+    const obj: Record<string, string> = {};
     obj['true'] = $localize`:@@productLabelStockPurchaseOrdersModal.organic.yes:Yes`;
     obj['false'] = $localize`:@@productLabelStockPurchaseOrdersModal.organic.no:No`;
     return obj;
@@ -282,7 +282,7 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
 
     if (this.companyProfile) {
-      const obj = {};
+      const obj: Record<string, string> = {};
       for (const user of this.companyProfile.users || []) {
         obj[user.id?.toString() || ''] = user.name + ' ' + user.surname;
       }
