@@ -23,6 +23,12 @@ export function ApiStockOrderValidationScheme(orderType: StockOrderType) {
         validators:
           orderType !== 'PROCESSING_ORDER' ? [Validators.required] : [],
       },
+      moisturePercentage: {
+        validators: [Validators.required, Validators.min(0), Validators.max(100)],
+      },
+      weekNumber: {
+        validators: [Validators.required, Validators.min(1), Validators.max(53)],
+      },
       productionDate: {
         validators: [Validators.required],
       },

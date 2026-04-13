@@ -204,6 +204,30 @@ export interface ApiStockOrder {
      */
     damagedWeightDeduction?: number;
     /**
+     * Week number
+     */
+    weekNumber?: number;
+    /**
+     * Parcel lot
+     */
+    parcelLot?: string;
+    /**
+     * Variety
+     */
+    variety?: string;
+    /**
+     * Moisture percentage
+     */
+    moisturePercentage?: number;
+    /**
+     * Net quantity
+     */
+    netQuantity?: number;
+    /**
+     * Organic certification
+     */
+    organicCertification?: string;
+    /**
      * Generated UUID tag for this stock order QR code
      */
     qrCodeTag?: string;
@@ -1184,13 +1208,37 @@ export namespace ApiStockOrder {
                 ],
                 internalLotNumber: [
                 ],
+                "cost": [
+                {
+                    "type": "required",
+                    "validators": [
+                        "req"
+                    ]
+                }
+            ],
+            "weekNumber": [
+                {
+                    "type": "required",
+                    "validators": [
+                        "req"
+                    ]
+                }
+            ],
+            "moisturePercentage": [
+                {
+                    "type": "required",
+                    "validators": [
+                        "req"
+                    ]
+                }
+            ],
+            "parcelLot": [],
+            "variety": [],
+            "organicCertification": [],
+            "netQuantity": [],
                 comments: [
                 ],
                 womenShare: [
-                ],
-                cost: [
-                ],
-                paid: [
                 ],
                 balance: [
                 ],

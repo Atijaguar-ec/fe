@@ -697,8 +697,19 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         netWeight -= this.stockOrderForm.get('damagedWeightDeduction').value;
       }
 
+      // Cacao: Moisture Deduction
+      const moisture = this.stockOrderForm.get('moisturePercentage')?.value;
+      if (moisture) {
+        netWeight = netWeight * (moisture / 100);
+      }
+
       if (netWeight < 0) {
         netWeight = 0.0;
+      }
+      
+      // Update the reactive form visually with computed NET weight
+      if (this.stockOrderForm.get('netQuantity')) {
+        this.stockOrderForm.get('netQuantity').setValue(Number(netWeight).toFixed(2));
       }
 
       if (this.stockOrderForm.get('damagedPriceDeduction').value) {
