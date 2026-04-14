@@ -21,7 +21,7 @@
 
 
 /**
- * Facility type
+ * list of supported facility types
  */
 
 export interface ApiFacilityType { 
@@ -37,10 +37,6 @@ export interface ApiFacilityType {
      * label
      */
     label: string;
-    /**
-     * Order for displaying facility types (lower = first)
-     */
-    order?: number;
 }
 
 /**
@@ -62,11 +58,7 @@ export namespace ApiFacilityType {
         /**
          * label
          */
-        label = 'label',
-        /**
-         * Order for displaying facility types (lower = first)
-         */
-        order = 'order'
+        label = 'label'
     }
 
 
@@ -108,17 +100,6 @@ export namespace ApiFacilityType {
                     isListContainer: false,
                     complexType: ''
                 },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'order',
-                    classname: 'ApiFacilityType',
-                    dataType: 'number',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
             ],
             validators: {
                 id: [
@@ -128,8 +109,6 @@ export namespace ApiFacilityType {
                 ],
                 label: [
                         ['required'],
-                ],
-                order: [
                 ],
             }
         }
@@ -145,9 +124,6 @@ export namespace ApiFacilityType {
   //                   validators: []
   //               },
   //               label: {
-  //                   validators: []
-  //               },
-  //               order: {
   //                   validators: []
   //               },
   //     }

@@ -7,9 +7,9 @@ var swagger_docs_host = 'http://localhost:8082/v3/api-docs'
 
 function afterBuild(code) {
     if (code === 0) {
-        fs.unlinkSync('src/api/index.ts');
-        fs.unlinkSync('src/api/api/api.ts');
-        fs.unlinkSync('src/api/model/models.ts');
+        fs.unlinkSync('apps/inatrace-fe/src/api/index.ts');
+        fs.unlinkSync('apps/inatrace-fe/src/api/api/api.ts');
+        fs.unlinkSync('apps/inatrace-fe/src/api/model/models.ts');
         console.log("Conversion successful.");
     } else {
         console.error("Conversion finished with status ", code);
@@ -18,8 +18,8 @@ function afterBuild(code) {
 
 console.log("Generating form: " + swagger_docs_host);
 
-if (!fs.existsSync('src/api')) {
-    fs.mkdirSync('src/api');
+if (!fs.existsSync('apps/inatrace-fe/src/api')) {
+    fs.mkdirSync('apps/inatrace-fe/src/api', { recursive: true });
 }
 
 fetch(swagger_docs_host).then(function(res) {
@@ -28,7 +28,7 @@ fetch(swagger_docs_host).then(function(res) {
         // generate TS API
         var proc = child_process.fork("node_modules/openapi-typescript-angular-generator/bin/ng-ts-codegen.js", [
             '-i', swagger_docs_host,
-            '-o', 'src/api'
+            '-o', 'apps/inatrace-fe/src/api'
         ]);
         proc.on('exit', afterBuild);
     })

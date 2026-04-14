@@ -23,7 +23,7 @@ import { ApiSemiProductTranslation } from './apiSemiProductTranslation';
 
 
 /**
- * List of semi product ID's for this facility
+ * list of supported semi-products
  */
 
 export interface ApiSemiProduct { 

@@ -8,7 +8,7 @@
   padding-bottom: 3.1875rem;
   height: auto;
   position: absolute;
-  z-index: 9999;
+  z-index: 1030; // Must stay below NgbModal backdrop (1040) and modal window (1050)
 
   @include media-breakpoint-up(lg) {
     position: fixed;

@@ -36,6 +36,10 @@ export interface ApiCompany {
      */
     id?: number;
     /**
+     * company name
+     */
+    name?: string;
+    /**
      * company abbreviation
      */
     abbreviation?: string;
@@ -94,10 +98,6 @@ export interface ApiCompany {
      * Is company allowed to export orders to Beyco platform
      */
     allowBeycoIntegration?: boolean;
-    /**
-     * company name
-     */
-    name?: string;
 }
 
 /**
@@ -112,6 +112,10 @@ export namespace ApiCompany {
          * Entity id
          */
         id = 'id',
+        /**
+         * company name
+         */
+        name = 'name',
         /**
          * company abbreviation
          */
@@ -170,11 +174,7 @@ export namespace ApiCompany {
         /**
          * Is company allowed to export orders to Beyco platform
          */
-        allowBeycoIntegration = 'allowBeycoIntegration',
-        /**
-         * company name
-         */
-        name = 'name'
+        allowBeycoIntegration = 'allowBeycoIntegration'
     }
 
 
@@ -190,6 +190,17 @@ export namespace ApiCompany {
                     name: 'id',
                     classname: 'ApiCompany',
                     dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'name',
+                    classname: 'ApiCompany',
+                    dataType: 'string',
                     isPrimitiveType: true,
                     isListContainer: false,
                     complexType: ''
@@ -387,20 +398,13 @@ export namespace ApiCompany {
                     isListContainer: false,
                     complexType: ''
                 },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'name',
-                    classname: 'ApiCompany',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
             ],
             validators: {
                 id: [
+                ],
+                name: [
+                        ['minlength', 0],
+                        ['maxlength', 255],
                 ],
                 abbreviation: [
                         ['minlength', 0],
@@ -450,10 +454,6 @@ export namespace ApiCompany {
                 ],
                 allowBeycoIntegration: [
                 ],
-                name: [
-                        ['minlength', 0],
-                        ['maxlength', 255],
-                ],
             }
         }
     }
@@ -462,6 +462,9 @@ export namespace ApiCompany {
   //     validators: [],
   //     fields: {
   //               id: {
+  //                   validators: []
+  //               },
+  //               name: {
   //                   validators: []
   //               },
   //               abbreviation: {
@@ -513,9 +516,6 @@ export namespace ApiCompany {
   //                   validators: []
   //               },
   //               allowBeycoIntegration: {
-  //                   validators: []
-  //               },
-  //               name: {
   //                   validators: []
   //               },
   //     }

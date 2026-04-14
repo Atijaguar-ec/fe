@@ -37,11 +37,12 @@ import { ProductFieldVisibilityService } from '../../../../shared-services/produ
 @Component({
   selector: 'app-stock-delivery-details',
   templateUrl: './stock-delivery-details.component.html',
-  styleUrls: ['./stock-delivery-details.component.scss']
+  styleUrls: ['./stock-delivery-details.component.scss'],
+  standalone: false,
 })
 export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
-  title: string = null;
+  title: string | null = null;
 
   update = true;
 

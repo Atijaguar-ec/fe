@@ -22,7 +22,7 @@ import { ApiProcessingEvidenceFieldTranslation } from './apiProcessingEvidenceFi
 
 
 /**
- * Processing action required evidence fields
+ * list of supported processing evidence fields
  */
 
 export interface ApiProcessingEvidenceField { 

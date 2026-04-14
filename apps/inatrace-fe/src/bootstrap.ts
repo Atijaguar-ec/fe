@@ -14,6 +14,10 @@ if (environment.production) {
 const languageCode = LanguageCodeHelper.getCurrentLocale();
 
 const bootstrapApp = () => {
+  // Fix for Angular HMR: Remove any leftover NgbModal backdrops or windows 
+  // that survive hot-reloads and block mouse interactions.
+  document.querySelectorAll('ngb-modal-backdrop, ngb-modal-window, .modal-backdrop').forEach(el => el.remove());
+
   import('./app/app.module')
     .then((module) => {
       platformBrowserDynamic()

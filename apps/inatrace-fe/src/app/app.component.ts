@@ -18,25 +18,14 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.loadGoogleMaps();
+    // Auto-accept cookie consent in environments without analytics (dev/internal systems)
+    // This prevents the cookie banner from blocking modal interactions
+    if (!environment.googleAnalyticsId && !environment.facebookPixelId) {
+      this.cookieManagementService.consentToAllCookies();
+    }
     this.cookieManagementService.loadConsentedCookies();
   }
 
-  loadGoogleMaps(): void {
-    if (!environment.googleMapsApiKey) {
-      console.warn('Google Maps API key is missing. Skipping script load.');
-      return;
-    }
-    window['initMap'] = () => {
-      this.globalEventsManager.loadedGoogleMaps(true);
-    };
-    const gmScript = document.createElement('script');
-    gmScript.src = `https://maps.googleapis.com/maps/api/js?key=${environment.googleMapsApiKey}&callback=initMap`;
-    gmScript.defer = true;
-    gmScript.async = true;
-
-    document.head.appendChild(gmScript);
-  }
 
   hasDefinedConsentToAllCookies() {
     return this.cookieManagementService.hasDefinedConsentToAllActiveCookies();

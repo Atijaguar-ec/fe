@@ -54,14 +54,6 @@ export interface ApiGroupStockOrder {
      */
     orderType?: ApiGroupStockOrder.OrderTypeEnum;
     /**
-     * Facility (area) name
-     */
-    facilityName?: string;
-    /**
-     * Farmer name
-     */
-    farmerName?: string;
-    /**
      * Semi product name
      */
     semiProductName?: string;
@@ -90,21 +82,29 @@ export interface ApiGroupStockOrder {
      */
     deliveryTime?: string;
     /**
-     * Week number for cacao deliveries (1-53)
+     * The week number when the delivery was made
      */
     weekNumber?: number;
     /**
-     * Parcel lot for cacao deliveries
+     * The parcel lot identifier
      */
     parcelLot?: string;
     /**
-     * Variety for cacao deliveries
+     * The variety of the product
      */
     variety?: string;
     /**
-     * Organic certification details
+     * The organic certification status of the stock order
      */
     organicCertification?: string;
+    /**
+     * The facility name
+     */
+    facilityName?: string;
+    /**
+     * The farmer name
+     */
+    farmerName?: string;
     available?: boolean;
 }
 
@@ -145,14 +145,6 @@ export namespace ApiGroupStockOrder {
          */
         orderType = 'orderType',
         /**
-         * Facility (area) name
-         */
-        facilityName = 'facilityName',
-        /**
-         * Farmer name
-         */
-        farmerName = 'farmerName',
-        /**
          * Semi product name
          */
         semiProductName = 'semiProductName',
@@ -181,21 +173,29 @@ export namespace ApiGroupStockOrder {
          */
         deliveryTime = 'deliveryTime',
         /**
-         * Week number for cacao deliveries (1-53)
+         * The week number when the delivery was made
          */
         weekNumber = 'weekNumber',
         /**
-         * Parcel lot for cacao deliveries
+         * The parcel lot identifier
          */
         parcelLot = 'parcelLot',
         /**
-         * Variety for cacao deliveries
+         * The variety of the product
          */
         variety = 'variety',
         /**
-         * Organic certification details
+         * The organic certification status of the stock order
          */
         organicCertification = 'organicCertification',
+        /**
+         * The facility name
+         */
+        facilityName = 'facilityName',
+        /**
+         * The farmer name
+         */
+        farmerName = 'farmerName',
         available = 'available'
     }
 
@@ -287,28 +287,6 @@ export namespace ApiGroupStockOrder {
                     datatypeWithEnum: 'ApiGroupStockOrder.OrderTypeEnum',
                     required: false,
                     name: 'orderType',
-                    classname: 'ApiGroupStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'facilityName',
-                    classname: 'ApiGroupStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'farmerName',
                     classname: 'ApiGroupStockOrder',
                     dataType: 'string',
                     isPrimitiveType: true,
@@ -440,6 +418,28 @@ export namespace ApiGroupStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'facilityName',
+                    classname: 'ApiGroupStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'farmerName',
+                    classname: 'ApiGroupStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'available',
                     classname: 'ApiGroupStockOrder',
                     dataType: 'boolean',
@@ -463,10 +463,6 @@ export namespace ApiGroupStockOrder {
                 ],
                 orderType: [
                 ],
-                facilityName: [
-                ],
-                farmerName: [
-                ],
                 semiProductName: [
                 ],
                 finalProductName: [
@@ -488,6 +484,10 @@ export namespace ApiGroupStockOrder {
                 variety: [
                 ],
                 organicCertification: [
+                ],
+                facilityName: [
+                ],
+                farmerName: [
                 ],
                 available: [
                 ],
@@ -517,12 +517,6 @@ export namespace ApiGroupStockOrder {
   //                   validators: []
   //               },
   //               orderType: {
-  //                   validators: []
-  //               },
-  //               facilityName: {
-  //                   validators: []
-  //               },
-  //               farmerName: {
   //                   validators: []
   //               },
   //               semiProductName: {
@@ -556,6 +550,12 @@ export namespace ApiGroupStockOrder {
   //                   validators: []
   //               },
   //               organicCertification: {
+  //                   validators: []
+  //               },
+  //               facilityName: {
+  //                   validators: []
+  //               },
+  //               farmerName: {
   //                   validators: []
   //               },
   //               available: {

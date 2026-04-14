@@ -35,45 +35,6 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 
 /**
- * Namespace for exportGroupedStockOrdersExcelByCompany.
- */
-export namespace ExportGroupedStockOrdersExcelByCompany {
-    /**
-     * Parameter map for exportGroupedStockOrdersExcelByCompany.
-     */
-    export interface PartialParamMap {
-      /**
-       * Company ID
-       */
-      companyId: number;
-      language?: 'EN' | 'DE' | 'RW' | 'ES';
-    }
-
-    /**
-     * Enumeration of all parameters for exportGroupedStockOrdersExcelByCompany.
-     */
-    export enum Parameters {
-      /**
-       * Company ID
-       */
-      companyId = 'companyId',
-      language = 'language'
-    }
-
-    /**
-     * A map of tuples with error name and `ValidatorFn` for each parameter of exportGroupedStockOrdersExcelByCompany
-     * that does not have an own model.
-     */
-    export const ParamValidators: {[K in keyof ExportGroupedStockOrdersExcelByCompany.PartialParamMap]?: [string, ValidatorFn][]} = {
-      companyId: [
-              ['required', Validators.required],
-      ],
-      language: [
-      ],
-    };
-}
-
-/**
  * Namespace for getGroupedStockOrderList.
  */
 export namespace GetGroupedStockOrderList {
@@ -201,7 +162,7 @@ export namespace GetGroupedStockOrderList {
 })
 export class GroupStockOrderControllerService {
 
-    protected basePath = 'http://192.168.100.187:8080';
+    protected basePath = 'http://localhost:8082';
     public defaultHeaders = new HttpHeaders();
     public configuration = new Configuration();
 
@@ -229,94 +190,6 @@ export class GroupStockOrderControllerService {
         return false;
     }
 
-
-
-  /**
-   * Export grouped stock orders to Excel for a company (last year) by map.
-   * 
-   * @param map parameters map to set partial amount of parameters easily
-   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-   * @param reportProgress flag to report request and response progress.
-   */
-  public exportGroupedStockOrdersExcelByCompanyByMap(
-    map: ExportGroupedStockOrdersExcelByCompany.PartialParamMap,
-    observe?: 'body',
-    reportProgress?: boolean): Observable<Blob>;
-  public exportGroupedStockOrdersExcelByCompanyByMap(
-    map: ExportGroupedStockOrdersExcelByCompany.PartialParamMap,
-    observe?: 'response',
-    reportProgress?: boolean): Observable<HttpResponse<Blob>>;
-  public exportGroupedStockOrdersExcelByCompanyByMap(
-    map: ExportGroupedStockOrdersExcelByCompany.PartialParamMap,
-    observe?: 'events',
-    reportProgress?: boolean): Observable<HttpEvent<Blob>>;
-  public exportGroupedStockOrdersExcelByCompanyByMap(
-    map: ExportGroupedStockOrdersExcelByCompany.PartialParamMap,
-    observe: any = 'body',
-    reportProgress: boolean = false): Observable<any> {
-    return this.exportGroupedStockOrdersExcelByCompany(
-      map.companyId,
-      map.language,
-      observe,
-      reportProgress
-    );
-  }
-
-
-    /**
-     * Export grouped stock orders to Excel for a company (last year)
-     * 
-     * @param companyId Company ID
-     * @param language 
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public exportGroupedStockOrdersExcelByCompany(companyId: number, language?: 'EN' | 'DE' | 'RW' | 'ES', observe?: 'body', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<Blob>;
-    public exportGroupedStockOrdersExcelByCompany(companyId: number, language?: 'EN' | 'DE' | 'RW' | 'ES', observe?: 'response', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpResponse<Blob>>;
-    public exportGroupedStockOrdersExcelByCompany(companyId: number, language?: 'EN' | 'DE' | 'RW' | 'ES', observe?: 'events', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpEvent<Blob>>;
-    public exportGroupedStockOrdersExcelByCompany(companyId: number, language?: 'EN' | 'DE' | 'RW' | 'ES', observe: any = 'body', reportProgress: boolean = false, additionalHeaders?: Array<Array<string>>): Observable<any> {
-        if (companyId === null || companyId === undefined) {
-            throw new Error('Required parameter companyId was null or undefined when calling exportGroupedStockOrdersExcelByCompany.');
-        }
-
-        let headers = this.defaultHeaders;
-        if (language !== undefined && language !== null) {
-            headers = headers.set('language', String(language));
-        }
-
-        // to determine the Accept header
-        let httpHeaderAccepts: string[] = [
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        ];
-        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
-        if (httpHeaderAcceptSelected !== undefined) {
-            headers = headers.set('Accept', httpHeaderAcceptSelected);
-        }
-
-        // to determine the Content-Type header
-        const consumes: string[] = [
-        ];
-
-            if (additionalHeaders) {
-                for(let pair of additionalHeaders) {
-                    headers = headers.set(pair[0], pair[1]);
-                }
-            }
-
-        const handle = this.httpClient.get(`${this.configuration.basePath}/api/chain/group-stock-order/export/company/${encodeURIComponent(String(companyId))}`,
-            {
-                responseType: "blob",
-                withCredentials: this.configuration.withCredentials,
-                headers: headers,
-                observe: observe,
-                reportProgress: reportProgress
-            }
-        );
-        if(typeof this.configuration.errorHandler === 'function') {
-          return handle.pipe(catchError(err => this.configuration.errorHandler(err, 'exportGroupedStockOrdersExcelByCompany')));
-        }
-        return handle;
-    }
 
 
   /**

@@ -21,18 +21,18 @@
 
 
 /**
- * Translations for certification type
+ * Translations
  */
 
 export interface ApiCertificationTypeTranslation { 
     /**
-     * Language code
-     */
-    language?: ApiCertificationTypeTranslation.LanguageEnum;
-    /**
-     * Translated name
+     * Translation name
      */
     name?: string;
+    /**
+     * Translation language
+     */
+    language?: ApiCertificationTypeTranslation.LanguageEnum;
 }
 
 /**
@@ -44,13 +44,13 @@ export namespace ApiCertificationTypeTranslation {
      */
     export enum Properties {
         /**
-         * Language code
+         * Translation name
          */
-        language = 'language',
+        name = 'name',
         /**
-         * Translated name
+         * Translation language
          */
-        name = 'name'
+        language = 'language'
     }
 
     /**
@@ -71,6 +71,17 @@ export namespace ApiCertificationTypeTranslation {
             vars: [
                 {
                     isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'name',
+                    classname: 'ApiCertificationTypeTranslation',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
                     isEnum: true,
                     datatypeWithEnum: 'ApiCertificationTypeTranslation.LanguageEnum',
                     required: false,
@@ -81,22 +92,11 @@ export namespace ApiCertificationTypeTranslation {
                     isListContainer: false,
                     complexType: ''
                 },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'name',
-                    classname: 'ApiCertificationTypeTranslation',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
             ],
             validators: {
-                language: [
-                ],
                 name: [
+                ],
+                language: [
                 ],
             }
         }
@@ -105,10 +105,10 @@ export namespace ApiCertificationTypeTranslation {
   // export const ApiCertificationTypeTranslationValidationScheme = {
   //     validators: [],
   //     fields: {
-  //               language: {
+  //               name: {
   //                   validators: []
   //               },
-  //               name: {
+  //               language: {
   //                   validators: []
   //               },
   //     }

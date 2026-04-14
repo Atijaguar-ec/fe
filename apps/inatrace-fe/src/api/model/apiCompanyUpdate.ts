@@ -34,6 +34,10 @@ export interface ApiCompanyUpdate {
      */
     id?: number;
     /**
+     * company name
+     */
+    name?: string;
+    /**
      * company abbreviation
      */
     abbreviation?: string;
@@ -100,10 +104,6 @@ export interface ApiCompanyUpdate {
      * Language
      */
     language?: ApiCompanyUpdate.LanguageEnum;
-    /**
-     * company name
-     */
-    name?: string;
 }
 
 /**
@@ -118,6 +118,10 @@ export namespace ApiCompanyUpdate {
          * Entity id
          */
         id = 'id',
+        /**
+         * company name
+         */
+        name = 'name',
         /**
          * company abbreviation
          */
@@ -184,11 +188,7 @@ export namespace ApiCompanyUpdate {
         /**
          * Language
          */
-        language = 'language',
-        /**
-         * company name
-         */
-        name = 'name'
+        language = 'language'
     }
 
     /**
@@ -214,6 +214,17 @@ export namespace ApiCompanyUpdate {
                     name: 'id',
                     classname: 'ApiCompanyUpdate',
                     dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'name',
+                    classname: 'ApiCompanyUpdate',
+                    dataType: 'string',
                     isPrimitiveType: true,
                     isListContainer: false,
                     complexType: ''
@@ -435,20 +446,13 @@ export namespace ApiCompanyUpdate {
                     isListContainer: false,
                     complexType: ''
                 },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'name',
-                    classname: 'ApiCompanyUpdate',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
             ],
             validators: {
                 id: [
+                ],
+                name: [
+                        ['minlength', 0],
+                        ['maxlength', 255],
                 ],
                 abbreviation: [
                         ['minlength', 0],
@@ -502,10 +506,6 @@ export namespace ApiCompanyUpdate {
                 ],
                 language: [
                 ],
-                name: [
-                        ['minlength', 0],
-                        ['maxlength', 255],
-                ],
             }
         }
     }
@@ -514,6 +514,9 @@ export namespace ApiCompanyUpdate {
   //     validators: [],
   //     fields: {
   //               id: {
+  //                   validators: []
+  //               },
+  //               name: {
   //                   validators: []
   //               },
   //               abbreviation: {
@@ -571,9 +574,6 @@ export namespace ApiCompanyUpdate {
   //                   validators: []
   //               },
   //               language: {
-  //                   validators: []
-  //               },
-  //               name: {
   //                   validators: []
   //               },
   //     }

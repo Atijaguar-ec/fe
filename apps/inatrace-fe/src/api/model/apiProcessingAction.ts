@@ -30,7 +30,7 @@ import { ApiValueChain } from './apiValueChain';
 
 
 /**
- * The base processing action
+ * Processing action
  */
 
 export interface ApiProcessingAction { 

@@ -22,7 +22,7 @@ import { ApiProcessingEvidenceTypeTranslation } from './apiProcessingEvidenceTyp
 
 
 /**
- * Processing action required document types
+ * list of supported processing evidence types
  */
 
 export interface ApiProcessingEvidenceType { 

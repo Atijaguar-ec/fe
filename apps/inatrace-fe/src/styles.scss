@@ -527,6 +527,21 @@ button.btn-white {
   min-width: 100%;
 }
 
+// Fix: Prevent ng-bootstrap from injecting inverted inline z-indexes (backdrop 1055 > window 1050)
+// by creating a strict !important hierarchy: Backdrop (1040) < Window (1050) < Dropdown (1060)
+ngb-modal-backdrop.modal-backdrop, .modal-backdrop {
+  z-index: 1040 !important;
+}
+
+ngb-modal-window.modal, .modal {
+  z-index: 1050 !important;
+}
+
+ngb-modal-window .ng-dropdown-panel,
+.modal .ng-dropdown-panel {
+  z-index: 1060 !important;
+}
+
 .ng-select.ng-select-focused:not(.ng-select-opened) > .ng-select-container {
   border: 1px solid $gray-semi;
   outline: 0;

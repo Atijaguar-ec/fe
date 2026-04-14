@@ -231,7 +231,7 @@ export class SingleChoiceComponent implements OnInit {
           } else {
             this.modelChoice = this.formControlInput.value;
           }
-          this.typeahead$.next(null); // vedno počisti typeahead
+          this.typeahead$.next(''); // vedno počisti typeahead
         });
 
       if (this.codebookService.isEnumFormControl()) {
@@ -408,6 +408,9 @@ export class SingleChoiceComponent implements OnInit {
 
   ngOnInit() {
     this.resubscribe();
+    if (this.codebookService) {
+      this.typeahead$.next('');
+    }
   }
 
   formatter(item: any) {
@@ -450,7 +453,7 @@ export class SingleChoiceComponent implements OnInit {
     } else {
       this.valueSelectedObjects$.next(this.value ? [this.value] : []);
     }
-    this.typeahead$.next(null);
+    this.typeahead$.next('');
     if (this.codebookService && this.codebookService.isEnumFormControl()) {
       this.onChange.next(this.codebookService.objectToEnumValue(event));
     } else {
@@ -468,18 +471,18 @@ export class SingleChoiceComponent implements OnInit {
     } else {
       this.modelChoice = null;
     }
-    this.typeahead$.next(null);
+    this.typeahead$.next('');
     this.onChange.next(null);
   }
 
   onBlur(event) {
     if (this.touchedOnBlur) this._formControl.markAsTouched();
-    this.typeahead$.next(null); // vedno počisti typeahead
+    this.typeahead$.next(''); // vedno počisti typeahead
     this.isActive.next(false);
   }
 
   onFocus(event) {
-    this.typeahead$.next(null);
+    this.typeahead$.next('');
     this.isActive.next(true);
   }
 

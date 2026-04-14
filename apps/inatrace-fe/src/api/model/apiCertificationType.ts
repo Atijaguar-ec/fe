@@ -28,23 +28,23 @@ export interface ApiCertificationType {
      */
     id?: number;
     /**
-     * code
+     * Code
      */
-    code: string;
+    code?: string;
     /**
-     * label
+     * Name
      */
-    label: string;
+    name?: string;
     /**
-     * Category of certification (CERTIFICATE or SEAL)
+     * Category
      */
     category?: ApiCertificationType.CategoryEnum;
     /**
-     * Status of certification (ACTIVE or INACTIVE)
+     * Status
      */
     status?: ApiCertificationType.StatusEnum;
     /**
-     * Translations for certification type
+     * Translations
      */
     translations?: Array<ApiCertificationTypeTranslation>;
 }
@@ -62,23 +62,23 @@ export namespace ApiCertificationType {
          */
         id = 'id',
         /**
-         * code
+         * Code
          */
         code = 'code',
         /**
-         * label
+         * Name
          */
-        label = 'label',
+        name = 'name',
         /**
-         * Category of certification (CERTIFICATE or SEAL)
+         * Category
          */
         category = 'category',
         /**
-         * Status of certification (ACTIVE or INACTIVE)
+         * Status
          */
         status = 'status',
         /**
-         * Translations for certification type
+         * Translations
          */
         translations = 'translations'
     }
@@ -119,7 +119,7 @@ export namespace ApiCertificationType {
                 {
                     isReadOnly: false,
                     isEnum: false,
-                    required: true,
+                    required: false,
                     name: 'code',
                     classname: 'ApiCertificationType',
                     dataType: 'string',
@@ -130,8 +130,8 @@ export namespace ApiCertificationType {
                 {
                     isReadOnly: false,
                     isEnum: false,
-                    required: true,
-                    name: 'label',
+                    required: false,
+                    name: 'name',
                     classname: 'ApiCertificationType',
                     dataType: 'string',
                     isPrimitiveType: true,
@@ -179,10 +179,8 @@ export namespace ApiCertificationType {
                 id: [
                 ],
                 code: [
-                        ['required'],
                 ],
-                label: [
-                        ['required'],
+                name: [
                 ],
                 category: [
                 ],
@@ -203,7 +201,7 @@ export namespace ApiCertificationType {
   //               code: {
   //                   validators: []
   //               },
-  //               label: {
+  //               name: {
   //                   validators: []
   //               },
   //               category: {

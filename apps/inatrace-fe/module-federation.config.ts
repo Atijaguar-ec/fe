@@ -23,6 +23,9 @@ const config: ModuleFederationConfig = {
         strictVersion: true,
       };
     }
+    if (libraryName === 'lodash') {
+      return false;
+    }
     if (libraryName === '@turf/turf') {
       return {
         ...defaultConfig,
@@ -33,6 +36,7 @@ const config: ModuleFederationConfig = {
     if (libraryName === 'maplibre-gl') {
       return {
         ...defaultConfig,
+        version: '4.7.0',
         requiredVersion: '^4.7.0',
       };
     }

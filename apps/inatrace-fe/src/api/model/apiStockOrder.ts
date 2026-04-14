@@ -21,7 +21,6 @@
 import { ApiActivityProof } from './apiActivityProof';
 import { ApiCompany } from './apiCompany';
 import { ApiCompanyCustomer } from './apiCompanyCustomer';
-import { ApiDocument } from './apiDocument';
 import { ApiFacility } from './apiFacility';
 import { ApiFinalProduct } from './apiFinalProduct';
 import { ApiMeasureUnitType } from './apiMeasureUnitType';
@@ -34,7 +33,6 @@ import { ApiStockOrderEvidenceTypeValue } from './apiStockOrderEvidenceTypeValue
 import { ApiStockOrderLocation } from './apiStockOrderLocation';
 import { ApiUser } from './apiUser';
 import { ApiUserCustomer } from './apiUserCustomer';
-import { LocalTime } from './localTime';
 
 
 /**
@@ -194,22 +192,6 @@ export interface ApiStockOrder {
      */
     organic?: boolean;
     /**
-     * Week number for cacao deliveries (1-53)
-     */
-    weekNumber?: number;
-    /**
-     * Parcel lot for cacao deliveries
-     */
-    parcelLot?: string;
-    /**
-     * Variety for cacao deliveries
-     */
-    variety?: string;
-    /**
-     * Organic certification details
-     */
-    organicCertification?: string;
-    /**
      * Tare
      */
     tare?: number;
@@ -218,159 +200,9 @@ export interface ApiStockOrder {
      */
     damagedPriceDeduction?: number;
     /**
-     * Final price discount per unit
-     */
-    finalPriceDiscount?: number;
-    /**
      * Damaged weight deduction
      */
     damagedWeightDeduction?: number;
-    /**
-     * Moisture percentage applied (0-100)
-     */
-    moisturePercentage?: number;
-    /**
-     * Calculated weight deduction due to moisture
-     */
-    moistureWeightDeduction?: number;
-    /**
-     * Net quantity after all deductions (tare, damaged weight, moisture)
-     */
-    netQuantity?: number;
-    /**
-     * Number of gavetas (shrimp-specific)
-     */
-    numberOfGavetas?: number;
-    /**
-     * N° de Bines (específico para camarón)
-     */
-    numberOfBines?: string;
-    /**
-     * Number of pools/piscinas (shrimp-specific)
-     */
-    numberOfPiscinas?: string;
-    /**
-     * Remission guide number (shrimp-specific)
-     */
-    guiaRemisionNumber?: string;
-    /**
-     * Cutting type (shrimp processing)
-     */
-    cuttingType?: string;
-    /**
-     * Cutting entry date (shrimp processing)
-     */
-    cuttingEntryDate?: string;
-    /**
-     * Cutting exit date (shrimp processing)
-     */
-    cuttingExitDate?: string;
-    /**
-     * Temperature control during cutting (shrimp processing)
-     */
-    cuttingTemperatureControl?: string;
-    /**
-     * Treatment type (shrimp processing)
-     */
-    treatmentType?: string;
-    /**
-     * Treatment entry date (shrimp processing)
-     */
-    treatmentEntryDate?: string;
-    /**
-     * Treatment exit date (shrimp processing)
-     */
-    treatmentExitDate?: string;
-    /**
-     * Temperature control during treatment (shrimp processing)
-     */
-    treatmentTemperatureControl?: string;
-    /**
-     * Chemical used in treatment (shrimp processing)
-     */
-    treatmentChemicalUsed?: string;
-    /**
-     * Freezing type (shrimp processing)
-     */
-    freezingType?: string;
-    /**
-     * Freezing entry date (shrimp processing)
-     */
-    freezingEntryDate?: string;
-    /**
-     * Freezing exit date (shrimp processing)
-     */
-    freezingExitDate?: string;
-    /**
-     * Temperature control during freezing (shrimp processing)
-     */
-    freezingTemperatureControl?: string;
-    /**
-     * Tunnel production date (shrimp processing)
-     */
-    tunnelProductionDate?: string;
-    /**
-     * Tunnel expiration date (shrimp processing)
-     */
-    tunnelExpirationDate?: string;
-    /**
-     * Tunnel net weight (shrimp processing)
-     */
-    tunnelNetWeight?: number;
-    /**
-     * Tunnel supplier (shrimp processing)
-     */
-    tunnelSupplier?: string;
-    /**
-     * Tunnel freezing type (shrimp processing)
-     */
-    tunnelFreezingType?: string;
-    /**
-     * Tunnel entry date (shrimp processing)
-     */
-    tunnelEntryDate?: string;
-    /**
-     * Tunnel exit date (shrimp processing)
-     */
-    tunnelExitDate?: string;
-    /**
-     * Washing water temperature (shrimp processing)
-     */
-    washingWaterTemperature?: string;
-    /**
-     * Shrimp temperature control in washing area (shrimp processing)
-     */
-    washingShrimpTemperatureControl?: string;
-    /**
-     * Sample number (laboratory-specific)
-     */
-    sampleNumber?: string;
-    receptionTime?: LocalTime;
-    qualityDocument?: ApiDocument;
-    /**
-     * Flavor test result: NORMAL or DEFECT (field inspection)
-     */
-    flavorTestResult?: string;
-    /**
-     * Flavor defect type ID (field inspection)
-     */
-    flavorDefectTypeId?: number;
-    /**
-     * Flavor defect type code (field inspection)
-     */
-    flavorDefectTypeCode?: string;
-    /**
-     * Flavor defect type label (field inspection)
-     */
-    flavorDefectTypeLabel?: string;
-    /**
-     * Purchase recommended by inspector (field inspection)
-     */
-    purchaseRecommended?: boolean;
-    /**
-     * Inspection notes (field inspection)
-     */
-    inspectionNotes?: string;
     /**
      * Generated UUID tag for this stock order QR code
      */
@@ -384,9 +216,41 @@ export interface ApiStockOrder {
      * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
      */
     repackedOriginStockOrderId?: string;
+    /**
+     * The week number when the delivery was made
+     */
+    weekNumber?: number;
+    /**
+     * The parcel lot identifier
+     */
+    parcelLot?: string;
+    /**
+     * The variety of the product
+     */
+    variety?: string;
+    /**
+     * The organic certification status of the stock order
+     */
+    organicCertification?: string;
+    /**
+     * The moisture percentage measured
+     */
+    moisturePercentage?: number;
+    /**
+     * The moisture weight deduction calculated
+     */
+    moistureWeightDeduction?: number;
+    /**
+     * The net quantity after all deductions
+     */
+    netQuantity?: number;
+    /**
+     * The final price discount applied
+     */
+    finalPriceDiscount?: number;
     purchaseOrder?: boolean;
-    openOrder?: boolean;
     available?: boolean;
+    openOrder?: boolean;
 }
 
 /**
@@ -549,22 +413,6 @@ export namespace ApiStockOrder {
          */
         organic = 'organic',
         /**
-         * Week number for cacao deliveries (1-53)
-         */
-        weekNumber = 'weekNumber',
-        /**
-         * Parcel lot for cacao deliveries
-         */
-        parcelLot = 'parcelLot',
-        /**
-         * Variety for cacao deliveries
-         */
-        variety = 'variety',
-        /**
-         * Organic certification details
-         */
-        organicCertification = 'organicCertification',
-        /**
          * Tare
          */
         tare = 'tare',
@@ -573,159 +421,9 @@ export namespace ApiStockOrder {
          */
         damagedPriceDeduction = 'damagedPriceDeduction',
         /**
-         * Final price discount per unit
-         */
-        finalPriceDiscount = 'finalPriceDiscount',
-        /**
          * Damaged weight deduction
          */
         damagedWeightDeduction = 'damagedWeightDeduction',
-        /**
-         * Moisture percentage applied (0-100)
-         */
-        moisturePercentage = 'moisturePercentage',
-        /**
-         * Calculated weight deduction due to moisture
-         */
-        moistureWeightDeduction = 'moistureWeightDeduction',
-        /**
-         * Net quantity after all deductions (tare, damaged weight, moisture)
-         */
-        netQuantity = 'netQuantity',
-        /**
-         * Number of gavetas (shrimp-specific)
-         */
-        numberOfGavetas = 'numberOfGavetas',
-        /**
-         * N° de Bines (específico para camarón)
-         */
-        numberOfBines = 'numberOfBines',
-        /**
-         * Number of pools/piscinas (shrimp-specific)
-         */
-        numberOfPiscinas = 'numberOfPiscinas',
-        /**
-         * Remission guide number (shrimp-specific)
-         */
-        guiaRemisionNumber = 'guiaRemisionNumber',
-        /**
-         * Cutting type (shrimp processing)
-         */
-        cuttingType = 'cuttingType',
-        /**
-         * Cutting entry date (shrimp processing)
-         */
-        cuttingEntryDate = 'cuttingEntryDate',
-        /**
-         * Cutting exit date (shrimp processing)
-         */
-        cuttingExitDate = 'cuttingExitDate',
-        /**
-         * Temperature control during cutting (shrimp processing)
-         */
-        cuttingTemperatureControl = 'cuttingTemperatureControl',
-        /**
-         * Treatment type (shrimp processing)
-         */
-        treatmentType = 'treatmentType',
-        /**
-         * Treatment entry date (shrimp processing)
-         */
-        treatmentEntryDate = 'treatmentEntryDate',
-        /**
-         * Treatment exit date (shrimp processing)
-         */
-        treatmentExitDate = 'treatmentExitDate',
-        /**
-         * Temperature control during treatment (shrimp processing)
-         */
-        treatmentTemperatureControl = 'treatmentTemperatureControl',
-        /**
-         * Chemical used in treatment (shrimp processing)
-         */
-        treatmentChemicalUsed = 'treatmentChemicalUsed',
-        /**
-         * Freezing type (shrimp processing)
-         */
-        freezingType = 'freezingType',
-        /**
-         * Freezing entry date (shrimp processing)
-         */
-        freezingEntryDate = 'freezingEntryDate',
-        /**
-         * Freezing exit date (shrimp processing)
-         */
-        freezingExitDate = 'freezingExitDate',
-        /**
-         * Temperature control during freezing (shrimp processing)
-         */
-        freezingTemperatureControl = 'freezingTemperatureControl',
-        /**
-         * Tunnel production date (shrimp processing)
-         */
-        tunnelProductionDate = 'tunnelProductionDate',
-        /**
-         * Tunnel expiration date (shrimp processing)
-         */
-        tunnelExpirationDate = 'tunnelExpirationDate',
-        /**
-         * Tunnel net weight (shrimp processing)
-         */
-        tunnelNetWeight = 'tunnelNetWeight',
-        /**
-         * Tunnel supplier (shrimp processing)
-         */
-        tunnelSupplier = 'tunnelSupplier',
-        /**
-         * Tunnel freezing type (shrimp processing)
-         */
-        tunnelFreezingType = 'tunnelFreezingType',
-        /**
-         * Tunnel entry date (shrimp processing)
-         */
-        tunnelEntryDate = 'tunnelEntryDate',
-        /**
-         * Tunnel exit date (shrimp processing)
-         */
-        tunnelExitDate = 'tunnelExitDate',
-        /**
-         * Washing water temperature (shrimp processing)
-         */
-        washingWaterTemperature = 'washingWaterTemperature',
-        /**
-         * Shrimp temperature control in washing area (shrimp processing)
-         */
-        washingShrimpTemperatureControl = 'washingShrimpTemperatureControl',
-        /**
-         * Sample number (laboratory-specific)
-         */
-        sampleNumber = 'sampleNumber',
-        receptionTime = 'receptionTime',
-        qualityDocument = 'qualityDocument',
-        /**
-         * Flavor test result: NORMAL or DEFECT (field inspection)
-         */
-        flavorTestResult = 'flavorTestResult',
-        /**
-         * Flavor defect type ID (field inspection)
-         */
-        flavorDefectTypeId = 'flavorDefectTypeId',
-        /**
-         * Flavor defect type code (field inspection)
-         */
-        flavorDefectTypeCode = 'flavorDefectTypeCode',
-        /**
-         * Flavor defect type label (field inspection)
-         */
-        flavorDefectTypeLabel = 'flavorDefectTypeLabel',
-        /**
-         * Purchase recommended by inspector (field inspection)
-         */
-        purchaseRecommended = 'purchaseRecommended',
-        /**
-         * Inspection notes (field inspection)
-         */
-        inspectionNotes = 'inspectionNotes',
         /**
          * Generated UUID tag for this stock order QR code
          */
@@ -739,9 +437,41 @@ export namespace ApiStockOrder {
          * The ID from which this repacked stock order was created; This ID is generated and provided by the client; Only applicable for repacked stock orders
          */
         repackedOriginStockOrderId = 'repackedOriginStockOrderId',
+        /**
+         * The week number when the delivery was made
+         */
+        weekNumber = 'weekNumber',
+        /**
+         * The parcel lot identifier
+         */
+        parcelLot = 'parcelLot',
+        /**
+         * The variety of the product
+         */
+        variety = 'variety',
+        /**
+         * The organic certification status of the stock order
+         */
+        organicCertification = 'organicCertification',
+        /**
+         * The moisture percentage measured
+         */
+        moisturePercentage = 'moisturePercentage',
+        /**
+         * The moisture weight deduction calculated
+         */
+        moistureWeightDeduction = 'moistureWeightDeduction',
+        /**
+         * The net quantity after all deductions
+         */
+        netQuantity = 'netQuantity',
+        /**
+         * The final price discount applied
+         */
+        finalPriceDiscount = 'finalPriceDiscount',
         purchaseOrder = 'purchaseOrder',
-        openOrder = 'openOrder',
-        available = 'available'
+        available = 'available',
+        openOrder = 'openOrder'
     }
 
     /**
@@ -1336,50 +1066,6 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'weekNumber',
-                    classname: 'ApiStockOrder',
-                    dataType: 'number',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'parcelLot',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'variety',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'organicCertification',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
                     name: 'tare',
                     classname: 'ApiStockOrder',
                     dataType: 'number',
@@ -1402,440 +1088,9 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'finalPriceDiscount',
-                    classname: 'ApiStockOrder',
-                    dataType: 'number',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
                     name: 'damagedWeightDeduction',
                     classname: 'ApiStockOrder',
                     dataType: 'number',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'moisturePercentage',
-                    classname: 'ApiStockOrder',
-                    dataType: 'number',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'moistureWeightDeduction',
-                    classname: 'ApiStockOrder',
-                    dataType: 'number',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'netQuantity',
-                    classname: 'ApiStockOrder',
-                    dataType: 'number',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'numberOfGavetas',
-                    classname: 'ApiStockOrder',
-                    dataType: 'number',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'numberOfBines',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'numberOfPiscinas',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'guiaRemisionNumber',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'cuttingType',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'cuttingEntryDate',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'cuttingExitDate',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'cuttingTemperatureControl',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'treatmentType',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'treatmentEntryDate',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'treatmentExitDate',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'treatmentTemperatureControl',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'treatmentChemicalUsed',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'freezingType',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'freezingEntryDate',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'freezingExitDate',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'freezingTemperatureControl',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'tunnelProductionDate',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'tunnelExpirationDate',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'tunnelNetWeight',
-                    classname: 'ApiStockOrder',
-                    dataType: 'number',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'tunnelSupplier',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'tunnelFreezingType',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'tunnelEntryDate',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'tunnelExitDate',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'washingWaterTemperature',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'washingShrimpTemperatureControl',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'sampleNumber',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    metadata: LocalTime.formMetadata,
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'receptionTime',
-                    classname: 'ApiStockOrder',
-                    dataType: 'LocalTime',
-                    isPrimitiveType: false,
-                    isListContainer: false,
-                    complexType: 'LocalTime'
-                },
-                {
-                    metadata: ApiDocument.formMetadata,
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'qualityDocument',
-                    classname: 'ApiStockOrder',
-                    dataType: 'ApiDocument',
-                    isPrimitiveType: false,
-                    isListContainer: false,
-                    complexType: 'ApiDocument'
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'flavorTestResult',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'flavorDefectTypeId',
-                    classname: 'ApiStockOrder',
-                    dataType: 'number',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'flavorDefectTypeCode',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'flavorDefectTypeLabel',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'purchaseRecommended',
-                    classname: 'ApiStockOrder',
-                    dataType: 'boolean',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'inspectionNotes',
-                    classname: 'ApiStockOrder',
-                    dataType: 'string',
                     isPrimitiveType: true,
                     isListContainer: false,
                     complexType: ''
@@ -1890,6 +1145,94 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'weekNumber',
+                    classname: 'ApiStockOrder',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'parcelLot',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'variety',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'organicCertification',
+                    classname: 'ApiStockOrder',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'moisturePercentage',
+                    classname: 'ApiStockOrder',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'moistureWeightDeduction',
+                    classname: 'ApiStockOrder',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'netQuantity',
+                    classname: 'ApiStockOrder',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'finalPriceDiscount',
+                    classname: 'ApiStockOrder',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'purchaseOrder',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
@@ -1901,7 +1244,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'openOrder',
+                    name: 'available',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1912,7 +1255,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'available',
+                    name: 'openOrder',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -2019,97 +1362,11 @@ export namespace ApiStockOrder {
                 ],
                 organic: [
                 ],
-                weekNumber: [
-                ],
-                parcelLot: [
-                ],
-                variety: [
-                ],
-                organicCertification: [
-                ],
                 tare: [
                 ],
                 damagedPriceDeduction: [
                 ],
-                finalPriceDiscount: [
-                ],
                 damagedWeightDeduction: [
-                ],
-                moisturePercentage: [
-                ],
-                moistureWeightDeduction: [
-                ],
-                netQuantity: [
-                ],
-                numberOfGavetas: [
-                ],
-                numberOfBines: [
-                ],
-                numberOfPiscinas: [
-                ],
-                guiaRemisionNumber: [
-                ],
-                cuttingType: [
-                ],
-                cuttingEntryDate: [
-                ],
-                cuttingExitDate: [
-                ],
-                cuttingTemperatureControl: [
-                ],
-                treatmentType: [
-                ],
-                treatmentEntryDate: [
-                ],
-                treatmentExitDate: [
-                ],
-                treatmentTemperatureControl: [
-                ],
-                treatmentChemicalUsed: [
-                ],
-                freezingType: [
-                ],
-                freezingEntryDate: [
-                ],
-                freezingExitDate: [
-                ],
-                freezingTemperatureControl: [
-                ],
-                tunnelProductionDate: [
-                ],
-                tunnelExpirationDate: [
-                ],
-                tunnelNetWeight: [
-                ],
-                tunnelSupplier: [
-                ],
-                tunnelFreezingType: [
-                ],
-                tunnelEntryDate: [
-                ],
-                tunnelExitDate: [
-                ],
-                washingWaterTemperature: [
-                ],
-                washingShrimpTemperatureControl: [
-                ],
-                sampleNumber: [
-                ],
-                receptionTime: [
-                ],
-                qualityDocument: [
-                ],
-                flavorTestResult: [
-                ],
-                flavorDefectTypeId: [
-                ],
-                flavorDefectTypeCode: [
-                ],
-                flavorDefectTypeLabel: [
-                ],
-                purchaseRecommended: [
-                ],
-                inspectionNotes: [
                 ],
                 qrCodeTag: [
                 ],
@@ -2119,11 +1376,27 @@ export namespace ApiStockOrder {
                 ],
                 repackedOriginStockOrderId: [
                 ],
+                weekNumber: [
+                ],
+                parcelLot: [
+                ],
+                variety: [
+                ],
+                organicCertification: [
+                ],
+                moisturePercentage: [
+                ],
+                moistureWeightDeduction: [
+                ],
+                netQuantity: [
+                ],
+                finalPriceDiscount: [
+                ],
                 purchaseOrder: [
                 ],
-                openOrder: [
-                ],
                 available: [
+                ],
+                openOrder: [
                 ],
             }
         }
@@ -2279,142 +1552,13 @@ export namespace ApiStockOrder {
   //               organic: {
   //                   validators: []
   //               },
-  //               weekNumber: {
-  //                   validators: []
-  //               },
-  //               parcelLot: {
-  //                   validators: []
-  //               },
-  //               variety: {
-  //                   validators: []
-  //               },
-  //               organicCertification: {
-  //                   validators: []
-  //               },
   //               tare: {
   //                   validators: []
   //               },
   //               damagedPriceDeduction: {
   //                   validators: []
   //               },
-  //               finalPriceDiscount: {
-  //                   validators: []
-  //               },
   //               damagedWeightDeduction: {
-  //                   validators: []
-  //               },
-  //               moisturePercentage: {
-  //                   validators: []
-  //               },
-  //               moistureWeightDeduction: {
-  //                   validators: []
-  //               },
-  //               netQuantity: {
-  //                   validators: []
-  //               },
-  //               numberOfGavetas: {
-  //                   validators: []
-  //               },
-  //               numberOfBines: {
-  //                   validators: []
-  //               },
-  //               numberOfPiscinas: {
-  //                   validators: []
-  //               },
-  //               guiaRemisionNumber: {
-  //                   validators: []
-  //               },
-  //               cuttingType: {
-  //                   validators: []
-  //               },
-  //               cuttingEntryDate: {
-  //                   validators: []
-  //               },
-  //               cuttingExitDate: {
-  //                   validators: []
-  //               },
-  //               cuttingTemperatureControl: {
-  //                   validators: []
-  //               },
-  //               treatmentType: {
-  //                   validators: []
-  //               },
-  //               treatmentEntryDate: {
-  //                   validators: []
-  //               },
-  //               treatmentExitDate: {
-  //                   validators: []
-  //               },
-  //               treatmentTemperatureControl: {
-  //                   validators: []
-  //               },
-  //               treatmentChemicalUsed: {
-  //                   validators: []
-  //               },
-  //               freezingType: {
-  //                   validators: []
-  //               },
-  //               freezingEntryDate: {
-  //                   validators: []
-  //               },
-  //               freezingExitDate: {
-  //                   validators: []
-  //               },
-  //               freezingTemperatureControl: {
-  //                   validators: []
-  //               },
-  //               tunnelProductionDate: {
-  //                   validators: []
-  //               },
-  //               tunnelExpirationDate: {
-  //                   validators: []
-  //               },
-  //               tunnelNetWeight: {
-  //                   validators: []
-  //               },
-  //               tunnelSupplier: {
-  //                   validators: []
-  //               },
-  //               tunnelFreezingType: {
-  //                   validators: []
-  //               },
-  //               tunnelEntryDate: {
-  //                   validators: []
-  //               },
-  //               tunnelExitDate: {
-  //                   validators: []
-  //               },
-  //               washingWaterTemperature: {
-  //                   validators: []
-  //               },
-  //               washingShrimpTemperatureControl: {
-  //                   validators: []
-  //               },
-  //               sampleNumber: {
-  //                   validators: []
-  //               },
-  //               receptionTime: {
-  //                   validators: []
-  //               },
-  //               qualityDocument: {
-  //                   validators: []
-  //               },
-  //               flavorTestResult: {
-  //                   validators: []
-  //               },
-  //               flavorDefectTypeId: {
-  //                   validators: []
-  //               },
-  //               flavorDefectTypeCode: {
-  //                   validators: []
-  //               },
-  //               flavorDefectTypeLabel: {
-  //                   validators: []
-  //               },
-  //               purchaseRecommended: {
-  //                   validators: []
-  //               },
-  //               inspectionNotes: {
   //                   validators: []
   //               },
   //               qrCodeTag: {
@@ -2429,13 +1573,37 @@ export namespace ApiStockOrder {
   //               repackedOriginStockOrderId: {
   //                   validators: []
   //               },
+  //               weekNumber: {
+  //                   validators: []
+  //               },
+  //               parcelLot: {
+  //                   validators: []
+  //               },
+  //               variety: {
+  //                   validators: []
+  //               },
+  //               organicCertification: {
+  //                   validators: []
+  //               },
+  //               moisturePercentage: {
+  //                   validators: []
+  //               },
+  //               moistureWeightDeduction: {
+  //                   validators: []
+  //               },
+  //               netQuantity: {
+  //                   validators: []
+  //               },
+  //               finalPriceDiscount: {
+  //                   validators: []
+  //               },
   //               purchaseOrder: {
   //                   validators: []
   //               },
-  //               openOrder: {
+  //               available: {
   //                   validators: []
   //               },
-  //               available: {
+  //               openOrder: {
   //                   validators: []
   //               },
   //     }
