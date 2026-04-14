@@ -26,13 +26,14 @@ const config: ModuleFederationConfig = {
     if (libraryName === '@turf/turf') {
       return {
         ...defaultConfig,
+        version: '^6.5.0',
         requiredVersion: '^6.5.0',
       };
     }
-    if (libraryName === 'mapbox-gl') {
+    if (libraryName === 'maplibre-gl') {
       return {
         ...defaultConfig,
-        requiredVersion: '3.3.0',
+        requiredVersion: '^4.7.0',
       };
     }
     return defaultConfig;

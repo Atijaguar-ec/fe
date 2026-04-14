@@ -8,7 +8,7 @@ import {
   Output,
 } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import * as mapboxgl from 'mapbox-gl';
+import * as mapboxgl from 'maplibre-gl';
 import { Observable, Subscription } from 'rxjs';
 import { ApiPlotCoordinate } from '../../../api/model/apiPlotCoordinate';
 import { PlotCoordinatesManagerService } from '../../shared-services/plot-coordinates-manager.service';
@@ -292,14 +292,15 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
  
-    this.map = new mapboxgl.Map({
+    const mapOptions: any = {
       accessToken: environment.mapboxAccessToken,
       container: this.mapId, // id of div that holds the map
       style: `${this.MAPBOX_STYLE_BASE_PATH}${this.mapStyle.value}`,
       zoom: 10,
       center: [this.initialLng ?? 14.995463, this.initialLat ?? 46.151241],
       cooperativeGestures: true,
-    });
+    };
+    this.map = new mapboxgl.Map(mapOptions);
 
     // disable map rotation using right click + drag
     this.map.dragRotate.disable();
@@ -387,7 +388,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const popup = new mapboxgl.Popup({
         anchor: 'top',
-        offset: { top: [0, -10] },
+        offset: { top: [0, -10] } as any,
         closeOnClick: true,
       }).setHTML(popupHtml);
 

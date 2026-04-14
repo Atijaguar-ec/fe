@@ -63,6 +63,7 @@
         "sourceMap": true,
         "optimization": false,
         "namedChunks": true,
+        "allowedCommonJsDependencies": ["qrcode", "maplibre-gl", "file-saver"],
         "main": "apps/inatrace-fe/src/main.ts",
         "stylePreprocessorOptions": {
           "includePaths": [".", "apps/inatrace-fe"]
