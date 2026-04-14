@@ -217,18 +217,17 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   private async loadCertificationTypes() {
     try {
-      const res = await this.certificationTypeControllerService
-        .getCertificationTypeList('FETCH', 1000, 0, 'label', 'ASC', 'ES')
+      // Backend moderno: GET /api/codebook/certification-type retorna List<ApiCertificationType> directamente (sin paginación)
+      const items: any[] = await this.certificationTypeControllerService
+        .listActive('ES')
         .pipe(take(1))
         .toPromise();
-      const items = res?.data?.items || [];
       this.certificationTypeMap = {};
-      items
+      (items || [])
         .filter((it: any) => it?.status === 'ACTIVE')
         .forEach((it: any) => {
-          // Use label as key and value to keep stored string readable
-          const key = it.label;
-          this.certificationTypeMap[key] = it.label;
+          const key = it.name;
+          this.certificationTypeMap[key] = it.name;
         });
       this.refreshCertificationTypeOptions();
     } catch (_) {

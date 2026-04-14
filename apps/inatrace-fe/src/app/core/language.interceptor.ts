@@ -17,8 +17,8 @@ export class LanguageInterceptor implements HttpInterceptor {
     next: HttpHandler,
   ): Observable<HttpEvent<unknown>> {
     const newRequest = request.clone({
-      headers: request.headers.append(
-        'language',
+      headers: request.headers.set(
+        'Language',
         LanguageCodeHelper.getCurrentLocale().toUpperCase(),
       ),
     });

@@ -327,7 +327,7 @@ export class CertificationTypeControllerService {
                 }
             }
 
-        const handle = this.httpClient.put<ApiResponseApiBaseEntity>(`${this.configuration.basePath}/api/chain/certification-type`,
+        const handle = this.httpClient.put<ApiResponseApiBaseEntity>(`${this.configuration.basePath}/api/api/codebook/certification-type`,
             ApiCertificationType,
             {
                 withCredentials: this.configuration.withCredentials,
@@ -410,7 +410,7 @@ export class CertificationTypeControllerService {
                 }
             }
 
-        const handle = this.httpClient.delete<ApiDefaultResponse>(`${this.configuration.basePath}/api/chain/certification-type/${encodeURIComponent(String(id))}`,
+        const handle = this.httpClient.delete<ApiDefaultResponse>(`${this.configuration.basePath}/api/api/codebook/certification-type/${encodeURIComponent(String(id))}`,
             {
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
@@ -497,7 +497,7 @@ export class CertificationTypeControllerService {
                 }
             }
 
-        const handle = this.httpClient.get<ApiResponseApiCertificationType>(`${this.configuration.basePath}/api/chain/certification-type/${encodeURIComponent(String(id))}`,
+        const handle = this.httpClient.get<ApiResponseApiCertificationType>(`${this.configuration.basePath}/api/api/codebook/certification-type/${encodeURIComponent(String(id))}`,
             {
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
@@ -606,7 +606,7 @@ export class CertificationTypeControllerService {
                 }
             }
 
-        const handle = this.httpClient.get<ApiPaginatedResponseApiCertificationType>(`${this.configuration.basePath}/api/chain/certification-type/list`,
+        const handle = this.httpClient.get<ApiPaginatedResponseApiCertificationType>(`${this.configuration.basePath}/api/api/codebook/certification-type/list`,
             {
                 params: queryParameters,
                 withCredentials: this.configuration.withCredentials,
@@ -620,5 +620,28 @@ export class CertificationTypeControllerService {
         }
         return handle;
     }
+
+  /**
+   * List all active certification types (modern backend endpoint — no pagination).
+   * Calls GET /api/api/codebook/certification-type with a Language header.
+   */
+  public listActive(language?: 'EN' | 'DE' | 'RW' | 'ES'): Observable<ApiCertificationType[]> {
+    let headers = this.defaultHeaders;
+    if (language) {
+      headers = headers.set('Language', language);
+    }
+    const httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(['application/json']);
+    if (httpHeaderAcceptSelected !== undefined) {
+      headers = headers.set('Accept', httpHeaderAcceptSelected);
+    }
+    const handle = this.httpClient.get<ApiCertificationType[]>(
+      `${this.configuration.basePath}/api/api/codebook/certification-type`,
+      { withCredentials: this.configuration.withCredentials, headers }
+    );
+    if (typeof this.configuration.errorHandler === 'function') {
+      return handle.pipe(catchError(err => this.configuration.errorHandler(err, 'listActive')));
+    }
+    return handle;
+  }
 
 }

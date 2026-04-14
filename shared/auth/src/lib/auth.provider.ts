@@ -32,12 +32,29 @@ export interface InatraceAuthConfig {
 /**
  * Configure Keycloak Providers dynamically per environment.
  * Wires Keycloak init + Bearer token interceptor for API requests.
+ *
+ * The urlPattern is derived from the origin (protocol + host + port) of the
+ * apiBaseUrl so that the Bearer token is injected for *any* path on the
+ * backend host — regardless of whether the service builds its URL with or
+ * without a trailing `/api` segment.
  */
 export function provideInatraceAuth(config: InatraceAuthConfig) {
-  const escapedBaseUrl = config.apiBaseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  
+  // Extract origin: e.g. "http://localhost:8082/api" → "http://localhost:8082"
+  const backendOrigin = (() => {
+    try {
+      const url = new URL(config.apiBaseUrl);
+      return url.origin; // protocol + hostname + port, no path
+    } catch {
+      // Fallback: strip path manually
+      return config.apiBaseUrl.replace(/\/api.*$/, '');
+    }
+  })();
+
+  const escapedOrigin = backendOrigin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  // Matches ANY path on the backend host — covers /api/..., /api/api/..., etc.
   const apiCondition = createInterceptorCondition<IncludeBearerTokenCondition>({
-    urlPattern: new RegExp(`^(${escapedBaseUrl})(\\/.*)?$`, 'i'),
+    urlPattern: new RegExp(`^${escapedOrigin}(\\/.*)?$`, 'i'),
     bearerPrefix: 'Bearer'
   });
 
