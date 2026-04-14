@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:8080/"
+      "url": "http://5.161.183.137:8080"
     }
   ],
   "paths": {
@@ -51,7 +51,9 @@
             "description": "OK"
           }
         },
-        "tags": ["beyco-order-controller"],
+        "tags": [
+          "beyco-order-controller"
+        ],
         "operationId": "getBeycoOrderFieldsForSelectedStockOrdersUsingGET",
         "summary": "Get list of fields necessary for Beyco order for selected Stock Orders"
       }
@@ -91,7 +93,9 @@
             "description": "OK"
           }
         },
-        "tags": ["beyco-order-controller"],
+        "tags": [
+          "beyco-order-controller"
+        ],
         "operationId": "sendBeycoOrderUsingPOST",
         "requestBody": {
           "content": {
@@ -142,7 +146,9 @@
             "description": "OK"
           }
         },
-        "tags": ["beyco-order-controller"],
+        "tags": [
+          "beyco-order-controller"
+        ],
         "operationId": "getTokenUsingGET",
         "summary": "Get OAuth2 token for Beyco integration"
       }
@@ -182,7 +188,9 @@
             "description": "OK"
           }
         },
-        "tags": ["beyco-order-controller"],
+        "tags": [
+          "beyco-order-controller"
+        ],
         "operationId": "refreshTokenUsingGET",
         "summary": "Refresh expired token"
       }
@@ -196,7 +204,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -238,7 +249,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -275,7 +289,10 @@
             "name": "paymentStatus",
             "required": false,
             "schema": {
-              "enum": ["UNCONFIRMED", "CONFIRMED"],
+              "enum": [
+                "UNCONFIRMED",
+                "CONFIRMED"
+              ],
               "type": "string"
             }
           },
@@ -322,7 +339,9 @@
             "description": "OK"
           }
         },
-        "tags": ["common-csv-controller"],
+        "tags": [
+          "common-csv-controller"
+        ],
         "deprecated": true,
         "operationId": "generatePaymentsByCompanyCsvUsingPOST",
         "summary": "Generate a csv file with a list of filtered payments by companyId."
@@ -338,7 +357,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           },
@@ -348,7 +370,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -390,7 +415,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -473,7 +501,9 @@
             "description": "OK"
           }
         },
-        "tags": ["common-csv-controller"],
+        "tags": [
+          "common-csv-controller"
+        ],
         "deprecated": true,
         "operationId": "generatePurchasesByCompanyCsvUsingPOST",
         "summary": "Generate a csv file with a list of filtered purchases by companyId."
@@ -488,7 +518,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -530,7 +563,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -555,7 +591,9 @@
             "description": "OK"
           }
         },
-        "tags": ["currency-type-controller"],
+        "tags": [
+          "currency-type-controller"
+        ],
         "operationId": "getCurrencyTypesUsingGET",
         "summary": "Get list of enabled and disables supported currencies"
       }
@@ -569,7 +607,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -611,7 +652,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -636,7 +680,9 @@
             "description": "OK"
           }
         },
-        "tags": ["currency-type-controller"],
+        "tags": [
+          "currency-type-controller"
+        ],
         "operationId": "getDisabledCurrencyTypesUsingGET",
         "summary": "Get list of disabled supported currencies"
       }
@@ -650,7 +696,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -692,7 +741,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -717,7 +769,9 @@
             "description": "OK"
           }
         },
-        "tags": ["currency-type-controller"],
+        "tags": [
+          "currency-type-controller"
+        ],
         "operationId": "getEnabledCurrencyTypesUsingGET",
         "summary": "Get list of enabled supported currencies"
       }
@@ -748,7 +802,9 @@
             "description": "OK"
           }
         },
-        "tags": ["currency-type-controller"],
+        "tags": [
+          "currency-type-controller"
+        ],
         "operationId": "disableCurrencyUsingPUT",
         "summary": "Disable currency with the specified ID"
       }
@@ -779,7 +835,9 @@
             "description": "OK"
           }
         },
-        "tags": ["currency-type-controller"],
+        "tags": [
+          "currency-type-controller"
+        ],
         "operationId": "enableCurrencyUsingPUT",
         "summary": "Enable currency with the specified ID"
       }
@@ -827,7 +885,9 @@
             "description": "OK"
           }
         },
-        "tags": ["currency-controller"],
+        "tags": [
+          "currency-controller"
+        ],
         "operationId": "convertUsingGET",
         "summary": "Convert a value between supported currencies"
       }
@@ -885,7 +945,9 @@
             "description": "OK"
           }
         },
-        "tags": ["currency-controller"],
+        "tags": [
+          "currency-controller"
+        ],
         "operationId": "convertAtDateUsingGET",
         "summary": "Convert a value between supported currencies at the specified date"
       }
@@ -904,7 +966,9 @@
             "description": "OK"
           }
         },
-        "tags": ["facility-controller"],
+        "tags": [
+          "facility-controller"
+        ],
         "operationId": "createOrUpdateFacilityUsingPUT",
         "requestBody": {
           "content": {
@@ -934,7 +998,9 @@
             "description": "OK"
           }
         },
-        "tags": ["facility-type-controller"],
+        "tags": [
+          "facility-type-controller"
+        ],
         "operationId": "createOrUpdateFacilityTypeUsingPUT",
         "requestBody": {
           "content": {
@@ -959,7 +1025,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -1001,7 +1070,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           }
@@ -1018,7 +1090,9 @@
             "description": "OK"
           }
         },
-        "tags": ["facility-type-controller"],
+        "tags": [
+          "facility-type-controller"
+        ],
         "operationId": "getFacilityTypeListUsingGET",
         "summary": "Get a paginated list of facility types."
       }
@@ -1049,7 +1123,9 @@
             "description": "OK"
           }
         },
-        "tags": ["facility-type-controller"],
+        "tags": [
+          "facility-type-controller"
+        ],
         "operationId": "deleteFacilityTypeUsingDELETE",
         "summary": "Deletes a facility type with the provided ID."
       },
@@ -1078,7 +1154,9 @@
             "description": "OK"
           }
         },
-        "tags": ["facility-type-controller"],
+        "tags": [
+          "facility-type-controller"
+        ],
         "operationId": "getFacilityTypeUsingGET",
         "summary": "Get a single facility type with the provided ID."
       }
@@ -1103,7 +1181,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           },
@@ -1113,7 +1194,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -1155,7 +1239,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           }
@@ -1172,7 +1259,9 @@
             "description": "OK"
           }
         },
-        "tags": ["facility-controller"],
+        "tags": [
+          "facility-controller"
+        ],
         "operationId": "listCollectingFacilitiesByCompanyUsingGET",
         "summary": "Get a list of collecting facilities by company ID."
       }
@@ -1217,7 +1306,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           },
@@ -1227,7 +1319,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -1269,7 +1364,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           }
@@ -1286,7 +1384,9 @@
             "description": "OK"
           }
         },
-        "tags": ["facility-controller"],
+        "tags": [
+          "facility-controller"
+        ],
         "operationId": "listFacilitiesByCompanyUsingGET",
         "summary": "Get a list of facilities by company ID."
       }
@@ -1311,7 +1411,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           },
@@ -1321,7 +1424,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -1363,7 +1469,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           }
@@ -1380,7 +1489,9 @@
             "description": "OK"
           }
         },
-        "tags": ["facility-controller"],
+        "tags": [
+          "facility-controller"
+        ],
         "operationId": "listAllFacilitiesByCompanyUsingGET",
         "summary": "listAllFacilitiesByCompany"
       }
@@ -1395,7 +1506,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           },
@@ -1435,7 +1549,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -1477,7 +1594,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           }
@@ -1494,7 +1614,9 @@
             "description": "OK"
           }
         },
-        "tags": ["facility-controller"],
+        "tags": [
+          "facility-controller"
+        ],
         "operationId": "listAvailableSellingFacilitiesForCompanyUsingGET",
         "summary": "Get a list of public (selling) facilities that the provided company can see"
       }
@@ -1525,7 +1647,9 @@
             "description": "OK"
           }
         },
-        "tags": ["facility-controller"],
+        "tags": [
+          "facility-controller"
+        ],
         "operationId": "deleteFacilityUsingDELETE",
         "summary": "Deletes a facility with the provided ID."
       },
@@ -1548,7 +1672,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -1565,7 +1692,9 @@
             "description": "OK"
           }
         },
-        "tags": ["facility-controller"],
+        "tags": [
+          "facility-controller"
+        ],
         "operationId": "getFacilityUsingGET",
         "summary": "Get a single facility with the provided ID."
       }
@@ -1596,7 +1725,9 @@
             "description": "OK"
           }
         },
-        "tags": ["facility-controller"],
+        "tags": [
+          "facility-controller"
+        ],
         "operationId": "activateFacilityUsingPUT",
         "summary": "Activate a facility"
       }
@@ -1627,7 +1758,9 @@
             "description": "OK"
           }
         },
-        "tags": ["facility-controller"],
+        "tags": [
+          "facility-controller"
+        ],
         "operationId": "deactivateFacilityUsingPUT",
         "summary": "Deactivate a facility"
       }
@@ -1652,7 +1785,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -1669,7 +1805,9 @@
             "description": "OK"
           }
         },
-        "tags": ["facility-controller"],
+        "tags": [
+          "facility-controller"
+        ],
         "operationId": "getFacilityDetailUsingGET",
         "summary": "Get a single facility with translations for the provided ID."
       }
@@ -1683,7 +1821,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -1725,7 +1866,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -1774,7 +1918,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -1791,7 +1938,9 @@
             "description": "OK"
           }
         },
-        "tags": ["group-stock-order-controller"],
+        "tags": [
+          "group-stock-order-controller"
+        ],
         "operationId": "getGroupedStockOrderListUsingGET",
         "summary": "Get a paginated list of grouped stock orders."
       }
@@ -1810,7 +1959,9 @@
             "description": "OK"
           }
         },
-        "tags": ["measure-unit-type-controller"],
+        "tags": [
+          "measure-unit-type-controller"
+        ],
         "operationId": "createOrUpdateMeasurementUnitTypeUsingPUT",
         "requestBody": {
           "content": {
@@ -1835,7 +1986,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -1877,7 +2031,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           }
@@ -1894,7 +2051,9 @@
             "description": "OK"
           }
         },
-        "tags": ["measure-unit-type-controller"],
+        "tags": [
+          "measure-unit-type-controller"
+        ],
         "operationId": "getMeasureUnitTypeListUsingGET",
         "summary": "Get a paginated list of measurement types."
       }
@@ -1925,7 +2084,9 @@
             "description": "OK"
           }
         },
-        "tags": ["measure-unit-type-controller"],
+        "tags": [
+          "measure-unit-type-controller"
+        ],
         "operationId": "deleteMeasurementUnitTypeUsingDELETE",
         "summary": "Deletes a measurement with the provided ID."
       },
@@ -1954,7 +2115,9 @@
             "description": "OK"
           }
         },
-        "tags": ["measure-unit-type-controller"],
+        "tags": [
+          "measure-unit-type-controller"
+        ],
         "operationId": "getMeasurementUnitTypeUsingGET",
         "summary": "Get a single measurement unit type with the provided ID."
       }
@@ -1973,7 +2136,9 @@
             "description": "OK"
           }
         },
-        "tags": ["payment-controller"],
+        "tags": [
+          "payment-controller"
+        ],
         "operationId": "createOrUpdatePaymentUsingPUT",
         "requestBody": {
           "content": {
@@ -2003,7 +2168,9 @@
             "description": "OK"
           }
         },
-        "tags": ["payment-controller"],
+        "tags": [
+          "payment-controller"
+        ],
         "operationId": "createBulkPaymentUsingPOST",
         "requestBody": {
           "content": {
@@ -2045,7 +2212,9 @@
             "description": "OK"
           }
         },
-        "tags": ["payment-controller"],
+        "tags": [
+          "payment-controller"
+        ],
         "operationId": "getBulkPaymentUsingGET",
         "summary": "Get a single bulk payment with the provided ID."
       }
@@ -2070,7 +2239,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -2088,7 +2260,9 @@
             "description": "OK"
           }
         },
-        "tags": ["payment-controller"],
+        "tags": [
+          "payment-controller"
+        ],
         "operationId": "exportBulkPaymentsByCompanyUsingGET",
         "summary": "Export bulk-payments for provided company ID"
       }
@@ -2113,7 +2287,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -2131,7 +2308,9 @@
             "description": "OK"
           }
         },
-        "tags": ["payment-controller"],
+        "tags": [
+          "payment-controller"
+        ],
         "operationId": "exportPaymentsByCompanyUsingGET",
         "summary": "Export payments for provided company ID"
       }
@@ -2155,7 +2334,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -2197,7 +2379,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           }
@@ -2214,7 +2399,9 @@
             "description": "OK"
           }
         },
-        "tags": ["payment-controller"],
+        "tags": [
+          "payment-controller"
+        ],
         "operationId": "listBulkPaymentsByCompanyUsingGET",
         "summary": "Get a list of bulk payments by company ID."
       }
@@ -2228,7 +2415,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -2270,7 +2460,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -2307,7 +2500,10 @@
             "name": "paymentStatus",
             "required": false,
             "schema": {
-              "enum": ["UNCONFIRMED", "CONFIRMED"],
+              "enum": [
+                "UNCONFIRMED",
+                "CONFIRMED"
+              ],
               "type": "string"
             }
           },
@@ -2373,7 +2569,9 @@
             "description": "OK"
           }
         },
-        "tags": ["payment-controller"],
+        "tags": [
+          "payment-controller"
+        ],
         "operationId": "listPaymentsByCompanyUsingGET",
         "summary": "Get a list of payments by company ID."
       }
@@ -2387,7 +2585,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -2429,7 +2630,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -2466,7 +2670,10 @@
             "name": "paymentStatus",
             "required": false,
             "schema": {
-              "enum": ["UNCONFIRMED", "CONFIRMED"],
+              "enum": [
+                "UNCONFIRMED",
+                "CONFIRMED"
+              ],
               "type": "string"
             }
           },
@@ -2512,7 +2719,9 @@
             "description": "OK"
           }
         },
-        "tags": ["payment-controller"],
+        "tags": [
+          "payment-controller"
+        ],
         "operationId": "listPaymentsByPurchaseUsingGET",
         "summary": "Get a list of payments by purchase order (stock order) ID."
       }
@@ -2543,7 +2752,9 @@
             "description": "OK"
           }
         },
-        "tags": ["payment-controller"],
+        "tags": [
+          "payment-controller"
+        ],
         "operationId": "deletePaymentUsingDELETE",
         "summary": "Deletes a payment with the provided ID."
       },
@@ -2572,7 +2783,9 @@
             "description": "OK"
           }
         },
-        "tags": ["payment-controller"],
+        "tags": [
+          "payment-controller"
+        ],
         "operationId": "getPaymentUsingGET",
         "summary": "Get a single payment with the provided ID."
       }
@@ -2591,7 +2804,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-action-controller"],
+        "tags": [
+          "processing-action-controller"
+        ],
         "operationId": "createOrUpdateProcessingActionUsingPUT",
         "requestBody": {
           "content": {
@@ -2652,7 +2867,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           },
@@ -2662,7 +2880,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -2704,7 +2925,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           }
@@ -2721,7 +2945,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-action-controller"],
+        "tags": [
+          "processing-action-controller"
+        ],
         "operationId": "listProcessingActionsByCompanyUsingGET",
         "summary": "Get a list of processing actions by company ID."
       }
@@ -2752,7 +2978,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-action-controller"],
+        "tags": [
+          "processing-action-controller"
+        ],
         "operationId": "deleteProcessingActionUsingDELETE",
         "summary": "Deletes a processing action with the provided ID."
       },
@@ -2775,7 +3003,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -2792,7 +3023,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-action-controller"],
+        "tags": [
+          "processing-action-controller"
+        ],
         "operationId": "getProcessingActionUsingGET",
         "summary": "Get a single processing action with the provided ID."
       }
@@ -2817,7 +3050,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -2834,7 +3070,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-action-controller"],
+        "tags": [
+          "processing-action-controller"
+        ],
         "operationId": "getProcessingActionDetailUsingGET",
         "summary": "Get a single processing action by the provided ID with all translations."
       }
@@ -2853,7 +3091,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-evidence-field-controller"],
+        "tags": [
+          "processing-evidence-field-controller"
+        ],
         "operationId": "createOrUpdateProcessingEvidenceFieldUsingPUT",
         "requestBody": {
           "content": {
@@ -2878,7 +3118,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -2920,7 +3163,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -2931,7 +3177,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -2948,7 +3197,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-evidence-field-controller"],
+        "tags": [
+          "processing-evidence-field-controller"
+        ],
         "operationId": "getProcessingEvidenceFieldListUsingGET",
         "summary": "Get a paginated list of processing evidence fields."
       }
@@ -2976,7 +3227,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -3018,7 +3272,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -3029,7 +3286,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -3046,7 +3306,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-evidence-field-controller"],
+        "tags": [
+          "processing-evidence-field-controller"
+        ],
         "operationId": "listProcessingEvidenceFieldsByValueChainsUsingGET",
         "summary": "Get a list of processing evidence fields by value chain ID list."
       }
@@ -3070,7 +3332,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -3112,7 +3377,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -3123,7 +3391,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -3140,7 +3411,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-evidence-field-controller"],
+        "tags": [
+          "processing-evidence-field-controller"
+        ],
         "deprecated": true,
         "operationId": "listProcessingEvidenceFieldsByValueChainUsingGET",
         "summary": "Get a list of processing evidence fields by value chain ID."
@@ -3172,7 +3445,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-evidence-field-controller"],
+        "tags": [
+          "processing-evidence-field-controller"
+        ],
         "operationId": "deleteProcessingEvidenceFieldUsingDELETE",
         "summary": "Deletes a processing evidence field with the provided ID."
       },
@@ -3195,7 +3470,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -3212,7 +3490,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-evidence-field-controller"],
+        "tags": [
+          "processing-evidence-field-controller"
+        ],
         "operationId": "getProcessingEvidenceFieldUsingGET",
         "summary": "Get a single processing evidence field with the provided ID."
       }
@@ -3231,7 +3511,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-evidence-type-controller"],
+        "tags": [
+          "processing-evidence-type-controller"
+        ],
         "operationId": "createOrUpdateProcessingEvidenceTypeUsingPUT",
         "requestBody": {
           "content": {
@@ -3256,7 +3538,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -3298,7 +3583,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -3309,7 +3597,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -3326,7 +3617,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-evidence-type-controller"],
+        "tags": [
+          "processing-evidence-type-controller"
+        ],
         "operationId": "getProcessingEvidenceTypeListUsingGET",
         "summary": "Get a paginated list of processing evidence types."
       }
@@ -3354,7 +3647,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -3396,7 +3692,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -3407,7 +3706,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -3424,7 +3726,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-evidence-type-controller"],
+        "tags": [
+          "processing-evidence-type-controller"
+        ],
         "operationId": "listProcessingEvidenceTypesByValueChainsUsingGET",
         "summary": "Get a list of processing evidence types by value chain ID list."
       }
@@ -3448,7 +3752,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -3490,7 +3797,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -3501,7 +3811,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -3518,7 +3831,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-evidence-type-controller"],
+        "tags": [
+          "processing-evidence-type-controller"
+        ],
         "deprecated": true,
         "operationId": "listProcessingEvidenceTypesByValueChainUsingGET",
         "summary": "Get a list of processing evidence types by value chain ID."
@@ -3550,7 +3865,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-evidence-type-controller"],
+        "tags": [
+          "processing-evidence-type-controller"
+        ],
         "operationId": "deleteProcessingEvidenceTypeUsingDELETE",
         "summary": "Deletes a processing evidence type with the provided ID."
       },
@@ -3573,7 +3890,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -3590,7 +3910,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-evidence-type-controller"],
+        "tags": [
+          "processing-evidence-type-controller"
+        ],
         "operationId": "getProcessingEvidenceTypeUsingGET",
         "summary": "Get a single processing evidence type with the provided ID."
       }
@@ -3605,7 +3927,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -3622,7 +3947,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-order-controller"],
+        "tags": [
+          "processing-order-controller"
+        ],
         "operationId": "createOrUpdateProcessingOrderUsingPUT",
         "requestBody": {
           "content": {
@@ -3664,7 +3991,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-order-controller"],
+        "tags": [
+          "processing-order-controller"
+        ],
         "operationId": "deleteProcessingOrderUsingDELETE",
         "summary": "Deletes a processing order with the provided ID."
       },
@@ -3687,7 +4016,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -3704,7 +4036,9 @@
             "description": "OK"
           }
         },
-        "tags": ["processing-order-controller"],
+        "tags": [
+          "processing-order-controller"
+        ],
         "operationId": "getProcessingOrderUsingGET",
         "summary": "Get a single processing order with the provided ID."
       }
@@ -3719,7 +4053,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -3736,7 +4073,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-order-controller"],
+        "tags": [
+          "product-order-controller"
+        ],
         "operationId": "createProductOrderUsingPOST",
         "requestBody": {
           "content": {
@@ -3772,7 +4111,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -3789,7 +4131,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-order-controller"],
+        "tags": [
+          "product-order-controller"
+        ],
         "operationId": "getProductOrderUsingGET",
         "summary": "Get a single product order with the provided ID."
       }
@@ -3808,7 +4152,9 @@
             "description": "OK"
           }
         },
-        "tags": ["semi-product-controller"],
+        "tags": [
+          "semi-product-controller"
+        ],
         "operationId": "createOrUpdateSemiProductUsingPUT",
         "requestBody": {
           "content": {
@@ -3833,7 +4179,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -3875,7 +4224,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -3886,7 +4238,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -3903,7 +4258,9 @@
             "description": "OK"
           }
         },
-        "tags": ["semi-product-controller"],
+        "tags": [
+          "semi-product-controller"
+        ],
         "operationId": "getSemiProductListUsingGET",
         "summary": "Get a paginated list of semi products."
       }
@@ -3931,7 +4288,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -3973,7 +4333,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -3984,7 +4347,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -4001,7 +4367,9 @@
             "description": "OK"
           }
         },
-        "tags": ["semi-product-controller"],
+        "tags": [
+          "semi-product-controller"
+        ],
         "operationId": "getSemiProductListByValueChainsUsingGET",
         "summary": "Get a paginated list of semi products for given value-chain list"
       }
@@ -4032,7 +4400,9 @@
             "description": "OK"
           }
         },
-        "tags": ["semi-product-controller"],
+        "tags": [
+          "semi-product-controller"
+        ],
         "operationId": "deleteSemiProductUsingDELETE",
         "summary": "Deletes a semi product with the provided ID."
       },
@@ -4055,7 +4425,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -4072,7 +4445,9 @@
             "description": "OK"
           }
         },
-        "tags": ["semi-product-controller"],
+        "tags": [
+          "semi-product-controller"
+        ],
         "operationId": "getSemiProductUsingGET",
         "summary": "Get a single semi product with the provided ID."
       }
@@ -4097,7 +4472,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -4114,7 +4492,9 @@
             "description": "OK"
           }
         },
-        "tags": ["semi-product-controller"],
+        "tags": [
+          "semi-product-controller"
+        ],
         "operationId": "getSemiProductDetailsUsingGET",
         "summary": "Get a single semi product with details with the provided ID."
       }
@@ -4133,7 +4513,9 @@
             "description": "OK"
           }
         },
-        "tags": ["stock-order-controller"],
+        "tags": [
+          "stock-order-controller"
+        ],
         "operationId": "createOrUpdateStockOrderUsingPUT",
         "requestBody": {
           "content": {
@@ -4163,7 +4545,9 @@
             "description": "OK"
           }
         },
-        "tags": ["stock-order-controller"],
+        "tags": [
+          "stock-order-controller"
+        ],
         "operationId": "createPurchaseOrderBulkUsingPOST",
         "requestBody": {
           "content": {
@@ -4199,7 +4583,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -4217,7 +4604,9 @@
             "description": "OK"
           }
         },
-        "tags": ["stock-order-controller"],
+        "tags": [
+          "stock-order-controller"
+        ],
         "operationId": "exportDeliveriesByCompanyUsingGET",
         "summary": "Export deliveries (stock orders of type PURCHASE_ORDER) for the provided company ID"
       }
@@ -4231,7 +4620,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -4273,7 +4665,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -4421,7 +4816,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -4438,7 +4836,9 @@
             "description": "OK"
           }
         },
-        "tags": ["stock-order-controller"],
+        "tags": [
+          "stock-order-controller"
+        ],
         "operationId": "getStockOrderListByCompanyIdUsingGET",
         "summary": "Get a paginated list of stock orders by company ID."
       }
@@ -4452,7 +4852,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -4494,7 +4897,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -4544,7 +4950,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -4561,7 +4970,9 @@
             "description": "OK"
           }
         },
-        "tags": ["stock-order-controller"],
+        "tags": [
+          "stock-order-controller"
+        ],
         "operationId": "getStockOrdersInFacilityForCustomerUsingGET",
         "summary": "Get a paginated list of stock orders by facility ID for customers."
       }
@@ -4575,7 +4986,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -4617,7 +5031,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -4667,7 +5084,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -4684,7 +5104,9 @@
             "description": "OK"
           }
         },
-        "tags": ["stock-order-controller"],
+        "tags": [
+          "stock-order-controller"
+        ],
         "operationId": "getQuoteOrdersInFacilityUsingGET",
         "summary": "getQuoteOrdersInFacility"
       }
@@ -4698,7 +5120,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -4740,7 +5165,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -4853,7 +5281,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -4870,7 +5301,9 @@
             "description": "OK"
           }
         },
-        "tags": ["stock-order-controller"],
+        "tags": [
+          "stock-order-controller"
+        ],
         "operationId": "getStockOrderListByFacilityIdUsingGET",
         "summary": "Get a paginated list of stock orders by facility ID."
       }
@@ -4884,7 +5317,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -4926,7 +5362,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -5014,7 +5453,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -5031,7 +5473,9 @@
             "description": "OK"
           }
         },
-        "tags": ["stock-order-controller"],
+        "tags": [
+          "stock-order-controller"
+        ],
         "operationId": "getAvailableStockForStockUnitInFacilityUsingGET",
         "summary": "Get a paginated list of stock orders for provided facility ID and semi-product or final product ID."
       }
@@ -5062,7 +5506,9 @@
             "description": "OK"
           }
         },
-        "tags": ["stock-order-controller"],
+        "tags": [
+          "stock-order-controller"
+        ],
         "operationId": "deleteStockOrderUsingDELETE",
         "summary": "Deletes a stock order with the provided ID."
       },
@@ -5094,7 +5540,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -5111,7 +5560,9 @@
             "description": "OK"
           }
         },
-        "tags": ["stock-order-controller"],
+        "tags": [
+          "stock-order-controller"
+        ],
         "operationId": "getStockOrderUsingGET",
         "summary": "Get a single stock order with the provided ID."
       }
@@ -5136,7 +5587,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -5153,7 +5607,9 @@
             "description": "OK"
           }
         },
-        "tags": ["stock-order-controller"],
+        "tags": [
+          "stock-order-controller"
+        ],
         "operationId": "getStockOrderAggregatedHistoryUsingGET",
         "summary": "getStockOrderAggregatedHistory"
       }
@@ -5178,7 +5634,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -5196,7 +5655,9 @@
             "description": "OK"
           }
         },
-        "tags": ["stock-order-controller"],
+        "tags": [
+          "stock-order-controller"
+        ],
         "operationId": "exportGeoDataUsingGET",
         "summary": "Generate a geoJSON file with a list of polygons."
       }
@@ -5221,7 +5682,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -5238,7 +5702,9 @@
             "description": "OK"
           }
         },
-        "tags": ["stock-order-controller"],
+        "tags": [
+          "stock-order-controller"
+        ],
         "operationId": "getStockOrderProcessingOrderUsingGET",
         "summary": "Get the Processing order that contains the Stock order with the provided ID."
       }
@@ -5263,7 +5729,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -5280,7 +5749,9 @@
             "description": "OK"
           }
         },
-        "tags": ["transaction-controller"],
+        "tags": [
+          "transaction-controller"
+        ],
         "operationId": "getStockOrderInputTransactionsUsingGET",
         "summary": "Get a paginated list of input transactions for provided stock order ID."
       }
@@ -5305,7 +5776,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -5322,7 +5796,9 @@
             "description": "OK"
           }
         },
-        "tags": ["transaction-controller"],
+        "tags": [
+          "transaction-controller"
+        ],
         "operationId": "approveTransactionUsingPUT",
         "summary": "Approves transaction with provided ID."
       }
@@ -5347,7 +5823,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -5364,7 +5843,9 @@
             "description": "OK"
           }
         },
-        "tags": ["transaction-controller"],
+        "tags": [
+          "transaction-controller"
+        ],
         "operationId": "rejectTransactionUsingPUT",
         "requestBody": {
           "content": {
@@ -5394,7 +5875,9 @@
             "description": "OK"
           }
         },
-        "tags": ["value-chain-controller"],
+        "tags": [
+          "value-chain-controller"
+        ],
         "operationId": "createOrUpdateValueChainUsingPUT",
         "requestBody": {
           "content": {
@@ -5419,7 +5902,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -5461,7 +5947,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -5480,7 +5969,10 @@
             "name": "valueChainStatus",
             "required": false,
             "schema": {
-              "enum": ["ENABLED", "DISABLED"],
+              "enum": [
+                "ENABLED",
+                "DISABLED"
+              ],
               "type": "string"
             }
           },
@@ -5507,7 +5999,9 @@
             "description": "OK"
           }
         },
-        "tags": ["value-chain-controller"],
+        "tags": [
+          "value-chain-controller"
+        ],
         "operationId": "getValueChainListUsingGET",
         "summary": "Get a list of value chains defined in the system."
       }
@@ -5538,7 +6032,9 @@
             "description": "OK"
           }
         },
-        "tags": ["value-chain-controller"],
+        "tags": [
+          "value-chain-controller"
+        ],
         "operationId": "deleteValueChainUsingDELETE",
         "summary": "Deletes a value chain with the provided ID."
       },
@@ -5561,7 +6057,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -5578,7 +6077,9 @@
             "description": "OK"
           }
         },
-        "tags": ["value-chain-controller"],
+        "tags": [
+          "value-chain-controller"
+        ],
         "operationId": "getValueChainUsingGET",
         "summary": "Get a single value chain with the provided ID."
       }
@@ -5609,7 +6110,9 @@
             "description": "OK"
           }
         },
-        "tags": ["value-chain-controller"],
+        "tags": [
+          "value-chain-controller"
+        ],
         "operationId": "disableValueChainUsingPOST",
         "summary": "Set the status of the value chain with the provided ID as 'DISABLED'."
       }
@@ -5640,7 +6143,9 @@
             "description": "OK"
           }
         },
-        "tags": ["value-chain-controller"],
+        "tags": [
+          "value-chain-controller"
+        ],
         "operationId": "enableValueChainUsingPOST",
         "summary": "Set the status of the value chain with the provided ID as 'ENABLED'."
       }
@@ -5654,7 +6159,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -5696,7 +6204,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -5722,7 +6233,9 @@
             "description": "OK"
           }
         },
-        "tags": ["common-controller"],
+        "tags": [
+          "common-controller"
+        ],
         "operationId": "getCountriesUsingGET",
         "summary": "List countries"
       }
@@ -5737,7 +6250,10 @@
             "required": false,
             "schema": {
               "default": "GENERAL",
-              "enum": ["GENERAL", "IMAGE"],
+              "enum": [
+                "GENERAL",
+                "IMAGE"
+              ],
               "type": "string"
             }
           }
@@ -5754,7 +6270,9 @@
             "description": "OK"
           }
         },
-        "tags": ["common-controller"],
+        "tags": [
+          "common-controller"
+        ],
         "operationId": "uploadDocumentUsingPOST",
         "requestBody": {
           "$ref": "#/components/requestBodies/uploadDocumentUsingPOST"
@@ -5788,7 +6306,9 @@
             "description": "OK"
           }
         },
-        "tags": ["common-controller"],
+        "tags": [
+          "common-controller"
+        ],
         "operationId": "getDocumentUsingGET",
         "summary": "Returns file contents for given storage key"
       }
@@ -5818,7 +6338,9 @@
             "description": "OK"
           }
         },
-        "tags": ["common-controller"],
+        "tags": [
+          "common-controller"
+        ],
         "operationId": "getGlobalSettingsUsingGET",
         "summary": "Returns 'global settings' value"
       },
@@ -5846,7 +6368,9 @@
             "description": "OK"
           }
         },
-        "tags": ["common-controller"],
+        "tags": [
+          "common-controller"
+        ],
         "operationId": "updateGlobalSettingsUsingPOST",
         "requestBody": {
           "content": {
@@ -5888,7 +6412,9 @@
             "description": "OK"
           }
         },
-        "tags": ["common-controller"],
+        "tags": [
+          "common-controller"
+        ],
         "operationId": "uploadImageUsingPOST",
         "requestBody": {
           "$ref": "#/components/requestBodies/uploadDocumentUsingPOST"
@@ -5922,7 +6448,9 @@
             "description": "OK"
           }
         },
-        "tags": ["common-controller"],
+        "tags": [
+          "common-controller"
+        ],
         "operationId": "getImageUsingGET",
         "summary": "Returns image contents for given storage key"
       }
@@ -5962,7 +6490,9 @@
             "description": "OK"
           }
         },
-        "tags": ["common-controller"],
+        "tags": [
+          "common-controller"
+        ],
         "operationId": "getResizedImageUsingGET",
         "summary": "Returns image contents for given storage key"
       }
@@ -5976,7 +6506,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -6018,7 +6551,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -6028,7 +6564,10 @@
             "name": "language",
             "required": false,
             "schema": {
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           },
@@ -6038,7 +6577,11 @@
             "name": "status",
             "required": false,
             "schema": {
-              "enum": ["REGISTERED", "ACTIVE", "DEACTIVATED"],
+              "enum": [
+                "REGISTERED",
+                "ACTIVE",
+                "DEACTIVATED"
+              ],
               "type": "string"
             }
           },
@@ -6064,7 +6607,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "listCompaniesAdminUsingGET",
         "summary": "Lists all companies. Must be admin. Sorting: name or default"
       }
@@ -6088,7 +6633,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -6130,7 +6678,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           }
@@ -6147,7 +6698,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "getAssociationsUsingGET",
         "summary": "Get list of associations for the selected company with given ID"
       }
@@ -6166,7 +6719,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "createCompanyCustomerUsingPOST",
         "requestBody": {
           "$ref": "#/components/requestBodies/ApiCompanyCustomer"
@@ -6186,7 +6741,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "updateCompanyCustomerUsingPUT",
         "requestBody": {
           "$ref": "#/components/requestBodies/ApiCompanyCustomer"
@@ -6213,7 +6770,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -6255,7 +6815,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -6290,7 +6853,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "getCompanyCustomersListUsingGET",
         "summary": "List company customers for company"
       }
@@ -6321,7 +6886,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "deleteCompanyCustomerUsingDELETE",
         "summary": "Delete company customer with ID"
       },
@@ -6350,7 +6917,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "getCompanyCustomerUsingGET",
         "summary": "Get company customer by ID"
       }
@@ -6369,7 +6938,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "createCompanyUsingPOST",
         "requestBody": {
           "content": {
@@ -6420,7 +6991,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "executeActionUsingPOST",
         "requestBody": {
           "content": {
@@ -6445,7 +7018,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -6487,7 +7063,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -6497,7 +7076,10 @@
             "name": "language",
             "required": false,
             "schema": {
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           },
@@ -6507,7 +7089,11 @@
             "name": "status",
             "required": false,
             "schema": {
-              "enum": ["REGISTERED", "ACTIVE", "DEACTIVATED"],
+              "enum": [
+                "REGISTERED",
+                "ACTIVE",
+                "DEACTIVATED"
+              ],
               "type": "string"
             }
           },
@@ -6533,7 +7119,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "listCompaniesUsingGET",
         "summary": "Lists all companies for the logged-in user. Sorting: name or default"
       }
@@ -6552,7 +7140,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "updateCompanyUsingPUT",
         "requestBody": {
           "content": {
@@ -6604,7 +7194,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "getCompanyUsingGET",
         "summary": "Get all info about a company"
       }
@@ -6635,7 +7227,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "getCompanyNameUsingGET",
         "summary": "Get the company name and abbreviation"
       }
@@ -6666,7 +7260,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "getCompanyUsersUsingGET",
         "summary": "Get all user for the company with the provided ID"
       }
@@ -6691,7 +7287,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -6708,7 +7307,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "addUserCustomerUsingPOST",
         "requestBody": {
           "content": {
@@ -6734,7 +7335,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -6751,7 +7355,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "updateUserCustomerUsingPUT",
         "requestBody": {
           "$ref": "#/components/requestBodies/ApiUserCustomer"
@@ -6789,7 +7395,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -6806,7 +7415,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "importFarmersSpreadsheetUsingPOST",
         "summary": "Upload .xls or .xlsx spreadsheet of farmers to import into DB"
       }
@@ -6831,7 +7442,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -6849,7 +7463,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "exportFarmerDataByCompanyUsingGET",
         "summary": "Export payments for provided company ID"
       }
@@ -6874,7 +7490,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -6891,7 +7510,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "getUserCustomersPlotsForCompanyUsingGET",
         "summary": "Get all user customers plots that are part of the company with the provided ID"
       }
@@ -6915,7 +7536,10 @@
             "name": "type",
             "required": true,
             "schema": {
-              "enum": ["COLLECTOR", "FARMER"],
+              "enum": [
+                "COLLECTOR",
+                "FARMER"
+              ],
               "type": "string"
             }
           },
@@ -6926,7 +7550,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           },
@@ -6936,7 +7563,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -6978,7 +7608,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -7013,7 +7646,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "getUserCustomersForCompanyAndTypeUsingGET",
         "summary": "Get list of user customers for given company ID and type"
       }
@@ -7044,7 +7679,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "deleteUserCustomerUsingDELETE",
         "summary": "Delete user customer with given id"
       },
@@ -7067,7 +7704,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -7084,7 +7724,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "getUserCustomerUsingGET",
         "summary": "Get user customer by id"
       }
@@ -7116,7 +7758,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "exportUserCustomerGeoDataUsingGET",
         "summary": "Export the Geo-data for the user customer with the provided ID"
       }
@@ -7141,7 +7785,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -7158,7 +7805,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "createUserCustomerPlotUsingPOST",
         "requestBody": {
           "content": {
@@ -7204,7 +7853,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -7221,7 +7873,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "refreshGeoIDForUserCustomerPlotUsingPOST",
         "summary": "Add new plot for the provided user customer"
       }
@@ -7252,7 +7906,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "uploadUserCustomerGeoDataUsingPOST",
         "requestBody": {
           "content": {
@@ -7287,7 +7943,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -7329,7 +7988,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           }
@@ -7346,7 +8008,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "getConnectedCompaniesUsingGET",
         "summary": "Get list of connected companies for the company with the given ID"
       }
@@ -7371,7 +8035,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           },
@@ -7381,7 +8048,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -7423,7 +8093,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           }
@@ -7440,7 +8113,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "getCompanyProductTypesUsingGET",
         "summary": "Get list of product types for the company with the given ID"
       }
@@ -7464,7 +8139,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -7506,7 +8184,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           }
@@ -7523,7 +8204,9 @@
             "description": "OK"
           }
         },
-        "tags": ["company-controller"],
+        "tags": [
+          "company-controller"
+        ],
         "operationId": "getCompanyValueChainsUsingGET",
         "summary": "Get list of value chains for the company with the given ID"
       }
@@ -7638,7 +8321,12 @@
             "name": "aggregationType",
             "required": true,
             "schema": {
-              "enum": ["DAY", "WEEK", "MONTH", "YEAR"],
+              "enum": [
+                "DAY",
+                "WEEK",
+                "MONTH",
+                "YEAR"
+              ],
               "type": "string"
             }
           }
@@ -7655,7 +8343,9 @@
             "description": "OK"
           }
         },
-        "tags": ["dashboard-controller"],
+        "tags": [
+          "dashboard-controller"
+        ],
         "operationId": "getDeliveriesAggregatedDataUsingGET",
         "summary": "getDeliveriesAggregatedData"
       }
@@ -7770,7 +8460,12 @@
             "name": "aggregationType",
             "required": true,
             "schema": {
-              "enum": ["DAY", "WEEK", "MONTH", "YEAR"],
+              "enum": [
+                "DAY",
+                "WEEK",
+                "MONTH",
+                "YEAR"
+              ],
               "type": "string"
             }
           },
@@ -7780,7 +8475,11 @@
             "name": "exportType",
             "required": true,
             "schema": {
-              "enum": ["EXCEL", "PDF", "CSV"],
+              "enum": [
+                "EXCEL",
+                "PDF",
+                "CSV"
+              ],
               "type": "string"
             }
           },
@@ -7791,7 +8490,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -7809,7 +8511,9 @@
             "description": "OK"
           }
         },
-        "tags": ["dashboard-controller"],
+        "tags": [
+          "dashboard-controller"
+        ],
         "operationId": "exportDeliveriesDataUsingGET",
         "summary": "exportDeliveriesData"
       }
@@ -7828,7 +8532,9 @@
             "description": "OK"
           }
         },
-        "tags": ["dashboard-controller"],
+        "tags": [
+          "dashboard-controller"
+        ],
         "operationId": "calculateProcessingPerformanceDataUsingPOST",
         "requestBody": {
           "$ref": "#/components/requestBodies/ApiProcessingPerformanceRequest"
@@ -7846,7 +8552,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -7864,7 +8573,9 @@
             "description": "OK"
           }
         },
-        "tags": ["dashboard-controller"],
+        "tags": [
+          "dashboard-controller"
+        ],
         "operationId": "exportProcessingPerformanceDataUsingPOST",
         "requestBody": {
           "$ref": "#/components/requestBodies/ApiProcessingPerformanceRequest"
@@ -7881,7 +8592,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -7923,7 +8637,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -7950,7 +8667,9 @@
             "description": "OK"
           }
         },
-        "tags": ["final-product-controller"],
+        "tags": [
+          "final-product-controller"
+        ],
         "operationId": "getFinalProductsForCompanyUsingGET",
         "summary": "Get a list of final products that the company with the provided ID has access to"
       }
@@ -7965,7 +8684,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -7982,7 +8704,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-type-controller"],
+        "tags": [
+          "product-type-controller"
+        ],
         "operationId": "getProductTypesUsingGET",
         "summary": "Get a list of product types"
       },
@@ -7999,7 +8723,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-type-controller"],
+        "tags": [
+          "product-type-controller"
+        ],
         "operationId": "createProductTypeUsingPOST",
         "requestBody": {
           "$ref": "#/components/requestBodies/ApiProductType"
@@ -8019,7 +8745,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-type-controller"],
+        "tags": [
+          "product-type-controller"
+        ],
         "operationId": "updateProductTypeUsingPUT",
         "requestBody": {
           "$ref": "#/components/requestBodies/ApiProductType"
@@ -8053,7 +8781,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-type-controller"],
+        "tags": [
+          "product-type-controller"
+        ],
         "operationId": "deleteProductTypeUsingDELETE",
         "summary": "Delete a product type"
       },
@@ -8076,7 +8806,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -8093,7 +8826,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-type-controller"],
+        "tags": [
+          "product-type-controller"
+        ],
         "operationId": "getProductTypeUsingGET",
         "summary": "Get product type details"
       }
@@ -8112,7 +8847,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "updateProductUsingPUT",
         "requestBody": {
           "content": {
@@ -8137,7 +8874,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -8179,7 +8919,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -8205,7 +8948,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "listProductsAdminUsingGET",
         "summary": "Lists all products. Must be admin. Sorting: name or default"
       }
@@ -8224,7 +8969,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "createProductUsingPOST",
         "requestBody": {
           "content": {
@@ -8254,7 +9001,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getProductKnowledgeBlogUsingPUT",
         "requestBody": {
           "$ref": "#/components/requestBodies/ApiKnowledgeBlog"
@@ -8281,7 +9030,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -8323,7 +9075,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -8333,7 +9088,11 @@
             "name": "type",
             "required": false,
             "schema": {
-              "enum": ["FAIRNESS", "QUALITY", "PROVENANCE"],
+              "enum": [
+                "FAIRNESS",
+                "QUALITY",
+                "PROVENANCE"
+              ],
               "type": "string"
             }
           }
@@ -8350,7 +9109,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getProductKnowledgeBlogUsingGET",
         "summary": "Get knowledge blogs for a product"
       }
@@ -8381,7 +9142,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getProductKnowledgeBlog",
         "summary": "Get knowledge blog by id"
       }
@@ -8412,7 +9175,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getProductKnowledgeBlogUsingPOST",
         "requestBody": {
           "content": {
@@ -8442,7 +9207,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "updateProductLabelUsingPUT",
         "requestBody": {
           "$ref": "#/components/requestBodies/ApiProductLabel"
@@ -8475,7 +9242,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getProductLabelAnalyticsUsingGET",
         "summary": "Get label data"
       }
@@ -8494,7 +9263,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "updateProductLabelContentUsingPUT",
         "requestBody": {
           "content": {
@@ -8536,7 +9307,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getProductLabelContentUsingGET",
         "summary": "Get label content"
       }
@@ -8555,7 +9328,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "createProductLabelUsingPOST",
         "requestBody": {
           "$ref": "#/components/requestBodies/ApiProductLabel"
@@ -8572,7 +9347,10 @@
             "name": "action",
             "required": true,
             "schema": {
-              "enum": ["PUBLISH_LABEL", "UNPUBLISH_LABEL"],
+              "enum": [
+                "PUBLISH_LABEL",
+                "UNPUBLISH_LABEL"
+              ],
               "type": "string"
             }
           }
@@ -8589,7 +9367,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "executeAction",
         "requestBody": {
           "content": {
@@ -8631,7 +9411,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "deleteProductLabelFeedbackUsingDELETE",
         "summary": "Deletes a product label feedback"
       }
@@ -8650,7 +9432,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "updateProductLabelValuesUsingPUT",
         "requestBody": {
           "content": {
@@ -8692,7 +9476,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getProductLabelValuesUsingGET",
         "summary": "Get label with field values"
       }
@@ -8723,7 +9509,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "deleteProductLabelUsingDELETE",
         "summary": "Deletes a product label"
       },
@@ -8752,7 +9540,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getProductLabelUsingGET",
         "summary": "Get label data"
       }
@@ -8776,7 +9566,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -8818,7 +9611,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -8844,7 +9640,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getProductLabelBatchesUsingGET",
         "summary": "Get label batches for specified label. Sorting: number or productionDate, expiryDate"
       }
@@ -8875,7 +9673,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getCompanyDocumentsForProductLabelUsingGET",
         "summary": "Get selected company documents for product label"
       },
@@ -8904,7 +9704,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "updateCompanyDocumentsForProductLabelUsingPUT",
         "requestBody": {
           "content": {
@@ -8950,7 +9752,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getProductLabelInstructionsUsingGET",
         "summary": "getProductLabelInstructions"
       }
@@ -8969,7 +9773,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "updateProductLabelBatchUsingPUT",
         "requestBody": {
           "$ref": "#/components/requestBodies/ApiProductLabelBatch"
@@ -8991,7 +9797,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "createProductLabelBatchUsingPOST",
         "requestBody": {
           "$ref": "#/components/requestBodies/ApiProductLabelBatch"
@@ -9025,7 +9833,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "deleteProductLabelBatchUsingDELETE",
         "summary": "Deletes a product label batch"
       },
@@ -9054,7 +9864,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getProductLabelBatchUsingGET",
         "summary": "Get label batch data"
       }
@@ -9068,7 +9880,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -9110,7 +9925,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -9130,7 +9948,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -9147,7 +9968,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "listProductsUsingGET",
         "summary": "Lists all products. Sorting: name or default"
       }
@@ -9178,7 +10001,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "deleteProductUsingDELETE",
         "summary": "Deletes a product"
       },
@@ -9217,7 +10042,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getProductUsingGET",
         "summary": "Get all info about a product"
       }
@@ -9248,7 +10075,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getProductLabelsUsingGET",
         "summary": "Get labels for product"
       }
@@ -9279,7 +10108,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "createOrUpdateFinalProductUsingPUT",
         "requestBody": {
           "content": {
@@ -9314,7 +10145,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -9356,7 +10190,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           }
@@ -9373,7 +10210,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getFinalProductListUsingGET",
         "summary": "Get final product list by product ID."
       }
@@ -9414,7 +10253,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "deleteFinalProductUsingDELETE",
         "summary": "Delete a final product"
       },
@@ -9453,7 +10294,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getFinalProductUsingGET",
         "summary": "Get final product by ID."
       }
@@ -9503,7 +10346,9 @@
             "description": "OK"
           }
         },
-        "tags": ["product-controller"],
+        "tags": [
+          "product-controller"
+        ],
         "operationId": "getFinalProductLabelsUsingGET",
         "summary": "Get final product labels."
       }
@@ -9534,7 +10379,9 @@
             "description": "OK"
           }
         },
-        "tags": ["public-controller"],
+        "tags": [
+          "public-controller"
+        ],
         "operationId": "getPublicDocumentUsingGET",
         "summary": "Returns file contents for given storage key"
       }
@@ -9564,7 +10411,9 @@
             "description": "OK"
           }
         },
-        "tags": ["public-controller"],
+        "tags": [
+          "public-controller"
+        ],
         "operationId": "getPublicGlobalSettingsUsingGET",
         "summary": "Returns 'global settings' value"
       }
@@ -9595,7 +10444,9 @@
             "description": "OK"
           }
         },
-        "tags": ["public-controller"],
+        "tags": [
+          "public-controller"
+        ],
         "operationId": "getPublicImageUsingGET",
         "summary": "Returns image contents for given storage key"
       }
@@ -9635,7 +10486,9 @@
             "description": "OK"
           }
         },
-        "tags": ["public-controller"],
+        "tags": [
+          "public-controller"
+        ],
         "operationId": "getPublicResizedImageUsingGET",
         "summary": "Returns image contents for given storage key"
       }
@@ -9654,7 +10507,9 @@
             "description": "OK"
           }
         },
-        "tags": ["public-controller"],
+        "tags": [
+          "public-controller"
+        ],
         "operationId": "logPublicRequestUsingPOST",
         "requestBody": {
           "content": {
@@ -9696,7 +10551,9 @@
             "description": "OK"
           }
         },
-        "tags": ["public-controller"],
+        "tags": [
+          "public-controller"
+        ],
         "operationId": "getPublicProductKnowledgeBlogUsingGET",
         "summary": "Get knowledge blog by id"
       }
@@ -9719,7 +10576,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -9761,7 +10621,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -9771,7 +10634,11 @@
             "name": "type",
             "required": false,
             "schema": {
-              "enum": ["PRAISE", "PROPOSAL", "COMPLAINT"],
+              "enum": [
+                "PRAISE",
+                "PROPOSAL",
+                "COMPLAINT"
+              ],
               "type": "string"
             }
           }
@@ -9788,7 +10655,9 @@
             "description": "OK"
           }
         },
-        "tags": ["public-controller"],
+        "tags": [
+          "public-controller"
+        ],
         "operationId": "listProductLabelFeedbacksUsingGET",
         "summary": "List feedback for a label uid"
       }
@@ -9818,7 +10687,9 @@
             "description": "OK"
           }
         },
-        "tags": ["public-controller"],
+        "tags": [
+          "public-controller"
+        ],
         "operationId": "addProductLabelFeedbackUsingPOST",
         "requestBody": {
           "content": {
@@ -9859,7 +10730,9 @@
             "description": "OK"
           }
         },
-        "tags": ["public-controller"],
+        "tags": [
+          "public-controller"
+        ],
         "operationId": "getPublicProductLabelValuesUsingGET",
         "summary": "Get label with field values"
       }
@@ -9928,7 +10801,9 @@
             "description": "OK"
           }
         },
-        "tags": ["public-controller"],
+        "tags": [
+          "public-controller"
+        ],
         "operationId": "checkPublicProductLabelBatchAuthenticityUsingGET",
         "summary": "Check batch by number and given date(s)"
       }
@@ -9977,7 +10852,9 @@
             "description": "OK"
           }
         },
-        "tags": ["public-controller"],
+        "tags": [
+          "public-controller"
+        ],
         "operationId": "checkPublicProductLabelBatchOriginUsingGET",
         "summary": "Get batch by label and number"
       }
@@ -10016,7 +10893,9 @@
             "description": "OK"
           }
         },
-        "tags": ["public-controller"],
+        "tags": [
+          "public-controller"
+        ],
         "operationId": "getPublicProductLabelBatchUsingGET",
         "summary": "Get batch by label and number"
       }
@@ -10049,7 +10928,10 @@
             "required": false,
             "schema": {
               "default": "EN",
-              "enum": ["EN", "DE", "RW", "ES"],
+              "enum": [
+                "EN",
+                "ES"
+              ],
               "type": "string"
             }
           }
@@ -10066,7 +10948,9 @@
             "description": "OK"
           }
         },
-        "tags": ["public-controller"],
+        "tags": [
+          "public-controller"
+        ],
         "operationId": "getQRTagPublicDataUsingGET",
         "summary": "Get public data for the Stock order with the given QR code tag"
       }
@@ -10108,7 +10992,9 @@
             "description": "OK"
           }
         },
-        "tags": ["user-controller"],
+        "tags": [
+          "user-controller"
+        ],
         "operationId": "activateUserUsingPOST",
         "requestBody": {
           "content": {
@@ -10133,7 +11019,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -10175,7 +11064,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -10200,7 +11092,11 @@
             "name": "role",
             "required": false,
             "schema": {
-              "enum": ["USER", "SYSTEM_ADMIN", "REGIONAL_ADMIN"],
+              "enum": [
+                "USER",
+                "SYSTEM_ADMIN",
+                "REGIONAL_ADMIN"
+              ],
               "type": "string"
             }
           },
@@ -10244,7 +11140,9 @@
             "description": "OK"
           }
         },
-        "tags": ["user-controller"],
+        "tags": [
+          "user-controller"
+        ],
         "operationId": "adminListUsersUsingGET",
         "summary": "Lists all users. Must be an administrator. Sorting: email, surname or default"
       }
@@ -10263,7 +11161,9 @@
             "description": "OK"
           }
         },
-        "tags": ["user-controller"],
+        "tags": [
+          "user-controller"
+        ],
         "operationId": "adminUpdateProfileUsingPUT",
         "requestBody": {
           "content": {
@@ -10305,7 +11205,9 @@
             "description": "OK"
           }
         },
-        "tags": ["user-controller"],
+        "tags": [
+          "user-controller"
+        ],
         "operationId": "getProfileForAdminUsingGET",
         "summary": "Get profile of a user. Must be an administrator"
       }
@@ -10324,7 +11226,9 @@
             "description": "OK"
           }
         },
-        "tags": ["user-controller"],
+        "tags": [
+          "user-controller"
+        ],
         "operationId": "confirmEmailUsingPOST",
         "requestBody": {
           "content": {
@@ -10349,7 +11253,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -10391,7 +11298,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -10416,7 +11326,11 @@
             "name": "role",
             "required": false,
             "schema": {
-              "enum": ["USER", "SYSTEM_ADMIN", "REGIONAL_ADMIN"],
+              "enum": [
+                "USER",
+                "SYSTEM_ADMIN",
+                "REGIONAL_ADMIN"
+              ],
               "type": "string"
             }
           },
@@ -10460,7 +11374,9 @@
             "description": "OK"
           }
         },
-        "tags": ["user-controller"],
+        "tags": [
+          "user-controller"
+        ],
         "operationId": "listUsersUsingGET",
         "summary": "Lists all users in the logged-in user's companies"
       }
@@ -10479,7 +11395,9 @@
             "description": "OK"
           }
         },
-        "tags": ["user-controller"],
+        "tags": [
+          "user-controller"
+        ],
         "operationId": "loginUsingPOST",
         "requestBody": {
           "content": {
@@ -10509,7 +11427,9 @@
             "description": "OK"
           }
         },
-        "tags": ["user-controller"],
+        "tags": [
+          "user-controller"
+        ],
         "operationId": "logoutUsingPOST",
         "summary": "Logs out a user"
       }
@@ -10528,7 +11448,9 @@
             "description": "OK"
           }
         },
-        "tags": ["user-controller"],
+        "tags": [
+          "user-controller"
+        ],
         "operationId": "getProfileForUserUsingGET",
         "summary": "Get profile of the currently loged-in user"
       },
@@ -10545,7 +11467,9 @@
             "description": "OK"
           }
         },
-        "tags": ["user-controller"],
+        "tags": [
+          "user-controller"
+        ],
         "operationId": "updateProfileUsingPUT",
         "requestBody": {
           "content": {
@@ -10575,7 +11499,9 @@
             "description": "OK"
           }
         },
-        "tags": ["user-controller"],
+        "tags": [
+          "user-controller"
+        ],
         "operationId": "refreshAuthenticationUsingPOST",
         "summary": "Refresh access token"
       }
@@ -10589,7 +11515,10 @@
             "name": "requestType",
             "required": false,
             "schema": {
-              "enum": ["COUNT", "FETCH"],
+              "enum": [
+                "COUNT",
+                "FETCH"
+              ],
               "type": "string"
             }
           },
@@ -10631,7 +11560,10 @@
             "required": false,
             "schema": {
               "default": "DESC",
-              "enum": ["ASC", "DESC"],
+              "enum": [
+                "ASC",
+                "DESC"
+              ],
               "type": "string"
             }
           },
@@ -10656,7 +11588,11 @@
             "name": "role",
             "required": false,
             "schema": {
-              "enum": ["USER", "SYSTEM_ADMIN", "REGIONAL_ADMIN"],
+              "enum": [
+                "USER",
+                "SYSTEM_ADMIN",
+                "REGIONAL_ADMIN"
+              ],
               "type": "string"
             }
           },
@@ -10700,7 +11636,9 @@
             "description": "OK"
           }
         },
-        "tags": ["user-controller"],
+        "tags": [
+          "user-controller"
+        ],
         "operationId": "regionalAdminListUsersUsingGET",
         "summary": "Lists all available users for the requesting Regional admin. It also contains all users that are not yet part of any company."
       }
@@ -10719,7 +11657,9 @@
             "description": "OK"
           }
         },
-        "tags": ["user-controller"],
+        "tags": [
+          "user-controller"
+        ],
         "operationId": "createUserUsingPOST",
         "requestBody": {
           "content": {
@@ -10749,7 +11689,9 @@
             "description": "OK"
           }
         },
-        "tags": ["user-controller"],
+        "tags": [
+          "user-controller"
+        ],
         "operationId": "requestResetPasswordUsingPOST",
         "requestBody": {
           "content": {
@@ -10779,7 +11721,9 @@
             "description": "OK"
           }
         },
-        "tags": ["user-controller"],
+        "tags": [
+          "user-controller"
+        ],
         "operationId": "resetPasswordUsingPOST",
         "requestBody": {
           "content": {
@@ -10809,7 +11753,9 @@
             "description": "OK"
           }
         },
-        "tags": ["basic-error-controller"],
+        "tags": [
+          "basic-error-controller"
+        ],
         "operationId": "errorHtmlUsingDELETE",
         "summary": "errorHtml"
       },
@@ -10826,7 +11772,9 @@
             "description": "OK"
           }
         },
-        "tags": ["basic-error-controller"],
+        "tags": [
+          "basic-error-controller"
+        ],
         "operationId": "errorHtmlUsingGET",
         "summary": "errorHtml"
       },
@@ -10843,7 +11791,9 @@
             "description": "OK"
           }
         },
-        "tags": ["basic-error-controller"],
+        "tags": [
+          "basic-error-controller"
+        ],
         "operationId": "errorHtmlUsingHEAD",
         "summary": "errorHtml"
       },
@@ -10860,7 +11810,9 @@
             "description": "OK"
           }
         },
-        "tags": ["basic-error-controller"],
+        "tags": [
+          "basic-error-controller"
+        ],
         "operationId": "errorHtmlUsingOPTIONS",
         "summary": "errorHtml"
       },
@@ -10877,7 +11829,9 @@
             "description": "OK"
           }
         },
-        "tags": ["basic-error-controller"],
+        "tags": [
+          "basic-error-controller"
+        ],
         "operationId": "errorHtmlUsingPATCH",
         "summary": "errorHtml"
       },
@@ -10894,7 +11848,9 @@
             "description": "OK"
           }
         },
-        "tags": ["basic-error-controller"],
+        "tags": [
+          "basic-error-controller"
+        ],
         "operationId": "errorHtmlUsingPOST",
         "summary": "errorHtml"
       },
@@ -10911,7 +11867,9 @@
             "description": "OK"
           }
         },
-        "tags": ["basic-error-controller"],
+        "tags": [
+          "basic-error-controller"
+        ],
         "operationId": "errorHtmlUsingPUT",
         "summary": "errorHtml"
       }
@@ -11103,7 +12061,10 @@
           },
           "language": {
             "description": "language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "name": {
@@ -11203,7 +12164,12 @@
           },
           "process": {
             "description": "Coffee process",
-            "enum": ["FullyWashed", "SemiWashedHoney", "Natural", "Other"],
+            "enum": [
+              "FullyWashed",
+              "SemiWashedHoney",
+              "Natural",
+              "Other"
+            ],
             "type": "string"
           },
           "qualitySegments": {
@@ -11223,7 +12189,10 @@
           },
           "species": {
             "description": "Coffee species",
-            "enum": ["Arabica", "Robusta"],
+            "enum": [
+              "Arabica",
+              "Robusta"
+            ],
             "type": "string"
           },
           "unit": {
@@ -11258,7 +12227,13 @@
         "properties": {
           "type": {
             "description": "Certificate of coffee beans",
-            "enum": ["Ra", "Fairtrade", "Organic", "Practices", "FourC"],
+            "enum": [
+              "Ra",
+              "Fairtrade",
+              "Organic",
+              "Practices",
+              "FourC"
+            ],
             "type": "string"
           }
         },
@@ -11300,7 +12275,11 @@
         "properties": {
           "type": {
             "description": "Quality of coffee beans",
-            "enum": ["Specialty", "CommodityConventional", "LowGrade"],
+            "enum": [
+              "Specialty",
+              "CommodityConventional",
+              "LowGrade"
+            ],
             "type": "string"
           }
         },
@@ -11346,7 +12325,11 @@
           },
           "currency": {
             "description": "Used currency",
-            "enum": ["Usd", "UsdCt", "Eur"],
+            "enum": [
+              "Usd",
+              "UsdCt",
+              "Eur"
+            ],
             "type": "string"
           },
           "customIncoterms": {
@@ -11384,7 +12367,11 @@
           },
           "priceUnit": {
             "description": "Price unit",
-            "enum": ["Mg", "Lb", "Kg"],
+            "enum": [
+              "Mg",
+              "Lb",
+              "Kg"
+            ],
             "type": "string"
           }
         },
@@ -11580,14 +12567,24 @@
             "type": "boolean"
           },
           "graphicFarmGatePrice": {
-            "enum": ["DISABLED", "PER_CONTAINER", "PER_KG", "PERCENT_VALUE"],
+            "enum": [
+              "DISABLED",
+              "PER_CONTAINER",
+              "PER_KG",
+              "PERCENT_VALUE"
+            ],
             "type": "string"
           },
           "graphicIncreaseOfIncome": {
             "type": "boolean"
           },
           "graphicPriceToProducer": {
-            "enum": ["DISABLED", "PER_CONTAINER", "PER_KG", "PERCENT_VALUE"],
+            "enum": [
+              "DISABLED",
+              "PER_CONTAINER",
+              "PER_KG",
+              "PERCENT_VALUE"
+            ],
             "type": "string"
           },
           "graphicQuality": {
@@ -11811,7 +12808,12 @@
           },
           "companyUserRole": {
             "description": "Company user role",
-            "enum": ["COMPANY_USER", "COMPANY_ADMIN", "MANAGER", "ACCOUNTANT"],
+            "enum": [
+              "COMPANY_USER",
+              "COMPANY_ADMIN",
+              "MANAGER",
+              "ACCOUNTANT"
+            ],
             "type": "string"
           },
           "otherCompanyId": {
@@ -11933,7 +12935,11 @@
         "properties": {
           "category": {
             "description": "document category",
-            "enum": ["VIDEO", "PRODUCTION_RECORD", "MEET_THE_FARMER"],
+            "enum": [
+              "VIDEO",
+              "PRODUCTION_RECORD",
+              "MEET_THE_FARMER"
+            ],
             "type": "string"
           },
           "description": {
@@ -11963,7 +12969,10 @@
           },
           "type": {
             "description": "type of the document (link, file)",
-            "enum": ["LINK", "FILE"],
+            "enum": [
+              "LINK",
+              "FILE"
+            ],
             "type": "string"
           }
         },
@@ -12130,7 +13139,11 @@
           },
           "status": {
             "description": "Company status",
-            "enum": ["REGISTERED", "ACTIVE", "DEACTIVATED"],
+            "enum": [
+              "REGISTERED",
+              "ACTIVE",
+              "DEACTIVATED"
+            ],
             "type": "string"
           }
         },
@@ -12252,7 +13265,10 @@
           },
           "language": {
             "description": "Language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "logo": {
@@ -12308,7 +13324,12 @@
         "properties": {
           "companyRole": {
             "description": "company role",
-            "enum": ["COMPANY_USER", "COMPANY_ADMIN", "MANAGER", "ACCOUNTANT"],
+            "enum": [
+              "COMPANY_USER",
+              "COMPANY_ADMIN",
+              "MANAGER",
+              "ACCOUNTANT"
+            ],
             "type": "string"
           },
           "email": {
@@ -12322,7 +13343,10 @@
           },
           "language": {
             "description": "language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "name": {
@@ -12331,12 +13355,21 @@
           },
           "role": {
             "description": "User role",
-            "enum": ["USER", "SYSTEM_ADMIN", "REGIONAL_ADMIN"],
+            "enum": [
+              "USER",
+              "SYSTEM_ADMIN",
+              "REGIONAL_ADMIN"
+            ],
             "type": "string"
           },
           "status": {
             "description": "Status",
-            "enum": ["UNCONFIRMED", "CONFIRMED_EMAIL", "ACTIVE", "DEACTIVATED"],
+            "enum": [
+              "UNCONFIRMED",
+              "CONFIRMED_EMAIL",
+              "ACTIVE",
+              "DEACTIVATED"
+            ],
             "type": "string"
           },
           "surname": {
@@ -12362,7 +13395,10 @@
             "type": "string"
           }
         },
-        "required": ["code", "name"],
+        "required": [
+          "code",
+          "name"
+        ],
         "type": "object"
       },
       "ApiCreateUserRequest": {
@@ -12373,7 +13409,10 @@
           },
           "language": {
             "description": "language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "name": {
@@ -12389,7 +13428,12 @@
             "type": "string"
           }
         },
-        "required": ["email", "name", "password", "surname"],
+        "required": [
+          "email",
+          "name",
+          "password",
+          "surname"
+        ],
         "type": "object"
       },
       "ApiCurrencyType": {
@@ -12448,7 +13492,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiDeliveriesTotal": {
@@ -12460,7 +13506,12 @@
             "type": "array"
           },
           "unitType": {
-            "enum": ["DAY", "WEEK", "MONTH", "YEAR"],
+            "enum": [
+              "DAY",
+              "WEEK",
+              "MONTH",
+              "YEAR"
+            ],
             "type": "string"
           }
         },
@@ -12654,7 +13705,10 @@
         "properties": {
           "language": {
             "description": "Facility language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "name": {
@@ -12952,7 +14006,13 @@
             "type": "string"
           },
           "iconType": {
-            "enum": ["SHIP", "LEAF", "WAREHOUSE", "QRCODE", "OTHER"],
+            "enum": [
+              "SHIP",
+              "LEAF",
+              "WAREHOUSE",
+              "QRCODE",
+              "OTHER"
+            ],
             "type": "string"
           },
           "latitude": {
@@ -13016,7 +14076,11 @@
           },
           "type": {
             "description": "Type",
-            "enum": ["FAIRNESS", "QUALITY", "PROVENANCE"],
+            "enum": [
+              "FAIRNESS",
+              "QUALITY",
+              "PROVENANCE"
+            ],
             "type": "string"
           },
           "youtubeUrl": {
@@ -13044,7 +14108,11 @@
           },
           "type": {
             "description": "Type",
-            "enum": ["FAIRNESS", "QUALITY", "PROVENANCE"],
+            "enum": [
+              "FAIRNESS",
+              "QUALITY",
+              "PROVENANCE"
+            ],
             "type": "string"
           },
           "youtubeUrl": {
@@ -13130,7 +14198,10 @@
             "type": "string"
           }
         },
-        "required": ["password", "username"],
+        "required": [
+          "password",
+          "username"
+        ],
         "type": "object"
       },
       "ApiMeasureUnitType": {
@@ -13873,7 +14944,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiCompanyCustomer_": {
@@ -13915,7 +14988,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiCompanyListResponse_": {
@@ -13957,7 +15032,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiCountry_": {
@@ -13999,7 +15076,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiCurrencyType_": {
@@ -14041,7 +15120,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiFacilityType_": {
@@ -14083,7 +15164,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiFacility_": {
@@ -14125,7 +15208,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiFinalProduct_": {
@@ -14167,7 +15252,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiGroupStockOrder_": {
@@ -14209,7 +15296,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiKnowledgeBlogBase_": {
@@ -14251,7 +15340,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiMeasureUnitType_": {
@@ -14293,7 +15384,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiPayment_": {
@@ -14335,7 +15428,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiProcessingAction_": {
@@ -14377,7 +15472,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiProcessingEvidenceField_": {
@@ -14419,7 +15516,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiProcessingEvidenceType_": {
@@ -14461,7 +15560,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiProductLabelBatch_": {
@@ -14503,7 +15604,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiProductLabelFeedback_": {
@@ -14545,7 +15648,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiProductListResponse_": {
@@ -14587,7 +15692,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiProductType_": {
@@ -14629,7 +15736,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiSemiProduct_": {
@@ -14671,7 +15780,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiStockOrder_": {
@@ -14713,7 +15824,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiTransaction_": {
@@ -14755,7 +15868,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiUserBase_": {
@@ -14797,7 +15912,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiUserCustomer_": {
@@ -14839,7 +15956,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPaginatedResponse_ApiValueChain_": {
@@ -14881,7 +16000,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiPayment": {
@@ -14938,7 +16059,10 @@
           },
           "paymentStatus": {
             "description": "Payment status",
-            "enum": ["UNCONFIRMED", "CONFIRMED"],
+            "enum": [
+              "UNCONFIRMED",
+              "CONFIRMED"
+            ],
             "type": "string"
           },
           "paymentType": {
@@ -14980,7 +16104,10 @@
           },
           "receiptDocumentType": {
             "description": "Receipt document type",
-            "enum": ["PURCHASE_SHEET", "RECEIPT"],
+            "enum": [
+              "PURCHASE_SHEET",
+              "RECEIPT"
+            ],
             "type": "string"
           },
           "receiptNumber": {
@@ -14993,7 +16120,10 @@
           },
           "recipientType": {
             "description": "Recipient type",
-            "enum": ["COMPANY", "USER_CUSTOMER"],
+            "enum": [
+              "COMPANY",
+              "USER_CUSTOMER"
+            ],
             "type": "string"
           },
           "recipientUserCustomer": {
@@ -15145,7 +16275,10 @@
           },
           "language": {
             "description": "Processing action language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "maxOutputWeight": {
@@ -15173,7 +16306,13 @@
           },
           "publicTimelineIconType": {
             "description": "Processing action public timeline icon type",
-            "enum": ["SHIP", "LEAF", "WAREHOUSE", "QRCODE", "OTHER"],
+            "enum": [
+              "SHIP",
+              "LEAF",
+              "WAREHOUSE",
+              "QRCODE",
+              "OTHER"
+            ],
             "type": "string"
           },
           "publicTimelineLabel": {
@@ -15298,7 +16437,10 @@
           },
           "language": {
             "description": "Processing action language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "name": {
@@ -15370,7 +16512,10 @@
           },
           "language": {
             "description": "Processing evidence field language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           }
         },
@@ -15429,7 +16574,11 @@
           },
           "type": {
             "description": "type of evidence",
-            "enum": ["DOCUMENT", "FIELD", "CALCULATED"],
+            "enum": [
+              "DOCUMENT",
+              "FIELD",
+              "CALCULATED"
+            ],
             "type": "string"
           }
         },
@@ -15448,7 +16597,10 @@
           },
           "language": {
             "description": "Processing evidence type language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           }
         },
@@ -15500,7 +16652,12 @@
       "ApiProcessingPerformanceRequest": {
         "properties": {
           "aggregationType": {
-            "enum": ["DAY", "WEEK", "MONTH", "YEAR"],
+            "enum": [
+              "DAY",
+              "WEEK",
+              "MONTH",
+              "YEAR"
+            ],
             "type": "string"
           },
           "companyId": {
@@ -15522,7 +16679,11 @@
             "type": "array"
           },
           "exportType": {
-            "enum": ["EXCEL", "PDF", "CSV"],
+            "enum": [
+              "EXCEL",
+              "PDF",
+              "CSV"
+            ],
             "type": "string"
           },
           "facilityId": {
@@ -15566,7 +16727,12 @@
             "type": "array"
           },
           "unitType": {
-            "enum": ["DAY", "WEEK", "MONTH", "YEAR"],
+            "enum": [
+              "DAY",
+              "WEEK",
+              "MONTH",
+              "YEAR"
+            ],
             "type": "string"
           }
         },
@@ -15772,7 +16938,10 @@
           },
           "language": {
             "description": "Label language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "productId": {
@@ -15782,7 +16951,10 @@
           },
           "status": {
             "description": "Product label status",
-            "enum": ["UNPUBLISHED", "PUBLISHED"],
+            "enum": [
+              "UNPUBLISHED",
+              "PUBLISHED"
+            ],
             "type": "string"
           },
           "title": {
@@ -15883,7 +17055,10 @@
           },
           "language": {
             "description": "Label language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "productId": {
@@ -15893,7 +17068,10 @@
           },
           "status": {
             "description": "Product label status",
-            "enum": ["UNPUBLISHED", "PUBLISHED"],
+            "enum": [
+              "UNPUBLISHED",
+              "PUBLISHED"
+            ],
             "type": "string"
           },
           "title": {
@@ -15964,7 +17142,11 @@
           },
           "category": {
             "description": "document category",
-            "enum": ["VIDEO", "PRODUCTION_RECORD", "MEET_THE_FARMER"],
+            "enum": [
+              "VIDEO",
+              "PRODUCTION_RECORD",
+              "MEET_THE_FARMER"
+            ],
             "type": "string"
           },
           "description": {
@@ -15994,7 +17176,10 @@
           },
           "type": {
             "description": "type of the document (link, file)",
-            "enum": ["LINK", "FILE"],
+            "enum": [
+              "LINK",
+              "FILE"
+            ],
             "type": "string"
           }
         },
@@ -16110,7 +17295,11 @@
           },
           "type": {
             "description": "Feedback type",
-            "enum": ["PRAISE", "PROPOSAL", "COMPLAINT"],
+            "enum": [
+              "PRAISE",
+              "PROPOSAL",
+              "COMPLAINT"
+            ],
             "type": "string"
           }
         },
@@ -16167,7 +17356,10 @@
           },
           "language": {
             "description": "Label language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "productId": {
@@ -16177,7 +17369,10 @@
           },
           "status": {
             "description": "Product label status",
-            "enum": ["UNPUBLISHED", "PUBLISHED"],
+            "enum": [
+              "UNPUBLISHED",
+              "PUBLISHED"
+            ],
             "type": "string"
           },
           "title": {
@@ -16207,7 +17402,10 @@
           },
           "language": {
             "description": "Label language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "productId": {
@@ -16217,7 +17415,10 @@
           },
           "status": {
             "description": "Product label status",
-            "enum": ["UNPUBLISHED", "PUBLISHED"],
+            "enum": [
+              "UNPUBLISHED",
+              "PUBLISHED"
+            ],
             "type": "string"
           },
           "title": {
@@ -16256,7 +17457,10 @@
           },
           "language": {
             "description": "Label language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "numberOfBatches": {
@@ -16285,7 +17489,10 @@
           },
           "status": {
             "description": "Product label status",
-            "enum": ["UNPUBLISHED", "PUBLISHED"],
+            "enum": [
+              "UNPUBLISHED",
+              "PUBLISHED"
+            ],
             "type": "string"
           },
           "title": {
@@ -16412,7 +17619,10 @@
           },
           "language": {
             "description": "language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "pricingTransparency": {
@@ -16480,7 +17690,10 @@
           },
           "language": {
             "description": "Product type language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "name": {
@@ -16695,7 +17908,10 @@
             "type": "string"
           }
         },
-        "required": ["password", "token"],
+        "required": [
+          "password",
+          "token"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiBaseEntity_": {
@@ -16737,7 +17953,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiBeycoOrderFields_": {
@@ -16779,7 +17997,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiBeycoTokenResponse_": {
@@ -16821,7 +18041,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiBulkPayment_": {
@@ -16863,7 +18085,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiCompanyCustomer_": {
@@ -16905,7 +18129,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiCompanyGet_": {
@@ -16947,7 +18173,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiCompanyName_": {
@@ -16989,7 +18217,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiDeliveriesTotal_": {
@@ -17031,7 +18261,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiDocument_": {
@@ -17073,7 +18305,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiFacilityType_": {
@@ -17115,7 +18349,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiFacility_": {
@@ -17157,7 +18393,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiFinalProduct_": {
@@ -17199,7 +18437,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiGlobalSettingsValue_": {
@@ -17241,7 +18481,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiKnowledgeBlog_": {
@@ -17283,7 +18525,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiMeasureUnitType_": {
@@ -17325,7 +18569,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiPayment_": {
@@ -17367,7 +18613,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiPlot_": {
@@ -17409,7 +18657,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiProcessingAction_": {
@@ -17451,7 +18701,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiProcessingEvidenceField_": {
@@ -17493,7 +18745,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiProcessingEvidenceType_": {
@@ -17535,7 +18789,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiProcessingOrder_": {
@@ -17577,7 +18833,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiProcessingPerformanceTotal_": {
@@ -17619,7 +18877,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiProductLabelAnalytics_": {
@@ -17661,7 +18921,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiProductLabelBatch_": {
@@ -17703,7 +18965,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiProductLabelContent_": {
@@ -17745,7 +19009,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiProductLabelValuesExtended_": {
@@ -17787,7 +19053,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiProductLabelValues_": {
@@ -17829,7 +19097,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiProductLabel_": {
@@ -17871,7 +19141,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiProductOrder_": {
@@ -17913,7 +19185,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiProductType_": {
@@ -17955,7 +19229,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiProduct_": {
@@ -17997,7 +19273,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiPurchaseOrder_": {
@@ -18039,7 +19317,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiQRTagPublic_": {
@@ -18081,7 +19361,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiSemiProduct_": {
@@ -18123,7 +19405,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiStockOrderHistory_": {
@@ -18165,7 +19449,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiStockOrder_": {
@@ -18207,7 +19493,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiUserCustomer_": {
@@ -18249,7 +19537,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiUserGet_": {
@@ -18291,7 +19581,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiUser_": {
@@ -18333,7 +19625,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_ApiValueChain_": {
@@ -18375,7 +19669,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_List_ApiCompanyUser_": {
@@ -18420,7 +19716,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_List_ApiLocation_": {
@@ -18465,7 +19763,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_List_ApiPlot_": {
@@ -18510,7 +19810,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_List_ApiProductLabelBase_": {
@@ -18555,7 +19857,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_List_ApiProductLabelCompanyDocument_": {
@@ -18600,7 +19904,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_boolean_": {
@@ -18643,7 +19949,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponse_object_": {
@@ -18685,7 +19993,9 @@
             "description": "Optional details for validation error responses."
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ApiResponsibility": {
@@ -18744,7 +20054,10 @@
           },
           "language": {
             "description": "Semi product language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "name": {
@@ -19315,7 +20628,11 @@
           },
           "status": {
             "description": "Transaction status",
-            "enum": ["PENDING", "CANCELED", "EXECUTED"],
+            "enum": [
+              "PENDING",
+              "CANCELED",
+              "EXECUTED"
+            ],
             "type": "string"
           },
           "targetStockOrder": {
@@ -19338,7 +20655,10 @@
           },
           "language": {
             "description": "language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "name": {
@@ -19347,12 +20667,21 @@
           },
           "role": {
             "description": "User role",
-            "enum": ["USER", "SYSTEM_ADMIN", "REGIONAL_ADMIN"],
+            "enum": [
+              "USER",
+              "SYSTEM_ADMIN",
+              "REGIONAL_ADMIN"
+            ],
             "type": "string"
           },
           "status": {
             "description": "Status",
-            "enum": ["UNCONFIRMED", "CONFIRMED_EMAIL", "ACTIVE", "DEACTIVATED"],
+            "enum": [
+              "UNCONFIRMED",
+              "CONFIRMED_EMAIL",
+              "ACTIVE",
+              "DEACTIVATED"
+            ],
             "type": "string"
           },
           "surname": {
@@ -19375,7 +20704,10 @@
           },
           "language": {
             "description": "language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "name": {
@@ -19384,12 +20716,21 @@
           },
           "role": {
             "description": "User role",
-            "enum": ["USER", "SYSTEM_ADMIN", "REGIONAL_ADMIN"],
+            "enum": [
+              "USER",
+              "SYSTEM_ADMIN",
+              "REGIONAL_ADMIN"
+            ],
             "type": "string"
           },
           "status": {
             "description": "Status",
-            "enum": ["UNCONFIRMED", "CONFIRMED_EMAIL", "ACTIVE", "DEACTIVATED"],
+            "enum": [
+              "UNCONFIRMED",
+              "CONFIRMED_EMAIL",
+              "ACTIVE",
+              "DEACTIVATED"
+            ],
             "type": "string"
           },
           "surname": {
@@ -19445,7 +20786,12 @@
           },
           "gender": {
             "description": "Gender",
-            "enum": ["FEMALE", "MALE", "N_A", "DIVERSE"],
+            "enum": [
+              "FEMALE",
+              "MALE",
+              "N_A",
+              "DIVERSE"
+            ],
             "type": "string"
           },
           "hasSmartphone": {
@@ -19490,7 +20836,10 @@
           },
           "type": {
             "description": "Type",
-            "enum": ["COLLECTOR", "FARMER"],
+            "enum": [
+              "COLLECTOR",
+              "FARMER"
+            ],
             "type": "string"
           }
         },
@@ -19531,7 +20880,10 @@
           },
           "userCustomerType": {
             "description": "User customer type (collector, farmer)",
-            "enum": ["COLLECTOR", "FARMER"],
+            "enum": [
+              "COLLECTOR",
+              "FARMER"
+            ],
             "type": "string"
           }
         },
@@ -19543,7 +20895,11 @@
             "type": "string"
           },
           "errorType": {
-            "enum": ["INCORRECT_TYPE", "REQUIRED", "INVALID_VALUE"],
+            "enum": [
+              "INCORRECT_TYPE",
+              "REQUIRED",
+              "INVALID_VALUE"
+            ],
             "type": "string"
           }
         },
@@ -19664,7 +21020,10 @@
           },
           "language": {
             "description": "language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "name": {
@@ -19673,12 +21032,21 @@
           },
           "role": {
             "description": "User role",
-            "enum": ["USER", "SYSTEM_ADMIN", "REGIONAL_ADMIN"],
+            "enum": [
+              "USER",
+              "SYSTEM_ADMIN",
+              "REGIONAL_ADMIN"
+            ],
             "type": "string"
           },
           "status": {
             "description": "Status",
-            "enum": ["UNCONFIRMED", "CONFIRMED_EMAIL", "ACTIVE", "DEACTIVATED"],
+            "enum": [
+              "UNCONFIRMED",
+              "CONFIRMED_EMAIL",
+              "ACTIVE",
+              "DEACTIVATED"
+            ],
             "type": "string"
           },
           "surname": {
@@ -19697,7 +21065,11 @@
           },
           "role": {
             "description": "Role",
-            "enum": ["USER", "SYSTEM_ADMIN", "REGIONAL_ADMIN"],
+            "enum": [
+              "USER",
+              "SYSTEM_ADMIN",
+              "REGIONAL_ADMIN"
+            ],
             "type": "string"
           }
         },
@@ -19707,7 +21079,10 @@
         "properties": {
           "language": {
             "description": "language",
-            "enum": ["EN", "DE", "RW", "ES"],
+            "enum": [
+              "EN",
+              "ES"
+            ],
             "type": "string"
           },
           "name": {
@@ -19791,7 +21166,10 @@
           },
           "valueChainStatus": {
             "description": "value chain status",
-            "enum": ["ENABLED", "DISABLED"],
+            "enum": [
+              "ENABLED",
+              "DISABLED"
+            ],
             "type": "string"
           }
         },

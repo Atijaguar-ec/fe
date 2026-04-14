@@ -17,27 +17,40 @@
       </div>
     </ng-container>
 
-    <div class="af-form-wrapper" *ngIf="orderType">
+    <div #deliveryDetailsContainer class="af-form-wrapper" *ngIf="orderType">
       <div class="af-form-row">
-        <div class="af-form-block--c12 d-flex justify-content-between">
+        <div
+          class="af-form-block--c12 d-flex justify-content-between align-items-center"
+        >
           <div class="title-page content-element--title">
             {{ title
             }}<span style="margin-left: 1rem">{{
-              stockOrderForm.get('identifier').value
+              stockOrderForm.get("identifier").value
             }}</span>
           </div>
-          <app-last-seen-tag
-            *ngIf="this.update"
-            [dateFormat]="stockOrderForm.get('updateTimestamp').value"
-            [identifier]="userLastChanged"
-          >
-          </app-last-seen-tag>
+          <div class="d-flex align-items-center">
+            <app-last-seen-tag
+              *ngIf="this.update"
+              class="mr-3"
+              [dateFormat]="stockOrderForm.get('updateTimestamp').value"
+              [identifier]="userLastChanged"
+            >
+            </app-last-seen-tag>
+            <button
+              class="btn btn-print"
+              type="button"
+              (click)="printDeliveryPdf()"
+            >
+              <i class="fa fa-print mr-1" aria-hidden="true"></i>
+              <span>Imprimir PDF</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div class="af-form-row">
+      <div class="af-form-row delivery-columns">
         <!-- First block in first row -->
-        <div class="af-form-block--c6">
+        <div class="af-form-block--c6 delivery-column">
           <div>
             <h2 i18n="@@productLabelStockPurchaseOrdersModal.section.basicInfo">
               Basic information
@@ -139,6 +152,112 @@
               </div>
             </div>
 
+            <!-- Week Number (Dynamic) -->
+            <div
+              class="af-row"
+              *ngIf="
+                productFieldVisibilityService.shouldShowField('weekNumber')
+              "
+            >
+              <div class="af-c6">
+                <textinput
+                  [form]="stockOrderForm.get('weekNumber')"
+                  label="N° de Semana"
+                  i18n-label="
+                    @@productLabelStockPurchaseOrdersModal.textinput.weekNumber.label"
+                  style="width: 100%"
+                  placeholder="Ingrese el número de semana"
+                  i18n-placeholder="
+                    @@productLabelStockPurchaseOrdersModal.textinput.weekNumber.placeholder"
+                  [isInvalid]="
+                    submitted && stockOrderForm.get('weekNumber').invalid
+                  "
+                  type="number"
+                >
+                  <ng-container *ngIf="submitted">
+                    <div
+                      *ngIf="stockOrderForm.get('weekNumber').errors as errors"
+                      class="sc-invalid-feedback"
+                    >
+                      <div
+                        *ngIf="errors.required"
+                        i18n="
+                          @@productLabelStockPurchaseOrdersModal.textinput.weekNumber.error.required"
+                      >
+                        El N° de Semana es obligatorio
+                      </div>
+                      <div
+                        *ngIf="errors.pattern"
+                        i18n="
+                          @@productLabelStockPurchaseOrdersModal.textinput.weekNumber.error.pattern"
+                      >
+                        Solo números permitidos
+                      </div>
+                      <div
+                        *ngIf="errors.min || errors.max"
+                        i18n="
+                          @@productLabelStockPurchaseOrdersModal.textinput.weekNumber.error.range"
+                      >
+                        Debe estar entre 1 y 53
+                      </div>
+                    </div>
+                  </ng-container>
+                </textinput>
+              </div>
+            </div>
+
+            <!-- Parcel Lot and Variety (Dynamic) -->
+            <div
+              class="af-row"
+              *ngIf="
+                productFieldVisibilityService.shouldShowField('parcelLot') ||
+                productFieldVisibilityService.shouldShowField('variety')
+              "
+            >
+              <div class="af-c6">
+                <textinput
+                  [form]="stockOrderForm.get('parcelLot')"
+                  label="Lote (Parcela)"
+                  i18n-label="
+                    @@productLabelStockPurchaseOrdersModal.textinput.parcelLot.label"
+                  style="width: 100%"
+                  placeholder="Ingrese el lote de la parcela"
+                  i18n-placeholder="
+                    @@productLabelStockPurchaseOrdersModal.textinput.parcelLot.placeholder"
+                  [isInvalid]="
+                    submitted && stockOrderForm.get('parcelLot').invalid
+                  "
+                  type="number"
+                >
+                  <ng-container *ngIf="submitted">
+                    <div
+                      *ngIf="stockOrderForm.get('parcelLot').errors as errors"
+                      class="sc-invalid-feedback"
+                    >
+                      <div
+                        *ngIf="errors.pattern"
+                        i18n="
+                          @@productLabelStockPurchaseOrdersModal.textinput.parcelLot.error.pattern"
+                      >
+                        Solo números permitidos
+                      </div>
+                    </div>
+                  </ng-container>
+                </textinput>
+              </div>
+              <div class="af-c6">
+                <single-choice
+                  [formControlInput]="$any(stockOrderForm.get('variety'))"
+                  [codebookService]="varietyOptions"
+                  label="Variedad"
+                  i18n-label="
+                    @@productLabelStockPurchaseOrdersModal.singleChoice.variety.label"
+                  style="width: 100%"
+                >
+                </single-choice>
+              </div>
+            </div>
+
             <div class="af-row">
               <div class="af-c12">
                 <single-choice
@@ -170,7 +289,7 @@
         </div>
 
         <!-- Second block in first row -->
-        <div class="af-form-block--c6">
+        <div class="af-form-block--c6 delivery-column">
           <h2
             i18n="
               @@productLabelStockPurchaseOrdersModal.section.purchaseDetails"
@@ -295,50 +414,12 @@
               </div>
             </div>
 
-            <div class="af-row">
-              <div class="af-c6">
-                <textinput
-                  [form]="stockOrderForm.get('moisturePercentage')"
-                  label="Moisture (%)"
-                  style="width: 100%"
-                  placeholder="Enter moisture %"
-                  [isInvalid]="submitted && stockOrderForm.get('moisturePercentage').invalid"
-                >
-                  <ng-container *ngIf="submitted">
-                    <div *ngIf="stockOrderForm.get('moisturePercentage').errors as errors" class="sc-invalid-feedback">
-                      <div *ngIf="errors.required">Moisture is required</div>
-                      <div *ngIf="errors.min || errors.max">Must be 0-100</div>
-                    </div>
-                  </ng-container>
-                </textinput>
-              </div>
-              <div class="af-c6">
-                <textinput
-                  [form]="stockOrderForm.get('weekNumber')"
-                  label="Week Number"
-                  style="width: 100%"
-                  placeholder="Enter week (1-53)"
-                  [isInvalid]="submitted && stockOrderForm.get('weekNumber').invalid"
-                >
-                  <ng-container *ngIf="submitted">
-                    <div *ngIf="stockOrderForm.get('weekNumber').errors as errors" class="sc-invalid-feedback">
-                      <div *ngIf="errors.required">Week number required</div>
-                    </div>
-                  </ng-container>
-                </textinput>
-              </div>
-            </div>
-
-            <div class="af-row">
-              <div class="af-c6">
-                <textinput [form]="stockOrderForm.get('parcelLot')" label="Parcel Lot" style="width: 100%" placeholder="Enter lot identifier"></textinput>
-              </div>
-              <div class="af-c6">
-                <textinput [form]="stockOrderForm.get('variety')" label="Variety" style="width: 100%" placeholder="Enter cocoa variety"></textinput>
-              </div>
-            </div>
-            
-            <div class="af-row" *ngIf="showTare || showDamagedPriceDeduction">
+            <div
+              class="af-row"
+              *ngIf="
+                showTare || showDamagedPriceDeduction || showFinalPriceDiscount
+              "
+            >
               <div class="af-c6">
                 <textinput
                   *ngIf="showTare"
@@ -378,7 +459,7 @@
                   </div>
                 </textinput>
               </div>
-              <div class="af-c6">
+              <div class="af-c6" *ngIf="showDamagedPriceDeduction">
                 <textinput
                   *ngIf="showDamagedPriceDeduction"
                   [form]="stockOrderForm.get('damagedPriceDeduction')"
@@ -476,7 +557,52 @@
               </div>
             </div>
 
-            <div class="af-row" *ngIf="showTare">
+            <div class="af-row" *ngIf="showMoisturePercentage">
+              <div class="af-c6">
+                <textinput
+                  [form]="stockOrderForm.get('moisturePercentage')"
+                  label="Moisture discount (%)"
+                  i18n-label="
+                    @@productLabelStockPurchaseOrdersModal.textinput.moistureDiscount.label"
+                  style="width: 100%"
+                  placeholder="Enter moisture discount"
+                  i18n-placeholder="
+                    @@productLabelStockPurchaseOrdersModal.textinput.moistureDiscount.placeholder"
+                  [isInvalid]="
+                    submitted &&
+                    stockOrderForm.get('moisturePercentage').invalid
+                  "
+                  [readOnly]="readonlyMoisturePercentage"
+                >
+                  <ng-container *ngIf="submitted">
+                    <div
+                      *ngIf="
+                        stockOrderForm.get('moisturePercentage')
+                          .errors as errors
+                      "
+                      class="sc-invalid-feedback"
+                    >
+                      <div
+                        *ngIf="errors.required"
+                        i18n="
+                          @@productLabelStockPurchaseOrdersModal.textinput.moistureDiscount.error"
+                      >
+                        Moisture discount is required
+                      </div>
+                      <div
+                        *ngIf="errors.min || errors.max"
+                        i18n="
+                          @@productLabelStockPurchaseOrdersModal.textinput.moistureDiscount.rangeError"
+                      >
+                        Moisture discount must be between 0 and 100
+                      </div>
+                    </div>
+                  </ng-container>
+                </textinput>
+              </div>
+            </div>
+
+            <div class="af-row">
               <div class="af-c6">
                 <textinput
                   [form]="netWeightForm"
@@ -484,9 +610,9 @@
                   [readOnly]="true"
                   [value]="netWeight()"
                   style="width: 100%"
-                  placeholder="Enter net weight"
+                  placeholder="Net weight after all deductions"
                   i18n-placeholder="
-                    @@productLabelStockPurchaseOrdersModal.textinput.netWeight.placeholder"
+                    @@productLabelStockPurchaseOrdersModal.textinput.netWeightFinal.placeholder"
                 >
                   <ng-container *ngIf="submitted">
                     <div
@@ -504,26 +630,35 @@
                   </ng-container>
                 </textinput>
               </div>
-              <div class="af-c6">
+            </div>
+
+            <!-- Final Price Discount moved to the end -->
+            <div class="af-row" *ngIf="showFinalPriceDiscount">
+              <div class="af-c12">
                 <textinput
-                  [form]="finalPriceForm"
-                  [label]="finalPriceLabel"
-                  [readOnly]="true"
-                  [value]="finalPrice()"
+                  [form]="stockOrderForm.get('finalPriceDiscount')"
+                  [label]="finalPriceDiscountLabel"
+                  [disabled]="stockOrderForm.get('priceDeterminedLater').value"
                   style="width: 100%"
-                  [isInvalid]="submitted && finalPriceForm.invalid"
+                  placeholder="Enter final price discount"
+                  i18n-placeholder="
+                    @@productLabelStockPurchaseOrdersModal.textinput.finalPriceDiscount.placeholder"
+                  [readOnly]="readonlyFinalPriceDiscount"
                 >
                   <ng-container *ngIf="submitted">
                     <div
-                      *ngIf="finalPriceForm.errors as errors"
+                      *ngIf="
+                        stockOrderForm.get('finalPriceDiscount')
+                          .errors as errors
+                      "
                       class="sc-invalid-feedback"
                     >
                       <div
                         *ngIf="errors.required"
                         i18n="
-                          @@productLabelStockPurchaseOrdersModal.textinput.finalPrice.error"
+                          @@productLabelStockPurchaseOrdersModal.textinput.finalPriceDiscount.error"
                       >
-                        Final price is required
+                        Final price discount is required
                       </div>
                     </div>
                   </ng-container>
@@ -632,32 +767,24 @@
               </div>
             </div>
 
-            <div class="af-row" *ngIf="showWomensOnly">
+            <!-- Organic Certification -->
+            <div
+              class="af-row"
+              *ngIf="
+                showOrganic && stockOrderForm.get('organic').value === 'true'
+              "
+            >
               <div class="af-c12">
                 <single-choice
-                  label="Women’s only"
+                  [formControlInput]="
+                    $any(stockOrderForm.get('organicCertification'))
+                  "
+                  [codebookService]="certificationTypeOptions"
+                  label="Tipo de certificación"
                   i18n-label="
-                    @@productLabelStockPurchaseOrdersModal.singleChoice.womensOnly"
-                  [formControlInput]="searchWomenCoffeeForm"
-                  [codebookService]="codebookWomenCoffee"
-                  style="min-width: 150px"
-                  [isInvalidChoice]="submitted && searchWomenCoffeeForm.invalid"
-                  [readonly]="readonlyWomensOnly"
+                    @@productLabelStockPurchaseOrdersModal.singleChoice.organicsCertificationType.label"
+                  style="width: 100%"
                 >
-                  <ng-container *ngIf="submitted">
-                    <div
-                      *ngIf="searchWomenCoffeeForm.errors as errors"
-                      class="sc-invalid-feedback"
-                    >
-                      <div
-                        *ngIf="errors.required"
-                        i18n="
-                          @@productLabelStockPurchaseOrdersModal.singleChoice.womensOnly.error"
-                      >
-                        Women’s only is required
-                      </div>
-                    </div>
-                  </ng-container>
                 </single-choice>
               </div>
             </div>
