@@ -16,4 +16,7 @@
   // Environment variables for Beyco integration
   window['env']['beycoAuthURL'] = '';
   window['env']['beycoClientId'] = '';
+
+  // Feature flags
+  window['env']['enableShrimpModule'] = 'false';
 })(this);

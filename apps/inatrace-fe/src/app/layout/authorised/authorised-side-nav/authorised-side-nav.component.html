@@ -136,8 +136,8 @@
         </div>
       </li>
 
-      <div class="auth-side-icon-spacer"></div>
-      <li>
+      <div class="auth-side-icon-spacer" *ngIf="isShrimpValueChain"></div>
+      <li *ngIf="isShrimpValueChain">
         <div class="left-border-active" routerLinkActive="active">
           <button
             class="btn-icon-sidebar"

@@ -31,6 +31,7 @@ export const environment = {
   harcodedLabelForPrivacyOnRegisterPage: '',
   beycoAuthURL: (window['env'] || {})['beycoAuthURL'] || '',
   beycoClientId: (window['env'] || {})['beycoClientId'] || '',
+  enableShrimpModule: (window['env'] || {})['enableShrimpModule'] === 'true'
 };
 
 /*
