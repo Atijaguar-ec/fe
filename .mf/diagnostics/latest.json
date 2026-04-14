@@ -1,0 +1,26 @@
+{
+  "bundler": {
+    "name": "webpack"
+  },
+  "mfConfig": {
+    "name": "shrimpMfe",
+    "exposes": {
+      "./Module": "shrimpMfe/src/app/remote-entry/entry.module.ts"
+    }
+  },
+  "latestErrorEvent": {
+    "code": "BUILD-001",
+    "message": "Failed to find expose module. #BUILD-001\nargs: {\"exposeModules\":[{\"name\":\"./Module\",\"module\":null,\"request\":\"shrimpMfe/src/app/remote-entry/entry.module.ts\"}],\"FEDERATION_WEBPACK_PATH\":\"/Users/alvarosanchez/proyectos/giz/fe/node_modules/webpack/lib/index.js\"}\nView the docs to see how to solve: https://module-federation.io/guide/troubleshooting/build#build-001",
+    "args": {
+      "exposeModules": [
+        {
+          "name": "./Module",
+          "module": null,
+          "request": "shrimpMfe/src/app/remote-entry/entry.module.ts"
+        }
+      ],
+      "FEDERATION_WEBPACK_PATH": "/Users/alvarosanchez/proyectos/giz/fe/node_modules/webpack/lib/index.js"
+    },
+    "timestamp": 1776192590524
+  }
+}

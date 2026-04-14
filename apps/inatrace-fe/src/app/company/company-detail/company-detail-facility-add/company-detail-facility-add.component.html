@@ -31,6 +31,15 @@
               </ng-container>
             </single-choice>
           </div>
+          <div class="af-form-element" style="margin-top: 15px;">
+            <textinput
+              label="Level (Order within the process)"
+              i18n-label="@@productLabelStockFacilityModal.level.label"
+              [form]="form.get('level')"
+              type="number"
+            >
+            </textinput>
+          </div>
         </div>
       </div>
 
@@ -270,6 +279,22 @@
                   @@productLabelStockFacilityModal.checkbox.priceDeterminedLater.label"
               >
                 Display "Price determined later"
+              </checkbox-input-rich-label>
+            </checkbox-input>
+            <checkbox-input [form]="form.get('displayMoisturePercentage')">
+              <checkbox-input-rich-label
+                i18n="
+                  @@productLabelStockFacilityModal.checkbox.moisturePercentage.label"
+              >
+                Display "Moisture percentage"
+              </checkbox-input-rich-label>
+            </checkbox-input>
+            <checkbox-input [form]="form.get('displayFinalPriceDiscount')">
+              <checkbox-input-rich-label
+                i18n="
+                  @@productLabelStockFacilityModal.checkbox.finalPriceDiscount.label"
+              >
+                Display "Final price discount"
               </checkbox-input-rich-label>
             </checkbox-input>
           </div>

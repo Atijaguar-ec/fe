@@ -285,17 +285,40 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   buildMap(): void {
+    let mapStyleDefinition: any = `${this.MAPBOX_STYLE_BASE_PATH}${this.mapStyle.value}`;
+
     if (!environment.mapboxAccessToken) {
       console.warn(
-        'Mapbox Access Token is missing. Map will not be initialized.',
+        'Mapbox Access Token is missing. Falling back to OpenStreetMap free raster tiles.',
       );
-      return;
+      mapStyleDefinition = {
+        version: 8,
+        sources: {
+          'osm-tiles': {
+            type: 'raster',
+            tiles: [
+              'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            ],
+            tileSize: 256,
+            attribution: '&copy; OpenStreetMap contributors'
+          }
+        },
+        layers: [
+          {
+            id: 'osm-tiles-layer',
+            type: 'raster',
+            source: 'osm-tiles',
+            minzoom: 0,
+            maxzoom: 19
+          }
+        ]
+      };
     }
  
     const mapOptions: any = {
-      accessToken: environment.mapboxAccessToken,
+      accessToken: environment.mapboxAccessToken || 'INVALID_TOKEN_FALLBACK', // Maplibre internally demands a string here but won't validate it if tile source doesn't require it
       container: this.mapId, // id of div that holds the map
-      style: `${this.MAPBOX_STYLE_BASE_PATH}${this.mapStyle.value}`,
+      style: mapStyleDefinition,
       zoom: 10,
       center: [this.initialLng ?? 14.995463, this.initialLat ?? 46.151241],
       cooperativeGestures: true,

@@ -88,17 +88,51 @@ export class StockProcessingFacilityListComponent implements OnInit {
   }
 
   arrangeFacilities(facilities: ApiFacility[]) {
+    // Reset categories
     this.categories = {};
     this.categoriesOrder = [];
-    
+
+    // Group facilities by facilityType.code and collect unique codes
+    const codeSet = new Set<string>();
+    const codeOrderMap = new Map<string, number>();
+
     for (const facility of facilities) {
-      const typeCode = facility.facilityType?.code || 'OTHER';
-      
-      if (!this.categories[typeCode]) {
-        this.categories[typeCode] = [];
-        this.categoriesOrder.push(typeCode);
+      // Safe access with null checks
+      const facilityType = facility?.facilityType;
+      if (!facilityType?.code) {
+        continue;
       }
-      this.categories[typeCode].push(facility);
+      
+      const code = facilityType.code;
+      const order = facility.level ?? 999;
+      
+      if (!this.categories[code]) {
+        this.categories[code] = [];
+        codeSet.add(code);
+        codeOrderMap.set(code, order);
+      }
+      
+      this.categories[code].push(facility);
+    }
+
+    // Sort facility types by processingOrder
+    this.categoriesOrder = Array.from(codeSet).sort((a, b) => {
+      const orderA = codeOrderMap.get(a) || 999;
+      const orderB = codeOrderMap.get(b) || 999;
+      return orderA - orderB;
+    });
+
+    // Sort facilities within each type by level, facility type order fallback, then name
+    for (const code of this.categoriesOrder) {
+      this.categories[code].sort((a, b) => {
+        const levelA = a.level ?? Number.MAX_SAFE_INTEGER;
+        const levelB = b.level ?? Number.MAX_SAFE_INTEGER;
+        if (levelA !== levelB) {
+          return levelA - levelB;
+        }
+
+        return (a.name || '').localeCompare(b.name || '', 'es');
+      });
     }
   }
 }
