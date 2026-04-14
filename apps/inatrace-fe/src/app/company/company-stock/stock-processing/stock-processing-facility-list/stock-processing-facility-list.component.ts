@@ -21,7 +21,7 @@ export class StockProcessingFacilityListComponent implements OnInit {
   reloadPingList$ = new BehaviorSubject<boolean>(false);
 
   @Input()
-  companyId: number;
+  companyId!: number;
 
   @Output()
   showing = new EventEmitter<number>();
@@ -32,7 +32,7 @@ export class StockProcessingFacilityListComponent implements OnInit {
   allFacilities = 0;
   showedFacilities = 0;
 
-  facilities$: Observable<ApiPaginatedListApiFacility>;
+  facilities$!: Observable<ApiPaginatedListApiFacility>;
 
   categories: Record<string, ApiFacility[]> = {};
   categoriesOrder: string[] = [];
@@ -54,27 +54,26 @@ export class StockProcessingFacilityListComponent implements OnInit {
         ),
       ),
       tap((res: ApiPaginatedResponseApiProcessingAction) => {
-        if (res) {
-          this.processingActions = res.data.items;
+        if (res && res.data) {
+          this.processingActions = res.data.items || [];
         }
       }),
       switchMap(() => this.loadEntityList()),
       map((res: ApiPaginatedResponseApiFacility) => {
-        if (res && res.data) {
-          this.showedFacilities = res.data.count;
-          this.showing.emit(this.showedFacilities);
-          this.arrangeFacilities(res.data.items);
-          return res.data;
-        } else {
-          return null;
-        }
+        const data = (res?.data ?? { items: [], count: 0 }) as ApiPaginatedListApiFacility;
+        const items: ApiFacility[] = data.items ?? [];
+
+        // Use items.length as count: backend count is unreliable due to Torpedo
+        // INNER JOIN on FacilityTranslation producing duplicate rows.
+        const count = items.length;
+        this.showedFacilities = count;
+        this.showing.emit(count);
+        this.arrangeFacilities(items);
+
+        return { ...data, items, count } as ApiPaginatedListApiFacility;
       }),
-      tap((res) => {
-        if (res) {
-          this.allFacilities = res.count;
-        } else {
-          this.allFacilities = 0;
-        }
+      tap((res: ApiPaginatedListApiFacility) => {
+        this.allFacilities = res?.count ?? 0;
         this.countAll.emit(this.allFacilities);
       }),
       tap(() => this.globalEventsManager.showLoading(false)),

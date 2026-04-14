@@ -24,13 +24,13 @@ export class FacilityCardComponent implements OnInit {
   menuOptions: { id: any; name: string }[] = [];
 
   @Input()
-  facility: ApiFacility;
+  facility!: ApiFacility;
 
   @Input()
-  indexInList: number;
+  indexInList!: number;
 
   @Input()
-  companyId: number;
+  companyId!: number;
 
   @Input()
   actions: ApiProcessingAction[] = [];
@@ -122,12 +122,12 @@ export class FacilityCardComponent implements OnInit {
   }
 
   private async semiAndFinalProductsIncluded() {
-    for (const item of this.facility.facilitySemiProductList) {
+    for (const item of this.facility?.facilitySemiProductList || []) {
       this.description += item.name + ', ';
     }
 
-    for (const item of this.facility.facilityFinalProducts) {
-      this.description += `${item.name} (${item.product.name})` + ', ';
+    for (const item of this.facility?.facilityFinalProducts || []) {
+      this.description += `${item.name} (${item.product?.name})` + ', ';
     }
 
     if (this.description.length > 0) {
@@ -156,29 +156,29 @@ export class FacilityCardComponent implements OnInit {
         continue;
       }
 
-      const facilitySemiProd = this.facility.facilitySemiProductList.find(
+      const facilitySemiProd = (this.facility?.facilitySemiProductList || []).find(
         (fsp) => fsp.id === action.inputSemiProduct?.id,
       );
       if (facilitySemiProd) {
         this.menuOptions.push({
           id: action.id,
-          name: action.name,
+          name: action.name || '',
         });
       }
 
-      const facilityFinalProd = this.facility.facilityFinalProducts.find(
+      const facilityFinalProd = (this.facility?.facilityFinalProducts || []).find(
         (ffp) => ffp.id === action.inputFinalProduct?.id,
       );
       if (facilityFinalProd) {
         this.menuOptions.push({
           id: action.id,
-          name: action.name,
+          name: action.name || '',
         });
       }
     }
   }
 
-  goTo(actionId) {
+  goTo(actionId: any) {
     this.router
       .navigate([
         'my-stock',
