@@ -935,16 +935,6 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
 
     const element = this.deliveryDetailsContainer.nativeElement;
-    console.log('=== PDF CAPTURE DEBUG ===');
-    console.log('Element:', element);
-    console.log('Element tagName:', element.tagName);
-    console.log('Element classes:', element.className);
-    console.log('Element scrollHeight:', element.scrollHeight);
-    console.log('Element offsetHeight:', element.offsetHeight);
-    console.log('Element clientHeight:', element.clientHeight);
-    console.log('Element children count:', element.children.length);
-    console.log('========================');
-
     this.globalEventsManager.showLoading(true);
     try {
       const identifier = this.stockOrderForm?.get('identifier')?.value || 'stock-order';
@@ -1037,8 +1027,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     // }
    // ctrl.updateValueAndValidity();
   }
-  isCacaoSelected() {
-    throw new Error('Method not implemented.');
+  isCacaoSelected(): boolean {
+    return false;
   }
 
   get displayPriceDeterminedLater() {

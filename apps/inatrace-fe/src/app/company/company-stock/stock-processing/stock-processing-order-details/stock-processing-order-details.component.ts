@@ -397,15 +397,7 @@ export class StockProcessingOrderDetailsComponent
 
   // Prefill and lock lot info on outputs based on selected input stock orders
   onSelectedInputsChanged(selected: ApiStockOrderSelectable[]) {
-    console.log('=== onSelectedInputsChanged ===');
-    console.log('Selected inputs:', selected);
-    console.log(
-      'Target stock orders array length:',
-      this.targetStockOrdersArray?.length,
-    );
-
     if (this.editing) {
-      console.log('Editing mode - skipping propagation');
       return;
     }
 
@@ -471,7 +463,6 @@ export class StockProcessingOrderDetailsComponent
       if (sameLot && refLotNumber && iln) {
         iln.setValue(refLotNumber, { emitEvent: false });
         iln.disable({ emitEvent: false });
-        console.log(' Número de lote propagado:', refLotNumber);
       } else if (iln && iln.disabled) {
         iln.enable({ emitEvent: false });
       }
@@ -559,9 +550,6 @@ export class StockProcessingOrderDetailsComponent
     // When a new output is added, synchronize values from selected inputs
     const selectedInputs = this.input?.selectedInputStockOrders;
     if (selectedInputs && selectedInputs.length > 0) {
-      console.log(
-        'New output added - synchronizing values from selected inputs',
-      );
       this.onSelectedInputsChanged(selectedInputs);
     }
   }
