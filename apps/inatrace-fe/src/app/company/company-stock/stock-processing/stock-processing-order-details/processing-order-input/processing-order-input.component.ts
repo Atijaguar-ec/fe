@@ -124,6 +124,9 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
   @Output()
   calcRemainingQuantity = new EventEmitter<void>();
 
+  @Output()
+  selectedInputsChanged = new EventEmitter<ApiStockOrderSelectable[]>();
+
   constructor(
     private stockOrderController: StockOrderControllerService,
     private modalService: NgbModalImproved,
@@ -411,6 +414,7 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
 
     this.calcInputQuantity(true);
     this.setOrganicAndWomenOnly();
+    this.selectedInputsChanged.emit(this.selectedInputStockOrders);
   }
 
   cbSelectClick(stockOrder: ApiStockOrderSelectable, index: number) {
@@ -547,6 +551,7 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
 
     this.calcInputQuantity(true);
     this.setOrganicAndWomenOnly();
+    this.selectedInputsChanged.emit(this.selectedInputStockOrders);
   }
 
   private setOrganicAndWomenOnly() {

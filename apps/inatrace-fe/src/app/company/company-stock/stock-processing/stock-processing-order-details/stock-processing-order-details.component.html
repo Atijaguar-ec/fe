@@ -195,6 +195,7 @@
               [inputTransactionsArray]="inputTransactionsArray"
               [inputTransactions]="inputTransactions"
               [totalOutputQuantity]="totalOutputQuantity"
+              (selectedInputsChanged)="onSelectedInputsChanged($event)"
               (calcRemainingQuantity)="calcRemainingQuantity()"
             >
             </app-processing-order-input>

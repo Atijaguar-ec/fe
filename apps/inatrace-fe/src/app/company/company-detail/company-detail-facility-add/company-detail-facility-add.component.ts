@@ -47,26 +47,27 @@ import LanguageEnum = ApiFacilityTranslation.LanguageEnum;
 export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<boolean>();
 
-  public edit: boolean;
-  public title: string;
-  public form: UntypedFormGroup;
+  public edit!: boolean;
+  public title!: string;
+  public form!: UntypedFormGroup;
   public submitted = false;
-  public companyId: string;
+  public companyId!: string;
 
-  semiProductsForValueChainsService: SemiProductsForValueChainsService;
+  semiProductsForValueChainsService!: SemiProductsForValueChainsService;
 
-  companyValueChainsCodebook: CompanyValueChainsService;
+  companyValueChainsCodebook!: CompanyValueChainsService;
   valueChainsForm = new UntypedFormControl(null);
   valueChains: Array<ApiValueChain> = [];
   selectedCompanyValueChainsControl = new UntypedFormControl(null, [
     ListNotEmptyValidator(),
   ]);
+  levelControl = new UntypedFormControl(null, [Validators.min(0)]);
 
   codebookStatus = EnumSifrant.fromObject(this.publiclyVisible);
   semiProductsForm = new UntypedFormControl(null);
   semiProducts: Array<ApiSemiProduct> = [];
 
-  finalProductsForCompanyCodebook: FinalProductsForCompanyService;
+  finalProductsForCompanyCodebook!: FinalProductsForCompanyService;
   finalProductForm = new UntypedFormControl(null);
   finalProducts: Array<ApiFinalProduct> = [];
 
@@ -80,7 +81,7 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
   ];
   selectedLanguage = LanguageEnum.EN;
 
-  private valueChainSubs: Subscription;
+  private valueChainSubs!: Subscription;
 
   constructor(
     private route: ActivatedRoute,
@@ -184,6 +185,8 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
     this.finalizeForm();
     this.registerValidatorsOnUpdate();
     this.registerValueChainSubs();
+    this.initializeLevelControl(null);
+    this.registerFacilityTypeLevelDefaults();
   }
 
   initializeEdit() {
@@ -193,9 +196,10 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
       .getFacilityDetail(facilityId)
       .pipe(first())
       .subscribe((res) => {
+        const facilityData = res.data;
         this.form = generateFormFromMetadata(
           ApiFacility.formMetadata(),
-          res.data,
+          facilityData,
           ApiFacilityValidationScheme,
         );
         (this.form as UntypedFormGroup).setControl(
@@ -233,6 +237,10 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
         this.finalizeForm();
         this.registerValidatorsOnUpdate();
         this.registerValueChainSubs();
+        this.initializeLevelControl(
+          facilityData.level ?? facilityData.facilityType?.order ?? null,
+        );
+        this.registerFacilityTypeLevelDefaults();
       });
   }
 
@@ -390,6 +398,47 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
     });
 
     return result === 'ok';
+  }
+
+  private initializeLevelControl(initialValue: number | null) {
+    let control = this.form.get('level') as UntypedFormControl | null;
+    if (!control) {
+      control = this.levelControl;
+      this.form.addControl('level', control);
+    } else {
+      this.levelControl = control;
+      control.setValidators([Validators.min(0)]);
+    }
+
+    control.setValue(initialValue, { emitEvent: false });
+    control.markAsPristine();
+    control.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private registerFacilityTypeLevelDefaults(): void {
+    const facilityTypeControl = this.form.get('facilityType');
+    if (!facilityTypeControl) {
+      return;
+    }
+
+    const applyDefault = (facilityType: ApiFacility['facilityType']) => {
+      if (
+        !this.edit &&
+        facilityType?.order != null &&
+        this.levelControl &&
+        this.levelControl.pristine
+      ) {
+        this.levelControl.setValue(facilityType.order, { emitEvent: false });
+      }
+    };
+
+    applyDefault(facilityTypeControl.value as ApiFacility['facilityType']);
+
+    facilityTypeControl.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((facilityType: ApiFacility['facilityType']) =>
+        applyDefault(facilityType),
+      );
   }
 
   get fLoc(): UntypedFormGroup {

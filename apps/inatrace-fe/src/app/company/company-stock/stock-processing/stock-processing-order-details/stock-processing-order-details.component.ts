@@ -1,3 +1,4 @@
+import '@angular/localize/init';
 import {
   AfterViewInit,
   Component,
@@ -8,6 +9,7 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { GlobalEventManagerService } from '../../../../core/global-event-manager.service';
 import {
+  AbstractControl,
   UntypedFormArray,
   UntypedFormControl,
   UntypedFormGroup,
@@ -53,6 +55,7 @@ import { uuidv4 } from 'src/shared/utils';
 import { SelectedUserCompanyService } from '../../../../core/selected-user-company.service';
 import { ProcessingOrderInputComponent } from './processing-order-input/processing-order-input.component';
 import { ProcessingOrderOutputComponent } from './processing-order-output/processing-order-output.component';
+import { ApiStockOrderSelectable } from './stock-processing-order-details.model';
 
 type PageMode = 'create' | 'edit';
 
@@ -115,7 +118,7 @@ export class StockProcessingOrderDetailsComponent
   });
 
   // Input stock unit (Semi-product or Final product)
-  currentInputStockUnit: ApiSemiProduct | ApiFinalProduct;
+  currentInputStockUnit?: ApiSemiProduct | ApiFinalProduct;
 
   // Processing order properties (the Processing order connects the input transactions with the target - to be created Stock orders)
   procOrderGroup: UntypedFormGroup;
@@ -126,21 +129,21 @@ export class StockProcessingOrderDetailsComponent
     disabled: true,
   });
   commentsControl = new UntypedFormControl(null);
-  private totalOutQuantityRangeLow: number = null;
-  private totalOutQuantityRangeHigh: number = null;
+  private totalOutQuantityRangeLow: number | null = null;
+  private totalOutQuantityRangeHigh: number | null = null;
 
   // Properties and controls for displaying output final-product and output semi-product
-  finalProductOutputFacilitiesCodebook: CompanyFacilitiesForStockUnitProductService;
+  finalProductOutputFacilitiesCodebook: CompanyFacilitiesForStockUnitProductService | null;
   currentOutputFinalProduct: ApiFinalProduct;
   outputFinalProductNameControl = new UntypedFormControl({
     value: null,
     disabled: true,
   });
-  outputSemiProductsCodebook: StaticSemiProductsService;
-  semiProductOutputFacilitiesCodebooks: Map<
+  outputSemiProductsCodebook!: StaticSemiProductsService;
+  semiProductOutputFacilitiesCodebooks!: Map<
     number,
     CompanyFacilitiesForStockUnitProductService
-  >;
+  > | null;
 
   // Processing evidence controls
   requiredProcessingEvidenceArray = new UntypedFormArray([]);
@@ -160,6 +163,9 @@ export class StockProcessingOrderDetailsComponent
 
   @ViewChild('output')
   private output: ProcessingOrderOutputComponent;
+
+  // recalculation can happen and target stock order defaults can be properly propagated
+  private tsoRecalcDetectFields = [];
 
   constructor(
     private location: Location,
@@ -281,7 +287,7 @@ export class StockProcessingOrderDetailsComponent
 
     return (
       $localize`:@@productLabelStockProcessingOrderDetail.textinput.outputQuantity.expectedOutputHelpText:Expected output quantity range:` +
-      ` ${quantityFrom} ~ ${quantityTo} (${this.currentInputStockUnit.measurementUnitType.label})`
+      ` ${quantityFrom} ~ ${quantityTo} (${this.currentInputStockUnit?.measurementUnitType?.label})`
     );
   }
 
@@ -319,13 +325,13 @@ export class StockProcessingOrderDetailsComponent
     if (this.actionType === 'SHIPMENT') {
       return $localize`:@@productLabelStockProcessingOrderDetail.textinput.fulfilledQuantityLabelWithUnits.label: Quantity fulfilled by supplier in ${
         this.currentInputStockUnit
-          ? this.currentInputStockUnit.measurementUnitType.label
+          ? this.currentInputStockUnit.measurementUnitType?.label
           : ''
       }`;
     } else {
       return $localize`:@@productLabelStockProcessingOrderDetail.textinput.inputQuantityLabelWithUnits.label: Input quantity in ${
         this.currentInputStockUnit
-          ? this.currentInputStockUnit.measurementUnitType.label
+          ? this.currentInputStockUnit.measurementUnitType?.label
           : ''
       }`;
     }
@@ -334,7 +340,7 @@ export class StockProcessingOrderDetailsComponent
   get remainingQuantityLabel() {
     return $localize`:@@productLabelStockProcessingOrderDetail.textinput.remainingQuantityLabelWithUnits.label: Remaining quantity in ${
       this.currentInputStockUnit
-        ? this.currentInputStockUnit.measurementUnitType.label
+        ? this.currentInputStockUnit.measurementUnitType?.label
         : ''
     }`;
   }
@@ -343,15 +349,23 @@ export class StockProcessingOrderDetailsComponent
     if (this.actionType === 'SHIPMENT') {
       return $localize`:@@productLabelStockProcessingOrderDetail.textinput.totalOrderedQuantityLabelWithUnits.label: Total ordered quantity in ${
         this.currentInputStockUnit
-          ? this.currentInputStockUnit.measurementUnitType.label
+          ? this.currentInputStockUnit.measurementUnitType?.label
           : ''
       }`;
     } else {
       return $localize`:@@productLabelStockProcessingOrderDetail.textinput.totalOutputQuantityLabelWithUnits.label: Total output quantity in ${
         this.currentInputStockUnit
-          ? this.currentInputStockUnit.measurementUnitType.label
+          ? this.currentInputStockUnit.measurementUnitType?.label
           : ''
       }`;
+    }
+  }
+
+  get targetStockOrderOutputQuantityLabel(): string {
+    if (this.actionType === 'SHIPMENT') {
+      return $localize`:@@productLabelStockProcessingOrderDetail.textinput.orderedQuantityLabelWithUnits.label: Ordered quantity in`;
+    } else {
+      return $localize`:@@productLabelStockProcessingOrderDetail.textinput.outputQuantityLabelWithUnits.label: Output quantity in`;
     }
   }
 
@@ -379,6 +393,198 @@ export class StockProcessingOrderDetailsComponent
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
+  }
+
+  // Prefill and lock lot info on outputs based on selected input stock orders
+  onSelectedInputsChanged(selected: ApiStockOrderSelectable[]) {
+    console.log('=== onSelectedInputsChanged ===');
+    console.log('Selected inputs:', selected);
+    console.log(
+      'Target stock orders array length:',
+      this.targetStockOrdersArray?.length,
+    );
+
+    if (this.editing) {
+      console.log('Editing mode - skipping propagation');
+      return;
+    }
+
+    // Enable editing when no inputs selected
+    if (!selected || selected.length === 0) {
+      this.targetStockOrdersArray.controls.forEach((group) => {
+        const iln = group.get('internalLotNumber');
+        if (iln && iln.disabled) {
+          iln.enable({ emitEvent: false });
+        }
+        const wn = group.get('weekNumber');
+        if (wn && wn.disabled) {
+          wn.enable({ emitEvent: false });
+        }
+        const pl = group.get('parcelLot');
+        if (pl && pl.disabled) {
+          pl.enable({ emitEvent: false });
+        }
+        const v = group.get('variety');
+        if (v && v.disabled) {
+          v.enable({ emitEvent: false });
+        }
+        // Clear propagated values when no inputs selected
+        this.clearPropagatedValues(group);
+      });
+      return;
+    }
+
+    const ref = selected[0];
+
+    // Para el número de lote, usar internalLotNumber si existe, sino usar identifier como fallback
+    const getLotNumber = (s: any) =>
+      s.internalLotNumber || s.identifier || null;
+    const refLotNumber = getLotNumber(ref);
+    const sameLot = selected.every((s) => getLotNumber(s) === refLotNumber);
+
+    const sameWeek = selected.every((s) => s.weekNumber === ref.weekNumber);
+    const sameProducer = selected.every(
+      (s) => s.producerUserCustomer?.id === ref.producerUserCustomer?.id,
+    );
+    const sameRepresentative = selected.every(
+      (s) =>
+        s.representativeOfProducerUserCustomer?.id ===
+        ref.representativeOfProducerUserCustomer?.id,
+    );
+    const sameOrganic = selected.every((s) => s.organic === ref.organic);
+    const sameWomenShare = selected.every(
+      (s) => s.womenShare === ref.womenShare,
+    );
+    const sameProductionDate = selected.every(
+      (s) => s.productionDate === ref.productionDate,
+    );
+    const sameSampleNumber = selected.every(
+      (s) => s.sampleNumber === ref?.sampleNumber,
+    );
+    const sameParcelLot = selected.every((s) => s.parcelLot === ref.parcelLot);
+    const sameVariety = selected.every((s) => s.variety === ref.variety);
+
+    this.targetStockOrdersArray.controls.forEach((group) => {
+      // Handle internal lot number - propagate and lock if all inputs share the same lot
+      // Usar internalLotNumber si existe, sino usar identifier como fallback (para entregas iniciales)
+      const iln = group.get('internalLotNumber');
+      if (sameLot && refLotNumber && iln) {
+        iln.setValue(refLotNumber, { emitEvent: false });
+        iln.disable({ emitEvent: false });
+        console.log(' Número de lote propagado:', refLotNumber);
+      } else if (iln && iln.disabled) {
+        iln.enable({ emitEvent: false });
+      }
+
+      // Handle week number
+      const wn = group.get('weekNumber');
+      if (wn) {
+        if (sameWeek && ref.weekNumber != null) {
+          wn.setValue(ref.weekNumber, { emitEvent: false });
+          wn.disable({ emitEvent: false });
+        } else if (wn.disabled) {
+          wn.enable({ emitEvent: false });
+        }
+      }
+
+      // Propagate producer information
+      if (sameProducer && ref.producerUserCustomer) {
+        const producer = group.get('producerUserCustomer');
+        if (producer) {
+          producer.setValue(ref.producerUserCustomer, { emitEvent: false });
+        }
+      }
+
+      // Propagate representative information
+      if (sameRepresentative && ref.representativeOfProducerUserCustomer) {
+        const representative = group.get('representativeOfProducerUserCustomer');
+        if (representative) {
+          representative.setValue(ref.representativeOfProducerUserCustomer, {
+            emitEvent: false,
+          });
+        }
+      }
+
+      // Propagate organic status
+      if (sameOrganic && ref.organic !== undefined) {
+        const organic = group.get('organic');
+        if (organic) {
+          organic.setValue(ref.organic, { emitEvent: false });
+        }
+      }
+
+      // Propagate women share
+      if (sameWomenShare && ref.womenShare !== undefined) {
+        const womenShare = group.get('womenShare');
+        if (womenShare) {
+          womenShare.setValue(ref.womenShare, { emitEvent: false });
+        }
+      }
+
+      // Propagate production date
+      if (sameProductionDate && ref.productionDate) {
+        const productionDate = group.get('productionDate');
+        if (productionDate) {
+          productionDate.setValue(ref.productionDate, { emitEvent: false });
+        }
+      }
+
+      // Propagate sample number
+      if (sameSampleNumber && ref.sampleNumber) {
+        const sampleNumber = group.get('sampleNumber');
+        if (sampleNumber) {
+          sampleNumber.setValue(ref.sampleNumber, { emitEvent: false });
+        }
+      }
+
+      // Propagate parcel lot (cacao field)
+      if (sameParcelLot && ref.parcelLot != null) {
+        const parcelLot = group.get('parcelLot');
+        if (parcelLot) {
+          parcelLot.setValue(ref.parcelLot, { emitEvent: false });
+        }
+      }
+
+      // Propagate variety (cacao field)
+      if (sameVariety && ref.variety != null) {
+        const variety = group.get('variety');
+        if (variety) {
+          variety.setValue(ref.variety, { emitEvent: false });
+        }
+      }
+    });
+  }
+
+  onNewOutputAdded() {
+    // When a new output is added, synchronize values from selected inputs
+    const selectedInputs = this.input?.selectedInputStockOrders;
+    if (selectedInputs && selectedInputs.length > 0) {
+      console.log(
+        'New output added - synchronizing values from selected inputs',
+      );
+      this.onSelectedInputsChanged(selectedInputs);
+    }
+  }
+
+  private clearPropagatedValues(group: AbstractControl) {
+    // Clear values that were propagated from input selection
+    const fieldsToReset = [
+      'producerUserCustomer',
+      'representativeOfProducerUserCustomer',
+      'organic',
+      'womenShare',
+      'productionDate',
+      'productionLocation',
+      'parcelLot',
+      'variety',
+    ];
+
+    fieldsToReset.forEach((fieldName) => {
+      const control = group.get(fieldName);
+      if (control && !control.disabled) {
+        control.setValue(null, { emitEvent: false });
+      }
+    });
   }
 
   processingActionSelected(event: ApiProcessingAction): void {
@@ -468,6 +674,7 @@ export class StockProcessingOrderDetailsComponent
         this.procOrderGroup.getRawValue() as ApiProcessingOrder;
 
       // Create input transactions from the selected Stock orders
+      processingOrder.inputTransactions ??= [];
       processingOrder.inputTransactions.push(
         ...this.input.prepInputTransactionsFromStockOrders(),
       );
@@ -475,6 +682,9 @@ export class StockProcessingOrderDetailsComponent
       // If we have 'TRANSFER' order, the target Stock order present is just temporary (holds entered info)
       // We need to create the actual target Stock orders from the selected input Stock orders
       if (this.actionType === 'TRANSFER') {
+        if (!processingOrder.targetStockOrders?.length) {
+          throw Error('Target stock orders are required for TRANSFER action');
+        }
         processingOrder.targetStockOrders =
           this.input.prepareTransferTargetStockOrders(
             processingOrder.targetStockOrders[0],
@@ -482,6 +692,9 @@ export class StockProcessingOrderDetailsComponent
       } else if (this.selectedProcAction.repackedOutputFinalProducts) {
         // If we have processing with repacking, the target Stock order present is just temporary (holds entered info)
         // We have to create the actual target Stock orders from the generated repacked output stock orders (repackedOutputsArray)
+        if (!processingOrder.targetStockOrders?.length) {
+          throw Error('Target stock orders are required for repacking action');
+        }
         processingOrder.targetStockOrders =
           this.prepareRepackedTargetStockOrders(
             processingOrder.targetStockOrders[0] as RepackedTargetStockOrder,
@@ -489,7 +702,7 @@ export class StockProcessingOrderDetailsComponent
       } else {
         const processedTargetStockOrders: ApiStockOrder[] = [];
 
-        processingOrder.targetStockOrders.forEach((targetStockOrder) => {
+        processingOrder.targetStockOrders?.forEach((targetStockOrder) => {
           if (
             (targetStockOrder as RepackedTargetStockOrder).repackedOutputsArray
               ?.length > 0
@@ -508,7 +721,9 @@ export class StockProcessingOrderDetailsComponent
       }
 
       // Add common shared data (processing evidences, comments, etc.) to all target output Stock order
-      this.enrichTargetStockOrders(processingOrder.targetStockOrders);
+      if (processingOrder.targetStockOrders) {
+        this.enrichTargetStockOrders(processingOrder.targetStockOrders);
+      }
 
       const res = await this.processingOrderController
         .createOrUpdateProcessingOrder(processingOrder)
@@ -619,7 +834,7 @@ export class StockProcessingOrderDetailsComponent
       respProcAction.status === 'OK' &&
       respProcAction.data
     ) {
-      this.procOrderGroup.get('processingAction').setValue(respProcAction.data);
+      this.procOrderGroup.get('processingAction')!.setValue(respProcAction.data);
 
       // Execute Proc. action updated in separate cycle
       setTimeout(() => this.processingActionUpdated(respProcAction.data));
@@ -639,9 +854,9 @@ export class StockProcessingOrderDetailsComponent
       .pipe(take(1))
       .toPromise();
 
-    if (!respProcessingOrder || respProcessingOrder.status !== 'OK') {
+    if (!respProcessingOrder || respProcessingOrder.status !== 'OK' || !respProcessingOrder.data) {
       throw new Error('Cannot retrieve the processing order!');
-    } else if (respProcessingOrder.data.targetStockOrders?.length === 0) {
+    } else if (!respProcessingOrder.data?.targetStockOrders?.length) {
       throw new Error(
         'Processing order does not contain any target Stock orders!',
       );
@@ -653,7 +868,7 @@ export class StockProcessingOrderDetailsComponent
     // Execute the rest part in separate cycle
     setTimeout(async () => {
       await this.processingActionUpdated(
-        respProcessingOrder.data.processingAction,
+        respProcessingOrder.data?.processingAction!,
       );
 
       // After Processing order and Processing action are loaded and initialized, set the existing evidence documents
@@ -732,7 +947,7 @@ export class StockProcessingOrderDetailsComponent
     const outputFinalProductId = this.currentOutputFinalProduct?.id;
 
     let supportedFacilitiesIds: number[] | undefined;
-    if (this.selectedProcAction.supportedFacilities?.length > 0) {
+    if (this.selectedProcAction?.supportedFacilities?.length > 0) {
       supportedFacilitiesIds = this.selectedProcAction.supportedFacilities.map(
         (f) => f.id,
       );
@@ -806,7 +1021,7 @@ export class StockProcessingOrderDetailsComponent
           );
         }
 
-        this.semiProductOutputFacilitiesCodebooks.set(osp.id, facilityCodebook);
+        this.semiProductOutputFacilitiesCodebooks!.set(osp.id, facilityCodebook);
       });
     }
   }
@@ -877,9 +1092,9 @@ export class StockProcessingOrderDetailsComponent
     );
 
     // Set values for common controls
-    this.procOrderGroup.get('initiatorUserId').setValue(this.processingUserId);
+    this.procOrderGroup.get('initiatorUserId')!.setValue(this.processingUserId);
     this.procOrderGroup
-      .get('processingDate')
+      .get('processingDate')!
       .setValue(dateISOString(new Date()));
   }
 
@@ -930,13 +1145,13 @@ export class StockProcessingOrderDetailsComponent
     for (const repackedOriginStockOrderId of repackedStockOrdersMap.keys()) {
       const repackedTargetStockOrders = repackedStockOrdersMap.get(
         repackedOriginStockOrderId,
-      );
+      )!;
 
       // Find the maximum allowed weight for the repacked Stock orders
       let maxOutputWeight: number | undefined =
         this.selectedProcAction.maxOutputWeight;
       if (maxOutputWeight == null) {
-        processingOrder.processingAction.outputSemiProducts.forEach(
+        processingOrder.processingAction?.outputSemiProducts.forEach(
           (apiProcActionOSM) => {
             if (
               apiProcActionOSM.id ===
@@ -975,34 +1190,29 @@ export class StockProcessingOrderDetailsComponent
         );
         repackedStockOrderGroup
           .get('totalQuantity')
-          .setValidators([
+          ?.setValidators([
             Validators.required,
             Validators.max(maxOutputWeight),
           ]);
         repackedStockOrderGroup
           .get('sacNumber')
-          .setValidators([Validators.required]);
+          ?.setValidators([Validators.required]);
 
         (
           targetStockOrderGroup.get('repackedOutputsArray') as UntypedFormArray
         ).push(repackedStockOrderGroup);
-        totalOutputQuantity += tso.totalQuantity;
+        totalOutputQuantity += tso.totalQuantity ?? 0;
       });
 
       // Set the total output quantity (calculated above) to the target Stock order
       targetStockOrderGroup.get('totalQuantity').setValue(totalOutputQuantity);
 
-      const lastSlashIndex =
-        repackedTargetStockOrders[0].internalLotNumber.lastIndexOf('/');
-      if (lastSlashIndex !== -1) {
+      const internalLotNumber = repackedTargetStockOrders[0]?.internalLotNumber;
+      const lastSlashIndex = internalLotNumber?.lastIndexOf('/');
+      if (lastSlashIndex !== -1 && internalLotNumber) {
         targetStockOrderGroup
           .get('internalLotNumber')
-          .setValue(
-            repackedTargetStockOrders[0].internalLotNumber.substring(
-              0,
-              lastSlashIndex,
-            ),
-          );
+          .setValue(internalLotNumber.substring(0, lastSlashIndex));
       }
     }
   }
@@ -1065,7 +1275,7 @@ export class StockProcessingOrderDetailsComponent
     // Convert the sum in the input stock unit measure unit
     if (sumInKGs) {
       const sumInInputMeasureUnit =
-        sumInKGs / this.currentInputStockUnit.measurementUnitType.weight;
+        sumInKGs / this.currentInputStockUnit?.measurementUnitType?.weight;
       this.totalOutputQuantityControl.setValue(
         Number(sumInInputMeasureUnit).toFixed(2),
       );
@@ -1119,7 +1329,7 @@ export class StockProcessingOrderDetailsComponent
 
   private setFormControlsDisabledState() {
     if (this.editing) {
-      this.procOrderGroup.get('processingAction').disable();
+      this.procOrderGroup.get('processingAction')!.disable();
       this.inputFacilityControl.disable();
     }
   }

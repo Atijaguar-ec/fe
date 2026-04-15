@@ -157,6 +157,75 @@
       </div>
     </div>
 
+    <!-- CACAO FIELDS: Week Number -->
+    <div class="af-row">
+      <div class="af-c6">
+        <textinput
+          [form]="$any(tsoGroup.get('weekNumber'))"
+          label="N° de Semana"
+          i18n-label="@@productLabelStockProcessingOrderDetail.textinput.weekNumber.label"
+          style="width: 100%"
+          placeholder="Ingrese el número de semana"
+          i18n-placeholder="@@productLabelStockProcessingOrderDetail.textinput.weekNumber.placeholder"
+          [isInvalid]="submitted && tsoGroup.get('weekNumber').invalid"
+          type="number"
+        >
+          <ng-container *ngIf="submitted">
+            <div
+              *ngIf="tsoGroup.get('weekNumber').errors as errors"
+              class="sc-invalid-feedback"
+            >
+              <div
+                *ngIf="errors.pattern"
+                i18n="@@productLabelStockProcessingOrderDetail.textinput.weekNumber.error.pattern"
+              >
+                Solo números permitidos
+              </div>
+            </div>
+          </ng-container>
+        </textinput>
+      </div>
+    </div>
+
+    <!-- CACAO FIELDS: Parcel Lot and Variety -->
+    <div class="af-row">
+      <div class="af-c6">
+        <textinput
+          [form]="$any(tsoGroup.get('parcelLot'))"
+          label="Lote (Parcela)"
+          i18n-label="@@productLabelStockProcessingOrderDetail.textinput.parcelLot.label"
+          style="width: 100%"
+          placeholder="Ingrese el lote de la parcela"
+          i18n-placeholder="@@productLabelStockProcessingOrderDetail.textinput.parcelLot.placeholder"
+          [isInvalid]="submitted && tsoGroup.get('parcelLot').invalid"
+          type="number"
+        >
+          <ng-container *ngIf="submitted">
+            <div
+              *ngIf="tsoGroup.get('parcelLot').errors as errors"
+              class="sc-invalid-feedback"
+            >
+              <div
+                *ngIf="errors.pattern"
+                i18n="@@productLabelStockProcessingOrderDetail.textinput.parcelLot.error.pattern"
+              >
+                Solo números permitidos
+              </div>
+            </div>
+          </ng-container>
+        </textinput>
+      </div>
+      <div class="af-c6">
+        <single-choice
+          [formControlInput]="$any(tsoGroup.get('variety'))"
+          label="Variedad"
+          i18n-label="@@productLabelStockProcessingOrderDetail.singleChoice.variety.label"
+          style="width: 100%"
+        >
+        </single-choice>
+      </div>
+    </div>
+
     <!-- FORM CONTROLS FOR DEFINING OUTPUT QUANTITY -->
     <div
       *ngIf="actionType !== 'TRANSFER' && actionType !== 'GENERATE_QR_CODE'"
