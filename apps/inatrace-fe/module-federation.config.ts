@@ -23,6 +23,13 @@ const config: ModuleFederationConfig = {
         strictVersion: true,
       };
     }
+    if (libraryName === '@fortawesome/fontawesome-svg-core') {
+      return {
+        ...defaultConfig,
+        singleton: true,
+        strictVersion: false,
+      };
+    }
     if (libraryName === 'lodash') {
       return false;
     }
