@@ -31,6 +31,10 @@ export const environment = {
   harcodedLabelForPrivacyOnRegisterPage: '',
   beycoAuthURL: (window['env'] || {})['beycoAuthURL'] || '',
   beycoClientId: (window['env'] || {})['beycoClientId'] || '',
+  apiBaseUrl: (window['env'] || {})['apiBaseUrl'] || '',
+  keycloakUrl: (window['env'] || {})['keycloakUrl'] || '',
+  keycloakRealm: (window['env'] || {})['keycloakRealm'] || 'inatrace',
+  keycloakClientId: (window['env'] || {})['keycloakClientId'] || 'inatrace-frontend',
   enableShrimpModule: (window['env'] || {})['enableShrimpModule'] === 'true'
 };
 
