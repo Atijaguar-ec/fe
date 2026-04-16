@@ -10,8 +10,10 @@ RUN npm run build:prod
 
 FROM nginx:stable-alpine as production-stage
 RUN mkdir /app
-# Overwrite with Nx monorepo dist directory
+# Host app (inatrace-fe)
 COPY --from=build-stage /app/dist/apps/inatrace-fe /app
+# Remote (shrimpMfe) — served at /shrimpMfe/remoteEntry.mjs
+COPY --from=build-stage /app/dist/shrimpMfe /app/shrimpMfe
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Serve using dynamic envsubst

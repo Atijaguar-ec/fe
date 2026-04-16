@@ -10,16 +10,10 @@ export default async function (webpackConfig: any, options: any, target: any) {
   const mfFn = await withModuleFederation(
     {
       ...config,
-      /*
-       * Remote overrides for production.
-       * Each entry is a pair of a unique name and the URL where it is deployed.
-       *
-       * e.g.
-       * remotes: [
-       *   ['app1', 'https://app1.example.com'],
-       *   ['app2', 'https://app2.example.com'],
-       * ]
-       */
+      remotes: [
+        // Production remote URL — served from /shrimpMfe/ by the same nginx container
+        ['shrimpMfe', '/shrimpMfe/remoteEntry.mjs'],
+      ],
     },
     { dts: false },
   );

@@ -6,7 +6,7 @@
     "start": "nx serve inatrace-fe",
     "build": "nx build inatrace-fe",
     "build:test": "nx build inatrace-fe --configuration=test --aot=true --buildOptimizer=true --optimization=true",
-    "build:prod": "nx build inatrace-fe --configuration=production",
+    "build:prod": "nx build shrimpMfe --configuration=production && nx build inatrace-fe --configuration=production",
     "test": "nx test inatrace-fe",
     "lint": "nx lint inatrace-fe",
     "e2e": "nx e2e inatrace-fe-e2e",

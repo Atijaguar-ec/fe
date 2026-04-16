@@ -4,6 +4,7 @@
   // Environment variables
   window['env']['environmentName'] = '${ENVIRONMENT_NAME}';
   window['env']['appBaseUrl'] = '${APP_BASE_URL}';
+  window['env']['apiBaseUrl'] = '${API_BASE_URL}';
   window['env']['qrCodeBasePath'] = '${QR_CODE_BASE_PATH}';
   window['env']['relativeFileUploadUrl'] = '${RELATIVE_FILE_UPLOAD_URL}';
   window['env']['relativeFileUploadUrlManualType'] =
@@ -14,6 +15,11 @@
   window['env']['googleMapsApiKey'] = '${GOOGLE_MAPS_API_KEY}';
   window['env']['tokenForPublicLogRoute'] = '${TOKEN_FOR_PUBLIC_LOG_ROUTE}';
   window['env']['mapboxAccessToken'] = '${MAPBOX_ACCESS_TOKEN}';
+
+  // Keycloak authentication
+  window['env']['keycloakUrl'] = '${KEYCLOAK_URL}';
+  window['env']['keycloakRealm'] = '${KEYCLOAK_REALM}';
+  window['env']['keycloakClientId'] = '${KEYCLOAK_CLIENT_ID}';
 
   // Environment variables for Beyco integration
   window['env']['beycoAuthURL'] = '${BEYCO_AUTH_URL}';
