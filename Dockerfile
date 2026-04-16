@@ -5,6 +5,7 @@ COPY package*.json ./
 RUN npm install --legacy-peer-deps
 COPY . .
 # For Nx monorepo, we just use build:prod
+ENV NODE_OPTIONS="--max_old_space_size=8192"
 RUN npm run build:prod
 
 FROM nginx:stable-alpine as production-stage
