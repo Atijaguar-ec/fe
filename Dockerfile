@@ -2,7 +2,7 @@ FROM node:22-alpine as build-stage
 RUN apk add --update git
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 COPY . .
 # For Nx monorepo, we just use build:prod
 RUN npm run build:prod
