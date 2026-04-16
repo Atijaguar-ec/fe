@@ -4,11 +4,14 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
+# For Nx monorepo, we just use build:prod
 RUN npm run build:prod
 
 FROM nginx:stable-alpine as production-stage
 RUN mkdir /app
-COPY --from=build-stage /app/dist /app
+# Overwrite with Nx monorepo dist directory
+COPY --from=build-stage /app/dist/apps/inatrace-fe /app
 COPY nginx.conf /etc/nginx/nginx.conf
 
+# Serve using dynamic envsubst
 CMD ["/bin/sh",  "-c",  "envsubst < /app/assets/env.template.js > /app/assets/env.js && exec nginx -g 'daemon off;'"]

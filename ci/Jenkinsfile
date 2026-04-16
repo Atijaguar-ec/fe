@@ -1,0 +1,558 @@
+pipeline {
+  agent any
+
+  options {
+    skipDefaultCheckout(true)
+    timeout(time: 40, unit: 'MINUTES')
+    ansiColor('xterm')
+    buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '10'))
+    disableConcurrentBuilds()
+    timestamps()
+  }
+
+  parameters {
+    choice(
+      name: 'BRANCH',
+      choices: ['staging', 'main'],
+      description: 'Rama a desplegar (staging→preproducción, main→producción)'
+    )
+    booleanParam(
+      name: 'SKIP_TESTS',
+      defaultValue: false,
+      description: '⚠️ Omitir pruebas frontend (no recomendado)'
+    )
+    string(
+      name: 'SSH_HOST',
+      defaultValue: '10.10.102.26',
+      description: 'Host o IP del servidor remoto Fortaleza (test/prod)'
+    )
+    string(
+      name: 'SSH_USER',
+      defaultValue: 'administrador',
+      description: 'Usuario SSH en el servidor remoto'
+    )
+    string(
+      name: 'SSH_PORT',
+      defaultValue: '22',
+      description: 'Puerto SSH para el servidor remoto'
+    )
+    string(
+      name: 'STAGING_TARGET_DIR',
+      defaultValue: '/opt/inatrace/frontend/test/fortaleza',
+      description: 'Directorio remoto para despliegue de preproducción (Fortaleza)'
+    )
+    string(
+      name: 'PROD_TARGET_DIR',
+      defaultValue: '/opt/inatrace/frontend/prod/fortaleza',
+      description: 'Directorio remoto para despliegue de producción (Fortaleza)'
+    )
+    string(
+      name: 'STAGING_HEALTHCHECK_URL',
+      defaultValue: 'https://testinatrace.espam.edu.ec/health',
+      description: 'URL externa para validar healthcheck en preproducción'
+    )
+    string(
+      name: 'PROD_HEALTHCHECK_URL',
+      defaultValue: 'https://inatrace.espam.edu.ec/health',
+      description: 'URL externa para validar healthcheck en producción'
+    )
+  }
+
+  environment {
+    REGISTRY = 'ghcr.io'
+    NODE_VERSION = '14'
+    DOCKER_BUILDKIT = '1'
+    COMPOSE_DOCKER_CLI_BUILD = '1'
+    COMPOSE_DIR = 'ci'
+    DEPLOY_NETWORK_FRONT = 'inatrace-frontend-fortaleza-network'
+    DEPLOY_NETWORK_BACK = 'inatrace-backend-fortaleza-network'
+    HEALTH_MAX_RETRIES = '12'
+    HEALTH_SLEEP = '10'
+  }
+
+  stages {
+    stage('🔐 Preflight credenciales') {
+      steps {
+        script {
+          def missing = []
+          def gitAuthMode = ''
+          def gitAuthUser = ''
+
+          try {
+            withCredentials([usernamePassword(credentialsId: 'github-pat', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+              gitAuthMode = 'usernamePassword'
+              gitAuthUser = GIT_USER
+            }
+          } catch (Exception primaryError) {
+            try {
+              withCredentials([string(credentialsId: 'github-pat', variable: 'GIT_TOKEN')]) {
+                gitAuthMode = 'tokenOnly'
+                gitAuthUser = 'oauth2'
+              }
+            } catch (Exception secondaryError) {
+              missing << 'github-pat'
+              echo "⚠️ No se pudo cargar 'github-pat' como username/password (${primaryError.class.simpleName}) ni como secret text (${secondaryError.class.simpleName})."
+            }
+          }
+
+          try {
+            withCredentials([usernamePassword(credentialsId: 'ghcr-credentials', usernameVariable: 'DUMMY_USER', passwordVariable: 'DUMMY_TOKEN')]) {
+              // Credencial válida
+            }
+          } catch (Exception ghcrError) {
+            missing << 'ghcr-credentials'
+            echo "⚠️ Credencial 'ghcr-credentials' inválida: ${ghcrError.class.simpleName}"
+          }
+
+          try {
+            withCredentials([
+              sshUserPrivateKey(
+                credentialsId: 'usuario-prod-ssh',
+                keyFileVariable: 'SSH_KEY_FILE',
+                usernameVariable: 'SSH_USERNAME',
+                passphraseVariable: 'SSH_PASSPHRASE'
+              )
+            ]) {
+              sh(label: 'Validar usuario-prod-ssh', script: '''
+                set -e
+                if [ ! -f "$SSH_KEY_FILE" ]; then
+                  echo "❌ Clave SSH no disponible"
+                  exit 1
+                fi
+              ''')
+            }
+          } catch (Exception sshError) {
+            missing << 'usuario-prod-ssh'
+            echo "⚠️ Credencial 'usuario-prod-ssh' inválida: ${sshError.class.simpleName}"
+          }
+
+          if (!gitAuthMode) {
+            missing << 'github-pat'
+          }
+
+          if (missing) {
+            error("❌ Credenciales faltantes o inválidas: ${missing.unique().join(', ')}")
+          }
+
+          env.GIT_AUTH_MODE = gitAuthMode
+          env.GIT_AUTH_USER = gitAuthUser ?: 'oauth2'
+          echo "✅ Credenciales verificadas. Modo Git: ${gitAuthMode}"
+        }
+      }
+    }
+
+    stage('📥 Checkout') {
+      steps {
+        cleanWs()
+        script {
+          def repoUrl = 'https://github.com/Atijaguar-ec/fe.git'
+          def branchRef = params.BRANCH ?: 'staging'
+
+          if (env.GIT_AUTH_MODE == 'usernamePassword') {
+            checkout([
+              $class: 'GitSCM',
+              branches: [[name: "*/${branchRef}" ]],
+              userRemoteConfigs: [[
+                url: repoUrl,
+                credentialsId: 'github-pat'
+              ]],
+              extensions: [
+                [$class: 'CloneOption', shallow: false, depth: 0, noTags: false]
+              ]
+            ])
+          } else {
+            withCredentials([string(credentialsId: 'github-pat', variable: 'GIT_TOKEN')]) {
+              sh(label: 'Manual git clone con PAT', script: """
+set -eu
+
+git clone --origin origin --branch ${branchRef} https://${env.GIT_AUTH_USER}:\${GIT_TOKEN}@github.com/Atijaguar-ec/fe.git .
+git remote set-url origin ${repoUrl}
+git fetch --tags --prune origin
+              """)
+            }
+          }
+        }
+      }
+    }
+
+    stage('🔧 Inicialización') {
+      steps {
+        script {
+          echo "═════════════════════════════════════════════════════════════════"
+          echo "  INICIO DE DESPLIEGUE FRONTEND - FORTALEZA DEL VALLE"
+          echo "═════════════════════════════════════════════════════════════════"
+          echo "Rama: ${params.BRANCH}"
+          echo "Usuario: ${env.BUILD_USER ?: 'Sistema'}"
+          echo "Timestamp: ${new Date().format('yyyy-MM-dd HH:mm:ss z')}"
+          echo "═══════════════════════════════════════════════════════════════"
+        }
+
+        script {
+          def remoteUrl = sh(script: 'git config --get remote.origin.url', returnStdout: true).trim()
+          remoteUrl = remoteUrl.replaceAll(/\.git$/, '')
+          remoteUrl = remoteUrl.replaceFirst(/^https?:\/\/github.com\//, '')
+          remoteUrl = remoteUrl.replaceFirst(/^git@github.com:/, '')
+
+          env.REPO_FULL_NAME = remoteUrl
+          env.GIT_SHORT_SHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+          env.GIT_COMMIT_MSG = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+          env.GIT_AUTHOR = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
+
+          env.IMAGE_REPOSITORY = (env.REGISTRY + '/' + (env.REPO_FULL_NAME + '-inatrace')).toLowerCase()
+          env.DEPLOY_TAG = params.BRANCH == 'main' ? 'latest' : "test-${env.GIT_SHORT_SHA}"
+          env.FORTALEZA_ENV = params.BRANCH == 'main' ? 'prod' : 'test'
+          env.HEALTHCHECK_URL = params.BRANCH == 'main' ? params.PROD_HEALTHCHECK_URL : params.STAGING_HEALTHCHECK_URL
+
+          echo "\n📦 Información del Build :"
+          echo "  - Repositorio: ${env.REPO_FULL_NAME}"
+          echo "  - Commit: ${env.GIT_SHORT_SHA}"
+          echo "  - Autor: ${env.GIT_AUTHOR}"
+          echo "  - Mensaje: ${env.GIT_COMMIT_MSG}"
+          echo "  - Imagen: ${env.IMAGE_REPOSITORY}:${env.DEPLOY_TAG}"
+          echo "  - Entorno destino: ${env.FORTALEZA_ENV}"
+        }
+      }
+    }
+
+    stage('🧪 Tests & Quality') {
+      when {
+        expression { return !params.SKIP_TESTS }
+      }
+      steps {
+        script {
+          echo "\n🧪 Ejecutando lint y pruebas unitarias..."
+          sh """
+            set -e
+            docker run --rm \
+              -e CHROME_BIN=/usr/bin/chromium-browser \
+              -e PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1 \
+              -v "${env.WORKSPACE}":/workspace \
+              -w /workspace \
+              node:${NODE_VERSION}-alpine sh -c '
+                set -e
+                apk add --no-cache git chromium nss openssh
+                npm config set cache /tmp/npm-cache --global
+                npm ci
+                npm run lint
+                npm run test -- --watch=false --progress=false --browsers=ChromeHeadlessCI
+              '
+          """
+        }
+      }
+    }
+
+    stage('🏗️ Build & Push Imagen') {
+      steps {
+        script {
+          echo "\n🏗️ Construyendo y publicando imagen Docker..."
+        }
+
+        withCredentials([
+          usernamePassword(credentialsId: 'ghcr-credentials', usernameVariable: 'GHCR_USER', passwordVariable: 'GHCR_TOKEN')
+        ]) {
+          script {
+            def imageTag = "${env.IMAGE_REPOSITORY}:${env.DEPLOY_TAG}"
+            def latestTag = "${env.IMAGE_REPOSITORY}:latest"
+            sh """
+              set -e
+              echo "🔐 Autenticando en GHCR..."
+              echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
+              BUILD_DATE=\$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+              docker build \
+                --build-arg BUILD_DATE=\$BUILD_DATE \
+                --build-arg VCS_REF=${env.GIT_SHORT_SHA} \
+                --build-arg VERSION=${env.DEPLOY_TAG} \
+                --label org.opencontainers.image.created=\$BUILD_DATE \
+                --label org.opencontainers.image.revision=${env.GIT_SHORT_SHA} \
+                --label org.opencontainers.image.version=${env.DEPLOY_TAG} \
+                --label org.opencontainers.image.source=https://github.com/${env.REPO_FULL_NAME} \
+                -t ${imageTag} .
+
+              if [ "${params.BRANCH}" = "main" ]; then
+                docker tag ${imageTag} ${latestTag}
+              fi
+
+              docker push ${imageTag}
+
+              if [ "${params.BRANCH}" = "main" ]; then
+                docker push ${latestTag}
+              fi
+            """
+          }
+        }
+      }
+    }
+
+    stage('🚀 Deploy Fortaleza') {
+      steps {
+        script {
+          def deploy = [:]
+          if (params.BRANCH == 'main') {
+            deploy = [
+              name: 'Fortaleza Producción',
+              nodeEnv: 'production',
+              targetDir: params.PROD_TARGET_DIR,
+              containerName: 'inatrace-fe-prod-fortaleza',
+              hostPort: '8081',
+              traefikRouter: 'inatrace-fe-prod-fortaleza',
+              traefikRule: 'Host(`inatrace.espam.edu.ec`)',
+              traefikEntrypoints: 'websecure',
+              traefikResolver: 'letsencrypt',
+              healthLocal: 'http://localhost:8081/health',
+              healthExternal: params.PROD_HEALTHCHECK_URL
+            ]
+          } else {
+            deploy = [
+              name: 'Fortaleza Preproducción',
+              nodeEnv: 'test',
+              targetDir: params.STAGING_TARGET_DIR,
+              containerName: 'inatrace-fe-test-fortaleza',
+              hostPort: '8081',
+              traefikRouter: 'inatrace-fe-test-fortaleza',
+              traefikRule: 'Host(`testinatrace.espam.edu.ec`)',
+              traefikEntrypoints: 'websecure',
+              traefikResolver: 'letsencrypt',
+              healthLocal: 'http://localhost:8081/health',
+              healthExternal: params.STAGING_HEALTHCHECK_URL
+            ]
+          }
+
+          deploy.frontendNetwork = env.DEPLOY_NETWORK_FRONT
+          deploy.backendNetwork = env.DEPLOY_NETWORK_BACK
+
+          // Extraer valores del mapa para interpolación correcta en strings
+          def targetDir = deploy.targetDir
+          def containerName = deploy.containerName
+          def hostPort = deploy.hostPort
+          def frontendNetwork = deploy.frontendNetwork
+          def backendNetwork = deploy.backendNetwork
+          def traefikRouter = deploy.traefikRouter
+          def traefikRule = deploy.traefikRule
+          def traefikEntrypoints = deploy.traefikEntrypoints
+          def traefikResolver = deploy.traefikResolver
+
+          env.CURRENT_DEPLOY_NAME = deploy.name
+          env.CURRENT_DEPLOY_DIR = targetDir
+          env.CURRENT_HEALTH_URL = deploy.healthExternal
+
+          echo "\n🚀 Iniciando despliegue remoto: ${deploy.name}"
+
+          def envContent = """
+# Frontend-specific variables (not backend)
+FE_IMAGE_NAME=${env.IMAGE_REPOSITORY}
+FE_TAG=${env.DEPLOY_TAG}
+CONTAINER_NAME=${containerName}
+HOST_HTTP_PORT=${hostPort}
+FRONTEND_NETWORK=${frontendNetwork}
+BACKEND_NETWORK=${backendNetwork}
+TRAEFIK_ENABLE=true
+TRAEFIK_ROUTER_NAME=${traefikRouter}
+TRAEFIK_ROUTER_RULE=${traefikRule}
+TRAEFIK_ENTRYPOINTS=${traefikEntrypoints}
+TRAEFIK_CERT_RESOLVER=${traefikResolver}
+HEALTHCHECK_URL=http://localhost/health
+HEALTHCHECK_INTERVAL=15s
+HEALTHCHECK_TIMEOUT=5s
+HEALTHCHECK_RETRIES=3
+HEALTHCHECK_START_PERIOD=10s
+NGINX_CONF_PATH=./nginx.conf
+""".stripIndent().trim() + '\n'
+          writeFile file: "${env.WORKSPACE}/ci/.env.deploy", text: envContent
+
+          def remoteScript = """#!/bin/bash
+set -euo pipefail
+
+REMOTE_DIR="${targetDir}"
+FRONTEND_NETWORK="${frontendNetwork}"
+BACKEND_NETWORK="${backendNetwork}"
+HEALTH_URL="http://localhost:${hostPort}/health"
+MAX_RETRIES=${env.HEALTH_MAX_RETRIES}
+SLEEP_TIME=${env.HEALTH_SLEEP}
+
+if command -v docker compose >/dev/null 2>&1; then
+  COMPOSE_CMD="docker compose"
+elif command -v docker-compose >/dev/null 2>&1; then
+  COMPOSE_CMD="docker-compose"
+else
+  echo "❌ Docker Compose no está instalado" >&2
+  exit 1
+fi
+
+cd "\$REMOTE_DIR"
+
+docker network inspect "\$FRONTEND_NETWORK" >/dev/null 2>&1 || docker network create "\$FRONTEND_NETWORK"
+docker network inspect "\$BACKEND_NETWORK" >/dev/null 2>&1 || docker network create "\$BACKEND_NETWORK"
+
+\$COMPOSE_CMD pull
+\$COMPOSE_CMD up -d --force-recreate
+
+echo "⏳ Esperando healthcheck (\$HEALTH_URL)..."
+retry=0
+while [ "\$retry" -lt "\$MAX_RETRIES" ]; do
+  retry=\$((retry + 1))
+  if curl -fsS --max-time 5 "\$HEALTH_URL" >/dev/null 2>&1; then
+    echo "✅ Frontend saludable en intento \$retry"
+    \$COMPOSE_CMD ps
+    exit 0
+  fi
+  echo "⏳ Intento \$retry/\$MAX_RETRIES - Esperando \$SLEEP_TIME s..."
+  sleep "\$SLEEP_TIME"
+done
+
+echo "❌ Healthcheck falló tras \$MAX_RETRIES intentos" >&2
+\$COMPOSE_CMD logs --tail=100
+exit 1
+""".stripIndent()
+          writeFile file: "${env.WORKSPACE}/ci/remote-deploy.sh", text: remoteScript
+
+          if (params.BRANCH == 'main') {
+            withCredentials([
+              sshUserPrivateKey(
+                credentialsId: 'usuario-prod-ssh',
+                keyFileVariable: 'SSH_KEY_FILE',
+                usernameVariable: 'SSH_USERNAME',
+                passphraseVariable: 'SSH_PASSPHRASE'
+              )
+            ]) {
+              sh """
+                set -e
+                SSH_TARGET="${params.SSH_USER}@${params.SSH_HOST}"
+                SSH_PORT="${params.SSH_PORT}"
+                REMOTE_DIR="${targetDir}"
+                SSH_KEY_PATH="\$SSH_KEY_FILE"
+
+                chmod 600 "\$SSH_KEY_PATH" || true
+
+                echo "📁 Creando directorio remoto si no existe..."
+                ssh -i "\$SSH_KEY_PATH" -p "\$SSH_PORT" -o StrictHostKeyChecking=no "\$SSH_TARGET" "mkdir -p \$REMOTE_DIR"
+
+                echo "📤 Copiando docker-compose.yml"
+                scp -i "\$SSH_KEY_PATH" -P "\$SSH_PORT" -o StrictHostKeyChecking=no "${env.WORKSPACE}/ci/docker-compose.yml" "\$SSH_TARGET:\$REMOTE_DIR/docker-compose.yml"
+
+                echo "📤 Copiando nginx.conf"
+                scp -i "\$SSH_KEY_PATH" -P "\$SSH_PORT" -o StrictHostKeyChecking=no "${env.WORKSPACE}/nginx.conf" "\$SSH_TARGET:\$REMOTE_DIR/nginx.conf"
+
+                echo "📤 Copiando archivo .env"
+                scp -i "\$SSH_KEY_PATH" -P "\$SSH_PORT" -o StrictHostKeyChecking=no "${env.WORKSPACE}/ci/.env.deploy" "\$SSH_TARGET:\$REMOTE_DIR/.env"
+
+                echo "📤 Copiando script de despliegue"
+                scp -i "\$SSH_KEY_PATH" -P "\$SSH_PORT" -o StrictHostKeyChecking=no "${env.WORKSPACE}/ci/remote-deploy.sh" "\$SSH_TARGET:\$REMOTE_DIR/remote-deploy.sh"
+
+                echo "🚀 Ejecutando despliegue en servidor remoto..."
+                ssh -i "\$SSH_KEY_PATH" -p "\$SSH_PORT" -o StrictHostKeyChecking=no "\$SSH_TARGET" "chmod +x \$REMOTE_DIR/remote-deploy.sh && \$REMOTE_DIR/remote-deploy.sh"
+              """
+            }
+          } else if (params.BRANCH == 'staging') {
+            withCredentials([
+              file(credentialsId: 'fortaleza-frontend-env-staging', variable: 'ENVFILE')
+            ]) {
+              sh """
+                set -e
+
+                echo "🔗 Verificando red Docker local..."
+                docker network inspect inatrace-frontend-network >/dev/null 2>&1 || \
+                  docker network create inatrace-frontend-network
+                docker network inspect inatrace-backend-network >/dev/null 2>&1 || \
+                  docker network create inatrace-backend-network
+
+                echo "📝 Extrayendo archivo .env exacto desde secretos de Jenkins..."
+                if [ -f "\$ENVFILE" ]; then
+                  cp "\$ENVFILE" ci/.env
+                  chmod 644 ci/.env
+                else
+                  echo "❌ ERROR: No se encontró la credencial 'fortaleza-frontend-env-staging' en Jenkins." >&2
+                  exit 1
+                fi
+                
+                # Actualizar UNICAMENTE la versión de Angular (tag de la imagen nueva)
+                if grep -q '^FE_TAG=' ci/.env; then
+                  sed -i "s|^FE_TAG=.*|FE_TAG=${env.DEPLOY_TAG}|g" ci/.env
+                else
+                  echo "FE_TAG=${env.DEPLOY_TAG}" >> ci/.env
+                fi
+
+                echo "🧾 Copiando nginx.conf para despliegue local..."
+                cp "${env.WORKSPACE}/nginx.conf" ci/nginx.conf
+
+                echo "📥 Descargando última imagen..."
+                FE_TAG=${env.DEPLOY_TAG} docker compose --env-file ci/.env -f ci/docker-compose.yml pull || true
+
+                echo "🔄 Desplegando servicios localmente..."
+                FE_TAG=${env.DEPLOY_TAG} docker compose --env-file ci/.env -f ci/docker-compose.yml up -d --force-recreate
+
+                echo "📊 Estado inicial de contenedores:"
+                FE_TAG=${env.DEPLOY_TAG} docker compose --env-file ci/.env -f ci/docker-compose.yml ps
+
+                echo "⏳ Esperando healthcheck local..."
+                RETRY_COUNT=0
+                MAX_RETRIES=${env.HEALTH_MAX_RETRIES}
+                SLEEP_TIME=${env.HEALTH_SLEEP}
+                HEALTH_URL="http://localhost:${hostPort}/health"
+
+                while [ \$RETRY_COUNT -lt \$MAX_RETRIES ]; do
+                  RETRY_COUNT=\$((RETRY_COUNT + 1))
+                  if curl -fsS --max-time 5 "\$HEALTH_URL" >/dev/null 2>&1; then
+                    echo "✅ Frontend local saludable en intento \$RETRY_COUNT"
+                    FE_TAG=${env.DEPLOY_TAG} docker compose --env-file ci/.env -f ci/docker-compose.yml ps
+                    exit 0
+                  fi
+                  echo "⏳ Intento \$RETRY_COUNT/\$MAX_RETRIES - Esperando \$SLEEP_TIME s..."
+                  sleep "\$SLEEP_TIME"
+                done
+
+                echo "❌ Healthcheck local falló tras \$MAX_RETRIES intentos" >&2
+                FE_TAG=${env.DEPLOY_TAG} docker compose --env-file ci/.env -f ci/docker-compose.yml logs --tail=100
+                exit 1
+              """
+            }
+          } else {
+            echo "⚠️ Rama ${params.BRANCH} sin despliegue configurado (solo 'main' y 'staging')."
+          }
+
+          sh 'rm -f ci/.env.deploy ci/.env ci/nginx.conf ci/remote-deploy.sh'
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      script {
+        echo "\n🧹 Limpieza post-pipeline frontend..."
+        sh '''
+          docker logout ghcr.io || true
+          docker image prune -f --filter "dangling=true" || true
+        '''
+      }
+    }
+    success {
+      script {
+        def successMessage = params.BRANCH == 'main' ?
+          '✅ FRONTEND FORTALEZA DESPLEGADO - PRODUCCIÓN' :
+          '✅ FRONTEND FORTALEZA DESPLEGADO - PREPRODUCCIÓN'
+        echo "\n═══════════════════════════════════════════════════════════════"
+        echo "  ${successMessage}"
+        echo "═══════════════════════════════════════════════════════════════"
+        echo "Imagen: ${env.IMAGE_REPOSITORY}:${env.DEPLOY_TAG}"
+        echo "Commit: ${env.GIT_SHORT_SHA}"
+        echo "Servidor: ${params.SSH_HOST}"
+        echo "Directorio: ${env.CURRENT_DEPLOY_DIR ?: 'N/D'}"
+        echo "Healthcheck externo: ${env.HEALTHCHECK_URL}"
+        echo "═══════════════════════════════════════════════════════════════"
+      }
+    }
+    failure {
+      script {
+        def failureMessage = params.BRANCH == 'main' ?
+          '❌ FALLÓ DESPLIEGUE FRONTEND PRODUCCIÓN' :
+          '❌ FALLÓ DESPLIEGUE FRONTEND PREPRODUCCIÓN'
+        echo "\n═══════════════════════════════════════════════════════════════"
+        echo "  ${failureMessage}"
+        echo "═══════════════════════════════════════════════════════════════"
+        echo "Revisa los logs arriba para más detalles"
+        echo "═══════════════════════════════════════════════════════════════"
+      }
+    }
+  }
+}
