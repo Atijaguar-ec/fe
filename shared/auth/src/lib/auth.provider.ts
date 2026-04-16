@@ -39,22 +39,39 @@ export interface InatraceAuthConfig {
  * without a trailing `/api` segment.
  */
 export function provideInatraceAuth(config: InatraceAuthConfig) {
-  // Extract origin: e.g. "http://localhost:8082/api" → "http://localhost:8082"
-  const backendOrigin = (() => {
-    try {
-      const url = new URL(config.apiBaseUrl);
-      return url.origin; // protocol + hostname + port, no path
-    } catch {
-      // Fallback: strip path manually
-      return config.apiBaseUrl.replace(/\/api.*$/, '');
+  let backendOrigin = '';
+  let apiPath = '';
+
+  try {
+    const url = new URL(config.apiBaseUrl);
+    backendOrigin = url.origin; // e.g. "https://testinatrace.espam.edu.ec"
+    apiPath = url.pathname !== '/' ? url.pathname : ''; // e.g. "/api"
+  } catch {
+    apiPath = config.apiBaseUrl; // e.g. "/api"
+  }
+
+  const escapedOrigin = backendOrigin ? backendOrigin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '';
+  const escapedPath = apiPath ? apiPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '';
+
+  let regexPattern = '';
+  if (escapedOrigin) {
+    if (escapedPath) {
+      // Matches:
+      // 1. Any absolute URL starting with backendOrigin (covers double /api/api prefixes)
+      // 2. Relative URLs starting with escapedPath (e.g., /api/...)
+      // 3. Relative URLs starting without leading slash (e.g., api/...)
+      const pathNoSlash = escapedPath.replace(/^\\?\//, '');
+      regexPattern = `^(?:${escapedOrigin}|${escapedPath}|${pathNoSlash})(\\/.*)?$`;
+    } else {
+      regexPattern = `^${escapedOrigin}(\\/.*)?$`;
     }
-  })();
+  } else {
+    const pathNoSlash = escapedPath.replace(/^\\?\//, '');
+    regexPattern = `^(?:${escapedPath}|${pathNoSlash})(\\/.*)?$`;
+  }
 
-  const escapedOrigin = backendOrigin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-  // Matches ANY path on the backend host — covers /api/..., /api/api/..., etc.
   const apiCondition = createInterceptorCondition<IncludeBearerTokenCondition>({
-    urlPattern: new RegExp(`^${escapedOrigin}(\\/.*)?$`, 'i'),
+    urlPattern: new RegExp(regexPattern, 'i'),
     bearerPrefix: 'Bearer'
   });
 
