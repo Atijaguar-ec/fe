@@ -48,6 +48,7 @@ import { formatBytes } from 'src/shared/utils';
 import { GlobalEventManagerService } from 'src/app/core/global-event-manager.service';
 import { CommonControllerService } from 'src/api/api/commonController.service';
 import { ClosableComponent } from '../closable/closable.component';
+import { KeycloakService } from 'keycloak-angular';
 
 class UploadResponse {
   // public data: { name: string, originalName: string, contentType: string };
@@ -293,6 +294,7 @@ export class AttachmentUploaderComponent implements OnInit {
     private modalService: NgbModalImproved,
     private globalEventsManager: GlobalEventManagerService,
     @Optional() @Host() public closable: ClosableComponent,
+    private keycloakService: KeycloakService
   ) {}
 
   metadataPOST$: Subject<any> = new Subject<any>();
@@ -402,6 +404,18 @@ export class AttachmentUploaderComponent implements OnInit {
     //     config.allowedFileType = this.allowedFileType
     // }
     this.uploader = new AttachmentFileUploader(config);
+
+    this.uploader.onBeforeUploadItem = (item: FileItem) => {
+      item.withCredentials = false;
+      try {
+        const keycloak = this.keycloakService.getKeycloakInstance();
+        if (keycloak && keycloak.token) {
+          this.uploader.options.authToken = `Bearer ${keycloak.token}`;
+        }
+      } catch (e) {
+        console.warn('Could not inject Keycloak token into attachment-uploader', e);
+      }
+    };
     this.uploaderSubscription = this.uploader.uploadResponse.subscribe(
       (ev: UploadResponse) => {
         if (ev.successful()) {
