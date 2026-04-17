@@ -7,6 +7,7 @@ import {
   Output,
   Host,
   Optional,
+  inject,
 } from '@angular/core';
 import {
   UntypedFormControl,
@@ -48,7 +49,7 @@ import { formatBytes } from 'src/shared/utils';
 import { GlobalEventManagerService } from 'src/app/core/global-event-manager.service';
 import { CommonControllerService } from 'src/api/api/commonController.service';
 import { ClosableComponent } from '../closable/closable.component';
-import Keycloak from 'keycloak-js';
+import Keycloak from 'keycloak-js/lib/keycloak';
 
 class UploadResponse {
   // public data: { name: string, originalName: string, contentType: string };
@@ -100,6 +101,9 @@ class AttachmentFileUploader extends FileUploader {
   standalone: false,
 })
 export class AttachmentUploaderComponent implements OnInit {
+  private keycloak = inject(Keycloak, { optional: true });
+
+  @Input() endpointUrl: string = '';
   ////////////////////////////////////
   ///// Fileinfo type specific fields
   ///////////////////////////////////
@@ -293,8 +297,7 @@ export class AttachmentUploaderComponent implements OnInit {
     private fileSaverService: FileSaverService,
     private modalService: NgbModalImproved,
     private globalEventsManager: GlobalEventManagerService,
-    @Optional() @Host() public closable: ClosableComponent,
-    @Optional() private keycloak: Keycloak
+    @Optional() @Host() public closable: ClosableComponent
   ) {}
 
   metadataPOST$: Subject<any> = new Subject<any>();
