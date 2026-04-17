@@ -294,7 +294,7 @@ export class AttachmentUploaderComponent implements OnInit {
     private modalService: NgbModalImproved,
     private globalEventsManager: GlobalEventManagerService,
     @Optional() @Host() public closable: ClosableComponent,
-    private keycloakService: KeycloakService
+    @Optional() private keycloakService: KeycloakService
   ) {}
 
   metadataPOST$: Subject<any> = new Subject<any>();
@@ -408,7 +408,7 @@ export class AttachmentUploaderComponent implements OnInit {
     this.uploader.onBeforeUploadItem = (item: FileItem) => {
       item.withCredentials = false;
       try {
-        const keycloak = this.keycloakService.getKeycloakInstance();
+        const keycloak = this.keycloakService?.getKeycloakInstance();
         if (keycloak && keycloak.token) {
           this.uploader.options.authToken = `Bearer ${keycloak.token}`;
         }
