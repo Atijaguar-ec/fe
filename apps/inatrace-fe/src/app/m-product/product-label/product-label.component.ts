@@ -90,6 +90,8 @@ import { SelectedUserCompanyService } from '../../core/selected-user-company.ser
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { SelfOnboardingService } from '../../shared-services/self-onboarding.service';
 
+declare const $localize: any;
+
 @Component({
   selector: 'app-product-label',
   templateUrl: './product-label.component.html',
@@ -215,7 +217,7 @@ export class ProductLabelComponent
   }
 
   get graphicFairPriceUnits() {
-    const obj = {};
+    const obj: any = {};
 
     obj['DISABLED'] = 'Disabled';
     obj['PER_CONTAINER'] = 'Per container';
@@ -622,7 +624,7 @@ export class ProductLabelComponent
 
   sectionToNameToObj = new Map();
 
-  labelSelect$ = new BehaviorSubject(null);
+  labelSelect$ = new BehaviorSubject<any>(null);
 
   visibilityMap = new Map();
 
@@ -658,11 +660,11 @@ export class ProductLabelComponent
     super();
     this.generateLabelMaps();
     if (
-      this.router.getCurrentNavigation().extras.state &&
-      this.router.getCurrentNavigation().extras.state.labelId
+      this.router.getCurrentNavigation()?.extras?.state &&
+      this.router.getCurrentNavigation()?.extras?.state?.labelId
     ) {
       this.redirectToCertainLabel =
-        this.router.getCurrentNavigation().extras.state.labelId;
+        this.router.getCurrentNavigation()?.extras?.state?.labelId;
       this.initialReload = true;
     }
   }
@@ -983,11 +985,17 @@ export class ProductLabelComponent
       if (data.associatedCompanies && Array.isArray(data.associatedCompanies)) {
         const hasOwner = data.associatedCompanies.some((c: any) => c.type === 'OWNER');
         if (!hasOwner && data.company && data.company.id) {
-          data.associatedCompanies.push({ company: data.company, type: 'OWNER' });
+          data.associatedCompanies.push({ 
+            company: { id: data.company.id, name: data.company.name }, 
+            type: 'OWNER' 
+          });
         }
       } else {
         if (data.company && data.company.id) {
-          data.associatedCompanies = [{ company: data.company, type: 'OWNER' }];
+          data.associatedCompanies = [{ 
+            company: { id: data.company.id, name: data.company.name }, 
+            type: 'OWNER' 
+          }];
         }
       }
 
@@ -1215,7 +1223,7 @@ export class ProductLabelComponent
 
   openInfoWindow(gMarker, marker) {
     this.gInfoWindowText = marker.infoText;
-    this.gInfoWindow.open(gMarker);
+    this.gInfoWindow?.open(gMarker);
   }
 
   removeJourneyMarker(i: number) {
