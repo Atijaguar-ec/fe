@@ -49,7 +49,7 @@ import { formatBytes } from 'src/shared/utils';
 import { GlobalEventManagerService } from 'src/app/core/global-event-manager.service';
 import { CommonControllerService } from 'src/api/api/commonController.service';
 import { ClosableComponent } from '../closable/closable.component';
-import Keycloak from 'keycloak-js/lib/keycloak';
+import Keycloak from 'keycloak-js';
 
 class UploadResponse {
   // public data: { name: string, originalName: string, contentType: string };
