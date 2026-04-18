@@ -411,9 +411,16 @@ export class AttachmentUploaderComponent implements OnInit {
     this.uploader.onBeforeUploadItem = (item: FileItem) => {
       item.withCredentials = false;
       try {
-        const token = this.keycloak?.token;
+        const keycloakInstance = (window as any).__inatraceKeycloak || this.keycloak;
+        const token = keycloakInstance?.token;
         if (token) {
+          item.headers = item.headers || [];
+          item.headers = item.headers.filter((h: any) => h.name.toLowerCase() !== 'authorization');
+          item.headers.push({ name: 'Authorization', value: `Bearer ${token}` });
+          // Fallback legacy assignment
           this.uploader.options.authToken = `Bearer ${token}`;
+        } else {
+          console.error('[AttachmentUploader] Cannot find keycloak token during upload!');
         }
       } catch (e) {
         console.warn('Could not inject Keycloak token into attachment-uploader', e);

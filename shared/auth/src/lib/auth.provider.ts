@@ -1,4 +1,5 @@
-import { InjectionToken } from '@angular/core';
+import { InjectionToken, APP_INITIALIZER } from '@angular/core';
+import Keycloak from 'keycloak-js';
 import { 
   provideKeycloak, 
   withAutoRefreshToken, 
@@ -103,6 +104,16 @@ export function provideInatraceAuth(config: InatraceAuthConfig) {
     {
       provide: INATRACE_API_BASE_URL,
       useValue: config.apiBaseUrl
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (kc: Keycloak) => {
+        return () => {
+          (window as any).__inatraceKeycloak = kc;
+        }
+      },
+      deps: [Keycloak],
+      multi: true
     }
   ];
 }
