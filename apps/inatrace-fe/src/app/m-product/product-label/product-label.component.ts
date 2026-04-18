@@ -380,11 +380,12 @@ export class ProductLabelComponent
       this.productForm.updateValueAndValidity();
       this.initializeOriginLocations();
       this.initializeMarkers();
-      this.isOwner = product.associatedCompanies.some(
-        (value) =>
-          value.type === ApiProductCompany.TypeEnum.OWNER &&
-          value.company.id === this.companyId,
-      );
+      this.isOwner = 
+        (product.associatedCompanies && product.associatedCompanies.some(
+          (value) =>
+            value.type === ApiProductCompany.TypeEnum.OWNER &&
+            value.company.id === this.companyId,
+        )) || (product.company && product.company.id === this.companyId);
     }),
     shareReplay(1),
   );
