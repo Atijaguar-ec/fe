@@ -981,23 +981,22 @@ export class ProductLabelComponent
       this.globalEventsManager.showLoading(true);
       const data = this.productForm.value;
       
-      // Fallback: older products might lack associatedCompanies OWNER entry causing backend 400s
-      if (data.associatedCompanies && Array.isArray(data.associatedCompanies)) {
-        const hasOwner = data.associatedCompanies.some((c: any) => c.type === 'OWNER');
-        if (!hasOwner && data.company && data.company.id) {
-          data.associatedCompanies.push({ 
-            company: { id: data.company.id, name: data.company.name }, 
-            type: 'OWNER' 
-          });
-        }
-      } else {
-        if (data.company && data.company.id) {
-          data.associatedCompanies = [{ 
-            company: { id: data.company.id, name: data.company.name }, 
-            type: 'OWNER' 
-          }];
-        }
-      }
+      // Fallback: Delete associatedCompanies from the payload to completely bypass the backend
+      // check that incorrectly enforces OWNER update and crashes with 500.
+      delete data.associatedCompanies;
+
+      // Fix backend NPE bug when process, responsibility, or sustainability are sent as objects with all null values
+      const cleanEmptyGroups = (obj: any, keys: string[]) => {
+        keys.forEach(key => {
+          if (obj[key] && typeof obj[key] === 'object') {
+            const hasValue = Object.values(obj[key]).some(v => v !== null && v !== '');
+            if (!hasValue) {
+              delete obj[key];
+            }
+          }
+        });
+      };
+      cleanEmptyGroups(data, ['process', 'responsibility', 'sustainability']);
 
       const res = await this.productController
         .updateProduct(data)
