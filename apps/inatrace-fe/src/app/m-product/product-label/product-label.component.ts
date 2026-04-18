@@ -323,6 +323,15 @@ export class ProductLabelComponent
     tap((data: ApiProduct) => {
       const product = data;
 
+      product.process = product.process || defaultEmptyObject(ApiProcess.formMetadata());
+      product.responsibility = product.responsibility || defaultEmptyObject(ApiResponsibility.formMetadata());
+      product.sustainability = product.sustainability || defaultEmptyObject(ApiSustainability.formMetadata());
+      product.settings = product.settings || defaultEmptyObject(ApiProductSettings.formMetadata());
+      product.origin = product.origin || defaultEmptyObject(ApiProductOrigin.formMetadata());
+      
+      product.company = product.company || defaultEmptyObject(ApiCompany.formMetadata());
+      product.company.headquarters = product.company.headquarters || defaultEmptyObject(ApiAddress.formMetadata());
+
       this.productForm = generateFormFromMetadata(
         ApiProduct.formMetadata(),
         product,
@@ -758,6 +767,15 @@ export class ProductLabelComponent
 
   async prepareForm(data) {
     const product = data;
+
+    product.process = product.process || defaultEmptyObject(ApiProcess.formMetadata());
+    product.responsibility = product.responsibility || defaultEmptyObject(ApiResponsibility.formMetadata());
+    product.sustainability = product.sustainability || defaultEmptyObject(ApiSustainability.formMetadata());
+    product.settings = product.settings || defaultEmptyObject(ApiProductSettings.formMetadata());
+    product.origin = product.origin || defaultEmptyObject(ApiProductOrigin.formMetadata());
+    
+    product.company = product.company || defaultEmptyObject(ApiCompany.formMetadata());
+    product.company.headquarters = product.company.headquarters || defaultEmptyObject(ApiAddress.formMetadata());
 
     this.productForm = generateFormFromMetadata(
       ApiProduct.formMetadata(),
