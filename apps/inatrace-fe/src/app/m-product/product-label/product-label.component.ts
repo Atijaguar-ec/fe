@@ -978,6 +978,19 @@ export class ProductLabelComponent
     try {
       this.globalEventsManager.showLoading(true);
       const data = this.productForm.value;
+      
+      // Fallback: older products might lack associatedCompanies OWNER entry causing backend 400s
+      if (data.associatedCompanies && Array.isArray(data.associatedCompanies)) {
+        const hasOwner = data.associatedCompanies.some((c: any) => c.type === 'OWNER');
+        if (!hasOwner && data.company && data.company.id) {
+          data.associatedCompanies.push({ company: data.company, type: 'OWNER' });
+        }
+      } else {
+        if (data.company && data.company.id) {
+          data.associatedCompanies = [{ company: data.company, type: 'OWNER' }];
+        }
+      }
+
       const res = await this.productController
         .updateProduct(data)
         .pipe(take(1))

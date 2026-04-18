@@ -673,7 +673,7 @@
   >
     <attachment-uploader
       rootImageUrl="{{ rootImageUrl }}"
-      allowedMimeType="[image/png', 'image/jpeg']"
+      [allowedMimeType]="['image/png', 'image/jpeg']"
       allowedMimeTypeErrorMessage="Upload only file types: PNG, JPG and JPEG."
       mode="simpleAsTextField"
       [label]="this.productNameLabelAndPlaceholder('LABEL', 'photo')"
