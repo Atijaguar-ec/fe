@@ -357,6 +357,7 @@ HEALTHCHECK_TIMEOUT=5s
 HEALTHCHECK_RETRIES=3
 HEALTHCHECK_START_PERIOD=10s
 NGINX_CONF_PATH=./nginx.conf
+ENABLE_SHRIMP_MODULE=false
 """.stripIndent().trim() + '\n'
           writeFile file: "${env.WORKSPACE}/ci/.env.deploy", text: envContent
 
@@ -465,11 +466,17 @@ exit 1
                   exit 1
                 fi
                 
-                # Actualizar UNICAMENTE la versión de Angular (tag de la imagen nueva)
+                # Actualizar la versión de Angular y forzar deshabilitación del módulo camarón
                 if grep -q '^FE_TAG=' ci/.env; then
                   sed -i "s|^FE_TAG=.*|FE_TAG=${env.DEPLOY_TAG}|g" ci/.env
                 else
                   echo "FE_TAG=${env.DEPLOY_TAG}" >> ci/.env
+                fi
+
+                if grep -q '^ENABLE_SHRIMP_MODULE=' ci/.env; then
+                  sed -i "s|^ENABLE_SHRIMP_MODULE=.*|ENABLE_SHRIMP_MODULE=false|g" ci/.env
+                else
+                  echo "ENABLE_SHRIMP_MODULE=false" >> ci/.env
                 fi
 
                 echo "🧾 Copiando nginx.conf para despliegue local..."
