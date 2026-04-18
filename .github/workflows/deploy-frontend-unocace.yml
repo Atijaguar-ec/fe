@@ -170,6 +170,7 @@ jobs:
           FE_TAG=$TAG
           NODE_ENV=development
           PRIMARY_PRODUCT_TYPE=COCOA
+          ENABLE_SHRIMP_MODULE=false
           CONTAINER_NAME=inatrace-fe-dev
           HOST_HTTP_PORT=8081
           FRONTEND_NETWORK=inatrace-frontend-network
@@ -250,6 +251,7 @@ jobs:
           FE_TAG=$TAG
           NODE_ENV=production
           PRIMARY_PRODUCT_TYPE=COCOA
+          ENABLE_SHRIMP_MODULE=false
           CONTAINER_NAME=inatrace-fe-prod
           HOST_HTTP_PORT=80
           FRONTEND_NETWORK=inatrace-frontend-network
