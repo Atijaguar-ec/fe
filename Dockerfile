@@ -1,5 +1,6 @@
 FROM node:22-alpine as build-stage
 RUN apk add --update git
+RUN npm install -g npm@10
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
