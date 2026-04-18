@@ -381,8 +381,9 @@ export class CompanyDetailComponent
     try {
       this.globalEventsManager.showLoading(true);
       const params = this.route.snapshot.params;
+      const companyId = params.id ? +params.id : undefined;
       const res: ApiResponseApiBaseEntity = await this.companyController
-        .updateCompany({ ...params, ...this.companyDetailForm.value })
+        .updateCompany({ ...this.companyDetailForm.value, id: companyId })
         .pipe(take(1))
         .toPromise();
       if (res && res.status === 'OK') {
