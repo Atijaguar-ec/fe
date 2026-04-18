@@ -2,8 +2,8 @@
   <a routerLink="/product-labels/{{ product.id }}/product">
     <img
       *ngIf="product.photoStorageId; else showImagePlaceholder"
-      src="/api/common/image/{{ product.photoStorageId }}/SMALL"
-      default="/api/common/image/{{ product.photoStorageId }}"
+      src="/api/public/image/{{ product.photoStorageId }}/SMALL"
+      default="/api/public/image/{{ product.photoStorageId }}"
       class="card-img-top"
       alt="Product image"
     />
