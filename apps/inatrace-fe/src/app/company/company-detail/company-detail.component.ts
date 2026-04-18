@@ -382,8 +382,18 @@ export class CompanyDetailComponent
       this.globalEventsManager.showLoading(true);
       const params = this.route.snapshot.params;
       const companyId = params.id ? +params.id : undefined;
+
+      // Build a clean payload for ApiCompanyUpdate.
+      // The form is generated from ApiCompanyGet which contains
+      // response-only fields (actions, companyRoles, supportsCollectors)
+      // that the PUT endpoint does not accept.
+      const formValue = { ...this.companyDetailForm.value };
+      delete formValue.actions;
+      delete formValue.companyRoles;
+      delete formValue.supportsCollectors;
+
       const res: ApiResponseApiBaseEntity = await this.companyController
-        .updateCompany({ ...this.companyDetailForm.value, id: companyId })
+        .updateCompany({ ...formValue, id: companyId })
         .pipe(take(1))
         .toPromise();
       if (res && res.status === 'OK') {
