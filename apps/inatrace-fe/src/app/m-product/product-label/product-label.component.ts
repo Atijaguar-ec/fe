@@ -263,6 +263,7 @@ export class ProductLabelComponent
 
   companyId: number | null = null;
   isOwner = false;
+  isSystemAdmin = false;
 
   unsubscribeList = new UnsubscribeList();
 
@@ -672,6 +673,7 @@ export class ProductLabelComponent
           switchMap((up) => {
             if (up) {
               this.showLabelInfoLink = 'SYSTEM_ADMIN' === up.role;
+              this.isSystemAdmin = 'SYSTEM_ADMIN' === up.role;
               return this.selUserCompanyService.selectedCompanyProfile$;
             }
           }),
@@ -2303,7 +2305,7 @@ export class ProductLabelComponent
   }
 
   canEdit() {
-    return this.isOwner;
+    return this.isOwner || this.isSystemAdmin;
   }
 
   public get journeyMarkersCtrl(): UntypedFormArray {
