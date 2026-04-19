@@ -226,6 +226,7 @@
                       tx.status
                     }})</span
                   >
+                  <span *ngIf="tx.sourceStockOrder.productionDate" class="ml-2 text-muted">{{ tx.sourceStockOrder.productionDate | date:'dd/MM/yyyy' }}</span>
                   <span
                     *ngIf="tx.sourceStockOrder.qrCodeTag"
                     (click)="openInputStockOrderQRCode(tx.sourceStockOrder)"
@@ -335,15 +336,16 @@
             <div class="af-c8">
               <ng-container *ngIf="item.orderType === 'PURCHASE_ORDER'">
                 <span
-                  >{{ item.identifier }} ({{ item.producerUserCustomer.name }}
-                  {{ item.producerUserCustomer.surname }})</span
+                  >{{ item.lotPrefix }} {{ item.identifier }} {{ item.internalLotNumber }} ({{ formatUserCustomer(item.producerUserCustomer) }})</span
                 >
+                <span *ngIf="item.productionDate" class="ml-2 text-muted">{{ item.productionDate | date:'dd/MM/yyyy' }}</span>
               </ng-container>
               <ng-container *ngIf="item.orderType != 'PURCHASE_ORDER'">
                 <span
                   >{{ item.lotPrefix }} {{ item.identifier }}
                   {{ item.internalLotNumber }}</span
                 >
+                <span *ngIf="item.productionDate" class="ml-2 text-muted">{{ item.productionDate | date:'dd/MM/yyyy' }}</span>
                 <span
                   *ngIf="item.qrCodeTag"
                   (click)="openInputStockOrderQRCode(item)"
