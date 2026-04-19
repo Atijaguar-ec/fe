@@ -344,7 +344,7 @@
                               <span class="timeline-chip ml-2" *ngIf="targetStockOrder.orderType">{{ targetStockOrder.orderType | formatStockOrderType }}</span>
                             </div>
                             <div class="timeline-order__meta">
-                              <span class="timeline-order__facility" *ngIf="targetStockOrder.facility?.name">@ {{ targetStockOrder.facility?.name }}</span>
+                              <span class="timeline-order__facility" *ngIf="targetStockOrder.facility?.name">&#64; {{ targetStockOrder.facility?.name }}</span>
                               <span class="timeline-order__company" *ngIf="targetStockOrder.facility?.company?.name"> · {{ targetStockOrder.facility?.company?.name }}</span>
                             </div>
                             <div class="timeline-order__details">
@@ -371,7 +371,7 @@
                               <span class="timeline-chip ml-2" i18n="@@orderHistoryView.tableCol.outputs">Outputs</span>
                             </div>
                             <div class="timeline-order__meta">
-                              <span class="timeline-order__facility" *ngIf="stockOrderGroup.facility?.name">@ {{ stockOrderGroup.facility?.name }}</span>
+                              <span class="timeline-order__facility" *ngIf="stockOrderGroup.facility?.name">&#64; {{ stockOrderGroup.facility?.name }}</span>
                               <span class="timeline-order__company" *ngIf="stockOrderGroup.facility?.company?.name"> · {{ stockOrderGroup.facility?.company?.name }}</span>
                             </div>
                             <div class="timeline-order__details">
