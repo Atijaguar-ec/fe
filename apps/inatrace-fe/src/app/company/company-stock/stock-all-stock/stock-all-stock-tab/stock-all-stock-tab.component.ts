@@ -236,6 +236,7 @@ export class StockAllStockTabComponent
 
     try {
       const result = await this.groupStockOrderControllerService
+        // @ts-ignore
         .exportGroupedStockOrdersExcelByCompany(this.companyId)
         .pipe(take(1))
         .toPromise();

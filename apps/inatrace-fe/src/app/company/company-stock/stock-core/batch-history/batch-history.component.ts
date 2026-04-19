@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GlobalEventManagerService } from '../../../../core/global-event-manager.service';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { map, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { map, shareReplay, switchMap, tap, take } from 'rxjs/operators';
 import { ApiTransaction } from '../../../../../api/model/apiTransaction';
 import { ApiStockOrder } from '../../../../../api/model/apiStockOrder';
 import { StockOrderControllerService } from '../../../../../api/api/stockOrderController.service';
@@ -12,6 +12,7 @@ import { ApiStockOrderHistory } from '../../../../../api/model/apiStockOrderHist
 import { ApiStockOrderHistoryTimelineItem } from '../../../../../api/model/apiStockOrderHistoryTimelineItem';
 import { ApiFacility } from '../../../../../api/model/apiFacility';
 import { ApiMeasureUnitType } from '../../../../../api/model/apiMeasureUnitType';
+import { ApiUserCustomer } from '../../../../../api/model/apiUserCustomer';
 
 interface GroupedStockOrders {
   processingDate: string;
@@ -30,6 +31,8 @@ interface GroupedStockOrders {
 })
 export class BatchHistoryComponent implements OnInit {
   qrCodeSize = 150;
+
+  @ViewChild('pdfContainer') pdfContainer?: ElementRef<any>;
 
   faTimes = faTimes;
 
@@ -231,5 +234,198 @@ export class BatchHistoryComponent implements OnInit {
       return 'ab-edit-link canceled';
     }
     return 'ab-edit-link';
+  }
+
+  companyNameForTimelineItem(item: ApiStockOrderHistoryTimelineItem): string {
+    if (!item) {
+      return '';
+    }
+
+    const directOrders = (this.getTargetStockOrders(item) || []) as ApiStockOrder[];
+    const groupedOrders = this.getStockOrderGroups(item) || [];
+
+    const firstOrder = directOrders.length > 0 ? directOrders[0] : undefined;
+    const firstGroup = groupedOrders.length > 0 ? groupedOrders[0] : undefined;
+
+    const facility = firstOrder?.facility ?? firstGroup?.facility;
+    const companyName = facility?.company?.name;
+
+    if (companyName) {
+      return companyName;
+    }
+
+    if (facility?.name) {
+      return facility.name;
+    }
+
+    return '';
+  }
+
+  companyLabelForTimelineItem(item: ApiStockOrderHistoryTimelineItem): string {
+    const companyName = this.companyNameForTimelineItem(item);
+    
+    return companyName || $localize`:@@orderHistoryView.timeline.unknownCompany:Empresa no especificada`;
+  }
+
+  shouldShowCompanyDivider(items: ApiStockOrderHistoryTimelineItem[], index: number): boolean {
+    if (!items || index < 0 || index >= items.length) {
+      return false;
+    }
+
+    const current = this.companyNameForTimelineItem(items[index]);
+
+    if (index === 0) {
+      return true;
+    }
+
+    const previous = this.companyNameForTimelineItem(items[index - 1]);
+    return current !== previous;
+  }
+
+  formatQuantity(order: ApiStockOrder, value?: number): string {
+    const quantity = Number(value ?? 0);
+    const formatted = quantity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const unit = order?.measureUnitType?.label;
+    return unit ? `${formatted} ${unit}` : formatted;
+  }
+
+  getUserCustomerDisplayName(user?: ApiUserCustomer | null): string {
+    if (!user) return '';
+    return [user.name, user.surname].filter(Boolean).join(' ');
+  }
+
+  getGrossQuantity(order: ApiStockOrder): string {
+    return this.formatQuantity(order, order?.totalGrossQuantity ?? 0);
+  }
+
+  getNetQuantity(order: ApiStockOrder): string {
+    return this.formatQuantity(order, order?.netQuantity ?? order?.totalQuantity ?? 0);
+  }
+
+  getDeductionsSummary(order: ApiStockOrder): string {
+    const deductions: string[] = [];
+    if (!order) {
+      return '-';
+    }
+
+    const gross = Number(order.totalGrossQuantity ?? order.totalQuantity ?? 0);
+    let currentWeight = gross;
+
+    // Tare deduction
+    if (order.tare && Number(order.tare) > 0) {
+      const tareLabel = $localize`:@@orderHistoryView.deductions.tare:Tara`;
+      deductions.push(`${tareLabel}: -${this.formatQuantity(order, order.tare)}`);
+      currentWeight -= Number(order.tare);
+    }
+
+    // Damaged weight deduction
+    if (order.damagedWeightDeduction && Number(order.damagedWeightDeduction) > 0) {
+      const damageLabel = $localize`:@@orderHistoryView.deductions.damage:Descuento peso`;
+      deductions.push(`${damageLabel}: -${this.formatQuantity(order, order.damagedWeightDeduction)}`);
+      currentWeight -= Number(order.damagedWeightDeduction);
+    }
+
+    // Moisture percentage deduction
+    if (order.moisturePercentage && Number(order.moisturePercentage) > 0) {
+      const moistureLabel = $localize`:@@orderHistoryView.deductions.moisture:Humedad`;
+      const percentage = Number(order.moisturePercentage).toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 0 });
+      
+      // Calculate what remains after moisture percentage
+      const baseWeight = Math.max(0, currentWeight);
+      const netAfterMoisture = baseWeight * (Number(order.moisturePercentage) / 100);
+      const moistureDeduction = baseWeight - netAfterMoisture;
+      
+      if (moistureDeduction > 0) {
+        deductions.push(`${moistureLabel} (${percentage}%): -${this.formatQuantity(order, moistureDeduction)}`);
+      }
+    }
+
+    return deductions.length > 0 ? deductions.join(' | ') : '-';
+  }
+
+  private getMoistureWeightDeduction(order: ApiStockOrder): number {
+    if (order.moistureWeightDeduction != null) {
+      return Number(order.moistureWeightDeduction);
+    }
+
+    if (order.moisturePercentage == null) {
+      return 0;
+    }
+
+    const gross = Number(order.totalGrossQuantity ?? order.totalQuantity ?? 0);
+    const tare = Number(order.tare ?? 0);
+    const damaged = Number(order.damagedWeightDeduction ?? 0);
+    const baseWeight = Math.max(0, gross - tare - damaged);
+    const moistureFactor = Number(order.moisturePercentage) / 100;
+    const netAfterMoisture = baseWeight * moistureFactor;
+    const deduction = baseWeight - netAfterMoisture;
+    return deduction > 0 ? deduction : 0;
+  }
+
+  downloadPdf() {
+    this.route.queryParamMap.pipe(take(1)).subscribe(async (params) => {
+      this.history$.pipe(take(1)).subscribe(async (history) => {
+        setTimeout(async () => {
+          try {
+            const html2canvas = (await import('html2canvas')).default;
+            const { jsPDF } = await import('jspdf');
+
+            const element = this.pdfContainer?.nativeElement;
+            if (!element) { return; }
+
+            const canvas = await html2canvas(element, {
+              scale: 2,
+              useCORS: true,
+              backgroundColor: '#ffffff',
+              windowWidth: element.scrollWidth,
+            });
+
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+
+            const imgWidth = pageWidth - 20;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            const y = 10;
+
+            const pageCanvas = document.createElement('canvas');
+            const pageCtx = pageCanvas.getContext('2d');
+            if (!pageCtx) { return; }
+            const pxPerMm = canvas.width / imgWidth;
+            const pageHeightPx = (pageHeight - 20) * pxPerMm;
+            let renderedHeightPx = 0;
+
+            while (renderedHeightPx < canvas.height) {
+              pageCanvas.width = canvas.width;
+              pageCanvas.height = Math.min(pageHeightPx, canvas.height - renderedHeightPx);
+              pageCtx.drawImage(canvas, 0, renderedHeightPx, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height);
+
+              const pageImgData = pageCanvas.toDataURL('image/png');
+              const pageImgHeightMm = pageCanvas.height / pxPerMm;
+
+              if (renderedHeightPx === 0) {
+                pdf.addImage(pageImgData, 'PNG', 10, y, imgWidth, pageImgHeightMm);
+              } else {
+                pdf.addPage();
+                pdf.addImage(pageImgData, 'PNG', 10, 10, imgWidth, pageImgHeightMm);
+              }
+
+              renderedHeightPx += pageCanvas.height;
+            }
+
+            const so = (history && (history as any).stockOrder) as ApiStockOrder;
+            const rawId = so?.identifier || so?.internalLotNumber || (so?.id != null ? so.id.toString() : 'sin-id');
+            const safeId = rawId.replace(/[^a-zA-Z0-9\-_]+/g, '_');
+            pdf.save(`entrega--${safeId}.pdf`);
+          } catch (err) {
+            this.globalEventsManager.openMessageModal({
+              type: 'error',
+              message: $localize`:@@orderHistoryView.pdfGeneration.error:Error al generar el PDF de la orden. Por favor, intente nuevamente.`,
+              options: { centered: true }
+            });
+          }
+        }, 400);
+      });
+    });
   }
 }

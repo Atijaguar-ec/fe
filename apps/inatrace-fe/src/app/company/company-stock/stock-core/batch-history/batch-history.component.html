@@ -1,141 +1,149 @@
 <app-authorised-layout>
   <ng-container *ngIf="history$ | async as history">
     <ng-container *ngIf="history.stockOrder as stockOrder">
-      <div class="af-form-wrapper">
+      <div class="af-form-wrapper" #pdfContainer>
         <div class="af-form-row">
           <div class="af-form-block--c12">
-            <div
-              class="title-page content-element--title d-flex justify-content-between"
-            >
-              <div i18n="@@orderHistoryView.title.batchHistory">
-                Batch history
-              </div>
-              <button
-                class="btn btn-solid round btn-table-new content-element--btn"
-                (click)="edit(stockOrder)"
-                i18n="@@orderHistoryView.button.edit"
-              >
+            <div class="title-page content-element--title d-flex justify-content-between">
+              <div i18n="@@orderHistoryView.title.batchHistory">Batch history</div>
+              
+              <div class="actions">
+
+                 <button class="btn btn-solid round btn-table-new content-element--btn" (click)="edit(stockOrder)" i18n="@@orderHistoryView.button.edit">
                 <span>Edit</span>
               </button>
+
+                <button class="btn btn-secondary" type="button" (click)="downloadPdf()" i18n="@@batchHistory.downloadPdfButton">Imprimir PDF</button>
+              
+              </div>
             </div>
           </div>
         </div>
-
         <div class="af-form-row">
           <div class="af-form-block--c6">
             <div>
-              <h2 i18n="@@orderHistoryView.formTitle.basicInformation">
-                Basic information
-              </h2>
+              <h2 i18n="@@orderHistoryView.formTitle.basicInformation">Basic information</h2>
             </div>
             <div class="af-form-element">
+
               <table class="af-table af-table--200 table-striped">
-                <tbody>
-                  <tr *ngIf="!stockOrder.purchaseOrder">
-                    <th i18n="@@orderHistoryView.tableCol.internalLotNumber">
-                      Internal lot name
-                    </th>
-                    <td>{{ stockOrder.internalLotNumber }}</td>
-                  </tr>
-                  <tr *ngIf="stockOrder.purchaseOrder">
-                    <th i18n="@@orderHistoryView.tableCol.identifier">
-                      Identifier
-                    </th>
-                    <td>{{ stockOrder.identifier }}</td>
-                  </tr>
-                  <tr>
-                    <th i18n="@@orderHistoryView.tableCol.facilityName">
-                      Facility
-                    </th>
-                    <td>
-                      {{ stockOrder.facility?.name }} ({{
-                        stockOrder.facility?.company?.name
-                      }})
-                    </td>
-                  </tr>
-                  <tr>
-                    <ng-container *ngIf="stockOrder.semiProduct">
-                      <th i18n="@@orderHistoryView.tableCol.semiProduct">
-                        Semi-product
-                      </th>
-                      <td>{{ stockOrder.semiProduct.name }}</td>
-                    </ng-container>
-                    <ng-container *ngIf="stockOrder.finalProduct">
-                      <th i18n="@@orderHistoryView.tableCol.finalProduct">
-                        Final product
-                      </th>
-                      <td>
-                        {{ stockOrder.finalProduct.name }} ({{
-                          stockOrder.finalProduct.product.name
-                        }})
-                      </td>
-                    </ng-container>
-                  </tr>
+                <tbody> 
+
+                <tr *ngIf="!stockOrder.purchaseOrder">
+                  <th i18n="@@orderHistoryView.tableCol.internalLotNumber">Internal lot name</th>
+                  <td>{{ stockOrder.internalLotNumber }}</td>
+                </tr>
+                <tr *ngIf="stockOrder.purchaseOrder">
+                  <th i18n="@@orderHistoryView.tableCol.identifier">Identifier</th>
+                  <td>{{ stockOrder.identifier }}</td>
+                </tr>
+                <tr *ngIf="stockOrder.weekNumber != null">
+                  <th i18n="@@orderHistoryView.tableCol.weekNumber">N° de Semana</th>
+                  <td>{{ stockOrder.weekNumber }}</td>
+                </tr>
+                <tr *ngIf="stockOrder.parcelLot">
+                  <th i18n="@@orderHistoryView.tableCol.parcelLot">Parcel lot</th>
+                  <td>{{ stockOrder.parcelLot }}</td>
+                </tr>
+                <tr *ngIf="stockOrder.variety">
+                  <th i18n="@@orderHistoryView.tableCol.variety">Variety</th>
+                  <td>{{ stockOrder.variety }}</td>
+                </tr>
+                <tr *ngIf="stockOrder.organicCertification">
+                  <th i18n="@@orderHistoryView.tableCol.organicCertification">Organic certification</th>
+                  <td>{{ stockOrder.organicCertification }}</td>
+                </tr>
+                <tr>
+                  <th i18n="@@orderHistoryView.tableCol.facilityName">Facility</th>
+                  <td>{{ stockOrder.facility?.name }} ({{ stockOrder.facility?.company?.name }})</td>
+                </tr>
+                <tr>
+                  <ng-container *ngIf="stockOrder.semiProduct">
+                    <th i18n="@@orderHistoryView.tableCol.semiProduct">Semi-product</th>
+                    <td>{{ stockOrder.semiProduct.name }}</td>
+                  </ng-container>
+                  <ng-container *ngIf="stockOrder.finalProduct">
+                    <th i18n="@@orderHistoryView.tableCol.finalProduct">Final product</th>
+                    <td>{{ stockOrder.finalProduct.name }} ({{ stockOrder.finalProduct.product.name}})</td>
+                  </ng-container>
+                </tr>
                 </tbody>
               </table>
 
-              <table
-                class="af-table af-table--200 table-striped af-table--divider"
-              >
+
+
+              <!-- Cantidades y Pesos -->
+              <table class="af-table af-table--200 table-striped af-table--divider">
                 <tbody>
+                  <ng-container *ngIf="stockOrder.totalGrossQuantity">
                   <tr>
-                    <th>Total</th>
-                    <td>
-                      {{ stockOrder.totalQuantity }}
-                      {{ stockOrder.measureUnitType?.label }}
-                    </td>
+                    <th i18n="@@batchHistory.tableCol.totalGross">Total bruto</th>
+                    <td>{{ stockOrder.totalGrossQuantity }} {{ getDisplayMeasureUnit(stockOrder) }} </td>
                   </tr>
-                  <tr>
-                    <th>Fulfilled</th>
-                    <td>
-                      {{ stockOrder.fulfilledQuantity }}
-                      {{ stockOrder.measureUnitType?.label }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th>Available quantity</th>
-                    <td>
-                      {{ stockOrder.availableQuantity }}
-                      {{ stockOrder.measureUnitType?.label }}
-                    </td>
-                  </tr>
+                  </ng-container>
+
+
+
+                  <!-- Descuentos de peso (solo cacao) -->
+                  <ng-container *ngIf="stockOrder.damagedWeightDeduction">
+                    <tr>
+                      <th i18n="@@batchHistory.tableCol.damagedWeight">Descuento de peso</th>
+                      <td>{{ stockOrder.damagedWeightDeduction }} {{ stockOrder.measureUnitType?.label }}</td>
+                    </tr>
+                  </ng-container>
+
+                  <!-- Humedad (solo cacao) -->
+                  <ng-container *ngIf="stockOrder.moisturePercentage">
+                    <tr>
+                      <th i18n="@@batchHistory.tableCol.moisturePercentage">% Descuento por humedad</th>
+                      <td>{{ stockOrder.moisturePercentage }}% => {{ stockOrder.moistureWeightDeduction }} {{ stockOrder.measureUnitType?.label }}</td>
+                    </tr>
+                  </ng-container>
+
+                  <!-- Peso Neto (prominente para camarón) -->
+                  <ng-container *ngIf="stockOrder.netQuantity">
+                    <tr>
+                      <th i18n="@@batchHistory.tableCol.netQuantity"><strong>Peso Neto</strong></th>
+                      <td><strong>{{ stockOrder.netQuantity }} {{ getDisplayMeasureUnit(stockOrder) }}</strong></td>
+                    </tr>
+                  </ng-container>
+
+                <tr>
+                  <th i18n="@@orderHistoryView.tableCol.measurementUnitType">Total</th>
+                  <td>{{ stockOrder.totalQuantity }} {{ getDisplayMeasureUnit(stockOrder) }}</td>
+                </tr>
+
+                <tr>
+                  <th i18n="@@orderHistoryView.tableCol.fulfilled">Cumplido</th>
+                  <td>{{ formatQuantity(stockOrder, stockOrder.fulfilledQuantity) }}</td>
+                </tr>
+                <tr>
+                  <th i18n="@@orderHistoryView.tableCol.available">Disponible</th>
+                  <td>{{ formatQuantity(stockOrder, stockOrder.availableQuantity) }}</td>
+                </tr>
                 </tbody>
               </table>
 
-              <table
-                class="af-table af-table--200 table-striped af-table--divider"
-              >
+              <table class="af-table af-table--200 table-striped af-table--divider">
                 <tbody>
-                  <tr>
-                    <th i18n="@@orderHistoryView.tableCol.created">Created</th>
-                    <td>
-                      {{
-                        stockOrder.creationTimestamp | date: 'yyyy-MM-dd hh:mm'
-                      }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th i18n="@@orderHistoryView.tableCol.lastChange">
-                      Last change
-                    </th>
-                    <td>
-                      {{
-                        stockOrder.updateTimestamp | date: 'yyyy-MM-dd hh:mm'
-                      }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th i18n="@@orderHistoryView.tableCol.productionDate">
-                      Production date
-                    </th>
-                    <td>
-                      {{ stockOrder.productionDate | date: 'yyyy-MM-dd' }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th i18n="@@orderHistoryView.tableCol.comment">Comment</th>
-                    <td>{{ stockOrder.comments || '-' }}</td>
-                  </tr>
+                <tr>
+                  <th i18n="@@orderHistoryView.tableCol.created">Created</th>
+                  <td>{{ stockOrder.creationTimestamp | date: 'yyyy-MM-dd hh:mm' }}</td>
+                </tr>
+                <tr>
+                  <th i18n="@@orderHistoryView.tableCol.lastChange">Last change</th>
+                  <td>{{ stockOrder.updateTimestamp | date: 'yyyy-MM-dd hh:mm' }}</td>
+                </tr>
+                <tr>
+                  <th i18n="@@orderHistoryView.tableCol.productionDate">Production date</th>
+                  <td>{{ stockOrder.productionDate | date: 'yyyy-MM-dd' }}</td>
+                </tr>
+                <tr>
+                  <th i18n="@@orderHistoryView.tableCol.comment">Comment</th>
+                  <td>{{ stockOrder.comments || '-' }}</td>
+                </tr>
+               
+
                 </tbody>
               </table>
             </div>
@@ -143,255 +151,143 @@
 
           <div class="af-form-block--c6">
             <div>
-              <h2 i18n="@@orderHistoryView.formTitle.processingInformation">
-                Processing information
-              </h2>
+              <h2 i18n="@@orderHistoryView.formTitle.processingInformation">Processing information</h2>
             </div>
             <div class="af-form-element">
               <table class="af-table af-table--200 table-striped">
                 <tbody>
-                  <tr>
-                    <th i18n="@@orderHistoryView.tableCol.orderType">
-                      Order type
-                    </th>
-                    <td>{{ stockOrder.orderType | formatStockOrderType }}</td>
-                  </tr>
+                <tr>
+                  <th i18n="@@orderHistoryView.tableCol.orderType">Order type</th>
+                  <td>{{ stockOrder.orderType | formatStockOrderType }}</td>
+                </tr>
 
-                  <tr *ngIf="history.processingOrder?.processingAction">
-                    <th i18n="@@orderHistoryView.tableCol.processingAction">
-                      Processing action
-                    </th>
-                    <td>
-                      {{ history.processingOrder?.processingAction?.name }} ({{
-                        history.processingOrder?.processingAction?.type
-                          | formatProcessingActionType
-                      }})
-                    </td>
-                  </tr>
+                <tr *ngIf="history.processingOrder?.processingAction">
+                  <th i18n="@@orderHistoryView.tableCol.processingAction">Processing action</th>
+                  <td>{{ history.processingOrder?.processingAction?.name }} ({{ history.processingOrder?.processingAction?.type | formatProcessingActionType }})</td>
+                </tr>
 
-                  <tr
-                    *ngIf="
-                      history.processingOrder &&
-                      history.processingOrder.processingAction?.type ===
-                        'PROCESSING' &&
-                      history.processingOrder.targetStockOrders.length > 1
-                    "
-                  >
-                    <th i18n="@@orderHistoryView.tableCol.sibilingOrders">
-                      Sibling orders
-                    </th>
-                    <td>
-                      <ng-container>
-                        {{
-                          history.processingOrder?.processingAction
-                            ?.outputSemiProduct?.name
-                        }}
-                        <ul style="margin-bottom: 0">
-                          <ng-container
-                            *ngFor="
-                              let order of history.processingOrder
-                                ?.targetStockOrders
-                            "
-                          >
-                            <li *ngIf="isThisOrder(stockOrder, order)">
-                              <a
-                                class="ab-edit-link"
-                                (click)="goToSibling(order)"
-                                >{{ order.totalQuantity }}
-                                {{ order.measureUnitType?.label }}</a
-                              ><span> (this order)</span>
-                            </li>
-                            <li *ngIf="!isThisOrder(stockOrder, order)">
-                              <a
-                                class="ab-edit-link"
-                                (click)="goToSibling(order)"
-                                >{{ order.totalQuantity }}
-                                {{ order.measureUnitType?.label }}</a
-                              >
-                            </li>
-                          </ng-container>
-                        </ul>
-                      </ng-container>
-                    </td>
-                  </tr>
-
-                  <ng-container *ngIf="stockOrder.purchaseOrder">
-                    <tr>
-                      <th i18n="@@orderHistoryView.tableCol.semiProductName">
-                        Farmer
-                      </th>
-                      <td>
-                        {{ stockOrder.producerUserCustomer?.name }}
-                        {{ stockOrder.producerUserCustomer?.surname }}
-                      </td>
-                    </tr>
-                    <tr>
-                      <th
-                        i18n="@@orderHistoryView.tableCol.farmerRepresentative"
-                      >
-                        Farmer representative
-                      </th>
-                      <td>
-                        {{
-                          stockOrder.representativeOfProducerUserCustomer?.name
-                        }}
-                        {{
-                          stockOrder.representativeOfProducerUserCustomer
-                            ?.surname
-                        }}
-                      </td>
-                    </tr>
-                    <tr>
-                      <th i18n="@@orderHistoryView.tableCol.costPaidBalance">
-                        Cost / Paid / Balance
-                      </th>
-                      <td>
-                        <ng-container
-                          *ngIf="
-                            stockOrder.priceDeterminedLater;
-                            else priceAvailable
-                          "
-                        >
-                          TBD
+                <tr *ngIf="history.processingOrder && history.processingOrder.processingAction?.type === 'PROCESSING' && history.processingOrder.targetStockOrders.length > 1">
+                  <th i18n="@@orderHistoryView.tableCol.sibilingOrders">Sibling orders</th>
+                  <td>
+                    <ng-container>
+                      {{ history.processingOrder?.processingAction?.outputSemiProduct?.name }}
+                      <ul style="margin-bottom: 0;">
+                        <ng-container *ngFor="let order of history.processingOrder?.targetStockOrders">
+                          <li *ngIf="isThisOrder(stockOrder, order)"><a class="ab-edit-link" (click)="goToSibling(order)">{{ order.totalQuantity }} {{ order.measureUnitType?.label }}</a><span> (this order)</span></li>
+                          <li *ngIf="!isThisOrder(stockOrder, order)"><a class="ab-edit-link" (click)="goToSibling(order)">{{ order.totalQuantity }} {{ order.measureUnitType?.label }}</a></li>
                         </ng-container>
-                        <ng-template #priceAvailable>
-                          {{ stockOrder.cost }} / {{ stockOrder.paid || 0 }} /
-                          {{ stockOrder.balance }} {{ stockOrder.currency }}
-                        </ng-template>
-                      </td>
-                    </tr>
-                  </ng-container>
+                      </ul>
+                    </ng-container>
+                  </td>
+                </tr>
+
+                <ng-container *ngIf="stockOrder.purchaseOrder">
+                  <tr>
+                    <th i18n="@@orderHistoryView.tableCol.semiProductName">Farmer</th>
+                    <td>{{ getUserCustomerDisplayName(stockOrder.producerUserCustomer) }}</td>
+                  </tr>
+                  <tr>
+                    <th i18n="@@orderHistoryView.tableCol.farmerRepresentative">Farmer representative</th>
+                    <td>{{ getUserCustomerDisplayName(stockOrder.representativeOfProducerUserCustomer) }}</td>
+                  </tr>
+                  <tr>
+                    <th i18n="@@orderHistoryView.tableCol.finalPriceDiscount">Final price discount</th>
+                    <td>{{ stockOrder.finalPriceDiscount }} {{ stockOrder.currency }}</td>
+                  </tr>
+                  <tr>
+                    <th i18n="@@orderHistoryView.tableCol.costPaidBalance">Cost / Paid / Balance</th>
+                    <td>
+                      <ng-container *ngIf="stockOrder.priceDeterminedLater; else priceAvailable">
+                        TBD
+                      </ng-container>
+                      <ng-template #priceAvailable>
+                        {{ stockOrder.cost }} / {{ stockOrder.paid || 0 }} / {{ stockOrder.balance }} {{ stockOrder.currency }}
+                      </ng-template>
+                    </td>
+                  </tr>
+                </ng-container>
+
                 </tbody>
               </table>
 
               <div class="af-row af-table--divider">
+
                 <div class="af-c6">
-                  <table
-                    class="af-table af-table--75"
-                    *ngIf="!stockOrder.purchaseOrder"
-                    style="height: 100%"
-                  >
+                  <table class="af-table af-table--75" *ngIf="!stockOrder.purchaseOrder" style="height: 100%;">
                     <tbody>
-                      <tr>
-                        <th i18n="@@orderHistoryView.tableCol.inputs">
-                          Inputs
-                        </th>
-                        <td>
-                          <ng-container
-                            *ngIf="
-                              history.processingOrder?.processingAction
-                                ?.inputSemiProduct
-                            "
-                          >
-                            {{
-                              history.processingOrder.processingAction
-                                .inputSemiProduct.name
-                            }}
-                          </ng-container>
-                          <ng-container
-                            *ngIf="
-                              history.processingOrder?.processingAction
-                                ?.inputFinalProduct
-                            "
-                          >
-                            {{
-                              history.processingOrder.processingAction
-                                .inputFinalProduct.name
-                            }}
-                            ({{
-                              history.processingOrder.processingAction
-                                .inputFinalProduct.product.name
-                            }})
-                          </ng-container>
-                          <ul
-                            *ngIf="
-                              history.processingOrder?.inputTransactions &&
-                              history.processingOrder?.inputTransactions
-                                .length > 0
-                            "
-                            style="margin-bottom: 0"
-                          >
-                            <li
-                              *ngFor="
-                                let tx of history.processingOrder
-                                  ?.inputTransactions
-                              "
-                            >
-                              <a
-                                [ngClass]="transactionColor(tx)"
-                                (click)="goToInput(tx)"
-                                >{{ tx.inputQuantity }}
-                                {{ tx.inputMeasureUnitType?.label }}</a
-                              >
-                              <div
-                                *ngIf="tx.status === 'CANCELED'"
-                                class="canceled"
-                              >
-                                {{ tx.rejectComment }}
+                    <tr>
+                      <th i18n="@@orderHistoryView.tableCol.inputs">Inputs</th>
+                      <td>
+                        <ng-container *ngIf="history.processingOrder?.processingAction?.inputSemiProduct">
+                          {{ history.processingOrder.processingAction.inputSemiProduct.name }}
+                        </ng-container>
+                        <ng-container *ngIf="history.processingOrder?.processingAction?.inputFinalProduct">
+                          {{ history.processingOrder.processingAction.inputFinalProduct.name }} ({{ history.processingOrder.processingAction.inputFinalProduct.product.name }})
+                        </ng-container>
+                        <ul *ngIf="history.processingOrder?.inputTransactions && history.processingOrder?.inputTransactions.length> 0" class="timeline-transaction-list">
+                          <li *ngFor="let tx of history.processingOrder?.inputTransactions" class="timeline-transaction-item">
+                            <a [ngClass]="transactionColor(tx)" (click)="goToInput(tx)">
+                              <div class="timeline-transaction__header">
+                                <span class="timeline-transaction__quantity">{{ tx.inputQuantity | number:'1.0-2' }}</span>
+                                <span class="timeline-transaction__unit">{{ tx.inputMeasureUnitType?.label }}</span>
+                                
                               </div>
-                            </li>
-                          </ul>
-                        </td>
-                      </tr>
+                              <div class="timeline-transaction__meta" *ngIf="tx.company?.name || tx.sourceStockOrder?.facility?.name || tx.sourceStockOrder?.facility?.company?.name">
+                                <span class="timeline-transaction__company" *ngIf="tx.company?.name">{{ tx.company?.name }}</span>
+                                <span class="timeline-transaction__separator" *ngIf="tx.company?.name && (tx.sourceStockOrder?.facility?.company?.name || tx.sourceStockOrder?.facility?.name)">·</span>
+                                <span class="timeline-transaction__facility" *ngIf="tx.sourceStockOrder?.facility?.name">{{ tx.sourceStockOrder?.facility?.name }}</span>
+                                <span class="timeline-transaction__separator" *ngIf="tx.sourceStockOrder?.facility?.name && tx.sourceStockOrder?.facility?.company?.name">·</span>
+                                <span class="timeline-transaction__facility-company" *ngIf="tx.sourceStockOrder?.facility?.company?.name">{{ tx.sourceStockOrder?.facility?.company?.name }}</span>
+                              </div>
+                              <div class="timeline-transaction__details" *ngIf="tx.sourceStockOrder?.internalLotNumber || tx.sourceStockOrder?.identifier">
+                                {{ tx.sourceStockOrder?.internalLotNumber || tx.sourceStockOrder?.identifier }}
+                              </div>
+                            </a>
+                            <div *ngIf="tx.status === 'CANCELED' && tx.rejectComment" class="timeline-transaction__note">{{ tx.rejectComment }}</div>
+                          </li>
+                        </ul>
+                      </td>
+                    </tr>
                     </tbody>
                   </table>
                 </div>
 
                 <div class="af-c6">
-                  <table class="af-table af-table--75" style="height: 100%">
+                  <table class="af-table af-table--75" style="height: 100%;">
                     <tbody>
-                      <tr>
-                        <th i18n="@@orderHistoryView.tableCol.outputs">
-                          Outputs
-                        </th>
-                        <td>
-                          <ng-container
-                            *ngIf="
-                              history.processingOrder?.processingAction
-                                ?.outputSemiProduct
-                            "
-                          >
-                            {{
-                              history.processingOrder.processingAction
-                                .outputSemiProduct.name
-                            }}
-                          </ng-container>
-                          <ng-container
-                            *ngIf="
-                              history.processingOrder?.processingAction
-                                ?.outputFinalProduct
-                            "
-                          >
-                            {{
-                              history.processingOrder.processingAction
-                                .outputFinalProduct.name
-                            }}
-                            ({{
-                              history.processingOrder.processingAction
-                                .outputFinalProduct.product.name
-                            }})
-                          </ng-container>
-                          <ul
-                            *ngIf="history.outputTransactions.length > 0"
-                            style="margin-bottom: 0"
-                          >
-                            <li *ngFor="let tx of history.outputTransactions">
-                              <a
-                                [ngClass]="transactionColor(tx)"
-                                (click)="goToOutput(tx)"
-                                >{{ tx.inputQuantity }}
-                                {{ tx.inputMeasureUnitType?.label }}</a
-                              >
-                              <div
-                                *ngIf="tx.status === 'CANCELED'"
-                                class="canceled"
-                              >
-                                {{ tx.rejectComment }}
+                    <tr>
+                      <th i18n="@@orderHistoryView.tableCol.outputs">Outputs</th>
+                      <td>
+                        <ng-container *ngIf="history.processingOrder?.processingAction?.outputSemiProduct">
+                          {{ history.processingOrder.processingAction.outputSemiProduct.name }}
+                        </ng-container>
+                        <ng-container *ngIf="history.processingOrder?.processingAction?.outputFinalProduct">
+                          {{ history.processingOrder.processingAction.outputFinalProduct.name }} ({{ history.processingOrder.processingAction.outputFinalProduct.product.name }})
+                        </ng-container>
+                        <ul *ngIf="history.outputTransactions.length > 0" class="timeline-transaction-list">
+                          <li *ngFor="let tx of history.outputTransactions" class="timeline-transaction-item">
+                            <a [ngClass]="transactionColor(tx)" (click)="goToOutput(tx)">
+                              <div class="timeline-transaction__header">
+                                <span class="timeline-transaction__quantity">{{ tx.inputQuantity | number:'1.0-2' }}</span>
+                                <span class="timeline-transaction__unit">{{ tx.inputMeasureUnitType?.label }}</span>
+                               
                               </div>
-                            </li>
-                          </ul>
-                        </td>
-                      </tr>
+                              <div class="timeline-transaction__meta" *ngIf="tx.company?.name || tx.targetStockOrder?.facility?.name || tx.targetStockOrder?.facility?.company?.name">
+                                <span class="timeline-transaction__company" *ngIf="tx.company?.name">{{ tx.company?.name }}</span>
+                                <span class="timeline-transaction__separator" *ngIf="tx.company?.name && (tx.targetStockOrder?.facility?.company?.name || tx.targetStockOrder?.facility?.name)">·</span>
+                                <span class="timeline-transaction__facility" *ngIf="tx.targetStockOrder?.facility?.name">{{ tx.targetStockOrder?.facility?.name }}</span>
+                                <span class="timeline-transaction__separator" *ngIf="tx.targetStockOrder?.facility?.name && tx.targetStockOrder?.facility?.company?.name">·</span>
+                                <span class="timeline-transaction__facility-company" *ngIf="tx.targetStockOrder?.facility?.company?.name">{{ tx.targetStockOrder?.facility?.company?.name }}</span>
+                              </div>
+                              <div class="timeline-transaction__details" *ngIf="tx.targetStockOrder?.internalLotNumber || tx.targetStockOrder?.identifier">
+                                {{ tx.targetStockOrder?.internalLotNumber || tx.targetStockOrder?.identifier }}
+                              </div>
+                            </a>
+                            <div *ngIf="tx.status === 'CANCELED' && tx.rejectComment" class="timeline-transaction__note">{{ tx.rejectComment }}</div>
+                          </li>
+                        </ul>
+                      </td>
+                    </tr>
                     </tbody>
                   </table>
                 </div>
@@ -401,26 +297,17 @@
                 <div class="af-c6">
                   <div *ngIf="qrCodeString(stockOrder)">
                     <div class="d-flex justify-content-start mt-2">
-                      <div
-                        class="ml-3"
-                        (click)="code.select(); copyToClipboard()"
-                      >
-                        <qr-code
-                          [value]="qrCodeString(stockOrder)"
-                          [size]="qrCodeSize"
-                        ></qr-code>
+                      <div class="ml-3" (click)="code.select(); copyToClipboard();">
+                        <qr-code [value]="qrCodeString(stockOrder)" [size]="qrCodeSize"></qr-code>
                       </div>
-                      <input
-                        #code
-                        value="{{ qrCodeString(stockOrder) }}"
-                        class="offscreen"
-                      />
+                      <input #code value="{{ qrCodeString(stockOrder) }}" class="offscreen">
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
         </div>
 
         <div class="af-form-row">
@@ -428,129 +315,77 @@
             <div>
               <h2 i18n="@@orderHistoryView.title.history">History</h2>
             </div>
-            <div class="af-form-element" style="background-color: inherit">
+            <div class="af-form-element" style="background-color: inherit;">
               <ng-container *ngIf="history">
-                <ng-container
-                  *ngFor="
-                    let historyItem of history.timelineItems;
-                    let i = index;
-                    let last = last
-                  "
-                >
+                <ng-container *ngFor="let historyItem of history.timelineItems; let i= index; let last= last">
+                  <ng-container *ngIf="shouldShowCompanyDivider(history.timelineItems, i)">
+                    <div class="timeline-company-divider">
+                      <div class="timeline-company-divider__line"></div>
+                      <div class="timeline-company-divider__label">
+                        <span class="timeline-chip timeline-chip--company">{{ companyLabelForTimelineItem(historyItem) }}</span>
+                      </div>
+                    </div>
+                  </ng-container>
                   <div class="af-timeline-box" [class.last-box]="last">
-                    <h5 class="af-timeline-box-subtitle">
-                      <span
-                        *ngIf="
-                          processingCreationDate(historyItem) as dateOfCreation
-                        "
-                        >{{ dateOfCreation | date: 'yyyy-MM-dd' }} - </span
-                      >{{ processingOrderName(historyItem) }}
+                    <h5 class="af-timeline-box-subtitle d-flex align-items-center flex-wrap">
+                      <span class="mr-2" *ngIf="processingCreationDate(historyItem) as dateOfCreation">{{ dateOfCreation | date: 'yyyy-MM-dd' }} - </span>{{ processingOrderName(historyItem) }}
+                      <span class="timeline-badge ml-2" *ngIf="historyItem.processingOrder?.processingAction?.type">{{ historyItem.processingOrder.processingAction.type | formatProcessingActionType }}</span>
                     </h5>
 
                     <ul>
+
                       <!-- SINGLE OUTPUTS -->
-                      <ng-container
-                        *ngFor="
-                          let targetStockOrder of getTargetStockOrders(
-                            historyItem
-                          )
-                        "
-                      >
+                      <ng-container *ngFor="let targetStockOrder of getTargetStockOrders(historyItem)">
                         <li>
-                          <a
-                            class="ab-edit-link"
-                            [class.root-order]="
-                              isRoot(stockOrder, targetStockOrder)
-                            "
-                            (click)="goToOrderView(targetStockOrder)"
-                          >
-                            {{
-                              targetStockOrder.productionDate
-                                | date: 'yyyy-MM-dd'
-                            }}
-                            &#64; {{ targetStockOrder.facility?.name }} :
-                            {{
-                              targetStockOrder.internalLotNumber ||
-                                targetStockOrder.identifier
-                            }}
-                            - {{ targetStockOrder.totalQuantity }}
-                            {{ targetStockOrder.measureUnitType?.label }}
-                            <span *ngIf="isRoot(stockOrder, targetStockOrder)"
-                              >&nbsp;(<span
-                                i18n="@@orderHistoryView.thisOrder.notice"
-                                >this order</span
-                              >)</span
-                            >
+                          <a class="ab-edit-link timeline-order" [class.root-order]="isRoot(stockOrder, targetStockOrder)"
+                             (click)="goToOrderView(targetStockOrder)">
+                            <div class="timeline-order__header">
+                              <span class="timeline-order__date">{{ targetStockOrder.productionDate | date: 'yyyy-MM-dd' }}</span>
+                              <span class="timeline-chip ml-2" *ngIf="targetStockOrder.orderType">{{ targetStockOrder.orderType | formatStockOrderType }}</span>
+                            </div>
+                            <div class="timeline-order__meta">
+                              <span class="timeline-order__facility" *ngIf="targetStockOrder.facility?.name">@ {{ targetStockOrder.facility?.name }}</span>
+                              <span class="timeline-order__company" *ngIf="targetStockOrder.facility?.company?.name"> · {{ targetStockOrder.facility?.company?.name }}</span>
+                            </div>
+                            <div class="timeline-order__details">
+                              <span>{{ targetStockOrder.internalLotNumber || targetStockOrder.identifier }}</span>
+                              <span class="timeline-order__quantity">— {{ targetStockOrder.totalQuantity }} {{ targetStockOrder.measureUnitType?.label }}</span>
+                              <span *ngIf="isRoot(stockOrder, targetStockOrder)" class="timeline-order__root" i18n="@@orderHistoryView.thisOrder.notice">(this order)</span>
+                            </div>
                           </a>
 
                           <ul>
-                            <ng-container
-                              *ngFor="
-                                let evidenceField of targetStockOrder.requiredEvidenceFieldValues
-                              "
-                            >
-                              <li>
-                                <app-field-or-doc-info
-                                  [evidenceField]="evidenceField"
-                                  [processingAction]="
-                                    historyItem.processingOrder.processingAction
-                                  "
-                                ></app-field-or-doc-info>
-                              </li>
+                            <ng-container *ngFor="let evidenceField of targetStockOrder.requiredEvidenceFieldValues">
+                              <li><app-field-or-doc-info [evidenceField]="evidenceField" [processingAction]="historyItem.processingOrder.processingAction"></app-field-or-doc-info></li>
                             </ng-container>
                           </ul>
                         </li>
                       </ng-container>
 
                       <!-- GROUPED OUTPUTS (ALL STOCK ORDERS IN A GROUP HAVE THE SAME PROCESSING EVIDENCE FIELD VALUES) -->
-                      <ng-container
-                        *ngFor="
-                          let stockOrderGroup of getStockOrderGroups(
-                            historyItem
-                          )
-                        "
-                      >
+                      <ng-container *ngFor="let stockOrderGroup of getStockOrderGroups(historyItem)">
                         <li>
-                          <a
-                            class="ab-edit-link"
-                            (click)="
-                              goToOrderView(stockOrderGroup.stockOrders[0])
-                            "
-                          >
-                            <span class="mr-2"
-                              >{{
-                                stockOrderGroup.processingDate
-                                  | date: 'yyyy-MM-dd'
-                              }}
-                              &#64; {{ stockOrderGroup.facility?.name }} :
-                              {{ stockOrderGroup.internalLotNumber }}</span
-                            >
-                            (<span
-                              i18n="
-                                @@orderHistoryView.history.timelineItem.numberOfSacs.label"
-                              >Number of sacs:</span
-                            ><span>
-                              {{ stockOrderGroup.stockOrders.length }} -
-                              {{ stockOrderGroup.summedUpQuantity }}
-                              {{ stockOrderGroup.measureUnitType?.label }}</span
-                            >)
+                          <a class="ab-edit-link timeline-order" (click)="goToOrderView(stockOrderGroup.stockOrders[0])">
+                            <div class="timeline-order__header">
+                              <span class="timeline-order__date">{{ stockOrderGroup.processingDate | date: 'yyyy-MM-dd' }}</span>
+                              <span class="timeline-chip ml-2" i18n="@@orderHistoryView.tableCol.outputs">Outputs</span>
+                            </div>
+                            <div class="timeline-order__meta">
+                              <span class="timeline-order__facility" *ngIf="stockOrderGroup.facility?.name">@ {{ stockOrderGroup.facility?.name }}</span>
+                              <span class="timeline-order__company" *ngIf="stockOrderGroup.facility?.company?.name"> · {{ stockOrderGroup.facility?.company?.name }}</span>
+                            </div>
+                            <div class="timeline-order__details">
+                              <span>{{ stockOrderGroup.internalLotNumber }}</span>
+                              <span class="timeline-order__quantity">
+                                — <span i18n="@@orderHistoryView.history.timelineItem.numberOfSacs.label">Number of sacs:</span>
+                                {{ stockOrderGroup.stockOrders.length }} · {{ stockOrderGroup.summedUpQuantity }} {{ stockOrderGroup.measureUnitType?.label }}
+                              </span>
+                            </div>
                           </a>
 
                           <ul>
-                            <ng-container
-                              *ngFor="
-                                let evidenceField of stockOrderGroup
-                                  .stockOrders[0].requiredEvidenceFieldValues
-                              "
-                            >
-                              <li>
-                                <app-field-or-doc-info
-                                  [evidenceField]="evidenceField"
-                                  [processingAction]="
-                                    historyItem.processingOrder.processingAction
-                                  "
-                                ></app-field-or-doc-info>
-                              </li>
+                            <ng-container *ngFor="let evidenceField of stockOrderGroup.stockOrders[0].requiredEvidenceFieldValues">
+                              <li><app-field-or-doc-info [evidenceField]="evidenceField" [processingAction]="historyItem.processingOrder.processingAction"></app-field-or-doc-info></li>
                             </ng-container>
                           </ul>
                         </li>
@@ -558,59 +393,21 @@
                     </ul>
 
                     <!-- SECTION FOR DISPLAYING REQUIRED PROCESSING EVIDENCE DOCUMENTS (VISIBLE ONLY WHEN THEY ARE PROVIDED) -->
-                    <ng-container
-                      *ngIf="historyItem.requiredEvidenceDocuments?.length > 0"
-                    >
-                      <h6
-                        class="af-timeline-box-evidence-doc-title"
-                        i18n="
-                          @@orderHistoryView.history.timelineItem.procEvidenceDocuments.title"
-                      >
-                        Processing evidence documents
-                      </h6>
+                    <ng-container *ngIf="historyItem.requiredEvidenceDocuments?.length > 0">
+                      <h6 class="af-timeline-box-evidence-doc-title" i18n="@@orderHistoryView.history.timelineItem.procEvidenceDocuments.title">Processing evidence documents</h6>
                       <ul>
-                        <ng-container
-                          *ngFor="
-                            let reqEvidenceDoc of historyItem.requiredEvidenceDocuments
-                          "
-                        >
-                          <li>
-                            <app-field-or-doc-info
-                              [evidenceDocument]="reqEvidenceDoc"
-                              [processingAction]="
-                                historyItem.processingOrder.processingAction
-                              "
-                            ></app-field-or-doc-info>
-                          </li>
+                        <ng-container *ngFor="let reqEvidenceDoc of historyItem.requiredEvidenceDocuments">
+                          <li><app-field-or-doc-info [evidenceDocument]="reqEvidenceDoc" [processingAction]="historyItem.processingOrder.processingAction"></app-field-or-doc-info></li>
                         </ng-container>
                       </ul>
                     </ng-container>
 
                     <!-- SECTION FOR DISPLAYING ADDITIONAL EVIDENCE DOCUMENTS (VISIBLE ONLY WHEN THEY ARE PROVIDED) -->
-                    <ng-container
-                      *ngIf="historyItem.otherEvidenceDocuments?.length > 0"
-                    >
-                      <h6
-                        class="af-timeline-box-evidence-doc-title"
-                        i18n="
-                          @@orderHistoryView.history.timelineItem.otherEvidenceDocuments.title"
-                      >
-                        Other evidence documents
-                      </h6>
+                    <ng-container *ngIf="historyItem.otherEvidenceDocuments?.length > 0">
+                      <h6 class="af-timeline-box-evidence-doc-title" i18n="@@orderHistoryView.history.timelineItem.otherEvidenceDocuments.title">Other evidence documents</h6>
                       <ul>
-                        <ng-container
-                          *ngFor="
-                            let otherEvidenceDoc of historyItem.otherEvidenceDocuments
-                          "
-                        >
-                          <li>
-                            <app-field-or-doc-info
-                              [evidenceDocument]="otherEvidenceDoc"
-                              [processingAction]="
-                                historyItem.processingOrder.processingAction
-                              "
-                            ></app-field-or-doc-info>
-                          </li>
+                        <ng-container *ngFor="let otherEvidenceDoc of historyItem.otherEvidenceDocuments">
+                          <li><app-field-or-doc-info [evidenceDocument]="otherEvidenceDoc" [processingAction]="historyItem.processingOrder.processingAction"></app-field-or-doc-info></li>
                         </ng-container>
                       </ul>
                     </ng-container>
@@ -621,7 +418,9 @@
               </ng-container>
             </div>
           </div>
+
         </div>
+
       </div>
     </ng-container>
   </ng-container>

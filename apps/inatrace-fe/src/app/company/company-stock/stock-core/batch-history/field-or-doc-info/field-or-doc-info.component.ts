@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { FileSaverService } from 'ngx-filesaver';
 import { take } from 'rxjs/operators';
 import { ApiStockOrderEvidenceFieldValue } from '../../../../../../api/model/apiStockOrderEvidenceFieldValue';
@@ -14,19 +14,19 @@ import { faFile } from '@fortawesome/free-regular-svg-icons';
   styleUrls: ['./field-or-doc-info.component.scss'],
   standalone: false,
 })
-export class FieldOrDocInfoComponent implements OnInit {
+export class FieldOrDocInfoComponent implements OnInit, OnChanges {
   readonly faFile = faFile;
 
-  evidenceFieldLabel: string;
+  evidenceFieldLabel?: string;
 
   @Input()
-  evidenceField: ApiStockOrderEvidenceFieldValue;
+  evidenceField?: ApiStockOrderEvidenceFieldValue | null;
 
   @Input()
-  evidenceDocument: ApiStockOrderEvidenceTypeValue;
+  evidenceDocument?: ApiStockOrderEvidenceTypeValue | null;
 
   @Input()
-  processingAction: ApiProcessingAction;
+  processingAction?: ApiProcessingAction | null;
 
   constructor(
     private fileService: CommonControllerService,
@@ -34,13 +34,28 @@ export class FieldOrDocInfoComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    if (this.evidenceField) {
-      const procEvidenceFieldDefinition =
-        this.processingAction.requiredEvidenceFields?.find(
-          (value) => value.id === this.evidenceField.evidenceFieldId,
-        );
-      this.evidenceFieldLabel = procEvidenceFieldDefinition.label ?? '/';
+    this.updateEvidenceFieldLabel();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.evidenceField || changes.processingAction) {
+      this.updateEvidenceFieldLabel();
     }
+  }
+
+  private updateEvidenceFieldLabel(): void {
+    if (!this.evidenceField) {
+      this.evidenceFieldLabel = undefined;
+      return;
+    }
+
+    const procEvidenceFieldDefinition =
+      this.processingAction?.requiredEvidenceFields?.find(value => value.id === this.evidenceField.evidenceFieldId);
+
+    this.evidenceFieldLabel =
+      procEvidenceFieldDefinition?.label ||
+      this.evidenceField.evidenceFieldName ||
+      '/';
   }
 
   async onDownload(document: ApiDocument) {
