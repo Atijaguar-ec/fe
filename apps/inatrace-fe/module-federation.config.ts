@@ -36,7 +36,7 @@ const config: ModuleFederationConfig = {
     if (libraryName === '@turf/turf') {
       return {
         ...defaultConfig,
-        version: '^6.5.0',
+        version: '6.5.0',
         requiredVersion: '^6.5.0',
       };
     }
