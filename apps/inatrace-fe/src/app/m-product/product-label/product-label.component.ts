@@ -998,6 +998,11 @@ export class ProductLabelComponent
       };
       cleanEmptyGroups(data, ['process', 'responsibility', 'sustainability']);
 
+      // Ensure settings.language always has a value — la columna BD es NOT NULL, default ES
+      if (data.settings && !data.settings.language) {
+        data.settings.language = 'ES';
+      }
+
       const res = await this.productController
         .updateProduct(data)
         .pipe(take(1))
@@ -1046,6 +1051,11 @@ export class ProductLabelComponent
 
       data['labelId'] = this.currentLabel.id;
       data['id'] = this.pId;
+
+      // Ensure settings.language always has a value — la columna BD es NOT NULL, default ES
+      if (data.settings && !data.settings.language) {
+        data.settings.language = 'ES';
+      }
 
       const resC = await this.productController
         .updateProductLabelContent(data as ApiProductLabelContent)
