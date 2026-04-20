@@ -289,6 +289,10 @@ export class BatchHistoryComponent implements OnInit {
     return unit ? `${formatted} ${unit}` : formatted;
   }
 
+  getDisplayMeasureUnit(order: ApiStockOrder): string {
+    return order?.measureUnitType?.label || '';
+  }
+
   getUserCustomerDisplayName(user?: ApiUserCustomer | null): string {
     if (!user) return '';
     return [user.name, user.surname].filter(Boolean).join(' ');
