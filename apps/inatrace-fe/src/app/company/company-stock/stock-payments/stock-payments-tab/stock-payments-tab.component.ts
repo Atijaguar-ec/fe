@@ -93,14 +93,14 @@ export class StockPaymentsTabComponent
 
     this.subs = this.selfOnboardingService.guidedTourStep$.subscribe((step) => {
       setTimeout(() => {
-        this.paymentsTitleTooltip.close();
-        this.addPaymentButtonTooltip.close();
+        this.paymentsTitleTooltip?.close();
+        this.addPaymentButtonTooltip?.close();
       }, 50);
 
       if (step === 8) {
-        setTimeout(() => this.paymentsTitleTooltip.open(), 50);
+        setTimeout(() => this.paymentsTitleTooltip?.open(), 50);
       } else if (step === 9) {
-        setTimeout(() => this.addPaymentButtonTooltip.open(), 50);
+        setTimeout(() => this.addPaymentButtonTooltip?.open(), 50);
       }
     });
   }

@@ -3281,6 +3281,7 @@
     "guidedTour.paymentsSection.addPaymentButton": "Aho wongeraho ubwishyu bushya. Ushobora kandi kujya aho umusaruro wagemuriwe ugashyiraho ubwishyu busigaye.",
     "guidedTour.allStockSection.title": "SITOKE YOSE",
     "guidedTour.allStockSection.allStockSubmenu": "Muri sitoke yose urahasanga ibicuruzwa byose biboneka mu nganda zawe, ushobora no kubona amateka y'ibyakozwe byose, amakuru yaho umusaruro waturutse na code ziwuranga.",
-    "guidedTour.allStockSection.selectFacility": "Hano uhitamo uruganda aho umusaruro uherereye."
+    "guidedTour.allStockSection.selectFacility": "Hano uhitamo uruganda aho umusaruro uherereye.",
+    "productLabelStock.button.exportExcel": "Kohereza muri Excel"
   }
 }

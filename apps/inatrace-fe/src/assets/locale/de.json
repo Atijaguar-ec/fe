@@ -3187,6 +3187,7 @@
     "map.view.default": "Standardansicht",
     "map.view.satellite": "Satellitenansicht",
     "productLabelPurchaseOrder.tableCol.exportGeoData": "Export Geo Data",
-    "orderList.export.geojson.noDataAvailable": "Für diese Bestellung sind keine Geodaten verfügbar"
+    "orderList.export.geojson.noDataAvailable": "Für diese Bestellung sind keine Geodaten verfügbar",
+    "productLabelStock.button.exportExcel": "Nach Excel exportieren"
   }
 }
