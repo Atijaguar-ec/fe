@@ -121,23 +121,25 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   getInitialMapExtremes(
     coordinates: Array<ApiPlotCoordinate>,
   ): [[number, number], [number, number]] {
-    let latMin = coordinates[0].latitude;
-    let latMax = coordinates[0].latitude;
-    let lngMin = coordinates[0].longitude;
-    let lngMax = coordinates[0].longitude;
+    let latMin = Number(coordinates[0].latitude);
+    let latMax = Number(coordinates[0].latitude);
+    let lngMin = Number(coordinates[0].longitude);
+    let lngMax = Number(coordinates[0].longitude);
 
     coordinates.forEach((v) => {
-      if (latMax < v.latitude) {
-        latMax = v.latitude;
+      let lat = Number(v.latitude);
+      let lng = Number(v.longitude);
+      if (latMax < lat) {
+        latMax = lat;
       }
-      if (latMin > v.latitude) {
-        latMin = v.latitude;
+      if (latMin > lat) {
+        latMin = lat;
       }
-      if (lngMax < v.longitude) {
-        lngMax = v.longitude;
+      if (lngMax < lng) {
+        lngMax = lng;
       }
-      if (lngMin > v.longitude) {
-        lngMin = v.longitude;
+      if (lngMin > lng) {
+        lngMin = lng;
       }
     });
     const offset = 0.02;
@@ -178,7 +180,10 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const allPlotsCoordinates = [];
     plots.forEach((plot) => {
-      allPlotsCoordinates.push(...plot.coordinates);
+      if (plot.coordinates) {
+        const valid = plot.coordinates.filter(c => c && c.longitude != null && !isNaN(Number(c.longitude)) && c.latitude != null && !isNaN(Number(c.latitude)));
+        allPlotsCoordinates.push(...valid);
+      }
     });
 
     if (allPlotsCoordinates.length > 0) {
@@ -198,8 +203,11 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.markers.length > 0) {
       this.deletePlot();
     }
-    coordinates.forEach((v) => this.placeMarkerOnMap(v.latitude, v.longitude));
-    this.map.fitBounds(this.getInitialMapExtremes(this.plotCoordinates));
+    const validCoords = coordinates ? coordinates.filter(c => c && c.longitude != null && !isNaN(Number(c.longitude)) && c.latitude != null && !isNaN(Number(c.latitude))) : [];
+    validCoords.forEach((v) => this.placeMarkerOnMap(Number(v.latitude), Number(v.longitude)));
+    if (validCoords.length > 0) {
+      this.map.fitBounds(this.getInitialMapExtremes(validCoords));
+    }
     this.plotCoordinatesChange.emit(this.plotCoordinates);
   }
 
@@ -657,7 +665,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getCoordinatesArray(plotCoordinates: ApiPlotCoordinate[]): number[][] {
     const coords = [];
-    plotCoordinates.forEach((v) => coords.push([v.longitude, v.latitude]));
+    plotCoordinates.forEach((v) => coords.push([Number(v.longitude), Number(v.latitude)]));
     coords.push(coords[0]);
     return coords;
   }
@@ -669,17 +677,20 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    let lonCenter = plotCoordinates.reduce(
-      (sum, element) => (sum += element.longitude),
-      0,
-    );
-    lonCenter = lonCenter / plotCoordinates.length;
+    let validCoords = plotCoordinates.filter(c => c && c.longitude != null && !isNaN(Number(c.longitude)) && c.latitude != null && !isNaN(Number(c.latitude)));
+    if (validCoords.length === 0) return;
 
-    let latCenter = plotCoordinates.reduce(
-      (sum, element) => (sum += element.latitude),
+    let lonCenter = validCoords.reduce(
+      (sum, element) => (sum += Number(element.longitude)),
       0,
     );
-    latCenter = latCenter / plotCoordinates.length;
+    lonCenter = lonCenter / validCoords.length;
+
+    let latCenter = validCoords.reduce(
+      (sum, element) => (sum += Number(element.latitude)),
+      0,
+    );
+    latCenter = latCenter / validCoords.length;
 
     this.placeMarkerOnMap(latCenter, lonCenter, plot);
   }
