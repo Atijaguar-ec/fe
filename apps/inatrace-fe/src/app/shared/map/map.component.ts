@@ -665,6 +665,10 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   private setPlotCenterMarker(plot: ApiPlot) {
     const plotCoordinates: ApiPlotCoordinate[] = plot.coordinates;
 
+    if (!plotCoordinates || plotCoordinates.length === 0) {
+      return;
+    }
+
     let lonCenter = plotCoordinates.reduce(
       (sum, element) => (sum += element.longitude),
       0,

@@ -3246,6 +3246,9 @@
     "guidedTour.allStockSection.title": "TODAS LAS EXISTENCIAS",
     "guidedTour.allStockSection.allStockSubmenu": "En el submenú 'Todas las existencias' encontrará todos los productos disponibles en sus instalaciones y podrá acceder al historial de existencias, a los datos geográficos y a los códigos QR generados.",
     "guidedTour.allStockSection.selectFacility": "Aquí selecciona la instalación donde se encuentra actualmente su (semi) producto.",
-    "productLabelStock.button.exportExcel": "Exportar a Excel"
+    "productLabelStock.button.exportExcel": "Exportar a Excel",
+    "collectorDetail.section.plots": " Parcelas ",
+    "breadCrumb.orders.globalOrder": "Orden",
+    "orderList.sortOptions.orderId.name": "ID de Orden"
   }
 }

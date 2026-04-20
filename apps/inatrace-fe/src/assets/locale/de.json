@@ -2253,7 +2253,7 @@
     "globalOrderEdit.footer.buttons": "{$START_TAG_BUTTON}{$START_TAG_SPAN}Abbrechen{$CLOSE_TAG_SPAN}{$CLOSE_TAG_BUTTON}{$START_TAG_BUTTON_1}{$START_TAG_SPAN}Speichern{$CLOSE_TAG_SPAN}{$CLOSE_TAG_BUTTON}{$START_TAG_BUTTON_2}{$START_TAG_SPAN}Save & Close{$CLOSE_TAG_SPAN}{$CLOSE_TAG_BUTTON}",
     "globalOrderEdit.updateTitle": "Bestellung aktualisieren",
     "globalOrderEdit.newTitle": "Neue Bestellung",
-    "orderList.sortOptions.orderId.name": "Order ID",
+    "orderList.sortOptions.orderId.name": "Bestell-ID",
     "orderList.deleteProcessingOrder.gettingProcessingOrder.error.message": " Error occured while deleting.",
     "orderList.deleteProcessingOrder.error.message": "Are you sure you want to delete the order? This will delete processing transaction and possibly all orders generated from it.",
     "orderList.delete.error.message": "Are you sure you want to delete the order?",
@@ -2273,7 +2273,7 @@
     "ordersDashboard.selectedFacility.singleChoice.label": "Selected facility",
     "ordersDashboard.subTitle.listOfOrders": "List of orders",
     "ordersDashboard.subTitle.showingOrders": "Showing {$INTERPOLATION}/{$INTERPOLATION_1}",
-    "breadCrumb.orders.globalOrder": "Order",
+    "breadCrumb.orders.globalOrder": "Bestellung",
     "productLabelStockProcessingOrderDetail.orderID.label": "Order ID:",
     "productLabelStock.datepicker.date.from": "From",
     "productLabelStock.datepicker.date.to": "To",
@@ -3188,6 +3188,7 @@
     "map.view.satellite": "Satellitenansicht",
     "productLabelPurchaseOrder.tableCol.exportGeoData": "Export Geo Data",
     "orderList.export.geojson.noDataAvailable": "Für diese Bestellung sind keine Geodaten verfügbar",
-    "productLabelStock.button.exportExcel": "Nach Excel exportieren"
+    "productLabelStock.button.exportExcel": "Nach Excel exportieren",
+    "collectorDetail.section.plots": " Parzellen "
   }
 }

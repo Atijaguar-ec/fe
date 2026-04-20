@@ -3282,6 +3282,7 @@
     "guidedTour.allStockSection.title": "ALL STOCK",
     "guidedTour.allStockSection.allStockSubmenu": "In the 'all stock' submenu you find all products available in your facilities and can access the batch history, Geo data and generated QR Codes.",
     "guidedTour.allStockSection.selectFacility": "Here you select the facility your (semi-) product is currently located in.",
-    "productLabelStock.button.exportExcel": "Export to Excel"
+    "productLabelStock.button.exportExcel": "Export to Excel",
+    "collectorDetail.section.plots": " Plots "
   }
 }

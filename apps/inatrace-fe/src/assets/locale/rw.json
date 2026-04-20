@@ -2251,7 +2251,7 @@
     "globalOrderEdit.footer.buttons": "{$START_TAG_BUTTON}{$START_TAG_SPAN}Bihagarike{$CLOSE_TAG_SPAN}{$CLOSE_TAG_BUTTON}{$START_TAG_BUTTON_1}{$START_TAG_SPAN}Kubika{$CLOSE_TAG_SPAN}{$CLOSE_TAG_BUTTON}{$START_TAG_BUTTON_2}{$START_TAG_SPAN}Kubika & Gufunga{$CLOSE_TAG_SPAN}{$CLOSE_TAG_BUTTON}",
     "globalOrderEdit.updateTitle": "Kongera amakuru ku gikorwa",
     "globalOrderEdit.newTitle": "Igikorwa gishya cyo kwaka igicuruzwa",
-    "orderList.sortOptions.orderId.name": "Order ID",
+    "orderList.sortOptions.orderId.name": "Numero y abarohamya",
     "orderList.deleteProcessingOrder.gettingProcessingOrder.error.message": " Error occured while deleting.",
     "orderList.deleteProcessingOrder.error.message": "Are you sure you want to delete the order? This will delete processing transaction and possibly all orders generated from it.",
     "orderList.delete.error.message": "Are you sure you want to delete the order?",
@@ -2271,7 +2271,7 @@
     "ordersDashboard.selectedFacility.singleChoice.label": "Selected facility",
     "ordersDashboard.subTitle.listOfOrders": "List of orders",
     "ordersDashboard.subTitle.showingOrders": "Showing {$INTERPOLATION}/{$INTERPOLATION_1}",
-    "breadCrumb.orders.globalOrder": "Order",
+    "breadCrumb.orders.globalOrder": "Abarohamya",
     "productLabelStockProcessingOrderDetail.orderID.label": "Order ID:",
     "productLabelStock.datepicker.date.from": "From",
     "productLabelStock.datepicker.date.to": "To",
@@ -3282,6 +3282,7 @@
     "guidedTour.allStockSection.title": "SITOKE YOSE",
     "guidedTour.allStockSection.allStockSubmenu": "Muri sitoke yose urahasanga ibicuruzwa byose biboneka mu nganda zawe, ushobora no kubona amateka y'ibyakozwe byose, amakuru yaho umusaruro waturutse na code ziwuranga.",
     "guidedTour.allStockSection.selectFacility": "Hano uhitamo uruganda aho umusaruro uherereye.",
-    "productLabelStock.button.exportExcel": "Kohereza muri Excel"
+    "productLabelStock.button.exportExcel": "Kohereza muri Excel",
+    "collectorDetail.section.plots": " Imirima "
   }
 }
