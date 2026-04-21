@@ -664,8 +664,15 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getCoordinatesArray(plotCoordinates: ApiPlotCoordinate[]): number[][] {
+    if (!plotCoordinates || plotCoordinates.length === 0) {
+      return [];
+    }
+    const validCoords = plotCoordinates.filter(c => c && c.longitude != null && !isNaN(Number(c.longitude)) && c.latitude != null && !isNaN(Number(c.latitude)));
+    if (validCoords.length === 0) {
+      return [];
+    }
     const coords = [];
-    plotCoordinates.forEach((v) => coords.push([Number(v.longitude), Number(v.latitude)]));
+    validCoords.forEach((v) => coords.push([Number(v.longitude), Number(v.latitude)]));
     coords.push(coords[0]);
     return coords;
   }

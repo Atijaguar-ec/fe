@@ -3284,5 +3284,13 @@
     "guidedTour.allStockSection.selectFacility": "Hano uhitamo uruganda aho umusaruro uherereye.",
     "productLabelStock.button.exportExcel": "Kohereza muri Excel",
     "collectorDetail.section.plots": " Imirima "
-  }
+  },
+  "productLabel.b2c.tertiaryColor": "Tertiary color",
+  "productLabel.b2c.quaternaryColor": "Quaternary color",
+  "productLabel.b2c.productTitleColor": "Product title color",
+  "productLabel.b2c.graphicQuality": "Enable 'Quality' graphic",
+  "productLabel.sideTitle.archiveProduct": "Archive product",
+  "productLabelPayments.tableCol.delete": "Delete",
+  "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Total quantities",
+  "productLabelStockProcessingOrderDetail.orderID.label": "Order ID:"
 }

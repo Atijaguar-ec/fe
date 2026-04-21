@@ -3284,5 +3284,36 @@
     "guidedTour.allStockSection.selectFacility": "Here you select the facility your (semi-) product is currently located in.",
     "productLabelStock.button.exportExcel": "Export to Excel",
     "collectorDetail.section.plots": " Plots "
-  }
+  },
+  "productLabel": {
+    "b2c": {
+      "tertiaryColor": "Tertiary color",
+      "quaternaryColor": "Quaternary color",
+      "productTitleColor": "Product title color",
+      "graphicQuality": " Enable 'Quality' graphic "
+    }
+  },
+  "productLabelPayments": {
+    "tableCol": {
+      "delete": " Delete "
+    }
+  },
+  "productLabelStockProcessingOrderDetail": {
+    "section": {
+      "output": {
+        "totalQuantitiesSectionTitle": " Total quantities "
+      }
+    },
+    "orderID": {
+      "label": "Order ID:"
+    }
+  },
+  "productLabel.b2c.tertiaryColor": "Tertiary color",
+  "productLabel.b2c.quaternaryColor": "Quaternary color",
+  "productLabel.b2c.productTitleColor": "Product title color",
+  "productLabel.b2c.graphicQuality": "Enable 'Quality' graphic",
+  "productLabel.sideTitle.archiveProduct": "Archive product",
+  "productLabelPayments.tableCol.delete": "Delete",
+  "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Total quantities",
+  "productLabelStockProcessingOrderDetail.orderID.label": "Order ID:"
 }

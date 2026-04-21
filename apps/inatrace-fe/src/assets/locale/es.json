@@ -3250,5 +3250,36 @@
     "collectorDetail.section.plots": " Parcelas ",
     "breadCrumb.orders.globalOrder": "Orden",
     "orderList.sortOptions.orderId.name": "ID de Orden"
-  }
+  },
+  "productLabel": {
+    "b2c": {
+      "tertiaryColor": "Color terciario",
+      "quaternaryColor": "Color cuaternario",
+      "productTitleColor": "Color del título del producto",
+      "graphicQuality": " Habilitar gráfico de 'Calidad' "
+    }
+  },
+  "productLabelPayments": {
+    "tableCol": {
+      "delete": " Eliminar "
+    }
+  },
+  "productLabelStockProcessingOrderDetail": {
+    "section": {
+      "output": {
+        "totalQuantitiesSectionTitle": " Cantidades totales "
+      }
+    },
+    "orderID": {
+      "label": "ID de pedido:"
+    }
+  },
+  "productLabel.b2c.tertiaryColor": "Color terciario",
+  "productLabel.b2c.quaternaryColor": "Color cuaternario",
+  "productLabel.b2c.productTitleColor": "Color del título del producto",
+  "productLabel.b2c.graphicQuality": "Habilitar gráfico de 'Calidad'",
+  "productLabel.sideTitle.archiveProduct": "Archivar producto",
+  "productLabelPayments.tableCol.delete": "Eliminar",
+  "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Cantidades totales",
+  "productLabelStockProcessingOrderDetail.orderID.label": "ID de pedido:"
 }

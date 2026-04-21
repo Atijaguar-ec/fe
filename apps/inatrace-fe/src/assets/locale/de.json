@@ -3190,5 +3190,13 @@
     "orderList.export.geojson.noDataAvailable": "Für diese Bestellung sind keine Geodaten verfügbar",
     "productLabelStock.button.exportExcel": "Nach Excel exportieren",
     "collectorDetail.section.plots": " Parzellen "
-  }
+  },
+  "productLabel.b2c.tertiaryColor": "Tertiary color",
+  "productLabel.b2c.quaternaryColor": "Quaternary color",
+  "productLabel.b2c.productTitleColor": "Product title color",
+  "productLabel.b2c.graphicQuality": "Enable 'Quality' graphic",
+  "productLabel.sideTitle.archiveProduct": "Archive product",
+  "productLabelPayments.tableCol.delete": "Delete",
+  "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Total quantities",
+  "productLabelStockProcessingOrderDetail.orderID.label": "Order ID:"
 }
