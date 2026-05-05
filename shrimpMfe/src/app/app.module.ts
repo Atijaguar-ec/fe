@@ -1,14 +1,14 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { AppComponent } from './app.component';
+import { shrimpAuthInterceptor } from './interceptors/shrimp-auth.interceptor';
 
 @NgModule({
   declarations: [AppComponent],
   imports: [
     BrowserModule,
-    HttpClientModule,
     RouterModule.forRoot(
       [
         {
@@ -22,7 +22,10 @@ import { AppComponent } from './app.component';
       { initialNavigation: 'enabledBlocking' },
     ),
   ],
-  providers: [],
+  providers: [
+    provideHttpClient(withInterceptors([shrimpAuthInterceptor]))
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
+

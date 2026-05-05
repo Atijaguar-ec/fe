@@ -38,6 +38,13 @@ export const remoteRoutes: Route[] = [
           import('../masterizado/masterizado.component').then(
             (m) => m.MasterizadoComponent
           ),
+      },
+      {
+        path: 'inventario',
+        loadComponent: () =>
+          import('../inventario/inventario.component').then(
+            (m) => m.InventarioComponent
+          ),
       }
     ]
   },

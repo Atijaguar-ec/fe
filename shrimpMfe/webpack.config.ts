@@ -16,6 +16,8 @@ export default async function (webpackConfig: any, options: any, target: any) {
   // <script> tags (not <script type="module">), so the browser rejects import.meta.
   if (result.output) {
     result.output.scriptType = 'text/javascript' as const;
+    result.output.publicPath = 'http://localhost:4201/';
+    result.output.uniqueName = 'shrimpMfe';
   }
 
   return result;

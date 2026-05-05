@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ShrimpDataService, ReceptionLot } from '../services/shrimp-data.service';
+import { ShrimpMsService } from '../services/shrimp-ms.service';
 
 @Component({
   selector: 'app-liquidacion',
@@ -22,65 +22,84 @@ import { ShrimpDataService, ReceptionLot } from '../services/shrimp-data.service
             <span class="step-number">1</span>
             <h2>Seleccionar Lote</h2>
           </div>
-          
+
           <div class="form-group">
-            <label>Lote Base (Recepción)</label>
+            <label class="form-label">Lote Base (Recepción)</label>
             <select class="form-input" [(ngModel)]="selectedLotId" (change)="onLotChange()">
               <option [value]="null">-- Seleccione --</option>
-              <option *ngFor="let lot of baseLots" [value]="lot.id">
-                Lote {{ lot.base_lot_number }} ({{ lot.product_type }}) - {{ lot.reception_date | date:'shortDate' }}
+              <option *ngFor="let lot of receptions" [value]="lot.stockOrderId">
+                Lote {{ lot.internalLotBase }} ({{ lot.shrimpType }}) - {{ lot.totalWeightLbs | number:'1.2-2' }} lbs
               </option>
             </select>
           </div>
         </div>
 
-        <div class="card animate-fade-in-up" *ngIf="selectedLot">
+        <div class="card animate-fade-in-up" *ngIf="summary">
           <div class="card-header">
             <span class="step-number">2</span>
             <h2>Ecuación de Conservación (Libras)</h2>
           </div>
-          
+
           <div class="equation-board">
             <div class="eq-side eq-in">
-              <div class="eq-title">ENTRADA (Recepción)</div>
-              <div class="eq-value">{{ selectedLot.gross_weight_lbs | number:'1.2-2' }}</div>
-              <div class="eq-label">Lbs Brutas Totales</div>
+              <div class="eq-title">ENTRADA</div>
+              <div class="eq-value">{{ summary.inputLbs | number:'1.2-2' }}</div>
+              <div class="eq-label">Lbs Brutas</div>
             </div>
-            
+
             <div class="eq-equal">=</div>
-            
+
             <div class="eq-side eq-out">
-              <div class="eq-title">SALIDA (Clasificado)</div>
-              <div class="eq-value">{{ totalClassifiedLbs | number:'1.2-2' }}</div>
-              <div class="eq-label">Σ (Cajetas x 4.4 + IQF Lbs)</div>
+              <div class="eq-title">CLASIFICADO</div>
+              <div class="eq-value">{{ summary.classifiedLbs | number:'1.2-2' }}</div>
+              <div class="eq-label">Σ Tallas</div>
             </div>
 
             <div class="eq-plus">+</div>
 
-            <div class="eq-side eq-shrink" [class.negative]="shrinkage < 0">
-              <div class="eq-title">MERMA (Diferencia)</div>
-              <div class="eq-value">{{ shrinkage | number:'1.2-2' }}</div>
-              <div class="eq-label">{{ shrinkagePercent | percent:'1.1-2' }} del total</div>
+            <div class="eq-side eq-shrink" [class.anomaly]="summary.anomalyDetected">
+              <div class="eq-title">MERMA</div>
+              <div class="eq-value">{{ summary.shrinkageLbs | number:'1.2-2' }}</div>
+              <div class="eq-label">{{ summary.shrinkagePercent | number:'1.2-2' }}%</div>
             </div>
           </div>
-          
-          <div *ngIf="outputs.length > 0" class="outputs-list">
-            <h3>Detalle de Salidas</h3>
-            <ul>
-              <li *ngFor="let out of outputs">
-                <span class="out-dest">{{ out.destination }}</span>
-                <span class="out-talla">Talla: {{ out.size_grade }}</span>
-                <strong class="out-lbs">
-                  {{ out.destination === 'BLOQUE' ? (out.cajetas_count * 4.4) : out.weight_lbs | number:'1.2-2' }} lbs
-                </strong>
-                <span *ngIf="out.destination === 'BLOQUE'">({{ out.cajetas_count }} Cjs)</span>
-              </li>
-            </ul>
+
+          <!-- Progress bar -->
+          <div class="progress-bar-container" *ngIf="summary.inputLbs > 0">
+            <div class="progress-segment classified" [style.width.%]="classifiedPct"></div>
+            <div class="progress-segment waste" [style.width.%]="wastePct"></div>
+            <div class="progress-segment shrinkage" [style.width.%]="shrinkagePct"></div>
           </div>
-          
+          <div class="progress-legend">
+            <span class="legend-item"><span class="dot classified"></span> Clasificado ({{ classifiedPct | number:'1.1-1' }}%)</span>
+            <span class="legend-item"><span class="dot shrinkage"></span> Merma ({{ shrinkagePct | number:'1.1-1' }}%)</span>
+          </div>
+
+          <!-- Anomaly banner -->
+          <div class="anomaly-banner" *ngIf="summary.anomalyDetected">
+            🚨 <strong>Alerta:</strong> {{ summary.anomalyMessage }}
+          </div>
+
+          <!-- Waste reason (when closing) -->
+          <div class="form-group" style="margin-top: 1rem;" *ngIf="summary.shrinkageLbs > 0">
+            <label class="form-label">Motivo principal de merma</label>
+            <select class="form-input" [(ngModel)]="wasteReason">
+              <option value="AGUA">Agua / Hielo</option>
+              <option value="BASURA">Basura / Impurezas</option>
+              <option value="CABEZAS">Cabezas (descabezado)</option>
+              <option value="CALIBRACION">Calibración de balanza</option>
+              <option value="OTRO">Otro</option>
+            </select>
+          </div>
+
+          <!-- Error / Success -->
+          <div class="error-banner" *ngIf="errorMsg">⚠️ {{ errorMsg }}</div>
+          <div class="success-banner" *ngIf="successMsg">✅ {{ successMsg }}</div>
+
           <div class="actions">
-            <!-- Simulated mathematical validation using the Eval principles -->
-            <button class="btn-primary" (click)="closeEquation()">Confirmar Cierre y Liquidar</button>
+            <button class="btn btn-primary" [disabled]="saving" (click)="closeEquation()">
+              {{ saving ? '⏳ Cerrando...' : 'Confirmar Cierre y Liquidar' }}
+            </button>
           </div>
         </div>
       </div>
@@ -89,52 +108,64 @@ import { ShrimpDataService, ReceptionLot } from '../services/shrimp-data.service
   styleUrls: ['./liquidacion.component.css']
 })
 export class LiquidacionComponent implements OnInit {
-  baseLots: ReceptionLot[] = [];
-  outputs: any[] = [];
-  
-  selectedLotId: string | null = null;
-  selectedLot: ReceptionLot | null = null;
-  
-  totalClassifiedLbs = 0;
-  shrinkage = 0;
-  shrinkagePercent = 0;
+  receptions: any[] = [];
+  selectedLotId: number | null = null;
+  summary: any = null;
+  wasteReason = 'AGUA';
+  saving = false;
+  errorMsg = '';
+  successMsg = '';
 
-  constructor(private dataService: ShrimpDataService) {}
+  classifiedPct = 0;
+  wastePct = 0;
+  shrinkagePct = 0;
+
+  constructor(private shrimpMs: ShrimpMsService) {}
 
   ngOnInit() {
-    this.dataService.getReceptionLots().subscribe(lots => {
-      this.baseLots = lots;
+    this.shrimpMs.listReceptions().subscribe(lots => {
+      this.receptions = lots.filter(l => l.status !== 'CLOSED');
     });
   }
 
   onLotChange() {
-    this.selectedLot = this.baseLots.find(l => l.id === this.selectedLotId) || null;
-    if (this.selectedLot) {
-      // Fetch outputs for this lot from the mock
-      const mockDb = (this.dataService as any).mockState;
-      this.outputs = mockDb.classification_outputs.filter((o: any) => o.reception_lot_id === this.selectedLotId);
-      this.calculateMath();
-    }
+    this.summary = null;
+    this.errorMsg = '';
+    this.successMsg = '';
+    if (!this.selectedLotId) return;
+
+    this.shrimpMs.getSettlementSummary(this.selectedLotId).subscribe({
+      next: (data) => {
+        this.summary = data;
+        this.calculatePercentages();
+      },
+      error: () => this.errorMsg = 'Error al obtener resumen de liquidación'
+    });
   }
 
-  calculateMath() {
-    if (!this.selectedLot) return;
-    
-    // Convert cajetas (average block = 2kg = 4.4lbs) + regular LBS
-    this.totalClassifiedLbs = this.outputs.reduce((acc, out) => {
-      if (out.destination === 'BLOQUE') {
-         return acc + (out.cajetas_count * 4.4); // Standard approximation for math eval
-      }
-      return acc + out.weight_lbs;
-    }, 0);
-    
-    this.shrinkage = this.selectedLot.gross_weight_lbs - this.totalClassifiedLbs;
-    this.shrinkagePercent = this.shrinkage / this.selectedLot.gross_weight_lbs;
+  calculatePercentages() {
+    if (!this.summary || this.summary.inputLbs <= 0) return;
+    this.classifiedPct = (this.summary.classifiedLbs / this.summary.inputLbs) * 100;
+    this.shrinkagePct = Math.max(0, (this.summary.shrinkageLbs / this.summary.inputLbs) * 100);
+    this.wastePct = 0;
   }
-  
+
   closeEquation() {
-    alert(`Balance Cerrado.\nLote: ${this.selectedLot?.base_lot_number}\nEntrada: ${this.selectedLot?.gross_weight_lbs}\nSalida: ${this.totalClassifiedLbs}\nMerma: ${this.shrinkage}`);
-    this.selectedLotId = null;
-    this.selectedLot = null;
+    if (!this.selectedLotId) return;
+    this.saving = true;
+    this.errorMsg = '';
+
+    this.shrimpMs.closeSettlement(this.selectedLotId).subscribe({
+      next: () => {
+        this.successMsg = `Liquidación cerrada para lote ${this.summary.lotBase}`;
+        this.saving = false;
+        // Refresh list
+        this.receptions = this.receptions.filter(r => r.stockOrderId !== this.selectedLotId);
+      },
+      error: (err) => {
+        this.errorMsg = err?.error?.errorMessage || 'Error al cerrar liquidación';
+        this.saving = false;
+      }
+    });
   }
 }

@@ -14,7 +14,7 @@ import { RouterModule } from '@angular/router';
           <div class="brand">
             <span class="brand-logomark">INA</span>
           </div>
-          <div class="brand-title">Dufer Cia. Ltda.</div>
+          <div class="brand-title">Shrimp Trace</div>
           <div class="settings-icon">⚙️</div>
         </div>
 
@@ -36,6 +36,9 @@ import { RouterModule } from '@angular/router';
           </a>
           <a routerLink="masterizado" routerLinkActive="active" class="nav-item">
             <span class="nav-text">Masterizado</span>
+          </a>
+          <a routerLink="inventario" routerLinkActive="active" class="nav-item">
+            <span class="nav-text">Inventario</span>
           </a>
         </nav>
 
@@ -60,7 +63,7 @@ import { RouterModule } from '@angular/router';
             <a href="/es/home" style="text-decoration: none; font-size: 0.8rem; font-weight: 600; padding: 0.4rem 0.8rem; border-radius: 4px; border: 1px solid var(--ina-secondary); color: var(--ina-secondary); display: inline-flex; align-items: center; gap: 0.4rem;">
               <span>←</span> Volver al Core INATrace
             </a>
-            SysAdmin (Dufer Cia. Ltda.) ≡
+            SysAdmin ≡
           </div>
         </header>
 

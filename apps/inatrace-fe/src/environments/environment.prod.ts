@@ -33,7 +33,7 @@ export const environment = {
   beycoClientId: (window['env'] || {})['beycoClientId'] || '',
   apiBaseUrl: (window['env'] || {})['apiBaseUrl'] || '',
   keycloakUrl: (window['env'] || {})['keycloakUrl'] || '',
-  keycloakRealm: (window['env'] || {})['keycloakRealm'] || 'inatrace',
+  keycloakRealm: (window['env'] || {})['keycloakRealm'] || 'inatrace_duffer',
   keycloakClientId: (window['env'] || {})['keycloakClientId'] || 'inatrace-frontend',
   enableShrimpModule: (window['env'] || {})['enableShrimpModule'] === 'true'
 };

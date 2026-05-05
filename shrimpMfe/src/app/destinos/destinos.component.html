@@ -1,1 +1,59 @@
-<p>destinos works!</p>
+<div class="page animate-fade-in-up">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">🚚 Destinos Productivos</h1>
+      <p class="page-subtitle">Asignación de producto clasificado a líneas de proceso</p>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-header">
+        <span class="step-number">1</span>
+        <h2>Seleccionar Lote</h2>
+      </div>
+      <div class="form-group">
+        <select class="form-input" [(ngModel)]="selectedLotId" (change)="onLotChange()">
+          <option [value]="null">-- Seleccione --</option>
+          <option *ngFor="let lot of receptions" [value]="lot.stockOrderId">
+            Lote {{ lot.internalLotBase }} — {{ lot.totalWeightLbs | number:'1.0-0' }} lbs
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card" *ngIf="selectedLot && classificationDetails.length > 0">
+      <div class="card-header">
+        <span class="step-number">2</span>
+        <h2>Asignar Destinos por Talla</h2>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr><th>Talla</th><th>Peso</th><th>Cajetas</th><th>Destino</th><th>Acción</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let detail of classificationDetails">
+            <td><span class="size-badge">{{ detail.shrimpSize }}</span></td>
+            <td>{{ detail.weightLbs | number:'1.2-2' }}</td>
+            <td>{{ detail.cajetasCount }}</td>
+            <td>
+              <select class="form-input" [(ngModel)]="detail._destinationType">
+                <option value="BLOQUE">Bloque</option>
+                <option value="IQF">IQF (-2)</option>
+                <option value="VALOR_AGREGADO">V.A. (-3)</option>
+                <option value="SALMUERA">Salmuera (-4)</option>
+              </select>
+            </td>
+            <td>
+              <button class="btn-primary" [disabled]="detail._assigned || saving" (click)="assignDestination(detail)">
+                {{ detail._assigned ? '✓' : 'Asignar' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="errorMsg" style="color: #dc2626; margin-top: 0.5rem;">⚠️ {{ errorMsg }}</div>
+      <div *ngIf="successMsg" style="color: #059669; margin-top: 0.5rem;">✅ {{ successMsg }}</div>
+    </div>
+  </div>
+</div>

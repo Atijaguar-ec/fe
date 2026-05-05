@@ -8,6 +8,7 @@ import {
   ShrimpSemiProduct,
   ShrimpFacility
 } from '../services/shrimp-data.service';
+import { ShrimpMsService } from '../services/shrimp-ms.service';
 
 interface ReceptionRecord {
   id: number;
@@ -32,7 +33,7 @@ interface ReceptionRecord {
       <div class="page-header">
         <div>
           <h1 class="page-title">📥 Recepción de Materia Prima</h1>
-          <p class="page-subtitle">Registro de ingreso de camarón — Empacadora Dufer</p>
+          <p class="page-subtitle">Registro de ingreso de camarón — Planta de Proceso</p>
         </div>
         <div class="header-stats">
           <div class="stat-chip">
@@ -657,7 +658,7 @@ export class ReceptionComponent implements OnInit {
   editingRecordId: number | null = null;
   private lotSequence = 0;
 
-  constructor(private shrimpData: ShrimpDataService) {}
+  constructor(private shrimpData: ShrimpDataService, private shrimpMs: ShrimpMsService) {}
 
   ngOnInit() {
     // Default date = today
@@ -824,6 +825,18 @@ export class ReceptionComponent implements OnInit {
           bins_count: this.bines!,
           product_type: this.tipo,
           reception_date: this.receptionDate,
+        });
+
+        // Also save to ms-shrimp microservice
+        this.shrimpMs.createReception({
+          stockOrderId: targetId,
+          internalLotBase: this.lotNumber,
+          shrimpType: this.tipo.toUpperCase().includes('COLA') ? 'COLA' : 'ENTERO',
+          totalWeightLbs: this.pesoBruto!,
+          binsCount: this.bines!,
+        }).subscribe({
+          next: () => console.log('[Recepción] Mirrored to ms-shrimp'),
+          error: (e) => console.warn('[Recepción] ms-shrimp mirror failed (non-blocking):', e)
         });
 
         console.log('[Recepción] StockOrder guardado en Core:', targetId);

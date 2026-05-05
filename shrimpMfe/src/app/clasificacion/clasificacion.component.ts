@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LotNumberUtil } from '../utils/lot-number.util';
 import { ShrimpDataService } from '../services/shrimp-data.service';
+import { ShrimpMsService } from '../services/shrimp-ms.service';
 
 interface ClassificationRecord {
   id: number;
@@ -397,7 +398,7 @@ export class ClassificationComponent implements OnInit {
   showSuccess = false;
   isSubmitting = false;
 
-  constructor(private dataService: ShrimpDataService) {}
+  constructor(private dataService: ShrimpDataService, private shrimpMs: ShrimpMsService) {}
 
   ngOnInit() {
     this.loadMasters();
@@ -503,7 +504,6 @@ export class ClassificationComponent implements OnInit {
     if (this.records.length === 0 || !this.selectedReception || !this.classificationAction) return;
 
     if (this.massBalance < 0) {
-      alert("Error: El balance no puede ser negativo.");
       return;
     }
 
@@ -558,10 +558,32 @@ export class ClassificationComponent implements OnInit {
       next: (res) => {
         this.isSubmitting = false;
         this.showSuccess = true;
+
+        // Mirror to ms-shrimp: create classification + details
+        if (this.selectedReception?.coreStockOrderId) {
+          this.shrimpMs.createClassification({
+            stockOrderId: this.selectedReception.coreStockOrderId,
+            rejectedWeightLbs: this.mermaLibras || undefined
+          }).subscribe({
+            next: (classification) => {
+              // Create details for each sub-lot
+              this.records.forEach(r => {
+                this.shrimpMs.createClassificationDetail({
+                  classificationId: classification.id,
+                  shrimpSize: r.talla?.name?.replace('Talla ', '') || 'UNKNOWN',
+                  weightLbs: r.libras,
+                  cajetasCount: r.cajetas
+                }).subscribe();
+              });
+              console.log('[Clasificación] Mirrored to ms-shrimp');
+            },
+            error: (e) => console.warn('[Clasificación] ms-shrimp mirror failed:', e)
+          });
+        }
       },
       error: (err) => {
         this.isSubmitting = false;
-        alert("Ocurrió un error al registrar en el Core: " + err.message);
+        console.error('[Clasificación] Core error:', err);
       }
     });
   }

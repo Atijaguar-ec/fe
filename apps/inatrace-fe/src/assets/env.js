@@ -18,5 +18,5 @@
   window['env']['beycoClientId'] = '';
 
   // Feature flags
-  window['env']['enableShrimpModule'] = 'false';
+  window['env']['enableShrimpModule'] = 'true';
 })(this);

@@ -28,6 +28,8 @@ export default async function (webpackConfig: any, options: any, target: any) {
   // Fix: "Cannot use 'import.meta' outside a module"
   if (result.output) {
     result.output.scriptType = 'text/javascript' as const;
+    result.output.publicPath = 'http://localhost:4201/';
+    result.output.uniqueName = 'shrimpMfe';
   }
 
   return result;
