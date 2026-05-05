@@ -1,41 +1,84 @@
 <div class="page animate-fade-in-up">
   <div class="page-header">
     <div>
-      <h1 class="page-title">📦 Masterizado</h1>
-      <p class="page-subtitle">Embalaje de cajetas en cajas Master con QR para exportación</p>
+      <h1 class="page-title">📦 Empaque Final</h1>
+      <p class="page-subtitle">Embalaje de cajillas IQF y Marquesetas en Cajas Master para exportación</p>
+    </div>
+    <div class="header-stats" *ngIf="createdMasters.length > 0">
+      <div class="stat-chip status-chip" style="background: #e0f4fc; color: #0369a1; border: 1px solid #bae6fd;">
+        <span class="stat-value">{{ createdMasters.length }}</span>
+        <span class="stat-label">Masters listos</span>
+      </div>
     </div>
   </div>
 
-  <div class="content-grid">
-    <div class="card">
-      <div class="card-header">
-        <span class="step-number">1</span>
-        <h2>Seleccionar Lote</h2>
+  <div class="content-grid" style="display: grid; grid-template-columns: 350px 1fr; gap: 1.5rem; align-items: start;">
+    <!-- Left Column: Lote Selection & List -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <div class="card form-card">
+        <div class="card-header">
+          <span class="step-number">1</span>
+          <h2>Seleccionar Lote</h2>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Lote Base (Recepción)</label>
+          <select class="form-input form-select" [(ngModel)]="selectedLotId" (change)="onLotChange()">
+            <option [value]="null">-- Seleccione --</option>
+            <option *ngFor="let lot of receptions" [value]="lot.stockOrderId">
+              Lote {{ lot.internalLotBase }} ({{ lot.shrimpType }})
+            </option>
+          </select>
+        </div>
+
+        <!-- Lot Info Card -->
+        <div *ngIf="selectedLot" style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-body); border-radius: 8px; border: 1px solid var(--border-light);">
+          <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Detalle del Lote</div>
+          <div style="font-size: 1.1rem; font-weight: 700; color: var(--ina-secondary); margin-bottom: 0.25rem;">
+            {{ selectedLot.internalLotBase }}
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+            <span style="color: var(--text-secondary)">Tipo:</span>
+            <span style="font-weight: 600;"><span class="badge badge-info">{{ selectedLot.shrimpType }}</span></span>
+          </div>
+        </div>
       </div>
-      <div class="form-group">
-        <select class="form-input" [(ngModel)]="selectedLotId" (change)="onLotChange()">
-          <option [value]="null">-- Seleccione --</option>
-          <option *ngFor="let lot of receptions" [value]="lot.stockOrderId">
-            Lote {{ lot.internalLotBase }} ({{ lot.shrimpType }})
-          </option>
-        </select>
+
+      <!-- Created masters list -->
+      <div class="card" *ngIf="createdMasters.length > 0">
+        <div class="card-header" style="margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between;">
+          <h2>Últimos Masters Creados</h2>
+        </div>
+        <ul class="master-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
+          <li *ngFor="let mc of createdMasters" style="background: #f9fafb; padding: 0.75rem; border-radius: 6px; border: 1px solid #e5e7eb; font-size: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+              <strong style="color: var(--text-primary);">{{ mc.brand }}</strong>
+              <span class="badge badge-teal" style="font-size: 0.7rem;">{{ mc.shrimpSize }}</span>
+            </div>
+            <div style="color: var(--text-secondary); margin-bottom: 0.5rem;">Presentación: {{ mc.presentation }}</div>
+            <div *ngIf="mc.qrCode" class="qr-tag" style="font-family: monospace; font-size: 0.75rem; background: #e0f2fe; color: #0284c7; padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-block;">QR: {{ mc.qrCode }}</div>
+          </li>
+        </ul>
       </div>
     </div>
 
-    <div class="card" *ngIf="selectedLot">
+    <!-- Right Column: Create Masters Form -->
+    <div class="card animate-fade-in-up" *ngIf="selectedLot">
       <div class="card-header">
         <span class="step-number">2</span>
         <h2>Crear Masters</h2>
       </div>
 
-      <div class="master-form">
-        <div class="form-group">
-          <label>Marca</label>
-          <input type="text" class="form-input" [(ngModel)]="brand" placeholder="Ej: SeaFresh">
+      <div class="master-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; background: #f9fafb; padding: 1.5rem; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 1.5rem;">
+        
+        <div class="form-group" style="grid-column: span 2;">
+          <label class="form-label">Marca Comercial</label>
+          <input type="text" class="form-input form-input-lg" [(ngModel)]="brand" placeholder="Ej: SeaFresh / Dufer">
         </div>
+        
         <div class="form-group">
-          <label>Talla</label>
-          <select class="form-input" [(ngModel)]="shrimpSize">
+          <label class="form-label">Talla</label>
+          <select class="form-input form-select" [(ngModel)]="shrimpSize">
             <option value="16/20">16/20</option>
             <option value="21/25">21/25</option>
             <option value="26/30">26/30</option>
@@ -45,53 +88,55 @@
             <option value="51/60">51/60</option>
           </select>
         </div>
+        
         <div class="form-group">
-          <label>Presentación</label>
-          <select class="form-input" [(ngModel)]="presentation">
+          <label class="form-label">Presentación</label>
+          <select class="form-input form-select" [(ngModel)]="presentation">
             <option value="2lb box">2 lb box</option>
             <option value="4lb box">4 lb box</option>
             <option value="5lb box">5 lb box</option>
           </select>
         </div>
+        
         <div class="form-group">
-          <label>Tipo Congelación</label>
-          <select class="form-input" [(ngModel)]="freezeType">
+          <label class="form-label">Tipo Congelación</label>
+          <select class="form-input form-select" [(ngModel)]="freezeType">
             <option value="BLOQUE">Bloque</option>
             <option value="IQF">IQF</option>
           </select>
         </div>
+        
         <div class="form-group">
-          <label>Peso bruto por master (lbs)</label>
+          <label class="form-label">Peso bruto por master (lbs)</label>
           <input type="number" class="form-input" [(ngModel)]="grossWeightLbs" min="0.01" step="0.01">
         </div>
-        <div class="form-group">
-          <label>Cantidad de masters</label>
-          <input type="number" class="form-input" [(ngModel)]="numMasters" min="1" max="100">
+        
+        <div class="form-group" style="grid-column: span 2; border-top: 1px dashed #d1d5db; padding-top: 1.5rem; margin-top: 0.5rem;">
+          <label class="form-label" style="font-size: 0.9rem; color: var(--ina-secondary);">Cantidad de Masters a generar</label>
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <input type="number" class="form-input form-input-lg" style="max-width: 150px; text-align: center;" [(ngModel)]="numMasters" min="1" max="100">
+            <span style="color: var(--text-secondary); font-size: 0.85rem;">Se generará un QR único por cada caja master.</span>
+          </div>
         </div>
       </div>
 
-      <div *ngIf="errorMsg" style="color: #dc2626; margin-top: 0.5rem;">⚠️ {{ errorMsg }}</div>
-      <div *ngIf="successMsg" style="color: #059669; margin-top: 0.5rem;">✅ {{ successMsg }}</div>
+      <!-- Error / Success -->
+      <div class="error-banner" *ngIf="errorMsg" style="margin-top: 1rem; padding: 0.75rem; background: #fef2f2; color: #dc2626; border-radius: 6px; font-size: 0.85rem; border: 1px solid #fca5a5;">⚠️ {{ errorMsg }}</div>
+      <div class="success-banner" *ngIf="successMsg" style="margin-top: 1rem; padding: 0.75rem; background: #ecfdf5; color: #059669; border-radius: 6px; font-size: 0.85rem; border: 1px solid #a7f3d0;">✅ {{ successMsg }}</div>
 
-      <div style="margin-top: 24px; text-align: right;">
-        <button class="btn-primary" [disabled]="!isValid() || saving" (click)="createMasters()">
-          {{ saving ? '⏳ Creando...' : 'Empacar Masters' }}
+      <div style="margin-top: 2rem; display: flex; justify-content: flex-end; border-top: 1px solid #e5e7eb; padding-top: 1.5rem;">
+        <button class="btn btn-primary btn-lg" [disabled]="!isValid() || saving" (click)="createMasters()">
+          {{ saving ? '⏳ Procesando...' : '📦 Empacar y Generar QRs' }}
         </button>
       </div>
     </div>
 
-    <!-- Created masters list -->
-    <div class="card" *ngIf="createdMasters.length > 0">
-      <div class="card-header">
-        <h2>Masters Creados</h2>
-        <span class="badge-info">{{ createdMasters.length }}</span>
-      </div>
-      <ul class="master-list">
-        <li *ngFor="let mc of createdMasters">
-          <strong>{{ mc.brand }}</strong> — {{ mc.shrimpSize }} / {{ mc.presentation }}
-          <span *ngIf="mc.qrCode" class="qr-tag">QR: {{ mc.qrCode }}</span>
-        </li>
-      </ul>
+    <!-- Empty State -->
+    <div *ngIf="!selectedLot" class="card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 2rem; text-align: center; color: var(--text-muted); background: rgba(255,255,255,0.5); border-style: dashed;">
+      <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;">👈</div>
+      <h3 style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Seleccione un lote</h3>
+      <p style="font-size: 0.9rem; max-width: 300px;">Elija un lote base en el panel izquierdo para comenzar el proceso de empacado y masterizado.</p>
     </div>
+
   </div>
 </div>

@@ -76,6 +76,11 @@ export function provideInatraceAuth(config: InatraceAuthConfig) {
     bearerPrefix: 'Bearer'
   });
 
+  const shrimpCondition = createInterceptorCondition<IncludeBearerTokenCondition>({
+    urlPattern: new RegExp('^http:\\/\\/localhost:8085(\\/.*)?$', 'i'),
+    bearerPrefix: 'Bearer'
+  });
+
   return [
     provideKeycloak({
       config: {
@@ -99,7 +104,7 @@ export function provideInatraceAuth(config: InatraceAuthConfig) {
     }),
     {
       provide: INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG,
-      useValue: [apiCondition]
+      useValue: [apiCondition, shrimpCondition]
     },
     {
       provide: INATRACE_API_BASE_URL,

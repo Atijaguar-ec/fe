@@ -6,54 +6,101 @@
     </div>
   </div>
 
-  <div class="content-grid">
-    <div class="card">
+  <div class="content-grid" style="display: grid; grid-template-columns: 350px 1fr; gap: 1.5rem; align-items: start;">
+    <!-- Left Column: Lote Selection -->
+    <div class="card form-card">
       <div class="card-header">
         <span class="step-number">1</span>
         <h2>Seleccionar Lote</h2>
       </div>
+      
       <div class="form-group">
-        <select class="form-input" [(ngModel)]="selectedLotId" (change)="onLotChange()">
+        <label class="form-label">Lote Base (Clasificado)</label>
+        <select class="form-input form-select" [(ngModel)]="selectedLotId" (change)="onLotChange()">
           <option [value]="null">-- Seleccione --</option>
           <option *ngFor="let lot of receptions" [value]="lot.stockOrderId">
             Lote {{ lot.internalLotBase }} — {{ lot.totalWeightLbs | number:'1.0-0' }} lbs
           </option>
         </select>
       </div>
+
+      <!-- Lot Info Card (if selected) -->
+      <div *ngIf="selectedLot" style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-body); border-radius: 8px; border: 1px solid var(--border-light);">
+        <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Detalle del Lote</div>
+        <div style="font-size: 1.1rem; font-weight: 700; color: var(--ina-secondary); margin-bottom: 0.25rem;">
+          {{ selectedLot.internalLotBase }}
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.25rem;">
+          <span style="color: var(--text-secondary)">Total Recibido:</span>
+          <span style="font-weight: 600;">{{ selectedLot.totalWeightLbs | number:'1.0-0' }} lbs</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+          <span style="color: var(--text-secondary)">Proveedor:</span>
+          <span style="font-weight: 600;">{{ selectedLot.supplierName || 'N/A' }}</span>
+        </div>
+      </div>
     </div>
 
+    <!-- Right Column: Table -->
     <div class="card" *ngIf="selectedLot && classificationDetails.length > 0">
       <div class="card-header">
         <span class="step-number">2</span>
         <h2>Asignar Destinos por Talla</h2>
       </div>
-      <table class="data-table">
-        <thead>
-          <tr><th>Talla</th><th>Peso</th><th>Cajetas</th><th>Destino</th><th>Acción</th></tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let detail of classificationDetails">
-            <td><span class="size-badge">{{ detail.shrimpSize }}</span></td>
-            <td>{{ detail.weightLbs | number:'1.2-2' }}</td>
-            <td>{{ detail.cajetasCount }}</td>
-            <td>
-              <select class="form-input" [(ngModel)]="detail._destinationType">
-                <option value="BLOQUE">Bloque</option>
-                <option value="IQF">IQF (-2)</option>
-                <option value="VALOR_AGREGADO">V.A. (-3)</option>
-                <option value="SALMUERA">Salmuera (-4)</option>
-              </select>
-            </td>
-            <td>
-              <button class="btn-primary" [disabled]="detail._assigned || saving" (click)="assignDestination(detail)">
-                {{ detail._assigned ? '✓' : 'Asignar' }}
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <div *ngIf="errorMsg" style="color: #dc2626; margin-top: 0.5rem;">⚠️ {{ errorMsg }}</div>
-      <div *ngIf="successMsg" style="color: #059669; margin-top: 0.5rem;">✅ {{ successMsg }}</div>
+      
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Talla</th>
+              <th>Peso (lbs)</th>
+              <th>Cajetas</th>
+              <th>Destino</th>
+              <th style="text-align: right;">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let detail of classificationDetails">
+              <td><span class="badge badge-teal">{{ detail.shrimpSize }}</span></td>
+              <td style="font-weight: 600; color: var(--text-secondary);">{{ detail.weightLbs | number:'1.2-2' }}</td>
+              <td>{{ detail.cajetasCount }}</td>
+              <td>
+                <select class="form-input form-select" style="padding-top: 0.4rem; padding-bottom: 0.4rem; font-size: 0.85rem;" [(ngModel)]="detail._destinationType">
+                  <option value="BLOQUE">Bloque</option>
+                  <option value="IQF">IQF (-2)</option>
+                  <option value="VALOR_AGREGADO">V.A. (-3)</option>
+                  <option value="SALMUERA">Salmuera (-4)</option>
+                </select>
+              </td>
+              <td style="text-align: right;">
+                <button class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.8rem;" [disabled]="detail._assigned || saving" (click)="assignDestination(detail)">
+                  {{ detail._assigned ? '✓ Asignado' : 'Asignar' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div *ngIf="errorMsg" style="margin-top: 1rem; padding: 0.75rem; background: #fef2f2; color: #dc2626; border-radius: 6px; font-size: 0.85rem; border: 1px solid #fca5a5;">
+        ⚠️ {{ errorMsg }}
+      </div>
+      <div *ngIf="successMsg" style="margin-top: 1rem; padding: 0.75rem; background: #ecfdf5; color: #059669; border-radius: 6px; font-size: 0.85rem; border: 1px solid #a7f3d0;">
+        ✅ {{ successMsg }}
+      </div>
+    </div>
+    
+    <!-- Empty State -->
+    <div *ngIf="selectedLot && classificationDetails.length === 0" class="card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 2rem; text-align: center; color: var(--text-muted);">
+      <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">📊</div>
+      <h3 style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Lote sin clasificar</h3>
+      <p style="font-size: 0.9rem; max-width: 300px;">Este lote aún no tiene tallas registradas. Vaya a la pantalla de Clasificación primero.</p>
+    </div>
+    
+    <div *ngIf="!selectedLot" class="card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 2rem; text-align: center; color: var(--text-muted); background: rgba(255,255,255,0.5); border-style: dashed;">
+      <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;">👈</div>
+      <h3 style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Seleccione un lote</h3>
+      <p style="font-size: 0.9rem; max-width: 300px;">Elija un lote base en el panel izquierdo para ver sus tallas y asignar destinos.</p>
     </div>
   </div>
 </div>

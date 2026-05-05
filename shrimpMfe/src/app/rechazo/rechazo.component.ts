@@ -23,54 +23,67 @@ import { ShrimpDataService } from '../services/shrimp-data.service';
         </div>
       </div>
 
-      <div class="content-grid">
-        <div class="card">
+      <div class="content-grid" style="display: grid; grid-template-columns: 350px 1fr; gap: 1.5rem; align-items: start;">
+        <!-- Left Column: Lote Selection -->
+        <div class="card form-card">
           <div class="card-header">
             <span class="step-number">1</span>
             <h2>Lote Base a Procesar</h2>
           </div>
-          <p class="helper-text">Seleccione un lote recibido como <strong>ENTERO</strong> que requiere descabezado por baja calidad visual.</p>
+          <p class="helper-text" style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">Seleccione un lote recibido como <strong>ENTERO</strong> que requiere descabezado por baja calidad visual.</p>
 
-          <div class="form-group" style="margin-top: 15px;">
-            <select class="form-input" [(ngModel)]="selectedLotId" (change)="onLotChange()">
+          <div class="form-group">
+            <select class="form-input form-select" [(ngModel)]="selectedLotId" (change)="onLotChange()">
               <option [value]="null">-- Seleccione --</option>
               <option *ngFor="let lot of eligibleLots" [value]="lot.stockOrderId">
                 Lote {{ lot.internalLotBase }} ({{ lot.totalWeightLbs | number:'1.2-2' }} lbs)
               </option>
             </select>
           </div>
+
+          <!-- Lot Info Card -->
+          <div *ngIf="selectedLot" style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-body); border-radius: 8px; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Detalle del Lote</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: var(--ina-secondary); margin-bottom: 0.25rem;">
+              {{ selectedLot.internalLotBase }}
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.25rem;">
+              <span style="color: var(--text-secondary)">Total Recibido:</span>
+              <span style="font-weight: 600;">{{ selectedLot.totalWeightLbs | number:'1.2-2' }} lbs</span>
+            </div>
+          </div>
         </div>
 
-        <!-- Recuperacion form -->
+        <!-- Right Column: Recuperacion form -->
         <div class="card animate-fade-in-up" *ngIf="selectedLot">
           <div class="card-header">
             <span class="step-number">2</span>
             <h2>Registrar Rechazo</h2>
           </div>
 
-          <div class="conversion-panel">
-            <div class="conv-input">
-              <label>Libras de Entero rechazadas</label>
-              <input type="number" class="form-input" [(ngModel)]="inputLbs" (ngModelChange)="calcShrinkage()" placeholder="Ej. 500" min="0.01" [max]="selectedLot.totalWeightLbs">
+          <div class="conversion-panel" style="display: flex; align-items: center; gap: 1rem; background: #f9fafb; padding: 1.5rem; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 1rem;">
+            <div class="conv-input" style="flex: 1;">
+              <label class="form-label">Libras de Entero rechazadas</label>
+              <input type="number" class="form-input form-input-lg" [(ngModel)]="inputLbs" (ngModelChange)="calcShrinkage()" placeholder="Ej. 500" min="0.01" [max]="selectedLot.totalWeightLbs">
             </div>
 
-            <div class="conv-arrow">➡️</div>
+            <div class="conv-arrow" style="font-size: 1.5rem; color: #9ca3af; padding: 0 0.5rem;">➡️</div>
 
-            <div class="conv-output">
-              <label>Libras de Cola recuperada</label>
-              <input type="number" class="form-input" [(ngModel)]="outputLbs" (ngModelChange)="calcShrinkage()" placeholder="Ej. 320" [disabled]="!activeCycle || activeCycle.status !== 'PENDING_BEHEADING'">
+            <div class="conv-output" style="flex: 1;">
+              <label class="form-label">Libras de Cola recuperada</label>
+              <input type="number" class="form-input form-input-lg" [(ngModel)]="outputLbs" (ngModelChange)="calcShrinkage()" placeholder="Ej. 320" [disabled]="!activeCycle || activeCycle.status !== 'PENDING_BEHEADING'">
             </div>
           </div>
 
-          <div class="shrinkage-indicator" *ngIf="shrinkage !== null">
-            Merma por cabezas: <strong>{{ shrinkage | number:'1.2-2' }} lbs</strong>
-            <span class="shrinkage-pct" *ngIf="inputLbs > 0">({{ (shrinkage / inputLbs) * 100 | number:'1.1-2' }}%)</span>
+          <div class="shrinkage-indicator" *ngIf="shrinkage !== null" style="background: #e0f4fc; color: #0369a1; padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.9rem; border: 1px solid #bae6fd; display: flex; justify-content: space-between; align-items: center;">
+            <span>Merma por cabezas: <strong>{{ shrinkage | number:'1.2-2' }} lbs</strong></span>
+            <span class="shrinkage-pct" *ngIf="inputLbs > 0" style="font-weight: 700; background: #0284c7; color: white; padding: 0.2rem 0.5rem; border-radius: 4px;">{{ (shrinkage / inputLbs) * 100 | number:'1.1-2' }}%</span>
           </div>
 
           <!-- Waste reason selector -->
-          <div class="form-group" style="margin-top: 1rem;" *ngIf="activeCycle && activeCycle.status === 'PENDING_BEHEADING'">
+          <div class="form-group" style="margin-top: 1.5rem;" *ngIf="activeCycle && activeCycle.status === 'PENDING_BEHEADING'">
             <label class="form-label">Motivo de merma</label>
-            <select class="form-input" [(ngModel)]="wasteReason">
+            <select class="form-input form-select" [(ngModel)]="wasteReason">
               <option value="CABEZAS">Cabezas</option>
               <option value="BASURA">Basura / Impurezas</option>
               <option value="AGUA">Agua</option>
@@ -79,26 +92,33 @@ import { ShrimpDataService } from '../services/shrimp-data.service';
           </div>
 
           <!-- Error/Success banners -->
-          <div class="error-banner" *ngIf="errorMsg">
-            ⚠️ {{ errorMsg }}
-            <button class="error-close" (click)="errorMsg = ''">✕</button>
+          <div class="error-banner" *ngIf="errorMsg" style="margin-top: 1rem; padding: 0.75rem; background: #fef2f2; color: #dc2626; border-radius: 6px; font-size: 0.85rem; border: 1px solid #fca5a5; display: flex; justify-content: space-between;">
+            <span>⚠️ {{ errorMsg }}</span>
+            <button class="error-close" style="background: none; border: none; color: #dc2626; cursor: pointer;" (click)="errorMsg = ''">✕</button>
           </div>
-          <div class="success-banner" *ngIf="successMsg">
-            ✅ {{ successMsg }}
-            <button class="error-close" (click)="successMsg = ''">✕</button>
+          <div class="success-banner" *ngIf="successMsg" style="margin-top: 1rem; padding: 0.75rem; background: #ecfdf5; color: #059669; border-radius: 6px; font-size: 0.85rem; border: 1px solid #a7f3d0; display: flex; justify-content: space-between;">
+            <span>✅ {{ successMsg }}</span>
+            <button class="error-close" style="background: none; border: none; color: #059669; cursor: pointer;" (click)="successMsg = ''">✕</button>
           </div>
 
-          <div style="margin-top: 20px; display: flex; gap: 0.75rem; justify-content: flex-end;">
+          <div style="margin-top: 2rem; display: flex; gap: 0.75rem; justify-content: flex-end; border-top: 1px solid #e5e7eb; padding-top: 1.5rem;">
             <button class="btn btn-primary" *ngIf="!activeCycle" [disabled]="inputLbs <= 0 || saving" (click)="createRejection()">
-              {{ saving ? '⏳...' : 'Iniciar Rechazo' }}
+              {{ saving ? '⏳ Procesando...' : 'Iniciar Rechazo' }}
             </button>
             <button class="btn btn-primary" *ngIf="activeCycle?.status === 'PENDING_BEHEADING'" [disabled]="!isValid() || saving" (click)="completeBeheading()">
-              {{ saving ? '⏳...' : 'Confirmar Descabezado' }}
+              {{ saving ? '⏳ Procesando...' : 'Confirmar Descabezado' }}
             </button>
-            <button class="btn btn-primary" *ngIf="activeCycle?.status === 'BEHEADING_COMPLETE'" [disabled]="saving" (click)="completeReentry()">
-              {{ saving ? '⏳...' : 'Reingresar como Cola' }}
+            <button class="btn btn-success" *ngIf="activeCycle?.status === 'BEHEADING_COMPLETE'" [disabled]="saving" (click)="completeReentry()">
+              {{ saving ? '⏳ Procesando...' : '✓ Reingresar como Cola' }}
             </button>
           </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!selectedLot" class="card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 2rem; text-align: center; color: var(--text-muted); background: rgba(255,255,255,0.5); border-style: dashed;">
+          <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;">👈</div>
+          <h3 style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Seleccione un lote base</h3>
+          <p style="font-size: 0.9rem; max-width: 300px;">Elija un lote entero en el panel izquierdo para iniciar el proceso de rechazo y descabezado.</p>
         </div>
       </div>
     </div>

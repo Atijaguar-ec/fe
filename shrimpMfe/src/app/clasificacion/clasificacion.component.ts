@@ -260,7 +260,7 @@ const DESTINOS: { key: string; label: string; icon: string; suffix: number }[] =
     </div>
   `,
   styles: [`
-    .page { max-width: 1200px; padding-bottom: 3rem; }
+    .page { max-width: 1600px; margin: 0 auto; padding-bottom: 3rem; }
     .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; }
     .page-title { font-size: 1.5rem; font-weight: 700; color: var(--ina-secondary); margin: 0; }
     .page-subtitle { font-size: 0.82rem; color: #6b7280; margin-top: 2px; }
@@ -372,7 +372,7 @@ const DESTINOS: { key: string; label: string; icon: string; suffix: number }[] =
   `]
 })
 export class ClassificationComponent implements OnInit {
-  COMPANY_ID = 1;
+  COMPANY_ID: number | null = null;
 
   // Domain Masters
   openReceptions: any[] = [];
@@ -401,10 +401,22 @@ export class ClassificationComponent implements OnInit {
   constructor(private dataService: ShrimpDataService, private shrimpMs: ShrimpMsService) {}
 
   ngOnInit() {
-    this.loadMasters();
+    this.dataService.getActiveCompany().subscribe(company => {
+      const companyIds = company?.data?.companyIds || company?.companyIds || [];
+      this.COMPANY_ID = companyIds.length > 0 ? companyIds[0] : null;
+
+      if (!this.COMPANY_ID) {
+        console.warn('[ShrimpData] No se pudo obtener la compañía activa en Clasificación.');
+        return;
+      }
+
+      this.loadMasters();
+    });
   }
 
   loadMasters() {
+    if (!this.COMPANY_ID) return;
+
     this.dataService.getAvailableForClassification(this.COMPANY_ID).subscribe(list => {
       this.openReceptions = list;
     });

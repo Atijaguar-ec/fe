@@ -65,18 +65,17 @@ import { RouterModule } from '@angular/router';
               </span>
               <span class="nav-text">Liquidación</span>
             </a>
-            <a routerLink="masterizado" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">
-                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>
-              </span>
-              <span class="nav-text">Masterizado</span>
-            </a>
             <a routerLink="inventario" routerLinkActive="active" class="nav-item">
               <span class="nav-icon">
-                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
               </span>
               <span class="nav-text">Inventario</span>
             </a>
+            <a routerLink="masterizado" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">📦</span>
+              <span class="nav-text">Empaque Final</span>
+            </a>
+
           </div>
         </nav>
 
@@ -117,147 +116,142 @@ import { RouterModule } from '@angular/router';
   `,
   styles: [`
     .shell {
-      --ina-primary: #369bc1;
-      --ina-primary-light: #e0f4fc;
-      --ina-secondary: #c87711;
-      --ina-secondary-light: #fef4e8;
+      --ina-primary: #999933;         /* Olive Green */
+      --ina-primary-light: #f4f4e1;
+      --ina-secondary: #c87711;       /* Orange */
+      --ina-secondary-light: #fdf3e7;
 
-      /* Sidebar palette — deep ocean */
-      --sb-bg: #0f1a2e;
-      --sb-bg-hover: rgba(255,255,255,0.06);
-      --sb-bg-active: rgba(54,155,193,0.15);
-      --sb-text: rgba(255,255,255,0.55);
-      --sb-text-hover: rgba(255,255,255,0.85);
-      --sb-text-active: #5ec4e8;
-      --sb-accent: #5ec4e8;
-      --sb-divider: rgba(255,255,255,0.08);
+      /* Sidebar palette — premium light */
+      --sb-bg: #ffffff;
+      --sb-bg-hover: #f9fafb;
+      --sb-bg-active: #f4f4e1;
+      --sb-text: #6b7280;
+      --sb-text-hover: #1f2937;
+      --sb-text-active: #999933;
+      --sb-accent: #c87711;
+      --sb-divider: #f3f4f6;
 
       display: flex;
       height: 100vh;
       overflow: hidden;
-      background-color: #f5f6f8;
+      background-color: #f3f4f6;
       font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     /* ─── SIDEBAR ────────────────────────────── */
     .sidebar {
-      width: 240px;
-      min-width: 240px;
+      width: 250px;
+      min-width: 250px;
       background: var(--sb-bg);
       display: flex;
       flex-direction: column;
       position: relative;
       z-index: 10;
-      box-shadow: 2px 0 20px rgba(0,0,0,0.15);
-    }
-
-    /* Subtle gradient overlay for depth */
-    .sidebar::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 40%, rgba(0,0,0,0.1) 100%);
-      pointer-events: none;
-      z-index: 0;
+      border-right: 1px solid #e5e7eb;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.02);
     }
 
     /* ─── HEADER ─────────────────────────────── */
     .sidebar-header {
-      padding: 1.25rem 1.15rem;
+      padding: 1.5rem 1.25rem;
       position: relative;
       z-index: 1;
+      border-bottom: 1px solid var(--sb-divider);
     }
 
     .brand-block {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.85rem;
     }
 
     .brand-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #369bc1 0%, #1d6fa5 100%);
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--ina-secondary) 0%, #e68a15 100%);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      box-shadow: 0 2px 8px rgba(54,155,193,0.35);
+      box-shadow: 0 4px 12px rgba(200, 119, 17, 0.2);
     }
     .brand-icon svg {
-      width: 22px;
-      height: 22px;
+      width: 24px;
+      height: 24px;
     }
 
     .brand-text {
       display: flex;
       flex-direction: column;
-      gap: 1px;
+      gap: 2px;
     }
     .brand-name {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: 0.01em;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #1f2937;
+      letter-spacing: -0.01em;
     }
     .brand-sub {
-      font-size: 0.65rem;
-      color: var(--sb-text);
-      font-weight: 400;
-      letter-spacing: 0.02em;
+      font-size: 0.7rem;
+      color: #9ca3af;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     /* ─── NAVIGATION ─────────────────────────── */
     .nav {
       flex: 1;
-      padding: 0.5rem 0;
+      padding: 1.25rem 0.75rem;
       overflow-y: auto;
       z-index: 1;
     }
 
     .nav-section {
-      margin-bottom: 0.5rem;
+      margin-bottom: 1.5rem;
     }
 
     .nav-section-label {
-      padding: 1rem 1.15rem 0.45rem;
-      font-size: 0.6rem;
+      padding: 0 0.75rem 0.5rem;
+      font-size: 0.65rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: rgba(255,255,255,0.25);
+      letter-spacing: 0.12em;
+      color: #9ca3af;
       user-select: none;
     }
 
     .nav-item {
       display: flex;
       align-items: center;
-      gap: 0.7rem;
-      padding: 0.55rem 1.15rem;
-      margin: 1px 0.5rem;
+      gap: 0.85rem;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.25rem;
       color: var(--sb-text);
       text-decoration: none;
-      font-size: 0.82rem;
-      font-weight: 500;
+      font-size: 0.9rem;
+      font-weight: 600;
       cursor: pointer;
-      border-radius: 8px;
+      border-radius: 10px;
       position: relative;
-      transition: all 0.15s ease;
+      transition: all 0.2s ease;
     }
 
     .nav-item:hover:not(.nav-disabled) {
       background: var(--sb-bg-hover);
       color: var(--sb-text-hover);
+      transform: translateX(4px);
     }
     .nav-item:hover .nav-icon {
-      color: var(--sb-text-hover);
+      color: var(--ina-secondary);
+      transform: scale(1.1);
     }
 
     .nav-item.active {
       background: var(--sb-bg-active);
       color: var(--sb-text-active);
-      font-weight: 600;
+      box-shadow: inset 0 0 0 1px rgba(153, 153, 51, 0.1);
     }
     .nav-item.active .nav-icon {
       color: var(--sb-accent);
@@ -265,64 +259,64 @@ import { RouterModule } from '@angular/router';
     .nav-item.active::before {
       content: '';
       position: absolute;
-      left: -0.5rem;
-      top: 6px;
-      bottom: 6px;
-      width: 3px;
-      border-radius: 0 3px 3px 0;
+      left: -0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 60%;
+      width: 4px;
+      border-radius: 0 4px 4px 0;
       background: var(--sb-accent);
     }
 
     .nav-icon {
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
       flex-shrink: 0;
-      color: var(--sb-text);
-      transition: color 0.15s ease;
+      color: #9ca3af;
+      transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .nav-icon svg {
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
     }
 
     .nav-disabled {
-      opacity: 0.35;
+      opacity: 0.4;
       cursor: default;
       pointer-events: none;
     }
 
     /* ─── FOOTER ──────────────────────────────── */
     .sidebar-footer {
-      padding: 0.75rem 1.15rem 1rem;
+      padding: 1rem 1.5rem;
+      background: #f9fafb;
+      border-top: 1px solid var(--sb-divider);
       z-index: 1;
-    }
-    .footer-divider {
-      height: 1px;
-      background: var(--sb-divider);
-      margin-bottom: 0.75rem;
     }
     .version-info {
       display: flex;
       align-items: center;
-      gap: 5px;
-      font-size: 0.68rem;
-      color: rgba(255,255,255,0.3);
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #6b7280;
     }
-    .version-sep { opacity: 0.5; }
+    .version-sep { color: #d1d5db; }
     .live-dot {
-      width: 6px;
-      height: 6px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: #34d399;
-      box-shadow: 0 0 6px rgba(52,211,153,0.5);
-      animation: pulse-dot 2s ease-in-out infinite;
+      background: #10b981;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+      animation: pulse-dot 2s infinite;
     }
     @keyframes pulse-dot {
-      0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(52,211,153,0.5); }
-      50% { opacity: 0.6; box-shadow: 0 0 2px rgba(52,211,153,0.2); }
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
 
     /* ─── MAIN CONTENT ────────────────────────── */

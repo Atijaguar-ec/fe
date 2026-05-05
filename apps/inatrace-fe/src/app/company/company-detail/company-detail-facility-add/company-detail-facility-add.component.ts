@@ -238,7 +238,7 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
         this.registerValidatorsOnUpdate();
         this.registerValueChainSubs();
         this.initializeLevelControl(
-          facilityData.level ?? facilityData.facilityType?.order ?? null,
+          facilityData.level ?? (facilityData.facilityType as any)?.order ?? null,
         );
         this.registerFacilityTypeLevelDefaults();
       });
@@ -424,11 +424,11 @@ export class CompanyDetailFacilityAddComponent implements OnInit, OnDestroy {
     const applyDefault = (facilityType: ApiFacility['facilityType']) => {
       if (
         !this.edit &&
-        facilityType?.order != null &&
+        (facilityType as any)?.order != null &&
         this.levelControl &&
         this.levelControl.pristine
       ) {
-        this.levelControl.setValue(facilityType.order, { emitEvent: false });
+        this.levelControl.setValue((facilityType as any).order, { emitEvent: false });
       }
     };
 

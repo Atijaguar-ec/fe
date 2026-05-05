@@ -2,7 +2,6 @@ import { Injectable, Inject, Optional } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, BehaviorSubject } from 'rxjs';
 import { map, tap, catchError, switchMap } from 'rxjs/operators';
-import * as mockDb from '../data/shrimp-mock-db.json';
 import { INATRACE_API_BASE_URL } from '@inatrace/shared-auth';
 
 export interface ShrimpFacility {
@@ -49,14 +48,8 @@ export class ShrimpDataService {
    */
   private readonly baseUrl: string;
 
-  // We keep the mock data in memory so we can "push" to it during the demo.
-  private mockState = { ...mockDb };
-  private receptionLotsSubject = new BehaviorSubject<ReceptionLot[]>(
-    (this.mockState.reception_lots || []).map((lot: any) => ({
-      ...lot,
-      supplier_name: lot.supplier_name || 'N/A'
-    }))
-  );
+  // No mock data — all data comes from Core API or ms-shrimp
+  private receptionLotsSubject = new BehaviorSubject<ReceptionLot[]>([]);
 
   constructor(
     private http: HttpClient,
@@ -69,14 +62,13 @@ export class ShrimpDataService {
 
   /**
    * 1. LIVE API: Get Active Company Details
-   * Calls the real INATrace backend
+   * Calls the real INATrace backend — requires valid session
    */
   getActiveCompany(): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/user/profile`).pipe(
       catchError((err) => {
-        console.warn('Could not fetch active company via API, using shrimp demo fallback (ID 10)');
-        // Fallback to company ID 10 (Dufer) so data is visible even during CORS issues
-        return of({ id: 10, name: 'Empacadora Dufer Cia Ltda' });
+        console.error('[ShrimpData] No se pudo obtener la compañía activa. ¿Está logueado?', err?.status);
+        return of(null);
       })
     );
   }
@@ -89,8 +81,8 @@ export class ShrimpDataService {
     return this.http.get<any>(`${this.baseUrl}/chain/facility/list/collecting/company/${companyId}?limit=100&offset=0`).pipe(
       map(res => res?.data?.items || []),
       catchError(err => {
-        console.warn('Could not fetch facilities via API, using shrimp fallback', err);
-        return of(this.mockState.facilities);
+        console.error('[ShrimpData] Error al cargar instalaciones del Core:', err?.status, err?.message);
+        return of([]);
       })
     );
   }
@@ -114,12 +106,8 @@ export class ShrimpDataService {
         }));
       }),
       catchError(err => {
-        console.warn('Could not fetch suppliers, using fallback', err);
-        return of([
-          { id: 1, name: 'Carlos', surname: 'Mendoza Reyes', displayName: 'Carlos Mendoza Reyes', type: 'FARMER' as const },
-          { id: 2, name: 'María', surname: 'Tomalá Suárez', displayName: 'María Tomalá Suárez', type: 'FARMER' as const },
-          { id: 3, name: 'Pedro', surname: 'Acopiador Central', displayName: 'Pedro Acopiador Central', type: 'COLLECTOR' as const },
-        ]);
+        console.error('[ShrimpData] Error al cargar proveedores del Core:', err?.status, err?.message);
+        return of([]);
       })
     );
   }
@@ -142,18 +130,23 @@ export class ShrimpDataService {
         return this.http.get<any>(`${this.baseUrl}/chain/semi-product/list/by-value-chains?valueChainIds=${vcIds.join(',')}`).pipe(
           map(spRes => {
             const items = spRes?.data?.items || [];
-            return items
-              .filter((sp: any) => sp.name === 'Entero' || sp.name === 'Cola')
-              .map((sp: any) => ({
+            return items.map((sp: any) => {
+              let uiName = sp.name || sp.description || '';
+              if (uiName.includes('Entero')) uiName = 'Entero';
+              else if (uiName.includes('Cola')) uiName = 'Cola';
+              
+              return {
                 id: sp.id,
-                name: sp.name || sp.description
-              }));
+                name: uiName,
+                originalName: sp.name || sp.description
+              };
+            });
           })
         );
       }),
       catchError(err => {
-        console.warn('Could not fetch semi-products via API, using shrimp fallback', err);
-        return of(this.mockState.semi_products || []);
+        console.error('[ShrimpData] Error al cargar semi-productos del Core:', err?.status, err?.message);
+        return of([]);
       })
     );
   }
@@ -220,7 +213,6 @@ export class ShrimpDataService {
       payload.pricePerUnit = params.pricePerUnit ?? 0;
       payload.priceDeterminedLater = false;
     }
-
     return this.http.put<any>(`${this.baseUrl}/chain/stock-order`, payload).pipe(
       map(res => ({ id: res?.data?.id || res?.id })),
       tap(result => console.log('[ShrimpDataService] StockOrder created:', result)),
@@ -231,56 +223,34 @@ export class ShrimpDataService {
     );
   }
 
-  // ─── LOCAL STATE & QUERIES ─────────────────────────────
-
   /**
    * 6. LIVE API: Get Today's Reception Records
-   * Fetches the purchase orders created today for the reception list
+   * Now reads from ms-shrimp (source of truth for shrimp receptions)
    */
   getTodayReceptions(companyId: number, dateStr: string): Observable<any[]> {
-    const params = `isPurchaseOrderOnly=true&productionDateStart=${dateStr}&productionDateEnd=${dateStr}&limit=50&offset=0`;
-    return this.http.get<any>(`${this.baseUrl}/chain/stock-order/list/company/${companyId}?${params}`).pipe(
-      map(res => {
-        const items = res?.data?.items || [];
-        return items.map((item: any) => {
-          let bines = 0;
-          try {
-            if (item.comments) {
-              const parsed = JSON.parse(item.comments);
-              bines = parsed.cajetas || 0;
-            }
-          } catch { }
+    // Read from ms-shrimp directly — that's where we save now
+    const msBaseUrl = (window as any)?.['env']?.['shrimpApiBaseUrl']
+      ?? 'http://localhost:8085/api/shrimp';
 
-          return {
-            id: Date.now() + Math.floor(Math.random() * 1000), // Virtual UI ID
-            coreStockOrderId: item.id,
-            lotNumber: item.internalLotNumber || 'Desconocido',
-            supplierName: item.producerUserCustomer?.name ? `${item.producerUserCustomer.name} ${item.producerUserCustomer.surname || ''}`.trim() : 'Proveedor GIZ',
-            supplierId: item.producerUserCustomer?.id || null,
-            pesoBruto: item.totalGrossQuantity || 0,
-            bines: bines,
-            tipo: item.semiProduct?.name || 'Entero',
-            fecha: new Date(item.productionDate),
-            saved: true
-          };
-        });
+    return this.http.get<any>(`${msBaseUrl}/reception/list`).pipe(
+      map(res => {
+        const items = res?.data || [];
+        return items.map((item: any) => ({
+          id: Date.now() + Math.floor(Math.random() * 1000),
+          coreStockOrderId: item.stockOrderId,
+          lotNumber: item.internalLotBase || 'Desconocido',
+          supplierName: item.createdBy || 'Operador',
+          supplierId: null,
+          pesoBruto: item.totalWeightLbs || 0,
+          bines: item.binsCount || 0,
+          tipo: item.shrimpType === 'COLA' ? 'Cola' : 'Entero',
+          fecha: new Date(item.createdAt || new Date()),
+          saved: true
+        }));
       }),
       catchError(err => {
-        console.warn('Could not fetch today receptions from API, using internal mock fallback', err);
-        // Fallback to internal mocks to avoid "empty" screen if backend is unreachable
-        const mappedMocks = (this.mockState.reception_lots || []).map((mock: any) => ({
-          id: Date.now() + Math.floor(Math.random() * 1000), // Virtual UI ID
-          coreStockOrderId: parseInt(mock.id.replace('rl-', ''), 10) || null, // Convert mock rl-id to number to simulate core id
-          lotNumber: mock.base_lot_number || 'Desconocido',
-          supplierName: mock.supplier_name || 'Proveedor Mock',
-          supplierId: mock.supplier_id || null,
-          pesoBruto: mock.gross_weight_lbs || 0,
-          bines: mock.bins_count || 0,
-          tipo: mock.product_type === 'ENTERO' ? 'Entero' : 'Cola',
-          fecha: new Date(mock.reception_date || new Date()),
-          saved: false // Indicate it's just a mock
-        }));
-        return of(mappedMocks);
+        console.error('[ShrimpData] Error al cargar recepciones de ms-shrimp:', err?.status, err?.message);
+        return of([]);
       })
     );
   }
@@ -292,7 +262,7 @@ export class ShrimpDataService {
    * Requests open balances for the company that are Entero or Cola
    */
   getAvailableForClassification(companyId: number): Observable<any[]> {
-    const params = `isOpenBalanceOnly=true&limit=100&offset=0`;
+    const params = `availableOnly=true&limit=100&offset=0`;
     return this.http.get<any>(`${this.baseUrl}/chain/stock-order/list/company/${companyId}?${params}`).pipe(
       map(res => {
         const items = res?.data?.items || [];
@@ -300,13 +270,13 @@ export class ShrimpDataService {
         return items
           .filter((item: any) => {
             const name = item.semiProduct?.name || '';
-            return name === 'Entero' || name === 'Cola';
+            return name.includes('Entero') || name.includes('Cola');
           })
           .map((item: any) => ({
             coreStockOrderId: item.id,
             lotNumber: item.internalLotNumber || 'Desconocido',
             pesoBruto: item.totalGrossQuantity || 0,
-            tipo: item.semiProduct?.name || 'Entero',
+            tipo: item.semiProduct?.name?.includes('Cola') ? 'Cola' : 'Entero',
             facilityId: item.facility?.id,
             fecha: new Date(item.productionDate)
           }));
@@ -369,15 +339,4 @@ export class ShrimpDataService {
     this.receptionLotsSubject.next([lot, ...current]);
   }
 
-  /**
-   * 8. MOCK DB: Save Classification Output
-   */
-  saveClassificationOutput(output: any): Observable<any> {
-    const newOutput = {
-      ...output,
-      id: `co-${Date.now()}`
-    };
-    this.mockState.classification_outputs.push(newOutput);
-    return of(newOutput);
-  }
 }

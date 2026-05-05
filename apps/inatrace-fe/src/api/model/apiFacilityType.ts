@@ -37,10 +37,6 @@ export interface ApiFacilityType {
      * label
      */
     label: string;
-    /**
-     * Processing order / hierarchy level
-     */
-    order?: number;
 }
 
 /**
@@ -62,11 +58,7 @@ export namespace ApiFacilityType {
         /**
          * label
          */
-        label = 'label',
-        /**
-         * Processing order / hierarchy level
-         */
-        order = 'order'
+        label = 'label'
     }
 
 
@@ -108,17 +100,6 @@ export namespace ApiFacilityType {
                     isListContainer: false,
                     complexType: ''
                 },
-                {
-                    isReadOnly: false,
-                    isEnum: false,
-                    required: false,
-                    name: 'order',
-                    classname: 'ApiFacilityType',
-                    dataType: 'number',
-                    isPrimitiveType: true,
-                    isListContainer: false,
-                    complexType: ''
-                },
             ],
             validators: {
                 id: [
@@ -128,8 +109,6 @@ export namespace ApiFacilityType {
                 ],
                 label: [
                         ['required'],
-                ],
-                order: [
                 ],
             }
         }

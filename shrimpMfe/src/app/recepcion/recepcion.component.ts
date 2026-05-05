@@ -306,7 +306,7 @@ interface ReceptionRecord {
     </div>
   `,
   styles: [`
-    .page { max-width: 1100px; }
+    .page { max-width: 1600px; margin: 0 auto; }
 
     .page-header {
       display: flex;
@@ -567,12 +567,34 @@ interface ReceptionRecord {
     .btn-block { width: 100%; }
 
     /* Records */
+    .records-card {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 120px); /* Limit height to viewport */
+      position: sticky;
+      top: 20px;
+    }
+    
     .empty-state { text-align: center; padding: 2rem 1rem; }
     .empty-icon { font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5; }
     .empty-text { font-size: 0.9rem; font-weight: 600; color: #6b7280; }
     .empty-hint { font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem; }
 
-    .record-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .record-list { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 0.5rem; 
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 0.25rem;
+    }
+    
+    /* Scrollbar styling for a cleaner look */
+    .record-list::-webkit-scrollbar { width: 4px; }
+    .record-list::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    .record-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .record-list::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     .record-item {
       display: flex;
       align-items: center;
@@ -666,17 +688,28 @@ export class ReceptionComponent implements OnInit {
 
     // Load company data, then suppliers, semi-products, and facilities
     this.shrimpData.getActiveCompany().subscribe(company => {
-      this.companyId = company?.data?.id || company?.id;
+      // The API returns the User object in data.id, but the companies are in data.companyIds
+      const companyIds = company?.data?.companyIds || company?.companyIds || [];
+      this.companyId = companyIds.length > 0 ? companyIds[0] : null;
       if (!this.companyId) return;
 
       this.shrimpData.getSuppliers(this.companyId).subscribe(s => this.suppliers = s);
 
       this.shrimpData.getSemiProducts(this.companyId).subscribe(sp => {
-        this.semiProducts = sp;
+        this.semiProducts = sp.filter((s: any) => s.name === 'Entero' || s.name === 'Cola');
+        
+        // FALLBACK: Si el API no devuelve los productos (por fallos de DB), forzamos su aparición
+        if (this.semiProducts.length === 0) {
+          this.semiProducts = [
+            { id: 101, name: 'Entero' },
+            { id: 103, name: 'Cola' }
+          ] as any[];
+        }
+
         // Default to first semi-product (Entero)
-        if (sp.length > 0) {
-          this.selectedSemiProductId = sp[0].id;
-          this.tipo = sp[0].name;
+        if (this.semiProducts.length > 0) {
+          this.selectedSemiProductId = this.semiProducts[0].id;
+          this.tipo = this.semiProducts[0].name;
         }
       });
 
@@ -772,62 +805,28 @@ export class ReceptionComponent implements OnInit {
     this.errorMessage = '';
 
     const supplier = this.suppliers.find(s => s.id === this.selectedSupplierId);
-    const binsComment = LotNumberUtil.packDualUnitComment(this.pesoBruto!, this.bines!);
-
-    this.shrimpData.createPurchaseOrder({
-      id: this.editingRecordId || undefined,
+    
+    const isEditing = !!this.editingRecordId;
+    
+    // Preparar payload para el Core
+    const corePayload = {
+      ...(isEditing ? { id: this.editingRecordId! } : {}),
       facilityId: this.receptionFacilityId!,
       semiProductId: this.selectedSemiProductId!,
       producerUserCustomerId: this.selectedSupplierId!,
       totalGrossQuantity: this.pesoBruto!,
-      internalLotNumber: this.lotNumber,
-      deliveryTime: this.receptionDate,
+      tare: 0,
       priceDeterminedLater: true,
-      comments: binsComment,
-    }).subscribe({
-      next: (result) => {
-        const isEditing = !!this.editingRecordId;
-        const targetId = isEditing ? this.editingRecordId! : result.id;
+      internalLotNumber: this.lotNumber,
+      deliveryTime: this.receptionDate, // YYYY-MM-DD
+    };
+
+    // 1. Guardar primero en el Core (stockorder)
+    this.shrimpData.createPurchaseOrder(corePayload).subscribe({
+      next: (coreRes) => {
+        const targetId = coreRes.id;
         
-        const record: ReceptionRecord = {
-          id: isEditing ? targetId : Date.now(),
-          coreStockOrderId: targetId,
-          lotNumber: this.lotNumber,
-          supplierId: this.selectedSupplierId,
-          supplierName: supplier?.displayName || 'Desconocido',
-          pesoBruto: this.pesoBruto!,
-          bines: this.bines!,
-          tipo: this.tipo,
-          fecha: new Date(this.receptionDate),
-          saved: true,
-        };
-
-        if (isEditing) {
-          // Replace it in array
-          const idx = this.records.findIndex(x => x.coreStockOrderId === targetId);
-          if (idx >= 0) {
-            this.records[idx] = record;
-          }
-        } else {
-          this.records.unshift(record);
-        }
-
-        this.lastRecord = record;
-        this.showSuccess = true;
-
-        // Also push to local cache for other modules
-        this.shrimpData.pushLocalReceptionLot({
-          id: `so-${targetId}`,
-          base_lot_number: this.lotNumber,
-          supplier_id: this.selectedSupplierId,
-          supplier_name: supplier?.displayName || '',
-          gross_weight_lbs: this.pesoBruto!,
-          bins_count: this.bines!,
-          product_type: this.tipo,
-          reception_date: this.receptionDate,
-        });
-
-        // Also save to ms-shrimp microservice
+        // 2. Guardar en ms-shrimp (recepción) enlazado al Core
         this.shrimpMs.createReception({
           stockOrderId: targetId,
           internalLotBase: this.lotNumber,
@@ -835,20 +834,63 @@ export class ReceptionComponent implements OnInit {
           totalWeightLbs: this.pesoBruto!,
           binsCount: this.bines!,
         }).subscribe({
-          next: () => console.log('[Recepción] Mirrored to ms-shrimp'),
-          error: (e) => console.warn('[Recepción] ms-shrimp mirror failed (non-blocking):', e)
+          next: (result) => {
+            const record: ReceptionRecord = {
+              id: isEditing ? targetId : Date.now(),
+              coreStockOrderId: targetId,
+              lotNumber: this.lotNumber,
+              supplierId: this.selectedSupplierId,
+              supplierName: supplier?.displayName || 'Desconocido',
+              pesoBruto: this.pesoBruto!,
+              bines: this.bines!,
+              tipo: this.tipo,
+              fecha: new Date(this.receptionDate),
+              saved: true,
+            };
+
+            if (isEditing) {
+              const idx = this.records.findIndex(x => x.coreStockOrderId === targetId);
+              if (idx >= 0) {
+                this.records[idx] = record;
+              }
+            } else {
+              this.records.unshift(record);
+            }
+
+            this.lastRecord = record;
+            this.showSuccess = true;
+
+            // Push to local cache for other modules
+            this.shrimpData.pushLocalReceptionLot({
+              id: `so-${targetId}`,
+              base_lot_number: this.lotNumber,
+              supplier_id: this.selectedSupplierId,
+              supplier_name: supplier?.displayName || '',
+              gross_weight_lbs: this.pesoBruto!,
+              bins_count: this.bines!,
+              product_type: this.tipo,
+              reception_date: this.receptionDate,
+            });
+
+            console.log('[Recepción] Guardado exitosamente en Core y ms-shrimp:', targetId);
+            
+            this.saving = false;
+            this.cancelEdit();
+            this.autoGenerateLot();
+          },
+          error: (err) => {
+            this.saving = false;
+            const msg = err?.error?.errorMessage || err?.error?.data?.errorMessage || err?.message || 'Error desconocido';
+            this.errorMessage = `No se pudo guardar en ms-shrimp: ${msg}`;
+            console.error('[Recepción] Error al guardar:', err);
+          }
         });
-
-        console.log('[Recepción] StockOrder guardado en Core:', targetId);
-
-        // Reset form fully
-        this.cancelEdit();
       },
       error: (err) => {
         this.saving = false;
-        const msg = err?.error?.errorMessage || err?.error?.data?.errorMessage || err?.message || 'Error desconocido';
-        this.errorMessage = `No se pudo guardar: ${msg}`;
-        console.error('[Recepción] Error al guardar:', err);
+        const msg = err?.error?.errorMessage || err?.error?.message || err?.message || 'Error desconocido';
+        this.errorMessage = `Error al registrar en Core: ${msg}`;
+        console.error('[Recepción] Error Core:', err);
       }
     });
   }

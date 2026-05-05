@@ -248,8 +248,8 @@ export interface ApiStockOrder {
      * The final price discount applied
      */
     finalPriceDiscount?: number;
-    purchaseOrder?: boolean;
     available?: boolean;
+    purchaseOrder?: boolean;
     openOrder?: boolean;
 }
 
@@ -469,8 +469,8 @@ export namespace ApiStockOrder {
          * The final price discount applied
          */
         finalPriceDiscount = 'finalPriceDiscount',
-        purchaseOrder = 'purchaseOrder',
         available = 'available',
+        purchaseOrder = 'purchaseOrder',
         openOrder = 'openOrder'
     }
 
@@ -1233,7 +1233,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'purchaseOrder',
+                    name: 'available',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1244,7 +1244,7 @@ export namespace ApiStockOrder {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
-                    name: 'available',
+                    name: 'purchaseOrder',
                     classname: 'ApiStockOrder',
                     dataType: 'boolean',
                     isPrimitiveType: true,
@@ -1392,9 +1392,9 @@ export namespace ApiStockOrder {
                 ],
                 finalPriceDiscount: [
                 ],
-                purchaseOrder: [
-                ],
                 available: [
+                ],
+                purchaseOrder: [
                 ],
                 openOrder: [
                 ],
@@ -1597,10 +1597,10 @@ export namespace ApiStockOrder {
   //               finalPriceDiscount: {
   //                   validators: []
   //               },
-  //               purchaseOrder: {
+  //               available: {
   //                   validators: []
   //               },
-  //               available: {
+  //               purchaseOrder: {
   //                   validators: []
   //               },
   //               openOrder: {
