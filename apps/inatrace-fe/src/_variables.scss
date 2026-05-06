@@ -1,3 +1,5 @@
+@use "sass:color";
+@use "sass:math";
 // https://github.com/angular/angular-cli/wiki/stories-include-bootstrap
 $icon-font-path: 'bootstrap-sass/assets/fonts/bootstrap/';
 
@@ -8,9 +10,9 @@ $fa-font-path: '../apps/inatrace-fe/src/assets/webfonts';
 // Theme colors
 $theme-primary: #999933;
 $theme-primary-light: #e7e8ba;
-$theme-primary-lighter: lighten($theme-primary-light, 15%);
+$theme-primary-lighter: color.adjust($theme-primary-light, $lightness: 15%);
 $theme-secondary: #c87711;
-$theme-secondary-light: lighten($theme-secondary, 40%);
+$theme-secondary-light: color.adjust($theme-secondary, $lightness: 40%);
 $theme-primary-text: rgb(51, 51, 51);
 $theme-secondary-text: #8f92a1;
 $body-background: #f7f7f7;
@@ -114,9 +116,9 @@ $themes: (
     'dark': $dark,
     'navbar-bg': $secondary,
     'sidebar-bg': $dark,
-    'tag-background': lighten($primary, 47%),
+    'tag-background': color.adjust($primary, $lightness: 47%),
     // 'tag-text': $gray-800,
-    'tag-border': lighten($primary, 20%),
+    'tag-border': color.adjust($primary, $lightness: 20%),
   ),
   'rnsd': (
     'primary': $primary-rnsd,
@@ -129,9 +131,9 @@ $themes: (
     'dark': $dark,
     'navbar-bg': #254a58,
     'sidebar-bg': #1c3944,
-    'tag-background': lighten($primary-rnsd, 47%),
+    'tag-background': color.adjust($primary-rnsd, $lightness: 47%),
     // 'tag-text': $gray-800,
-    'tag-border': lighten($primary-rnsd, 20%),
+    'tag-border': color.adjust($primary-rnsd, $lightness: 20%),
   ),
 ) !default;
 
@@ -287,9 +289,9 @@ $hero-links-width: 6rem;
 $af-spacing-base: 1rem;
 
 // 0.25, 0.5, 0.75
-$af-spacing-quarter: $af-spacing-base / 4;
-$af-spacing-half: $af-spacing-base / 2;
-$af-spacing-three-quarters: ($af-spacing-base / 4) * 3;
+$af-spacing-quarter: calc($af-spacing-base / 4);
+$af-spacing-half: calc($af-spacing-base / 2);
+$af-spacing-three-quarters: calc(($af-spacing-base / 4) * 3);
 // 1, 1.5, 1.75
 $af-spacing-one: ($af-spacing-base * 1);
 $af-spacing-one-and-a-half: ($af-spacing-base * 1) + $af-spacing-half;

@@ -11,25 +11,12 @@ export const remoteRoutes: Route[] = [
       { path: '', redirectTo: 'recepcion', pathMatch: 'full' },
       { path: 'recepcion', component: ReceptionComponent },
       { path: 'clasificacion', component: ClassificationComponent },
-      {
-        path: 'destinos',
-        loadComponent: () =>
-          import('../destinos/destinos.component').then(
-            (m) => m.DestinosComponent
-          ),
-      },
+      // Destinos and Rechazo deprecated — unified into Clasificación
       {
         path: 'liquidacion',
         loadComponent: () =>
           import('../liquidacion/liquidacion.component').then(
             (m) => m.LiquidacionComponent
-          ),
-      },
-      {
-        path: 'rechazo',
-        loadComponent: () =>
-          import('../rechazo/rechazo.component').then(
-            (m) => m.RechazoComponent
           ),
       },
       {

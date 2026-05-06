@@ -270,16 +270,26 @@ export class ShrimpDataService {
         return items
           .filter((item: any) => {
             const name = item.semiProduct?.name || '';
-            return name.includes('Entero') || name.includes('Cola');
+            const available = item.availableQuantity ?? item.totalGrossQuantity ?? 0;
+            return (name.includes('Entero') || name.includes('Cola')) && available > 0;
           })
-          .map((item: any) => ({
-            coreStockOrderId: item.id,
-            lotNumber: item.internalLotNumber || 'Desconocido',
-            pesoBruto: item.totalGrossQuantity || 0,
-            tipo: item.semiProduct?.name?.includes('Cola') ? 'Cola' : 'Entero',
-            facilityId: item.facility?.id,
-            fecha: new Date(item.productionDate)
-          }));
+          .map((item: any) => {
+            let isRechazo = false;
+            try {
+              const meta = item.comments ? JSON.parse(item.comments) : {};
+              isRechazo = !!meta.rechazoDeClasificacion;
+            } catch (_) { /* comments might not be JSON */ }
+
+            return {
+              coreStockOrderId: item.id,
+              lotNumber: item.internalLotNumber || 'Desconocido',
+              pesoBruto: item.availableQuantity ?? item.totalGrossQuantity ?? 0,
+              tipo: item.semiProduct?.name?.includes('Cola') ? 'Cola' : 'Entero',
+              facilityId: item.facility?.id,
+              fecha: new Date(item.productionDate),
+              isRechazo
+            };
+          });
       }),
       tap(l => console.log('[ShrimpDataService] Got stock for classification:', l.length)),
       catchError(err => {
