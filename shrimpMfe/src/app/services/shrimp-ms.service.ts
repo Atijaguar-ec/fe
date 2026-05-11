@@ -91,6 +91,17 @@ export interface ColdStorageMovement {
   justification?: string;
 }
 
+export interface CommercialPresentation {
+  id: string;
+  brandName: string;
+  destino: string;
+  name: string;
+  weightPerUnit: number;
+  unitLabel: string;
+  companyId: number;
+  isActive: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ShrimpMsService {
 
@@ -247,6 +258,35 @@ export class ShrimpMsService {
 
   closeSettlement(stockOrderId: number): Observable<any> {
     return this.http.post<ApiResponse<any>>(`${this.msBaseUrl}/settlement/close/${stockOrderId}`, {}).pipe(
+      map(res => res.data)
+    );
+  }
+
+  // ──── COMMERCIAL PRESENTATIONS ─────────────────────────
+
+  listPresentations(companyId: number, destino?: string): Observable<CommercialPresentation[]> {
+    let url = `${this.msBaseUrl}/commercial-presentation/company/${companyId}`;
+    if (destino) url += `?destino=${destino}`;
+    return this.http.get<ApiResponse<CommercialPresentation[]>>(url).pipe(
+      map(res => res.data ?? []),
+      catchError(() => of([]))
+    );
+  }
+
+  createPresentation(data: Partial<CommercialPresentation>): Observable<CommercialPresentation> {
+    return this.http.post<ApiResponse<CommercialPresentation>>(`${this.msBaseUrl}/commercial-presentation`, data).pipe(
+      map(res => res.data)
+    );
+  }
+
+  updatePresentation(id: string, data: Partial<CommercialPresentation>): Observable<CommercialPresentation> {
+    return this.http.put<ApiResponse<CommercialPresentation>>(`${this.msBaseUrl}/commercial-presentation/${id}`, data).pipe(
+      map(res => res.data)
+    );
+  }
+
+  deletePresentation(id: string): Observable<void> {
+    return this.http.delete<ApiResponse<void>>(`${this.msBaseUrl}/commercial-presentation/${id}`).pipe(
       map(res => res.data)
     );
   }

@@ -1,0 +1,135 @@
+<div class="pres-page animate-fade-in-up">
+  <!-- Header -->
+  <div class="pres-header">
+    <div>
+      <h1 class="pres-title">⚙️ Presentaciones Comerciales</h1>
+      <p class="pres-subtitle">Configura marcas y pesos estándar por tipo de empaque</p>
+    </div>
+    <button class="pres-btn pres-btn--primary" (click)="openNew()">
+      ＋ Nueva Presentación
+    </button>
+  </div>
+
+  <!-- Success Banner -->
+  <div class="pres-success-banner" *ngIf="successMsg">
+    ✅ {{ successMsg }}
+  </div>
+
+  <!-- Empty State -->
+  <div class="pres-empty" *ngIf="groupedBrands.length === 0">
+    <div class="pres-empty__icon">📦</div>
+    <div class="pres-empty__text">Sin presentaciones configuradas</div>
+    <div class="pres-empty__hint">
+      Agrega marcas y presentaciones para habilitar el cálculo automático en Clasificación.
+    </div>
+    <button class="pres-btn pres-btn--primary" style="margin-top: 1.5rem;" (click)="openNew()">
+      ＋ Crear primera presentación
+    </button>
+  </div>
+
+  <!-- Brand Groups -->
+  <div class="pres-brands" *ngIf="groupedBrands.length > 0">
+    <div class="pres-brand-card" *ngFor="let brand of groupedBrands">
+      <div class="pres-brand-card__header">
+        <span class="pres-brand-card__icon">🏷</span>
+        <h2 class="pres-brand-card__name">{{ brand.brandName }}</h2>
+        <span class="pres-brand-card__count">{{ brand.presentations.length }}</span>
+      </div>
+
+      <div class="pres-table-wrap">
+        <table class="pres-table">
+          <thead>
+            <tr>
+              <th>Destino</th>
+              <th>Presentación</th>
+              <th>Peso / Unidad</th>
+              <th>Unidad</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of brand.presentations" class="pres-row">
+              <td>
+                <span class="pres-destino-chip">
+                  {{ destinoIcons[p.destino] || '📦' }} {{ p.destino | titlecase }}
+                </span>
+              </td>
+              <td class="pres-name-cell">{{ p.name }}</td>
+              <td class="pres-weight-cell">{{ p.weightPerUnit }} lbs</td>
+              <td>{{ p.unitLabel }}</td>
+              <td class="pres-actions-cell">
+                <button class="pres-icon-btn" title="Editar" (click)="openEdit(p)">✏️</button>
+                <button class="pres-icon-btn pres-icon-btn--danger" title="Eliminar" (click)="remove(p)">🗑</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="pres-overlay" *ngIf="showModal" (click)="closeModal()">
+    <div class="pres-modal" (click)="$event.stopPropagation()">
+      <h2 class="pres-modal__title">
+        {{ editingId ? '✏️ Editar Presentación' : '＋ Nueva Presentación' }}
+      </h2>
+
+      <div class="pres-form-grid">
+        <div class="pres-form-group pres-form-group--full">
+          <label>Marca Comercial</label>
+          <input type="text" [(ngModel)]="form.brandName" placeholder="Ej: SeaFresh, Dufer"
+                 class="pres-input" list="brand-suggestions">
+          <datalist id="brand-suggestions">
+            <option *ngFor="let b of groupedBrands" [value]="b.brandName"></option>
+          </datalist>
+        </div>
+
+        <div class="pres-form-group">
+          <label>Destino Productivo</label>
+          <select [(ngModel)]="form.destino" (change)="onDestinoChange()" class="pres-input">
+            <option *ngFor="let d of destinos" [value]="d.key">
+              {{ d.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="pres-form-group">
+          <label>Nombre Presentación</label>
+          <input type="text" [(ngModel)]="form.name" placeholder="Ej: Cajeta 4 lbs" class="pres-input">
+        </div>
+
+        <div class="pres-form-group">
+          <label>Peso por Unidad (lbs)</label>
+          <input type="number" [(ngModel)]="form.weightPerUnit" placeholder="4.0" min="0.01" step="0.01"
+                 class="pres-input pres-input--number">
+        </div>
+
+        <div class="pres-form-group">
+          <label>Etiqueta Unidad</label>
+          <input type="text" [(ngModel)]="form.unitLabel" placeholder="cajeta" class="pres-input">
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div class="pres-preview" *ngIf="form.brandName && form.name && form.weightPerUnit">
+        <div class="pres-preview__label">Vista previa en Clasificación:</div>
+        <div class="pres-preview__text">
+          🏷 {{ form.brandName }} — {{ form.name }}
+          <span class="pres-preview__calc">
+            (10 {{ form.unitLabel }}s × {{ form.weightPerUnit }} lbs = {{ 10 * (form.weightPerUnit || 0) | number:'1.0-1' }} lbs)
+          </span>
+        </div>
+      </div>
+
+      <div class="pres-error" *ngIf="errorMsg">⚠️ {{ errorMsg }}</div>
+
+      <div class="pres-modal__footer">
+        <button class="pres-btn pres-btn--ghost" (click)="closeModal()">Cancelar</button>
+        <button class="pres-btn pres-btn--primary" [disabled]="saving" (click)="save()">
+          {{ saving ? '⏳ Guardando...' : (editingId ? 'Actualizar' : 'Crear') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

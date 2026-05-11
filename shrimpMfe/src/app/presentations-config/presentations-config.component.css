@@ -1,0 +1,398 @@
+/* ════════════════════════════════════════════════════════════════
+   Presentaciones Comerciales — Configuration Screen
+   ════════════════════════════════════════════════════════════════ */
+
+.pres-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+}
+
+/* ─── Header ──────────────────────────────────────────────────── */
+.pres-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.pres-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--ina-secondary, #c87711);
+  margin: 0;
+}
+
+.pres-subtitle {
+  font-size: 0.82rem;
+  color: #6b7280;
+  margin: 2px 0 0;
+}
+
+/* ─── Brand Cards ─────────────────────────────────────────────── */
+.pres-brands {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.pres-brand-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: box-shadow 0.2s;
+}
+
+.pres-brand-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.pres-brand-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.pres-brand-card__icon {
+  font-size: 1.4rem;
+}
+
+.pres-brand-card__name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+  flex: 1;
+}
+
+.pres-brand-card__count {
+  background: var(--ina-primary, #999933);
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+/* ─── Table ───────────────────────────────────────────────────── */
+.pres-table-wrap {
+  overflow-x: auto;
+}
+
+.pres-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.pres-table th {
+  text-align: left;
+  padding: 0.6rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.pres-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+}
+
+.pres-row:last-child td {
+  border-bottom: none;
+}
+
+.pres-row:hover {
+  background: #fafbfc;
+}
+
+.pres-name-cell {
+  font-weight: 600;
+}
+
+.pres-weight-cell {
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 700;
+  color: var(--ina-primary, #999933);
+}
+
+.pres-destino-chip {
+  background: #f3f4f6;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.pres-actions-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.pres-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 0.3rem;
+  border-radius: 6px;
+  transition: background 0.15s;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.pres-icon-btn:hover {
+  background: #f3f4f6;
+}
+
+.pres-icon-btn--danger:hover {
+  background: #fef2f2;
+}
+
+/* ─── Buttons ─────────────────────────────────────────────────── */
+.pres-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 1.2rem;
+  font-weight: 700;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  min-height: 44px;
+  transition: all 0.2s;
+  gap: 0.4rem;
+}
+
+.pres-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pres-btn--primary {
+  background: linear-gradient(135deg, var(--ina-primary, #999933), #8a8a2e);
+  color: white;
+  box-shadow: 0 2px 8px rgba(153,153,51,0.25);
+}
+
+.pres-btn--primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #8a8a2e, #7a7a28);
+  box-shadow: 0 4px 14px rgba(153,153,51,0.3);
+  transform: translateY(-1px);
+}
+
+.pres-btn--ghost {
+  background: transparent;
+  color: #6b7280;
+  border: 1.5px solid #d1d5db;
+}
+
+.pres-btn--ghost:hover {
+  background: #f3f4f6;
+}
+
+/* ─── Modal ───────────────────────────────────────────────────── */
+.pres-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(6px);
+}
+
+.pres-modal {
+  background: white;
+  border-radius: 18px;
+  padding: 2rem;
+  width: 95%;
+  max-width: 560px;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.18);
+  animation: presScaleIn 0.2s ease;
+}
+
+.pres-modal__title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 1.5rem;
+}
+
+.pres-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.pres-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.pres-form-group--full {
+  grid-column: span 2;
+}
+
+.pres-form-group label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pres-input {
+  width: 100%;
+  background: #fff;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1f2937;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  min-height: 42px;
+}
+
+.pres-input:focus {
+  outline: none;
+  border-color: var(--ina-primary, #999933);
+  box-shadow: 0 0 0 3px rgba(153,153,51,0.12);
+}
+
+.pres-input--number {
+  font-family: 'Roboto Mono', monospace;
+}
+
+/* ─── Preview ─────────────────────────────────────────────────── */
+.pres-preview {
+  margin-top: 1.25rem;
+  padding: 0.85rem 1rem;
+  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+}
+
+.pres-preview__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #16a34a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.35rem;
+}
+
+.pres-preview__text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.pres-preview__calc {
+  color: #6b7280;
+  font-size: 0.82rem;
+}
+
+/* ─── Error / Success ─────────────────────────────────────────── */
+.pres-error {
+  margin-top: 1rem;
+  padding: 0.6rem 0.85rem;
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid #fca5a5;
+}
+
+.pres-success-banner {
+  padding: 0.7rem 1rem;
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  animation: presSlideDown 0.3s ease;
+}
+
+.pres-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+/* ─── Empty ───────────────────────────────────────────────────── */
+.pres-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  background: #fff;
+  border: 2px dashed #e5e7eb;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.pres-empty__icon { font-size: 3rem; margin-bottom: 0.75rem; opacity: 0.4; }
+.pres-empty__text { font-size: 1.05rem; font-weight: 700; color: #4b5563; }
+.pres-empty__hint { font-size: 0.85rem; color: #9ca3af; margin-top: 0.35rem; max-width: 360px; }
+
+/* ─── Animations ──────────────────────────────────────────────── */
+@keyframes presScaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes presSlideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: presFadeUp 0.35s ease-out;
+}
+
+@keyframes presFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .pres-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .pres-form-group--full {
+    grid-column: span 1;
+  }
+  .pres-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

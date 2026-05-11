@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { LotNumberUtil } from '../utils/lot-number.util';
 import { ShrimpDataService } from '../services/shrimp-data.service';
-import { ShrimpMsService } from '../services/shrimp-ms.service';
+import { ShrimpMsService, CommercialPresentation } from '../services/shrimp-ms.service';
 
 // ─── Domain Models ───────────────────────────────────────────────
 export interface ClassificationRecord {
@@ -15,6 +16,9 @@ export interface ClassificationRecord {
   loteSuffix: string;
   maquina: string;
   timestamp: Date;
+  presentationId?: string;
+  brandName?: string;
+  presentationName?: string;
 }
 
 export interface Destino {
@@ -28,7 +32,7 @@ export interface Destino {
 const DESTINOS: Destino[] = [
   { key: 'BLOQUE',   label: 'Bloque',          icon: '🧊', suffix: 1 },
   { key: 'IQF',      label: 'IQF',             icon: '❄️', suffix: 2 },
-  { key: 'VA',       label: 'Valor Agregado',   icon: '⭐', suffix: 3 },
+  { key: 'VALOR_AGREGADO',       label: 'Valor Agregado',   icon: '⭐', suffix: 3 },
   { key: 'SALMUERA', label: 'Salmuera',         icon: '🧂', suffix: 4 },
 ];
 
@@ -37,7 +41,7 @@ const KEYPAD_KEYS = ['7', '8', '9', '4', '5', '6', '1', '2', '3', 'C', '0', '.',
 @Component({
   selector: 'app-clasificacion',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './clasificacion.component.html',
   styleUrls: ['./clasificacion.component.css']
 })
@@ -65,6 +69,12 @@ export class ClassificationComponent implements OnInit {
   libras = '';
   maquina = '1';
   mermaLibras = 0;
+
+  // ─── Presentation Auto-Calc ────────────────────────────────
+  presentations: CommercialPresentation[] = [];
+  selectedPresentation: CommercialPresentation | null = null;
+  calcMode: 'auto' | 'manual' = 'auto';
+  librasEdited = false;
 
   // ─── Accumulated Records ─────────────────────────────────────
   records: ClassificationRecord[] = [];
@@ -157,6 +167,53 @@ export class ClassificationComponent implements OnInit {
     this.cajetas = '';
     this.libras = '';
     this.errorMsg = '';
+    this.selectedPresentation = null;
+    this.librasEdited = false;
+  }
+
+  onDestinoChanged(): void {
+    this.selectedPresentation = null;
+    this.librasEdited = false;
+    this.loadPresentationsForDestino();
+  }
+
+  loadPresentationsForDestino(): void {
+    if (!this.COMPANY_ID || !this.selectedDestino) {
+      this.presentations = [];
+      return;
+    }
+    this.shrimpMs.listPresentations(this.COMPANY_ID, this.selectedDestino.key).subscribe(list => {
+      this.presentations = list;
+      // Auto-select if only one presentation available
+      if (list.length === 1) {
+        this.selectedPresentation = list[0];
+        this.recalcLibras();
+      } else if (list.length === 0) {
+        this.calcMode = 'manual';
+      } else {
+        this.calcMode = 'auto';
+      }
+    });
+  }
+
+  onPresentationChanged(): void {
+    this.librasEdited = false;
+    this.recalcLibras();
+  }
+
+  toggleCalcMode(): void {
+    this.calcMode = this.calcMode === 'auto' ? 'manual' : 'auto';
+    if (this.calcMode === 'auto') {
+      this.librasEdited = false;
+      this.recalcLibras();
+    }
+  }
+
+  private recalcLibras(): void {
+    if (this.calcMode !== 'auto' || !this.selectedPresentation || this.librasEdited) return;
+    const qty = parseInt(this.cajetas) || 0;
+    const result = qty * this.selectedPresentation.weightPerUnit;
+    this.libras = result > 0 ? result.toFixed(2) : '';
   }
 
   onKey(key: string): void {
@@ -173,8 +230,13 @@ export class ClassificationComponent implements OnInit {
       val += key;
     }
 
-    if (this.activeInput === 'cajetas') this.cajetas = val;
-    else this.libras = val;
+    if (this.activeInput === 'cajetas') {
+      this.cajetas = val;
+      this.recalcLibras();
+    } else {
+      this.libras = val;
+      if (this.calcMode === 'auto') this.librasEdited = true;
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -195,6 +257,9 @@ export class ClassificationComponent implements OnInit {
       loteSuffix: this.getSuffixedLot(),
       maquina: this.maquina,
       timestamp: new Date(),
+      presentationId: this.selectedPresentation?.id,
+      brandName: this.selectedPresentation?.brandName,
+      presentationName: this.selectedPresentation?.name
     };
 
     this.records.unshift(record);
@@ -205,6 +270,7 @@ export class ClassificationComponent implements OnInit {
     this.activeInput = null;
     this.selectedDestino = null;
     this.selectedTalla = null;
+    this.selectedPresentation = null;
   }
 
   removerSubLote(index: number): void {
@@ -293,7 +359,10 @@ export class ClassificationComponent implements OnInit {
         dualUnit: true,
         cajetas: r.cajetas,
         maquina: r.maquina,
-        destino: r.destino
+        destino: r.destino,
+        presentationId: r.presentationId,
+        brandName: r.brandName,
+        presentationName: r.presentationName
       })
     };
   }

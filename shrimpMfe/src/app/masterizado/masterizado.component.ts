@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ShrimpMsService } from '../services/shrimp-ms.service';
+import { ShrimpMsService, CommercialPresentation } from '../services/shrimp-ms.service';
+import { ShrimpDataService } from '../services/shrimp-data.service';
 
 @Component({
   selector: 'app-masterizado',
@@ -11,28 +12,49 @@ import { ShrimpMsService } from '../services/shrimp-ms.service';
   styleUrls: ['./masterizado.component.css']
 })
 export class MasterizadoComponent implements OnInit {
+  COMPANY_ID: number | null = null;
   receptions: any[] = [];
   selectedLotId: number | null = null;
   selectedLot: any = null;
 
   // Master form
-  brand = '';
   shrimpSize = '26/30';
-  presentation = '2lb box';
   freezeType = 'BLOQUE';
-  grossWeightLbs = 0;
   numMasters = 1;
+
+  presentations: CommercialPresentation[] = [];
+  filteredPresentations: CommercialPresentation[] = [];
+  selectedPresentation: CommercialPresentation | null = null;
 
   saving = false;
   errorMsg = '';
   successMsg = '';
   createdMasters: any[] = [];
 
-  constructor(private shrimpMs: ShrimpMsService) {}
+  constructor(
+    private shrimpMs: ShrimpMsService,
+    private dataService: ShrimpDataService
+  ) {}
 
   ngOnInit() {
     this.shrimpMs.listReceptions().subscribe(lots => {
       this.receptions = lots.filter(l => l.status !== 'CLOSED');
+    });
+
+    this.dataService.getActiveCompany().subscribe(company => {
+      const companyIds = company?.data?.companyIds || company?.companyIds || [];
+      this.COMPANY_ID = companyIds.length > 0 ? companyIds[0] : null;
+      if (this.COMPANY_ID) {
+        this.loadPresentations();
+      }
+    });
+  }
+
+  loadPresentations() {
+    if (!this.COMPANY_ID) return;
+    this.shrimpMs.listPresentations(this.COMPANY_ID).subscribe(list => {
+      this.presentations = list;
+      this.filterPresentations();
     });
   }
 
@@ -43,12 +65,23 @@ export class MasterizadoComponent implements OnInit {
     this.successMsg = '';
   }
 
+  onFreezeTypeChange() {
+    this.filterPresentations();
+  }
+
+  filterPresentations() {
+    this.filteredPresentations = this.presentations.filter(p => p.destino === this.freezeType);
+    if (!this.filteredPresentations.includes(this.selectedPresentation as any)) {
+      this.selectedPresentation = null;
+    }
+  }
+
   isValid() {
-    return this.brand && this.shrimpSize && this.grossWeightLbs > 0 && this.numMasters > 0 && this.selectedLot;
+    return this.selectedPresentation && this.shrimpSize && this.numMasters > 0 && this.selectedLot;
   }
 
   createMasters() {
-    if (!this.isValid()) return;
+    if (!this.isValid() || !this.selectedPresentation) return;
     this.saving = true;
     this.errorMsg = '';
 
@@ -64,17 +97,17 @@ export class MasterizadoComponent implements OnInit {
         for (let i = 0; i < this.numMasters; i++) {
           this.shrimpMs.createMasterCarton({
             processingLotId: lot.id,
-            brand: this.brand,
+            brand: this.selectedPresentation!.brandName,
             shrimpSize: this.shrimpSize,
-            presentation: this.presentation,
+            presentation: this.selectedPresentation!.name,
             freezeType: this.freezeType,
-            grossWeightLbs: this.grossWeightLbs
+            grossWeightLbs: this.selectedPresentation!.weightPerUnit
           }).subscribe({
             next: (mc) => {
               this.createdMasters.push(mc);
               completed++;
               if (completed === this.numMasters) {
-                this.successMsg = `${this.numMasters} masters creados (${this.brand} / ${this.shrimpSize})`;
+                this.successMsg = `${this.numMasters} masters creados (${this.selectedPresentation!.brandName} / ${this.shrimpSize})`;
                 this.saving = false;
               }
             },

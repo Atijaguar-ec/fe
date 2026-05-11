@@ -86,7 +86,7 @@
             *ngFor="let d of destinos"
             class="cls-destino-btn"
             [class.cls-destino-btn--active]="selectedDestino?.key === d.key"
-            (click)="selectedDestino = d"
+            (click)="selectedDestino = d; onDestinoChanged()"
           >
             <span class="cls-destino__icon">{{ d.icon }}</span>
             <span class="cls-destino__label">{{ d.label }}</span>
@@ -100,14 +100,33 @@
         <div class="cls-card__header">
           <span class="cls-step">4</span>
           <h2>Cantidades y Línea</h2>
+          <button class="cls-mode-toggle" (click)="toggleCalcMode()" title="Alternar modo de cálculo">
+            {{ calcMode === 'auto' ? '✨ Auto' : '✏️ Manual' }}
+          </button>
+        </div>
+
+        <!-- Presentation Selector (Auto mode only) -->
+        <div class="cls-presentation-row" *ngIf="calcMode === 'auto' && presentations.length > 0">
+          <label class="cls-presentation-label">🏷 Presentación</label>
+          <select class="cls-select cls-select--compact" [(ngModel)]="selectedPresentation" (change)="onPresentationChanged()">
+            <option [ngValue]="null">Seleccione presentación...</option>
+            <option *ngFor="let p of presentations" [ngValue]="p">
+              {{ p.brandName }} — {{ p.name }} ({{ p.weightPerUnit }} lbs/{{ p.unitLabel }})
+            </option>
+          </select>
+        </div>
+
+        <div *ngIf="calcMode === 'auto' && presentations.length === 0" class="cls-no-presentations">
+          ⚠️ No hay presentaciones configuradas para este destino.
+          <a routerLink="/presentaciones" style="color: var(--ina-primary); font-weight: 700;">Configurar →</a>
         </div>
 
         <!-- Quantity Display -->
-        <div class="cls-qty-grid">
+        <div class="cls-qty-grid" [class.cls-qty-grid--trio]="calcMode === 'auto' && selectedPresentation">
           <div class="cls-qty-box"
                [class.cls-qty-box--active]="activeInput === 'cajetas'"
                (click)="activeInput = 'cajetas'">
-            <div class="cls-qty__label">Cajetas</div>
+            <div class="cls-qty__label">{{ selectedPresentation?.unitLabel || 'Cajetas' | titlecase }}s</div>
             <div class="cls-qty__value">{{ cajetas || '0' }}</div>
             <div class="cls-qty__unit">conteo</div>
           </div>
@@ -116,7 +135,14 @@
                (click)="activeInput = 'libras'">
             <div class="cls-qty__label">Libras</div>
             <div class="cls-qty__value">{{ libras || '0.00' }}</div>
-            <div class="cls-qty__unit">peso</div>
+            <div class="cls-qty__unit" *ngIf="calcMode === 'auto' && !librasEdited">auto ✨</div>
+            <div class="cls-qty__unit" *ngIf="calcMode === 'auto' && librasEdited">editado ✏️</div>
+            <div class="cls-qty__unit" *ngIf="calcMode === 'manual'">peso</div>
+          </div>
+          <div class="cls-qty-box cls-qty-box--info" *ngIf="calcMode === 'auto' && selectedPresentation">
+            <div class="cls-qty__label">Peso / {{ selectedPresentation.unitLabel }}</div>
+            <div class="cls-qty__value cls-qty__value--sm">{{ selectedPresentation.weightPerUnit }}</div>
+            <div class="cls-qty__unit">lbs ({{ selectedPresentation.brandName }})</div>
           </div>
         </div>
 
@@ -184,6 +210,9 @@
             </div>
             <div class="cls-record__meta">
               {{ r.talla.name }} · {{ r.cajetas }} caj · <strong>{{ r.libras | number:'1.0-1' }} lbs</strong> · M{{ r.maquina }}
+            </div>
+            <div class="cls-record__meta" *ngIf="r.brandName" style="color: var(--ina-primary); font-size: 0.72rem; margin-top: 2px;">
+              🏷 {{ r.brandName }} — {{ r.presentationName }}
             </div>
           </div>
           <button class="cls-remove-btn" (click)="removerSubLote(i)">❌</button>

@@ -32,6 +32,13 @@ export const remoteRoutes: Route[] = [
           import('../inventario/inventario.component').then(
             (m) => m.InventarioComponent
           ),
+      },
+      {
+        path: 'presentaciones',
+        loadComponent: () =>
+          import('../presentations-config/presentations-config.component').then(
+            (m) => m.PresentationsConfigComponent
+          ),
       }
     ]
   },

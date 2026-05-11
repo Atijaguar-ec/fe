@@ -64,6 +64,10 @@ import { RouterModule } from '@angular/router';
               <span class="nav-icon">📦</span>
               <span class="nav-text">Empaque Final</span>
             </a>
+            <a routerLink="presentaciones" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">⚙️</span>
+              <span class="nav-text">Presentaciones</span>
+            </a>
 
           </div>
         </nav>

@@ -72,8 +72,26 @@
       <div class="master-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; background: #f9fafb; padding: 1.5rem; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 1.5rem;">
         
         <div class="form-group" style="grid-column: span 2;">
-          <label class="form-label">Marca Comercial</label>
-          <input type="text" class="form-input form-input-lg" [(ngModel)]="brand" placeholder="Ej: SeaFresh / Dufer">
+          <label class="form-label">Tipo Congelación / Destino</label>
+          <select class="form-input form-select" [(ngModel)]="freezeType" (change)="onFreezeTypeChange()">
+            <option value="BLOQUE">Bloque</option>
+            <option value="IQF">IQF</option>
+            <option value="VALOR_AGREGADO">Valor Agregado</option>
+            <option value="SALMUERA">Salmuera</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label class="form-label">Presentación Comercial</label>
+          <select class="form-input form-select" [(ngModel)]="selectedPresentation">
+            <option [ngValue]="null">-- Seleccione Presentación --</option>
+            <option *ngFor="let p of filteredPresentations" [ngValue]="p">
+              {{ p.brandName }} — {{ p.name }} ({{ p.weightPerUnit }} lbs/{{ p.unitLabel }})
+            </option>
+          </select>
+          <div *ngIf="filteredPresentations.length === 0" style="margin-top: 0.5rem; font-size: 0.8rem; color: #dc2626;">
+            ⚠️ No hay presentaciones configuradas para este tipo de congelación.
+          </div>
         </div>
         
         <div class="form-group">
@@ -90,25 +108,8 @@
         </div>
         
         <div class="form-group">
-          <label class="form-label">Presentación</label>
-          <select class="form-input form-select" [(ngModel)]="presentation">
-            <option value="2lb box">2 lb box</option>
-            <option value="4lb box">4 lb box</option>
-            <option value="5lb box">5 lb box</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Tipo Congelación</label>
-          <select class="form-input form-select" [(ngModel)]="freezeType">
-            <option value="BLOQUE">Bloque</option>
-            <option value="IQF">IQF</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
           <label class="form-label">Peso bruto por master (lbs)</label>
-          <input type="number" class="form-input" [(ngModel)]="grossWeightLbs" min="0.01" step="0.01">
+          <input type="text" class="form-input" [value]="selectedPresentation?.weightPerUnit || ''" disabled style="background-color: #f3f4f6; color: #6b7280; font-weight: 600;">
         </div>
         
         <div class="form-group" style="grid-column: span 2; border-top: 1px dashed #d1d5db; padding-top: 1.5rem; margin-top: 0.5rem;">
