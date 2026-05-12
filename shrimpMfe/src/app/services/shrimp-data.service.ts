@@ -300,19 +300,19 @@ export class ShrimpDataService {
   }
 
   /**
-   * C2. LIVE API: Get Classification action definition
-   * Fetches the specific ProcessingAction linked to 'CLAS'
+   * C2. LIVE API: Get Classification action definitions
+   * Fetches the specific ProcessingActions linked to 'CLAS' (Entero and Cola)
    */
-  getClassificationAction(companyId: number): Observable<any> {
+  getClassificationActions(companyId: number): Observable<any[]> {
     const params = 'actionType=PROCESSING&limit=50';
     return this.http.get<any>(`${this.baseUrl}/chain/processing-action/list/company/${companyId}?${params}`).pipe(
       map(res => {
         const items = res?.data?.items || [];
-        return items.find((pa: any) => pa.prefix === 'CLAS');
+        return items.filter((pa: any) => pa.prefix === 'CLAS');
       }),
       catchError(err => {
-        console.warn('Error fetching classification PA:', err);
-        return of(null);
+        console.warn('Error fetching classification PAs:', err);
+        return of([]);
       })
     );
   }

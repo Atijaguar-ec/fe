@@ -46,6 +46,28 @@ import { RouterModule } from '@angular/router';
             <!-- Destinos and Rechazo hidden: integrated into Clasificación screen -->
           </div>
 
+          <!-- ─── Transformación (4 módulos independientes) ──────── -->
+          <div class="nav-section">
+            <div class="nav-section-label">Transformación</div>
+            <a routerLink="transformacion/bloque" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">🧊</span>
+              <span class="nav-text">Bloque</span>
+            </a>
+            <a routerLink="transformacion/iqf" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">❄️</span>
+              <span class="nav-text">IQF</span>
+            </a>
+            <a routerLink="transformacion/valor-agregado" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">⭐</span>
+              <span class="nav-text">Valor Agregado</span>
+            </a>
+            <a routerLink="transformacion/salmuera" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">🧂</span>
+              <span class="nav-text">Salmuera</span>
+            </a>
+          </div>
+
+          <!-- ─── Gestión ──────────────────────────────────────────── -->
           <div class="nav-section">
             <div class="nav-section-label">Gestión</div>
             <a routerLink="liquidacion" routerLinkActive="active" class="nav-item">
@@ -68,7 +90,6 @@ import { RouterModule } from '@angular/router';
               <span class="nav-icon">⚙️</span>
               <span class="nav-text">Presentaciones</span>
             </a>
-
           </div>
         </nav>
 

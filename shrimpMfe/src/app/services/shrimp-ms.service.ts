@@ -102,6 +102,59 @@ export interface CommercialPresentation {
   isActive: boolean;
 }
 
+/**
+ * Shrimp size catalog entry.
+ * productType: ENTERO | COLA
+ * nomenclaturePrefix: HEAD_ON | SHELL_ON
+ * sizeGroup: STANDARD | BROKEN | OTHERS
+ * displayName: computed "SHELL-ON 36/40"
+ */
+export interface ShrimpSize {
+  id: number;
+  productType: 'ENTERO' | 'COLA';
+  nomenclaturePrefix: 'HEAD_ON' | 'SHELL_ON';
+  name: string;
+  displayName: string;
+  sizeGroup: 'STANDARD' | 'BROKEN' | 'OTHERS';
+  semiProductId?: number;
+  sortOrder: number;
+  active: boolean;
+}
+
+/**
+ * A sub-lot work item waiting for transformation in a destination area.
+ * Produced by classification and consumed by each transformation module.
+ * Aligned with DUFER doc point 7: "identificado por lote y talla".
+ */
+export interface TransformWorkItem {
+  subLotId: string;
+  lote: string;
+  loteSuffix: string;
+  talla: ShrimpSize;
+  qualityClass: 'A' | 'B' | 'C';
+  cantidad: number;
+  unidad: 'CAJETAS' | 'GAVETAS';
+  libras?: number;
+  maquina: string;
+  destinationType: string;
+  status: 'PENDING' | 'IN_PROGRESS' | 'DONE';
+}
+
+/**
+ * Area settlement result.
+ * DUFER doc point 7.2: "libras recibidas vs masters producidos = liquidación de área".
+ */
+export interface AreaSettlement {
+  destinationType: 'BLOQUE' | 'IQF' | 'VALOR_AGREGADO' | 'SALMUERA';
+  lotSuffix: string;
+  receivedLbs: number;
+  mastersProduced: number;
+  masterWeightLbs: number;
+  areaShrinkageLbs: number;
+  areaYieldPercent: number;
+  status: 'PENDING' | 'CLOSED';
+}
+
 @Injectable({ providedIn: 'root' })
 export class ShrimpMsService {
 
@@ -213,6 +266,19 @@ export class ShrimpMsService {
     );
   }
 
+  /**
+   * Returns a classification summary for a lot including sub-lots, KPIs, and rejection data.
+   * Used by the 3-tab liquidación component (Tab 1 + Tab 3).
+   */
+  getClassificationSummary(stockOrderId: number): Observable<any> {
+    return this.http.get<ApiResponse<any>>(
+      `${this.msBaseUrl}/classification/summary/${stockOrderId}`
+    ).pipe(
+      map(res => res.data),
+      catchError(() => of(null))
+    );
+  }
+
   closeReception(stockOrderId: number): Observable<ReceptionExt> {
     return this.http.put<ApiResponse<ReceptionExt>>(`${this.msBaseUrl}/reception/${stockOrderId}/close`, {}).pipe(
       map(res => res.data)
@@ -259,6 +325,66 @@ export class ShrimpMsService {
   closeSettlement(stockOrderId: number): Observable<any> {
     return this.http.post<ApiResponse<any>>(`${this.msBaseUrl}/settlement/close/${stockOrderId}`, {}).pipe(
       map(res => res.data)
+    );
+  }
+
+  // ──── SHRIMP SIZE CATALOG ──────────────────────────────
+
+  /**
+   * Lists active shrimp sizes from the catalog.
+   * productType: 'ENTERO' | 'COLA'
+   * sizeGroup (optional): 'STANDARD' | 'BROKEN' | 'OTHERS'
+   * Used by classification screen to populate the talla selector.
+   */
+  listSizes(productType: string, sizeGroup?: string): Observable<ShrimpSize[]> {
+    let url = `${this.msBaseUrl}/sizes?productType=${productType}`;
+    if (sizeGroup) url += `&sizeGroup=${sizeGroup}`;
+    return this.http.get<ApiResponse<ShrimpSize[]>>(url).pipe(
+      map(res => res.data ?? []),
+      catchError(() => of([]))
+    );
+  }
+
+  // ──── TRANSFORMATION WORK QUEUE ───────────────────────
+
+  /**
+   * Returns sub-lots pending transformation for a given destination.
+   * DUFER doc point 7.2: "el producto recibido es identificado por lote y talla".
+   */
+  listPendingSubLots(destinationType: string): Observable<TransformWorkItem[]> {
+    return this.http.get<ApiResponse<TransformWorkItem[]>>(
+      `${this.msBaseUrl}/classifications/pending?destinationType=${destinationType}`
+    ).pipe(
+      map(res => res.data ?? []),
+      catchError(() => of([]))
+    );
+  }
+
+  // ──── AREA SETTLEMENT ─────────────────────────────────
+
+  /**
+   * Returns the area settlement for each destination.
+   * DUFER doc point 7.2: "libras recibidas vs masters producidos = liquidación de área".
+   */
+  getAreaSettlements(stockOrderId: number): Observable<AreaSettlement[]> {
+    return this.http.get<ApiResponse<AreaSettlement[]>>(
+      `${this.msBaseUrl}/settlement/area-summary/${stockOrderId}`
+    ).pipe(
+      map(res => res.data ?? []),
+      catchError(() => of([]))
+    );
+  }
+
+  /**
+   * Returns the full consolidated settlement (both cycles: Entero + Cola).
+   * Reproduces the format of DUFER plant documents 5 & 6.
+   */
+  getConsolidated(stockOrderId: number): Observable<any> {
+    return this.http.get<ApiResponse<any>>(
+      `${this.msBaseUrl}/settlement/consolidated/${stockOrderId}`
+    ).pipe(
+      map(res => res.data),
+      catchError(() => of(null))
     );
   }
 

@@ -1,32 +1,60 @@
 <div class="cls-page">
-  <!-- ═══ Header ═══════════════════════════════════════════════ -->
+
+  <!-- ═══ Header ════════════════════════════════════════════════ -->
   <div class="cls-header">
     <div class="cls-title-block">
       <h1>📏 Clasificación</h1>
-      <p>Registro de salidas por talla, destino y línea de máquina</p>
+      <p>Registro de salidas por talla, clase y destino — por lote de recepción</p>
     </div>
     <div class="cls-stats">
       <div class="cls-stat">
         <span class="cls-stat__value">{{ records.length }}</span>
-        <span class="cls-stat__label">Registros</span>
+        <span class="cls-stat__label">Sub-lotes</span>
       </div>
       <div class="cls-stat" [class.cls-stat--danger]="massBalance < 0" [class.cls-stat--success]="massBalance === 0">
         <span class="cls-stat__value">{{ massBalance | number:'1.0-0' }}</span>
         <span class="cls-stat__label">Lbs Disponibles</span>
+      </div>
+      <!-- G6: Rendimiento visible en tiempo real -->
+      <div class="cls-stat" *ngIf="totalLbs > 0" [class.cls-stat--success]="yieldColorClass === 'green'"
+           [class.cls-stat--warning]="yieldColorClass === 'yellow'"
+           [class.cls-stat--danger]="yieldColorClass === 'red'">
+        <span class="cls-stat__value">{{ yieldPercent | number:'1.1-1' }}%</span>
+        <span class="cls-stat__label">Rendimiento</span>
       </div>
     </div>
   </div>
 
   <!-- ═══ Main Grid ════════════════════════════════════════════ -->
   <div class="cls-grid">
-    <!-- ──── Form Column ──────────────────────────────────────── -->
+    <!-- ──── Form Column ───────────────────────────────────────── -->
     <div class="cls-form-col">
 
-      <!-- Step 1: Lote Base ────────────────────────────────────── -->
+      <!-- ─── Step 1: Máquina ────────────────────────────────── -->
       <div class="cls-card">
         <div class="cls-card__header">
           <span class="cls-step">1</span>
+          <h2>Máquina Clasificadora</h2>
+        </div>
+        <div class="cls-line-grid">
+          <button *ngFor="let l of ['1','2','3','4']"
+            class="cls-line-btn"
+            [class.cls-line-btn--active]="maquina === l"
+            (click)="maquina = l">
+            Línea {{ l }}
+          </button>
+        </div>
+      </div>
+
+      <!-- ─── Step 2: Lote Base ─────────────────────────────── -->
+      <div class="cls-card">
+        <div class="cls-card__header">
+          <span class="cls-step">2</span>
           <h2>Lote Base de Recepción</h2>
+          <!-- Badge tipo producto — auto detectado -->
+          <span class="cls-badge cls-badge--info" *ngIf="selectedReception">
+            {{ productoTipoLabel }}
+          </span>
         </div>
 
         <select class="cls-select" [(ngModel)]="selectedReception" (change)="onReceptionChanged()">
@@ -39,12 +67,13 @@
         <div class="cls-info" *ngIf="selectedReception">
           <strong>Tipo:</strong> {{ selectedReception.tipo }}<br>
           <strong>Peso Recibido:</strong> {{ selectedReception.pesoBruto | number }} lbs
+          <!-- G5: If both weights exist, show proveedor vs planta -->
           <div *ngIf="selectedReception.isRechazo" class="cls-rechazo-badge">
             ♻️ Cola recuperada de rechazo — Lote Entero original
           </div>
         </div>
 
-        <!-- Merma / Rechazo (solo si es Entero) -->
+        <!-- ─ Rechazo (NO TOCAR — Entero only) ─ -->
         <div class="cls-merma" *ngIf="selectedReception?.tipo === 'Entero'">
           <div class="cls-merma__header">
             <span class="cls-merma__label">Cola Recuperada del Rechazo (lbs)</span>
@@ -54,28 +83,56 @@
         </div>
       </div>
 
-      <!-- Step 2: Selección de Talla ──────────────────────────── -->
+      <!-- ─── Step 3: Talla + Clase ─────────────────────────── -->
       <div class="cls-card animate-fade" *ngIf="selectedReception" [class.cls-card--disabled]="massBalance <= 0">
         <div class="cls-card__header">
-          <span class="cls-step">2</span>
-          <h2>Selección de Talla</h2>
+          <span class="cls-step">3</span>
+          <h2>Talla y Clase de Calidad</h2>
         </div>
+
+        <!-- G1: Catálogo cerrado — botones por talla -->
         <div class="cls-talla-grid">
           <button
-            *ngFor="let t of tallasApi"
+            *ngFor="let t of tallasVisibles"
             class="cls-talla-btn"
             [class.cls-talla-btn--active]="selectedTalla?.id === t.id"
-            (click)="selectedTalla = t"
-          >
-            {{ t.name.replace('Talla ', '') }}
+            [class.cls-talla-btn--broken]="t.sizeGroup === 'BROKEN'"
+            [class.cls-talla-btn--others]="t.sizeGroup === 'OTHERS'"
+            (click)="selectedTalla = t">
+            {{ t.name }}
           </button>
+        </div>
+
+        <!-- Toggle BROKEN/OTROS — collapsed by default (90% es STANDARD) -->
+        <button class="cls-toggle-sizes" (click)="showExtendedSizes = !showExtendedSizes">
+          {{ showExtendedSizes ? '▲ Ocultar BROKEN/OTROS' : '▼ Mostrar BROKEN/OTROS' }}
+          <span class="cls-badge cls-badge--warning" *ngIf="tallasExtended.length > 0">{{ tallasExtended.length }}</span>
+        </button>
+
+        <!-- Step 3b: Quality Class A / B / C — G1 guard -->
+        <div class="cls-quality-row" *ngIf="selectedTalla">
+          <div class="cls-quality-label">Clase de Calidad</div>
+          <div class="cls-quality-grid">
+            <button *ngFor="let cls of qualityClasses"
+              class="cls-quality-btn"
+              [class.cls-quality-btn--active]="selectedQualityClass === cls"
+              [class.cls-quality-btn--a]="cls === 'A'"
+              [class.cls-quality-btn--b]="cls === 'B'"
+              [class.cls-quality-btn--c]="cls === 'C'"
+              (click)="selectedQualityClass = cls">
+              {{ cls }}
+            </button>
+          </div>
+          <div class="cls-selected-size" *ngIf="selectedTalla">
+            ✅ <strong>{{ selectedTalla.displayName }}</strong> — Clase <strong>{{ selectedQualityClass }}</strong>
+          </div>
         </div>
       </div>
 
-      <!-- Step 3: Destino Productivo ──────────────────────────── -->
+      <!-- ─── Step 4: Destino Productivo ────────────────────── -->
       <div class="cls-card animate-fade" *ngIf="selectedTalla">
         <div class="cls-card__header">
-          <span class="cls-step">3</span>
+          <span class="cls-step">4</span>
           <h2>Destino Productivo</h2>
           <span class="cls-lot-badge" *ngIf="selectedDestino">
             Lote: {{ getSuffixedLot() }}
@@ -86,8 +143,7 @@
             *ngFor="let d of destinos"
             class="cls-destino-btn"
             [class.cls-destino-btn--active]="selectedDestino?.key === d.key"
-            (click)="selectedDestino = d; onDestinoChanged()"
-          >
+            (click)="selectedDestino = d; onDestinoChanged()">
             <span class="cls-destino__icon">{{ d.icon }}</span>
             <span class="cls-destino__label">{{ d.label }}</span>
             <span class="cls-destino__suffix">{{ d.suffix === 1 ? 'Base' : '-' + d.suffix }}</span>
@@ -95,98 +151,76 @@
         </div>
       </div>
 
-      <!-- Step 4: Cantidades y Línea ─────────────────────────── -->
+      <!-- ─── Step 5: Cantidad ───────────────────────────────── -->
       <div class="cls-card animate-fade" *ngIf="selectedDestino">
         <div class="cls-card__header">
-          <span class="cls-step">4</span>
-          <h2>Cantidades y Línea</h2>
-          <button class="cls-mode-toggle" (click)="toggleCalcMode()" title="Alternar modo de cálculo">
-            {{ calcMode === 'auto' ? '✨ Auto' : '✏️ Manual' }}
-          </button>
+          <span class="cls-step">5</span>
+          <h2>Cantidad y Peso</h2>
+          <!-- Shows current unit mode -->
+          <span class="cls-badge" [class.cls-badge--info]="unidadActiva === 'CAJETAS'"
+                                   [class.cls-badge--teal]="unidadActiva === 'GAVETAS'">
+            {{ unidadActiva }}
+          </span>
         </div>
 
-        <!-- Presentation Selector (Auto mode only) -->
-        <div class="cls-presentation-row" *ngIf="calcMode === 'auto' && presentations.length > 0">
-          <label class="cls-presentation-label">🏷 Presentación</label>
-          <select class="cls-select cls-select--compact" [(ngModel)]="selectedPresentation" (change)="onPresentationChanged()">
-            <option [ngValue]="null">Seleccione presentación...</option>
-            <option *ngFor="let p of presentations" [ngValue]="p">
-              {{ p.brandName }} — {{ p.name }} ({{ p.weightPerUnit }} lbs/{{ p.unitLabel }})
-            </option>
-          </select>
-        </div>
+        <!-- G3: Native inputs with validation (replaces keypad) -->
+        <div class="cls-input-row">
+          <!-- Mandatory: Cajetas (Bloque) or Gavetas (others) -->
+          <div class="cls-input-group">
+            <label class="cls-input-label">
+              {{ cantidadLabel }}
+              <span class="cls-required">*</span>
+            </label>
+            <input
+              type="number"
+              class="cls-input"
+              [(ngModel)]="cantidad"
+              (ngModelChange)="onCantidadChange()"
+              [placeholder]="cantidadLabel"
+              min="1"
+              id="input-cantidad">
+            <!-- G3: Alert if out of normal range -->
+            <div class="cls-field-warning" *ngIf="cantidadAlerta">
+              ⚠️ Cantidad inusualmente alta (> 500). Verifique.
+            </div>
+          </div>
 
-        <div *ngIf="calcMode === 'auto' && presentations.length === 0" class="cls-no-presentations">
-          ⚠️ No hay presentaciones configuradas para este destino.
-          <a routerLink="/presentaciones" style="color: var(--ina-primary); font-weight: 700;">Configurar →</a>
-        </div>
-
-        <!-- Quantity Display -->
-        <div class="cls-qty-grid" [class.cls-qty-grid--trio]="calcMode === 'auto' && selectedPresentation">
-          <div class="cls-qty-box"
-               [class.cls-qty-box--active]="activeInput === 'cajetas'"
-               (click)="activeInput = 'cajetas'">
-            <div class="cls-qty__label">{{ selectedPresentation?.unitLabel || 'Cajetas' | titlecase }}s</div>
-            <div class="cls-qty__value">{{ cajetas || '0' }}</div>
-            <div class="cls-qty__unit">conteo</div>
-          </div>
-          <div class="cls-qty-box"
-               [class.cls-qty-box--active]="activeInput === 'libras'"
-               (click)="activeInput = 'libras'">
-            <div class="cls-qty__label">Libras</div>
-            <div class="cls-qty__value">{{ libras || '0.00' }}</div>
-            <div class="cls-qty__unit" *ngIf="calcMode === 'auto' && !librasEdited">auto ✨</div>
-            <div class="cls-qty__unit" *ngIf="calcMode === 'auto' && librasEdited">editado ✏️</div>
-            <div class="cls-qty__unit" *ngIf="calcMode === 'manual'">peso</div>
-          </div>
-          <div class="cls-qty-box cls-qty-box--info" *ngIf="calcMode === 'auto' && selectedPresentation">
-            <div class="cls-qty__label">Peso / {{ selectedPresentation.unitLabel }}</div>
-            <div class="cls-qty__value cls-qty__value--sm">{{ selectedPresentation.weightPerUnit }}</div>
-            <div class="cls-qty__unit">lbs ({{ selectedPresentation.brandName }})</div>
-          </div>
-        </div>
-
-        <!-- Numeric Keypad -->
-        <div class="cls-keypad-section" *ngIf="activeInput">
-          <div class="cls-keypad-label">
-            Ingresando <strong>{{ activeInput | uppercase }}</strong>
-          </div>
-          <div class="cls-keypad">
-            <button *ngFor="let k of keypadKeys"
-              class="cls-key"
-              [class.cls-key--wide]="k === '0'"
-              [class.cls-key--action]="k === '⌫' || k === 'C'"
-              (click)="onKey(k)">{{ k }}</button>
+          <!-- Optional: Weight in lbs -->
+          <div class="cls-input-group">
+            <label class="cls-input-label">
+              Libras
+              <span class="cls-optional">(opcional)</span>
+            </label>
+            <input
+              type="number"
+              class="cls-input"
+              [(ngModel)]="librasOpcional"
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+              id="input-libras">
+            <!-- G4: Exceeded balance warning -->
+            <div class="cls-field-error" *ngIf="isExceedingBalance">
+              Las libras superan el balance ({{ massBalance | number:'1.0-1' }} lbs disponibles).
+            </div>
           </div>
         </div>
 
-        <!-- Machine Line Selector -->
-        <div>
-          <div class="cls-line-label">Máquina Clasificadora</div>
-          <div class="cls-line-grid">
-            <button *ngFor="let l of ['1','2','3','4']"
-              class="cls-line-btn"
-              [class.cls-line-btn--active]="maquina === l"
-              (click)="maquina = l">
-              Línea {{ l }}
-            </button>
-          </div>
-        </div>
+        <!-- Error feedback -->
+        <div class="cls-field-error" *ngIf="errorMsg">⚠️ {{ errorMsg }}</div>
 
-        <!-- Add Sub-Lot Button -->
+        <!-- Add Sub-Lot -->
         <button
           class="cls-btn cls-btn--primary cls-btn--lg cls-btn--block mt-3"
-          [disabled]="!cajetas && !libras || isExceedingBalance"
+          [disabled]="!cantidad || isExceedingBalance"
           (click)="adicionarSubLote()">
           ➕ Añadir Sub-Lote
         </button>
-        <div class="cls-field-error" *ngIf="isExceedingBalance">
-          El peso excede el Balance Disponible ({{ massBalance | number }} lbs).
-        </div>
       </div>
-    </div>
 
-    <!-- ──── Records Column (Liquidación) ─────────────────────── -->
+    </div><!-- end cls-form-col -->
+
+    <!-- ──── Records Column ────────────────────────────────────── -->
     <div class="cls-card cls-card--sticky">
       <div class="cls-card__header">
         <h2>Liquidación del Lote</h2>
@@ -197,29 +231,39 @@
       <div *ngIf="!selectedReception" class="cls-empty">
         <div class="cls-empty__icon">📂</div>
         <div class="cls-empty__text">Esperando Lote Fuente</div>
-        <div class="cls-empty__hint">Seleccione un lote base en el Paso 1</div>
+        <div class="cls-empty__hint">Seleccione un lote base en el Paso 2</div>
       </div>
 
-      <!-- Record List -->
+      <!-- G2: Record List with auto-computed labels -->
       <div class="cls-record-list" *ngIf="selectedReception">
         <div class="cls-record" *ngFor="let r of records; let i = index">
           <div class="cls-record__main">
             <div class="cls-record__lot">
               {{ r.loteSuffix }}
               <span class="cls-badge cls-badge--teal">{{ r.destino }}</span>
+              <span class="cls-badge" [class.cls-badge--success]="r.qualityClass === 'A'"
+                                       [class.cls-badge--warning]="r.qualityClass === 'B'"
+                                       [class.cls-badge--danger]="r.qualityClass === 'C'">
+                Clase {{ r.qualityClass }}
+              </span>
             </div>
             <div class="cls-record__meta">
-              {{ r.talla.name }} · {{ r.cajetas }} caj · <strong>{{ r.libras | number:'1.0-1' }} lbs</strong> · M{{ r.maquina }}
+              <!-- Display: "SHELL-ON 36/40 · 3 gavetas · 1,315 lbs · M2" -->
+              {{ r.talla.displayName }} ·
+              <strong>{{ r.cantidad }} {{ r.unidad | lowercase }}</strong>
+              <span *ngIf="r.libras"> · {{ r.libras | number:'1.0-1' }} lbs</span>
+              · M{{ r.maquina }}
             </div>
-            <div class="cls-record__meta" *ngIf="r.brandName" style="color: var(--ina-primary); font-size: 0.72rem; margin-top: 2px;">
-              🏷 {{ r.brandName }} — {{ r.presentationName }}
+            <!-- Warn if no weight (partial balance) -->
+            <div class="cls-record__warning" *ngIf="r.libras === undefined">
+              ⚠️ Sin peso — balance parcial
             </div>
           </div>
           <button class="cls-remove-btn" (click)="removerSubLote(i)">❌</button>
         </div>
       </div>
 
-      <!-- Balance Panel -->
+      <!-- G4 + G6: Balance Panel with yield % -->
       <div class="cls-balance" *ngIf="selectedReception">
         <div class="cls-balance__row">
           <span>Ingreso Base ({{ selectedReception.tipo }})</span>
@@ -241,6 +285,29 @@
           <strong>{{ massBalance | number }} lbs</strong>
         </div>
 
+        <!-- G6: Yield % bar — shown when there's data -->
+        <div class="cls-yield-row" *ngIf="totalLbs > 0">
+          <div class="cls-yield-header">
+            <span>Rendimiento</span>
+            <strong [class.yield-green]="yieldColorClass === 'green'"
+                    [class.yield-yellow]="yieldColorClass === 'yellow'"
+                    [class.yield-red]="yieldColorClass === 'red'">
+              {{ yieldPercent | number:'1.1-1' }}%
+            </strong>
+          </div>
+          <div class="cls-yield-bar">
+            <div class="cls-yield-fill"
+                 [style.width.%]="yieldPercent > 100 ? 100 : yieldPercent"
+                 [class.yield-fill--green]="yieldColorClass === 'green'"
+                 [class.yield-fill--yellow]="yieldColorClass === 'yellow'"
+                 [class.yield-fill--red]="yieldColorClass === 'red'">
+            </div>
+          </div>
+          <div class="cls-yield-hint" *ngIf="recordsSinPeso > 0">
+            ⚠️ Balance parcial — {{ recordsSinPeso }} sub-lote(s) sin peso
+          </div>
+        </div>
+
         <button
           class="cls-btn cls-btn--success cls-btn--lg cls-btn--block mt-3"
           [disabled]="records.length === 0 || massBalance < 0 || isSubmitting"
@@ -248,16 +315,16 @@
           {{ isSubmitting ? '⏳ Procesando...' : '💾 Terminar y Cerrar Lote' }}
         </button>
       </div>
-    </div>
+    </div><!-- end sticky card -->
   </div>
 
-  <!-- ═══ Error Banner ═════════════════════════════════════════ -->
+  <!-- ═══ Error Banner ════════════════════════════════════════ -->
   <div class="cls-error-banner" *ngIf="errorMsg">
     <span>⚠️ {{ errorMsg }}</span>
     <button class="cls-error-close" (click)="errorMsg = ''">✕</button>
   </div>
 
-  <!-- ═══ Success Modal ════════════════════════════════════════ -->
+  <!-- ═══ Success Modal ═══════════════════════════════════════ -->
   <div class="cls-overlay" *ngIf="showSuccess" (click)="cerrarSuccessModal()">
     <div class="cls-success" (click)="$event.stopPropagation()">
       <div class="cls-success__icon">✅</div>
@@ -270,4 +337,5 @@
       </button>
     </div>
   </div>
+
 </div>

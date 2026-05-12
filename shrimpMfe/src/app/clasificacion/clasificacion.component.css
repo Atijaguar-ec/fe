@@ -898,3 +898,200 @@
 .cls-qty__value--sm {
   font-size: 1.8rem !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Sprint 3+4: New Styles — Quality Class, Extended Sizes, Yield
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Quality Class Selector ──────────────────────────────────── */
+.cls-quality-row {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.cls-quality-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.5rem;
+}
+
+.cls-quality-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.cls-quality-btn {
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.75rem;
+  font-size: 1.2rem;
+  font-weight: 800;
+  cursor: pointer;
+  min-height: 52px;
+  transition: all 0.12s ease;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cls-quality-btn--active.cls-quality-btn--a {
+  background: #ecfdf5; border-color: #16a34a; color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22,163,74,0.12);
+}
+.cls-quality-btn--active.cls-quality-btn--b {
+  background: #fffbeb; border-color: #d97706; color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217,119,6,0.12);
+}
+.cls-quality-btn--active.cls-quality-btn--c {
+  background: #fef2f2; border-color: #dc2626; color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220,38,38,0.12);
+}
+
+.cls-selected-size {
+  font-size: 0.82rem;
+  color: #374151;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+}
+
+/* ─── Extended Sizes Toggle ───────────────────────────────────── */
+.cls-toggle-sizes {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  margin-top: 0.6rem;
+  width: 100%;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.cls-toggle-sizes:hover {
+  border-color: #9ca3af;
+  color: #374151;
+  background: #f9fafb;
+}
+
+/* BROKEN talla buttons — subtle orange tint */
+.cls-talla-btn--broken {
+  border-color: #fed7aa;
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+/* OTHERS talla buttons — subtle purple tint */
+.cls-talla-btn--others {
+  border-color: #e9d5ff;
+  background: #faf5ff;
+  color: #7c3aed;
+}
+
+/* ─── Input Row (replaces keypad) ─────────────────────────────── */
+.cls-input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.cls-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.cls-input-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cls-required { color: #dc2626; margin-left: 2px; }
+.cls-optional { font-weight: 400; color: #9ca3af; font-size: 0.72rem; margin-left: 4px; }
+
+.cls-field-warning {
+  font-size: 0.75rem;
+  color: #d97706;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+/* ─── Yield Bar (G6 guard) ────────────────────────────────────── */
+.cls-yield-row {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.cls-yield-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 0.4rem;
+}
+
+.cls-yield-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.cls-yield-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+
+.cls-yield-fill--green  { background: #16a34a; }
+.cls-yield-fill--yellow { background: #d97706; }
+.cls-yield-fill--red    { background: #dc2626; }
+
+.yield-green  { color: #16a34a; }
+.yield-yellow { color: #d97706; }
+.yield-red    { color: #dc2626; }
+
+.cls-yield-hint {
+  font-size: 0.72rem;
+  color: #d97706;
+  font-weight: 600;
+  margin-top: 0.35rem;
+}
+
+/* ─── Badges (additional variants) ───────────────────────────── */
+.cls-badge--success { background: #dcfce7; color: #16a34a; }
+.cls-badge--warning { background: #fef3c7; color: #d97706; }
+.cls-badge--danger  { background: #fee2e2; color: #dc2626; }
+
+/* ─── Record warning ──────────────────────────────────────────── */
+.cls-record__warning {
+  font-size: 0.72rem;
+  color: #d97706;
+  font-weight: 600;
+}
+
+/* ─── Stat warning ────────────────────────────────────────────── */
+.cls-stat--warning .cls-stat__value { color: #d97706; }
+
+/* ─── Responsive: collapse input-row on mobile ─────────────────── */
+@media (max-width: 600px) {
+  .cls-input-row { grid-template-columns: 1fr; }
+}

@@ -1,128 +1,149 @@
-.page {
-  max-width: 1600px;
-  margin: 0 auto;
+/* ════════════════════════════════════════════════════════════
+   Liquidación — 3-Tab Premium Stylesheet
+   ════════════════════════════════════════════════════════════ */
+
+.liq-page { max-width: 1440px; margin: 0 auto; padding-bottom: 3rem; }
+
+/* ─── Header ─────────────────────────────────────────────── */
+.liq-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
 }
+.liq-header h1 { font-size: 1.45rem; font-weight: 800; color: var(--ina-secondary,#c87711); margin: 0; }
+.liq-header p  { font-size: 0.82rem; color: #6b7280; margin: 2px 0 0; }
 
-.equation-board {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #f8fcf8;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 30px;
-  margin-top: 10px;
-  margin-bottom: 30px;
+/* ─── Stats Chips ─────────────────────────────────────────── */
+.liq-stats { display: flex; gap: 0.65rem; }
+.liq-stat {
+  background: rgba(255,255,255,0.85); backdrop-filter: blur(8px);
+  border: 1px solid #e5e7eb; border-radius: 12px;
+  padding: 0.55rem 1.1rem; text-align: center; min-width: 90px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
+.liq-stat__val { display: block; font-size: 1.35rem; font-weight: 800; color: var(--ina-primary,#999933); font-family: 'Roboto Mono',monospace; line-height: 1.1; }
+.liq-stat__lbl { display: block; font-size: 0.62rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+.liq-stat--yellow .liq-stat__val { color: #d97706; }
+.liq-stat--red    .liq-stat__val { color: #dc2626; }
 
-.eq-side {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  background: white;
-  padding: 24px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-  flex: 1;
+/* ─── Cards ──────────────────────────────────────────────── */
+.liq-card {
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 14px;
+  padding: 1.35rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  margin-bottom: 1rem;
 }
-
-.eq-in { border-top: 4px solid var(--ina-primary); }
-.eq-out { border-top: 4px solid var(--ina-secondary); }
-.eq-shrink { border-top: 4px solid #e53e3e; }
-.eq-shrink.negative { border-top: 4px solid #dd6b20; }
-
-.eq-title { font-size: 0.9rem; font-weight: 700; color: #718096; margin-bottom: 12px; }
-.eq-value { font-size: 2.2rem; font-weight: 800; color: #2d3748; line-height: 1; }
-.eq-label { font-size: 0.85rem; color: #a0aec0; margin-top: 8px; font-style: italic; }
-
-.eq-equal, .eq-plus {
-  font-size: 2.5rem;
-  font-weight: 300;
-  color: #cbd5e0;
-  padding: 0 20px;
+.liq-lot-card { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.liq-label { font-size: 0.78rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+.liq-select {
+  flex: 1; min-width: 260px; background: #fff; border: 1.5px solid #d1d5db;
+  border-radius: 10px; padding: 0.7rem 1rem; font-size: 1rem; font-weight: 600;
+  color: #1f2937; min-height: 48px;
 }
+.liq-select:focus { outline: none; border-color: var(--ina-primary,#999933); }
+.liq-lot-info { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.liq-lot-code { font-family: 'Roboto Mono',monospace; font-weight: 700; font-size: 1rem; color: var(--ina-secondary,#c87711); }
+.liq-lot-weight { font-size: 0.88rem; color: #475569; }
+.badge-teal { padding: 2px 8px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; background: #ccfbf1; color: #0f766e; }
 
-.outputs-list {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 24px;
+/* ─── Tabs ───────────────────────────────────────────────── */
+.liq-tabs {
+  display: flex; gap: 0.5rem; margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e5e7eb; padding-bottom: 0;
 }
-
-.outputs-list h3 {
-  margin: 0 0 16px 0;
-  font-size: 1.1rem;
-  color: #2d3748;
+.liq-tab {
+  padding: 0.65rem 1.25rem; border: none; background: none;
+  cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #6b7280;
+  border-bottom: 3px solid transparent; margin-bottom: -2px;
+  transition: all 0.15s; border-radius: 8px 8px 0 0;
 }
+.liq-tab:hover { color: var(--ina-primary,#999933); background: #fdfce8; }
+.liq-tab--active { color: var(--ina-secondary,#c87711); border-bottom-color: var(--ina-secondary,#c87711); background: #fff9f0; font-weight: 700; }
 
-.outputs-list ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+/* ─── Card headers ───────────────────────────────────────── */
+.liq-card-header {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding-bottom: 0.85rem; border-bottom: 1px solid #f3f4f6; margin-bottom: 1rem;
 }
+.liq-card-header h2 { font-size: 0.92rem; font-weight: 700; color: #1f2937; margin: 0; flex: 1; }
+.liq-badge-count { padding: 2px 8px; border-radius: 20px; background: #e0f2fe; color: #0284c7; font-size: 0.7rem; font-weight: 700; }
+.liq-badge-lbs   { padding: 2px 8px; border-radius: 20px; background: #f0fdf4; color: #16a34a; font-size: 0.7rem; font-weight: 700; font-family: monospace; }
 
-.outputs-list li {
-  display: flex;
-  align-items: center;
-  padding: 12px;
-  border-bottom: 1px solid #edf2f7;
+/* ─── Table ──────────────────────────────────────────────── */
+.liq-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.liq-table th {
+  padding: 0.5rem 0.75rem; text-align: left; font-size: 0.72rem;
+  font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;
+  background: #f9fafb; border-bottom: 1px solid #e5e7eb;
 }
-.outputs-list li:last-child { border: none; }
-
-.out-dest { font-weight: bold; width: 150px; }
-.out-talla { color: #718096; flex: 1; }
-.out-lbs { color: var(--ina-primary); font-size: 1.1rem; margin-right: 10px; }
-
-.actions {
-  text-align: right;
-  border-top: 1px solid #e2e8f0;
-  padding-top: 20px;
+.liq-table td {
+  padding: 0.55rem 0.75rem; border-bottom: 1px solid #f3f4f6; color: #374151;
 }
+.liq-table tr:hover td { background: #fafafa; }
+.liq-table__lot { font-family: 'Roboto Mono',monospace; font-weight: 700; font-size: 0.82rem; }
+.liq-table__num { text-align: right; font-family: 'Roboto Mono',monospace; }
+.liq-table__lbs { text-align: right; font-family: 'Roboto Mono',monospace; font-weight: 700; }
 
-.btn-primary {
-  background: var(--ina-primary);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
+/* ─── Class badges ───────────────────────────────────────── */
+.liq-class-badge { padding: 2px 8px; border-radius: 20px; font-size: 0.72rem; font-weight: 800; }
+.liq-class-badge--a { background: #dcfce7; color: #16a34a; }
+.liq-class-badge--b { background: #fef3c7; color: #d97706; }
+.liq-class-badge--c { background: #fee2e2; color: #dc2626; }
+.liq-no-peso { font-size: 0.72rem; color: #d97706; }
+
+/* ─── Balance Box ────────────────────────────────────────── */
+.liq-balance-box { background: linear-gradient(135deg,#f8fafc,#f1f5f9); border: 1px solid #cbd5e1; }
+.liq-balance-row { display: flex; justify-content: space-between; font-size: 0.88rem; color: #475569; margin-bottom: 0.45rem; }
+.liq-balance-row strong { font-family: 'Roboto Mono',monospace; font-size: 0.95rem; }
+.liq-balance-row--muted   strong { color: #dc2626; }
+.liq-balance-row--primary strong { color: var(--ina-primary,#999933); }
+.liq-balance-row--danger  strong { color: #dc2626; }
+.liq-balance-row--success strong { color: #16a34a; }
+.liq-balance-divider { height: 1px; background: linear-gradient(to right,transparent,#cbd5e1,transparent); margin: 0.75rem 0; }
+
+/* ─── Yield Bar ──────────────────────────────────────────── */
+.liq-yield-row { margin-top: 1rem; }
+.liq-yield-header { display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 700; color: #475569; margin-bottom: 0.35rem; }
+.liq-yield-bar { height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
+.liq-yield-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
+
+/* ─── Area Grid (Tab 2) ──────────────────────────────────── */
+.liq-area-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; }
+@media (max-width: 900px) { .liq-area-grid { grid-template-columns: 1fr; } }
+.liq-area-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.liq-area-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+.liq-area-icon { font-size: 1.5rem; }
+.liq-area-header h3 { font-size: 0.92rem; font-weight: 700; color: #1f2937; margin: 0; flex: 1; }
+.liq-area-suffix { font-family: monospace; font-size: 0.72rem; color: #9ca3af; }
+.liq-status-badge { padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
+.liq-status-badge--pending { background: #fef3c7; color: #d97706; }
+.liq-status-badge--closed  { background: #dcfce7; color: #16a34a; }
+.liq-area-rows { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.75rem; }
+.liq-area-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: #475569; }
+.liq-area-row strong { font-family: monospace; }
+.liq-area-divider { height: 1px; background: #e5e7eb; margin: 0.25rem 0; }
+.liq-area-yield { margin-top: 0.75rem; }
+.liq-mock-notice { margin-top: 0.75rem; font-size: 0.75rem; color: #d97706; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 0.4rem 0.6rem; }
+
+/* ─── Report Table (Tab 3) ───────────────────────────────── */
+.liq-report-header { margin-bottom: 1.5rem; }
+.liq-report-title { font-size: 1.1rem; font-weight: 800; color: #1f2937; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+.liq-report-meta { display: flex; gap: 1.5rem; font-size: 0.85rem; color: #6b7280; flex-wrap: wrap; }
+.liq-report-meta strong { color: #1f2937; }
+.liq-report-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-bottom: 1.5rem; }
+.liq-report-table th { padding: 0.6rem 0.85rem; background: #f9fafb; font-size: 0.78rem; font-weight: 700; color: #6b7280; text-transform: uppercase; text-align: left; border: 1px solid #e5e7eb; }
+.liq-report-table td { padding: 0.55rem 0.85rem; border: 1px solid #e5e7eb; color: #374151; }
+.liq-report-table tfoot td { font-weight: 700; background: #f1f5f9; border-top: 2px solid #cbd5e1; }
+
+/* ─── KPI Grid (Tab 3) ───────────────────────────────────── */
+.liq-kpi-grid { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.liq-kpi {
+  flex: 1; min-width: 120px; background: #f9fafb; border: 1px solid #e5e7eb;
+  border-radius: 12px; padding: 1rem; text-align: center;
 }
+.liq-kpi__val { font-size: 1.4rem; font-weight: 800; color: var(--ina-primary,#999933); font-family: monospace; }
+.liq-kpi__lbl { font-size: 0.68rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+.liq-kpi--final { background: linear-gradient(135deg,#f0fdf4,#dcfce7); border-color: #bbf7d0; }
+.liq-kpi--final .liq-kpi__val { color: #16a34a; }
 
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(153,153,51,0.3);
-}
-
-.eq-shrink.anomaly { border-top: 4px solid #dc2626; background: #fef2f2; }
-
-.progress-bar-container {
-  display: flex; height: 16px; border-radius: 8px; overflow: hidden;
-  background: #f3f4f6; margin-top: 1rem;
-}
-.progress-segment { height: 100%; transition: width 0.4s ease; }
-.progress-segment.classified { background: var(--ina-primary); }
-.progress-segment.waste { background: #f59e0b; }
-.progress-segment.shrinkage { background: #ef4444; }
-
-.progress-legend { display: flex; gap: 1.5rem; margin-top: 0.5rem; font-size: 0.78rem; color: #6b7280; }
-.legend-item { display: flex; align-items: center; gap: 0.35rem; }
-.dot { width: 8px; height: 8px; border-radius: 50%; }
-.dot.classified { background: var(--ina-primary); }
-.dot.shrinkage { background: #ef4444; }
-
-.anomaly-banner {
-  background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;
-  padding: 0.75rem 1rem; font-size: 0.85rem; color: #991b1b; margin-top: 1rem;
-}
-
-.error-banner { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 0.65rem 1rem; font-size: 0.85rem; color: #991b1b; margin-top: 1rem; }
-.success-banner { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 0.65rem 1rem; font-size: 0.85rem; color: #166534; margin-top: 1rem; }
-
-.form-label { display: block; font-size: 0.82rem; font-weight: 600; color: #374151; margin-bottom: 0.35rem; }
-.form-input { width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 0.75rem; font-size: 0.9rem; }
-.form-input:focus { outline: none; border-color: var(--ina-primary); box-shadow: 0 0 0 3px rgba(153,153,51,0.1); }
-
+/* ─── Empty State ────────────────────────────────────────── */
+.liq-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; background: #f9fafb; border: 2px dashed #e5e7eb; border-radius: 14px; text-align: center; color: #6b7280; gap: 0.5rem; margin-bottom: 1rem; }
+.liq-empty__icon { font-size: 2.5rem; opacity: 0.4; }

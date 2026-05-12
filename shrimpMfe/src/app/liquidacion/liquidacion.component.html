@@ -1,1 +1,270 @@
-<p>liquidacion works!</p>
+<div class="liq-page">
+
+  <!-- ═══ Header ════════════════════════════════════════════════ -->
+  <div class="liq-header">
+    <div>
+      <h1>⚖️ Liquidación</h1>
+      <p>Conciliación de masa por lote — Reporte planta DUFER</p>
+    </div>
+    <div class="liq-stats" *ngIf="summary">
+      <div class="liq-stat">
+        <span class="liq-stat__val">{{ inputLbs | number:'1.0-0' }}</span>
+        <span class="liq-stat__lbl">Lbs Entrada</span>
+      </div>
+      <div class="liq-stat" [class.liq-stat--yellow]="rendimientoClasificacion < 80"
+                             [class.liq-stat--red]="rendimientoClasificacion < 65">
+        <span class="liq-stat__val">{{ rendimientoClasificacion | number:'1.1-1' }}%</span>
+        <span class="liq-stat__lbl">Rend. Clasif.</span>
+      </div>
+      <div class="liq-stat" [class.liq-stat--yellow]="rendimientoFinal < 70"
+                             [class.liq-stat--red]="rendimientoFinal < 55">
+        <span class="liq-stat__val">{{ rendimientoFinal | number:'1.1-1' }}%</span>
+        <span class="liq-stat__lbl">Rend. Final</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Lot Selector ════════════════════════════════════════ -->
+  <div class="liq-card liq-lot-card">
+    <label class="liq-label">Lote Base (Recepción)</label>
+    <select class="liq-select" [(ngModel)]="selectedLotId" (change)="onLotChange()">
+      <option [ngValue]="null">-- Seleccione un Lote --</option>
+      <option *ngFor="let r of receptions" [ngValue]="r.stockOrderId">
+        {{ r.internalLotBase }} · {{ r.shrimpType }} · {{ r.totalWeightLbs | number:'1.0-0' }} lbs
+      </option>
+    </select>
+    <div class="liq-lot-info" *ngIf="summary">
+      <span class="liq-lot-code">{{ summary.lotBase }}</span>
+      <span class="badge-teal">{{ summary.shrimpType }}</span>
+      <span class="liq-lot-weight">{{ inputLbs | number:'1.2-2' }} lbs recibidas</span>
+    </div>
+  </div>
+
+  <!-- ═══ Tabs ════════════════════════════════════════════════ -->
+  <div class="liq-tabs" *ngIf="summary">
+    <button class="liq-tab" [class.liq-tab--active]="activeTab === 'clasificacion'" (click)="setTab('clasificacion')">
+      📋 Clasificación Desglose
+    </button>
+    <button class="liq-tab" [class.liq-tab--active]="activeTab === 'areas'" (click)="setTab('areas')">
+      🏭 Liquidación por Área
+    </button>
+    <button class="liq-tab" [class.liq-tab--active]="activeTab === 'consolidado'" (click)="setTab('consolidado')">
+      📊 Reporte Consolidado
+    </button>
+  </div>
+
+  <div class="liq-empty" *ngIf="!summary && selectedLotId">
+    <div class="liq-empty__icon">⏳</div><div>Cargando datos del lote...</div>
+  </div>
+  <div class="liq-empty" *ngIf="!selectedLotId">
+    <div class="liq-empty__icon">📂</div><div>Seleccione un lote para ver la liquidación</div>
+  </div>
+
+  <!-- ═══ TAB 1 — Clasificación Desglose ═══════════════════════ -->
+  <div *ngIf="summary && activeTab === 'clasificacion'">
+
+    <!-- Per-destination groups — computed in .ts to avoid template assignments -->
+    <div *ngFor="let grupo of subLotsByDestino" class="liq-card" style="margin-bottom:1rem">
+      <div class="liq-card-header">
+        <span>{{ grupo.icon }}</span>
+        <h2>{{ grupo.label }}</h2>
+        <span class="liq-badge-count">{{ grupo.sublots.length }} sub-lotes</span>
+        <span class="liq-badge-lbs">{{ grupo.totalLbs | number:'1.0-0' }} lbs</span>
+      </div>
+      <table class="liq-table">
+        <thead>
+          <tr>
+            <th>Lote Sufijado</th>
+            <th>Talla (Catálogo)</th>
+            <th>Clase</th>
+            <th>Cantidad</th>
+            <th>Unidad</th>
+            <th>Libras</th>
+            <th>Máq.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of grupo.sublots">
+            <td class="liq-table__lot">{{ s.loteSuffix || '—' }}</td>
+            <td>{{ s.talla?.displayName || s.talla?.name || s.shrimpSize || '—' }}</td>
+            <td>
+              <span class="liq-class-badge"
+                    [class.liq-class-badge--a]="s.qualityClass === 'A'"
+                    [class.liq-class-badge--b]="s.qualityClass === 'B'"
+                    [class.liq-class-badge--c]="s.qualityClass === 'C'">
+                {{ s.qualityClass || 'A' }}
+              </span>
+            </td>
+            <td class="liq-table__num">{{ s.cantidad ?? s.cajetasCount ?? '—' }}</td>
+            <td>{{ s.unidad || 'CAJETAS' }}</td>
+            <td class="liq-table__num liq-table__lbs">
+              <span *ngIf="s.libras">{{ s.libras | number:'1.0-1' }}</span>
+              <span *ngIf="!s.libras" class="liq-no-peso">⚠️ S/P</span>
+            </td>
+            <td>M{{ s.maquina || '?' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Balance box -->
+    <div class="liq-card liq-balance-box">
+      <div class="liq-balance-row">
+        <span>Ingreso Base</span>
+        <strong>{{ inputLbs | number:'1.2-2' }} lbs</strong>
+      </div>
+      <div class="liq-balance-row liq-balance-row--muted" *ngIf="rechazoLbs > 0">
+        <span>Menos Rechazo (Cola)</span>
+        <strong>-{{ rechazoLbs | number:'1.2-2' }} lbs</strong>
+      </div>
+      <div class="liq-balance-row liq-balance-row--primary">
+        <span>Total Clasificado</span>
+        <strong>-{{ totalClassifiedLbs | number:'1.2-2' }} lbs</strong>
+      </div>
+      <div class="liq-balance-divider"></div>
+      <div class="liq-balance-row"
+           [class.liq-balance-row--danger]="mermaClasificacionLbs < 0"
+           [class.liq-balance-row--success]="mermaClasificacionLbs === 0">
+        <span>Merma Sistema (Balance)</span>
+        <strong>{{ mermaClasificacionLbs | number:'1.2-2' }} lbs</strong>
+      </div>
+      <div class="liq-yield-row">
+        <div class="liq-yield-header">
+          <span>Rendimiento Clasificación</span>
+          <strong [style.color]="rendimientoColor === 'green' ? '#16a34a' : rendimientoColor === 'yellow' ? '#d97706' : '#dc2626'">
+            {{ rendimientoClasificacion | number:'1.1-1' }}%
+          </strong>
+        </div>
+        <div class="liq-yield-bar">
+          <div class="liq-yield-fill"
+               [style.width.%]="rendimientoClasificacion > 100 ? 100 : rendimientoClasificacion"
+               [style.background]="rendimientoColor === 'green' ? '#16a34a' : rendimientoColor === 'yellow' ? '#d97706' : '#dc2626'">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB 2 — Liquidación por Área ═══════════════════════ -->
+  <div *ngIf="summary && activeTab === 'areas'">
+    <div *ngIf="areaSettlementsLoading" class="liq-empty">
+      <div class="liq-empty__icon">⏳</div><div>Cargando liquidaciones por área...</div>
+    </div>
+    <div class="liq-area-grid" *ngIf="!areaSettlementsLoading">
+      <div class="liq-area-card" *ngFor="let area of areaSettlements">
+        <div class="liq-area-header">
+          <span class="liq-area-icon">{{ area.destinationIcon }}</span>
+          <h3>{{ area.destinationLabel }}</h3>
+          <span class="liq-area-suffix">{{ area.lotSuffix }}</span>
+          <span class="liq-status-badge"
+                [class.liq-status-badge--pending]="area.status === 'PENDING'"
+                [class.liq-status-badge--closed]="area.status === 'CLOSED'">
+            {{ area.status === 'CLOSED' ? '✓ Cerrada' : '⏳ Pendiente' }}
+          </span>
+        </div>
+        <div class="liq-area-rows">
+          <div class="liq-area-row"><span>Lbs Recibidas</span><strong>{{ area.receivedLbs | number:'1.0-1' }} lbs</strong></div>
+          <div class="liq-area-row"><span>Masters Producidos</span><strong>{{ area.mastersProduced }}</strong></div>
+          <div class="liq-area-row"><span>Peso Masters</span><strong>{{ area.masterWeightLbs | number:'1.0-1' }} lbs</strong></div>
+          <div class="liq-area-divider"></div>
+          <div class="liq-area-row"><span>Merma Área</span><strong>{{ area.areaShrinkageLbs | number:'1.0-1' }} lbs</strong></div>
+        </div>
+        <div class="liq-area-yield">
+          <div class="liq-yield-header">
+            <span>Rendimiento Área</span>
+            <strong [style.color]="area.areaYieldPercent >= 85 ? '#16a34a' : area.areaYieldPercent >= 70 ? '#d97706' : '#dc2626'">
+              {{ area.areaYieldPercent | number:'1.1-1' }}%
+            </strong>
+          </div>
+          <div class="liq-yield-bar">
+            <div class="liq-yield-fill"
+                 [style.width.%]="area.areaYieldPercent > 100 ? 100 : area.areaYieldPercent"
+                 [style.background]="area.areaYieldPercent >= 85 ? '#16a34a' : area.areaYieldPercent >= 70 ? '#d97706' : '#dc2626'">
+            </div>
+          </div>
+        </div>
+        <div class="liq-mock-notice" *ngIf="area.status === 'PENDING'">
+          ℹ️ Datos preliminares — liquidación de área pendiente de cierre
+        </div>
+      </div>
+    </div>
+    <div class="liq-empty" *ngIf="!areaSettlementsLoading && areaSettlements.length === 0">
+      <div class="liq-empty__icon">📭</div><div>No hay liquidaciones de área disponibles</div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB 3 — Reporte Consolidado ════════════════════════ -->
+  <div *ngIf="summary && activeTab === 'consolidado'">
+    <div *ngIf="consolidatedLoading" class="liq-empty">
+      <div class="liq-empty__icon">⏳</div><div>Generando reporte consolidado...</div>
+    </div>
+    <div *ngIf="!consolidatedLoading && consolidated" class="liq-card liq-report">
+      <div class="liq-report-header">
+        <div class="liq-report-title">REPORTE DE LIQUIDACIÓN DE LOTE</div>
+        <div class="liq-report-meta">
+          <span>Lote: <strong>{{ summary.lotBase }}</strong></span>
+          <span>Tipo: <strong>{{ summary.shrimpType }}</strong></span>
+        </div>
+        <div class="liq-mock-notice" *ngIf="consolidated.isMock">
+          ⚠️ Datos preliminares — áreas de transformación pendientes de cierre
+        </div>
+      </div>
+      <table class="liq-report-table">
+        <thead>
+          <tr><th colspan="2">ENTRADA</th><th colspan="2">SALIDA</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Recepción base</td>
+            <td class="liq-table__lbs">{{ consolidated.inputLbs | number:'1.2-2' }} lbs</td>
+            <td>Clasificado enviado a áreas</td>
+            <td class="liq-table__lbs">{{ consolidated.classifiedLbs | number:'1.2-2' }} lbs</td>
+          </tr>
+          <tr *ngIf="consolidated.rechazoLbs > 0">
+            <td></td><td></td>
+            <td>Cola recuperada (rechazo)</td>
+            <td class="liq-table__lbs">{{ consolidated.rechazoLbs | number:'1.2-2' }} lbs</td>
+          </tr>
+          <tr>
+            <td></td><td></td>
+            <td>Merma clasificación (sistema)</td>
+            <td class="liq-table__lbs">{{ consolidated.mermaClasificacion | number:'1.2-2' }} lbs</td>
+          </tr>
+          <tr style="border-top:2px solid #e5e7eb">
+            <td colspan="2"></td>
+            <td>Masters producidos (todas áreas)</td>
+            <td class="liq-table__lbs">{{ consolidated.totalOutput | number:'1.2-2' }} lbs</td>
+          </tr>
+          <tr>
+            <td colspan="2"></td>
+            <td>Merma áreas de transformación</td>
+            <td class="liq-table__lbs">{{ consolidated.totalMermaAreas | number:'1.2-2' }} lbs</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td><strong>Total Entrada</strong></td>
+            <td class="liq-table__lbs"><strong>{{ consolidated.inputLbs | number:'1.2-2' }} lbs</strong></td>
+            <td><strong>Balance Salidas</strong></td>
+            <td class="liq-table__lbs"><strong>{{ consolidated.classifiedLbs | number:'1.2-2' }} lbs</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+      <div class="liq-kpi-grid">
+        <div class="liq-kpi">
+          <div class="liq-kpi__val">{{ rendimientoClasificacion | number:'1.1-1' }}%</div>
+          <div class="liq-kpi__lbl">Rend. Clasificación</div>
+        </div>
+        <div class="liq-kpi" *ngFor="let area of areaSettlements">
+          <div class="liq-kpi__val">{{ area.areaYieldPercent | number:'1.1-1' }}%</div>
+          <div class="liq-kpi__lbl">Rend. {{ area.destinationLabel }}</div>
+        </div>
+        <div class="liq-kpi liq-kpi--final">
+          <div class="liq-kpi__val">{{ rendimientoFinal | number:'1.1-1' }}%</div>
+          <div class="liq-kpi__lbl">Rendimiento Final</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
