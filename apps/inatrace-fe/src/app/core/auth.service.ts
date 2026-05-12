@@ -5,6 +5,7 @@ import { catchError, take } from 'rxjs/operators';
 import { UserControllerService } from 'src/api/api/userController.service';
 import { ApiUserGet } from 'src/api/model/apiUserGet';
 import { LanguageCodeHelper } from '../language-code-helper';
+import Keycloak from 'keycloak-js';
 
 @Injectable({
   providedIn: 'root',
@@ -19,6 +20,7 @@ export class AuthService {
     private route: ActivatedRoute,
     private router: Router,
     private userController: UserControllerService,
+    private keycloak: Keycloak,
   ) {
     let skipRefresh = false;
     this.route.snapshot.children.forEach((routeChild) => {
@@ -91,7 +93,15 @@ export class AuthService {
       console.warn('Logout API call failed, forcing client logout', e);
     } finally {
       this.userProfileSubject.next(null);
-      this.router.navigate(['/login']).then();
+
+      // Cerrar sesión de Keycloak (SSO) y redirigir al login
+      const currentUrl = window.location.origin;
+      try {
+        await this.keycloak.logout({ redirectUri: currentUrl });
+      } catch (e) {
+        console.warn('Keycloak logout failed, redirecting manually', e);
+        this.router.navigate(['/login']).then();
+      }
     }
   }
 
