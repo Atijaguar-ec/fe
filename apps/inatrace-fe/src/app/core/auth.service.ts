@@ -83,11 +83,16 @@ export class AuthService {
 
   async logout() {
     sessionStorage.clear();
+    localStorage.clear();
 
-    await this.userController.logout().pipe(take(1)).toPromise();
-    this.router
-      .navigate(['login'])
-      .then(() => this.userProfileSubject.next(null));
+    try {
+      await this.userController.logout().pipe(take(1)).toPromise();
+    } catch (e) {
+      console.warn('Logout API call failed, forcing client logout', e);
+    } finally {
+      this.userProfileSubject.next(null);
+      this.router.navigate(['/login']).then();
+    }
   }
 
   register(email, password, name, surname, redirect = null) {

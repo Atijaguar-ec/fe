@@ -133,39 +133,42 @@
                 <span>{{ farmer.gender }}</span>
               </td>
               <td [attr.data-label]="sortOptions[3].name">
+                <span>{{ farmer.farmerCompanyInternalId || '-' }}</span>
+              </td>
+              <td [attr.data-label]="sortOptions[4].name">
                 <span>{{ farmer.id }}</span>
               </td>
 
               <ng-container *ngIf="showRwanda">
-                <td [attr.data-label]="sortOptions[4].name">
+                <td [attr.data-label]="sortOptions[5].name">
                   <span>{{ farmer.location.address.village }}</span>
                 </td>
-                <td [attr.data-label]="sortOptions[5].name">
+                <td [attr.data-label]="sortOptions[6].name">
                   <span>{{ farmer.location.address.cell }}</span>
                 </td>
               </ng-container>
 
               <ng-container *ngIf="showHonduras">
-                <td [attr.data-label]="sortOptions[4].name">
+                <td [attr.data-label]="sortOptions[5].name">
                   <span>{{
                     farmer.location.address.hondurasMunicipality
                   }}</span>
                 </td>
-                <td [attr.data-label]="sortOptions[5].name">
+                <td [attr.data-label]="sortOptions[6].name">
                   <span>{{ farmer.location.address.hondurasVillage }}</span>
                 </td>
               </ng-container>
 
               <ng-container *ngIf="!showRwanda && !showHonduras">
-                <td [attr.data-label]="sortOptions[4].name">
+                <td [attr.data-label]="sortOptions[5].name">
                   <span>{{ farmer.location.address.city }}</span>
                 </td>
-                <td [attr.data-label]="sortOptions[5].name">
+                <td [attr.data-label]="sortOptions[6].name">
                   <span>{{ farmer.location.address.state }}</span>
                 </td>
               </ng-container>
 
-              <td [attr.data-label]="sortOptions[6].name">
+              <td [attr.data-label]="sortOptions[7].name">
                 <span>
                   <a
                     i18n="@@productLabelStakeholdersCollectors.tableCol.edit"

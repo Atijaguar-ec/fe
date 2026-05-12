@@ -88,8 +88,12 @@ export class CompanyUserCustomersByRoleService extends GeneralSifrantService<Api
       .getUserCustomersForCompanyAndTypeByMap(reqParams)
       .pipe(
         map((res: ApiPaginatedResponseApiUserCustomer) => {
+          // Filtrar duplicados por ID (evitar el error de datos repetidos en Combobox)
+          const uniqueItems = res.data.items ? res.data.items.filter(
+            (item, index, self) => index === self.findIndex((t) => t.id === item.id)
+          ) : [];
           return {
-            results: res.data.items,
+            results: uniqueItems,
             offset: 0,
             limit,
             totalCount: res.data.count,

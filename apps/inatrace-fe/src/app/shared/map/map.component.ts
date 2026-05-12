@@ -328,7 +328,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       container: this.mapId, // id of div that holds the map
       style: mapStyleDefinition,
       zoom: 10,
-      center: [this.initialLng ?? 14.995463, this.initialLat ?? 46.151241],
+      center: [this.initialLng ?? -78.1834, this.initialLat ?? -1.8312],
       cooperativeGestures: true,
     };
     this.map = new mapboxgl.Map(mapOptions);

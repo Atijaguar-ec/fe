@@ -92,6 +92,10 @@ export class CompanyFarmersListComponent
       inactive: true,
     },
     {
+      key: 'farmerCompanyInternalId',
+      name: $localize`:@@productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name:Cédula/ID`,
+    },
+    {
       key: 'id',
       name: $localize`:@@productLabelStakeholdersCollectors.sortOptions.id.name:Id`,
     },
@@ -129,6 +133,10 @@ export class CompanyFarmersListComponent
       inactive: true,
     },
     {
+      key: 'farmerCompanyInternalId',
+      name: $localize`:@@productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name:Cédula/ID`,
+    },
+    {
       key: 'id',
       name: $localize`:@@productLabelStakeholdersCollectors.sortOptions.id.name:Id`,
     },
@@ -164,6 +172,10 @@ export class CompanyFarmersListComponent
       key: 'gender',
       name: $localize`:@@productLabelStakeholdersCollectors.sortOptions.gender.name:Gender`,
       inactive: true,
+    },
+    {
+      key: 'farmerCompanyInternalId',
+      name: $localize`:@@productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name:Cédula/ID`,
     },
     {
       key: 'id',
@@ -372,7 +384,7 @@ export class CompanyFarmersListComponent
   }
 
   showPagination() {
-    return this.farmerCount && this.farmerCount > this.pageSize;
+    return this.farmerCount > 0;
   }
 
   onPageChange(event) {
