@@ -93,7 +93,7 @@ export class CompanyFarmersListComponent
     },
     {
       key: 'farmerCompanyInternalId',
-      name: $localize`:@@productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name:Cédula/ID`,
+      name: $localize`:@@productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name:Cédula`,
     },
     {
       key: 'id',
