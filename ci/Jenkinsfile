@@ -273,10 +273,31 @@ git fetch --tags --prune origin
                 docker tag ${imageTag} ${latestTag}
               fi
 
-              docker push ${imageTag}
+              # Función de retry para docker push (resiste 502/503 transitorios de ghcr.io)
+              docker_push_retry() {
+                local image="\$1"
+                local max_attempts=3
+                local attempt=1
+                local wait_time=10
+                while [ \$attempt -le \$max_attempts ]; do
+                  echo "📤 Push intento \${attempt}/\${max_attempts}: \${image}"
+                  if docker push "\${image}"; then
+                    echo "✅ Push exitoso: \${image}"
+                    return 0
+                  fi
+                  echo "⚠️ Push falló (intento \${attempt}/\${max_attempts}). Reintentando en \${wait_time}s..."
+                  sleep \$wait_time
+                  wait_time=\$((wait_time * 2))
+                  attempt=\$((attempt + 1))
+                done
+                echo "❌ Push falló después de \${max_attempts} intentos: \${image}" >&2
+                return 1
+              }
+
+              docker_push_retry ${imageTag}
 
               if [ "${params.BRANCH}" = "main" ]; then
-                docker push ${latestTag}
+                docker_push_retry ${latestTag}
               fi
             """
           }
