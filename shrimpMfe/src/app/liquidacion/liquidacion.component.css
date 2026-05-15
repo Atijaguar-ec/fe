@@ -13,7 +13,14 @@
 .liq-header p  { font-size: 0.82rem; color: #6b7280; margin: 2px 0 0; }
 
 /* ─── Stats Chips ─────────────────────────────────────────── */
-.liq-stats { display: flex; gap: 0.65rem; }
+.liq-stats { display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap; }
+.liq-export-btn {
+  background: #10b981; color: white; border: none; padding: 0.55rem 1rem;
+  border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.85rem;
+  display: flex; align-items: center; gap: 0.4rem; transition: background 0.2s;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+.liq-export-btn:hover { background: #059669; }
 .liq-stat {
   background: rgba(255,255,255,0.85); backdrop-filter: blur(8px);
   border: 1px solid #e5e7eb; border-radius: 12px;
@@ -89,21 +96,33 @@
 .liq-class-badge--c { background: #fee2e2; color: #dc2626; }
 .liq-no-peso { font-size: 0.72rem; color: #d97706; }
 
-/* ─── Balance Box ────────────────────────────────────────── */
-.liq-balance-box { background: linear-gradient(135deg,#f8fafc,#f1f5f9); border: 1px solid #cbd5e1; }
-.liq-balance-row { display: flex; justify-content: space-between; font-size: 0.88rem; color: #475569; margin-bottom: 0.45rem; }
-.liq-balance-row strong { font-family: 'Roboto Mono',monospace; font-size: 0.95rem; }
-.liq-balance-row--muted   strong { color: #dc2626; }
-.liq-balance-row--primary strong { color: var(--ina-primary,#999933); }
-.liq-balance-row--danger  strong { color: #dc2626; }
-.liq-balance-row--success strong { color: #16a34a; }
-.liq-balance-divider { height: 1px; background: linear-gradient(to right,transparent,#cbd5e1,transparent); margin: 0.75rem 0; }
+/* ─── Biomass Chart ────────────────────────────────────────── */
+.liq-balance-box { background: linear-gradient(135deg,#f8fafc,#f1f5f9); border: 1px solid #cbd5e1; padding: 1.5rem; }
+.liq-balance-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+.liq-balance-header h3 { margin: 0; font-size: 1.1rem; color: #1e293b; font-weight: 800; }
+.liq-input-badge { background: #334155; color: white; padding: 0.35rem 0.8rem; border-radius: 20px; font-weight: 700; font-size: 0.85rem; }
 
-/* ─── Yield Bar ──────────────────────────────────────────── */
-.liq-yield-row { margin-top: 1rem; }
-.liq-yield-header { display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 700; color: #475569; margin-bottom: 0.35rem; }
-.liq-yield-bar { height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
-.liq-yield-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
+.liq-biomass-bar {
+  display: flex; height: 32px; width: 100%; border-radius: 16px; overflow: hidden;
+  margin-bottom: 1.5rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  background: #e2e8f0;
+}
+.liq-biomass-segment {
+  height: 100%; display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 800; font-size: 0.85rem; text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); cursor: help;
+}
+.liq-biomass-segment:hover { filter: brightness(1.1); }
+.liq-biomass-entero { background: linear-gradient(to bottom, #10b981, #059669); }
+.liq-biomass-cola   { background: linear-gradient(to bottom, #f59e0b, #d97706); }
+.liq-biomass-merma  { background: linear-gradient(to bottom, #ef4444, #dc2626); }
+
+.liq-biomass-legend { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
+.liq-legend-item { display: flex; align-items: center; gap: 0.5rem; }
+.liq-legend-color { width: 16px; height: 16px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+.liq-legend-text { display: flex; flex-direction: column; }
+.liq-legend-text strong { font-size: 0.8rem; color: #334155; }
+.liq-legend-text span { font-size: 0.95rem; font-family: monospace; font-weight: 700; color: #0f172a; }
 
 /* ─── Area Grid (Tab 2) ──────────────────────────────────── */
 .liq-area-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; }

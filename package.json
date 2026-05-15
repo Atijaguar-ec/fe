@@ -68,6 +68,7 @@
     "rxjs": "^7.8.2",
     "tinymce": "^5.4.0",
     "tslib": "^2.3.0",
+    "xlsx": "^0.18.5",
     "zone.js": "~0.15.1"
   },
   "devDependencies": {

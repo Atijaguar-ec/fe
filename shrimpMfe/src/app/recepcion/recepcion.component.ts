@@ -765,7 +765,9 @@ export class ReceptionComponent implements OnInit {
     const mm = dateParts[1] || '01';
     const yy = dateParts[0]?.slice(-2) || '26';
     this.lotSequence++;
-    this.lotNumber = `${dd}${mm}${yy}-${String(this.lotSequence).padStart(3, '0')}`;
+    // DUFER standard: YYMMDD format
+    // Agregamos secuencia corta para evitar duplicidad en el mismo día
+    this.lotNumber = `${yy}${mm}${dd}-${String(this.lotSequence).padStart(2, '0')}`;
   }
 
   cancelEdit() {
@@ -808,6 +810,10 @@ export class ReceptionComponent implements OnInit {
     
     const isEditing = !!this.editingRecordId;
     
+    // 4.5 lbs de tara estándar por cada gaveta/bin plástico en DUFER
+    const TARE_PER_BIN = 4.5;
+    const calculatedTare = this.bines! * TARE_PER_BIN;
+
     // Preparar payload para el Core
     const corePayload = {
       ...(isEditing ? { id: this.editingRecordId! } : {}),
@@ -815,7 +821,7 @@ export class ReceptionComponent implements OnInit {
       semiProductId: this.selectedSemiProductId!,
       producerUserCustomerId: this.selectedSupplierId!,
       totalGrossQuantity: this.pesoBruto!,
-      tare: 0,
+      tare: calculatedTare,
       priceDeterminedLater: true,
       internalLotNumber: this.lotNumber,
       deliveryTime: this.receptionDate, // YYYY-MM-DD

@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import * as XLSX from 'xlsx';
 import { ShrimpMsService, AreaSettlement } from '../services/shrimp-ms.service';
 
 type ActiveTab = 'clasificacion' | 'areas' | 'consolidado';
@@ -54,17 +55,31 @@ export class LiquidacionComponent implements OnInit {
   }
 
   get totalClassifiedLbs(): number {
-    return this.classificationSubLots
-      .filter(s => s.libras)
-      .reduce((sum, s) => sum + (s.libras ?? 0), 0);
+    return this.enteroLbs + this.colaLbs;
   }
 
-  get rechazoLbs(): number {
-    return this.summary?.rejectedLbs ?? 0;
+  get enteroLbs(): number {
+    return this.enteroGroups.reduce((sum, g) => sum + (g.lbsA || 0), 0);
+  }
+
+  get colaLbs(): number {
+    return this.colaGroups.reduce((sum, g) => sum + (g.lbsA || 0) + (g.lbsB || 0) + (g.lbsC || 0), 0);
   }
 
   get mermaClasificacionLbs(): number {
-    return this.inputLbs - this.totalClassifiedLbs - this.rechazoLbs;
+    return this.inputLbs - this.totalClassifiedLbs;
+  }
+
+  get pctEntero(): number {
+    return this.inputLbs > 0 ? (this.enteroLbs / this.inputLbs) * 100 : 0;
+  }
+
+  get pctCola(): number {
+    return this.inputLbs > 0 ? (this.colaLbs / this.inputLbs) * 100 : 0;
+  }
+
+  get pctMerma(): number {
+    return this.inputLbs > 0 ? (this.mermaClasificacionLbs / this.inputLbs) * 100 : 0;
   }
 
   get rendimientoClasificacion(): number {
@@ -91,27 +106,49 @@ export class LiquidacionComponent implements OnInit {
     return (this.totalAreaOutput / this.inputLbs) * 100;
   }
 
-  //  /** Destination breakdown with pre-computed totals (avoids template assignments). */
-  get subLotsByDestino(): { key: string; label: string; icon: string; totalLbs: number; sublots: any[] }[] {
-    const groups: Record<string, any[]> = {};
-    for (const s of this.classificationSubLots) {
-      const key = s.destinoKey || 'BLOQUE';
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(s);
-    }
-    const DEST_META: Record<string, { label: string; icon: string }> = {
-      'BLOQUE':         { label: 'Bloque',        icon: '🧊' },
-      'IQF':            { label: 'IQF',            icon: '❄️' },
-      'VALOR_AGREGADO': { label: 'Valor Agregado', icon: '⭐' },
-      'SALMUERA':       { label: 'Salmuera',       icon: '🧂' },
-    };
-    return Object.entries(groups).map(([key, sublots]) => ({
-      key,
-      label: DEST_META[key]?.label ?? key,
-      icon:  DEST_META[key]?.icon  ?? '📦',
-      totalLbs: sublots.filter(s => s.libras).reduce((sum, s) => sum + (s.libras ?? 0), 0),
-      sublots
+  // ─── Desglose por Producto (Entero vs Cola) ──────────────────────
+  get enteroGroups(): any[] {
+    const enteros = this.classificationSubLots.filter(s => s.productType === 'ENTERO');
+    const grouped = this.groupByTalla(enteros);
+    return grouped.map(g => ({
+      talla: g.talla,
+      loteSuffix: g.items[0]?.loteSuffix || '—',
+      lbsA: this.sumLbs(g.items, 'A'),
+      cajetasA: this.sumCajetas(g.items, 'A')
     }));
+  }
+
+  get colaGroups(): any[] {
+    const colas = this.classificationSubLots.filter(s => s.productType === 'COLA');
+    const grouped = this.groupByTalla(colas);
+    return grouped.map(g => ({
+      talla: g.talla,
+      loteSuffix: g.items[0]?.loteSuffix || '—',
+      lbsA: this.sumLbs(g.items, 'A'),
+      cajetasA: this.sumCajetas(g.items, 'A'),
+      lbsB: this.sumLbs(g.items, 'B'),
+      cajetasB: this.sumCajetas(g.items, 'B'),
+      lbsC: this.sumLbs(g.items, 'C'),
+      cajetasC: this.sumCajetas(g.items, 'C')
+    }));
+  }
+
+  private groupByTalla(items: any[]): { talla: string; items: any[] }[] {
+    const map = new Map<string, any[]>();
+    items.forEach(item => {
+      const t = item.talla?.displayName || item.talla?.name || item.shrimpSize || 'S/T';
+      if (!map.has(t)) map.set(t, []);
+      map.get(t)!.push(item);
+    });
+    return Array.from(map.entries()).map(([talla, items]) => ({ talla, items }));
+  }
+
+  private sumLbs(items: any[], qClass: string): number {
+    return items.filter(i => i.qualityClass === qClass).reduce((s, i) => s + (i.libras || 0), 0);
+  }
+
+  private sumCajetas(items: any[], qClass: string): number {
+    return items.filter(i => i.qualityClass === qClass).reduce((s, i) => s + (i.cantidad || i.cajetasCount || 0), 0);
   }
 
   constructor(private shrimpMs: ShrimpMsService) {}
@@ -131,9 +168,93 @@ export class LiquidacionComponent implements OnInit {
 
     // Load classification summary
     this.shrimpMs.getClassificationSummary(this.selectedLotId).subscribe(s => {
-      this.summary = s;
-      this.classificationSubLots = s?.subLots ?? [];
+      this.summary = s || { inputLbs: 5000, rejectedLbs: 200, lotBase: 'LOT-DEMO' };
+      // Backend doesn't return subLots in summary yet, so we mock them for UI demonstration
+      this.classificationSubLots = s?.subLots ?? this.buildMockClassificationSubLots();
     });
+  }
+
+  exportToExcel(): void {
+    const wb = XLSX.utils.book_new();
+
+    // Hoja 1: Liquidación Entero
+    const dataEntero = this.enteroGroups.map(g => ({
+      LOTE: g.loteSuffix,
+      TALLA: g.talla,
+      'LIBRAS CLASE A': g.lbsA || 0,
+      '# CAJETAS CLASE A': g.cajetasA || 0
+    }));
+    const wsEntero = XLSX.utils.json_to_sheet(dataEntero);
+    XLSX.utils.book_append_sheet(wb, wsEntero, 'Liquidacion Entero');
+
+    // Hoja 2: Liquidación Rechazo - Cola
+    const dataCola = this.colaGroups.map(g => ({
+      LOTE: g.loteSuffix,
+      TALLA: g.talla,
+      'LIBRAS CLASE A': g.lbsA || 0,
+      '# CAJETAS CLASE A': g.cajetasA || 0,
+      'LIBRAS CLASE B': g.lbsB || 0,
+      '# CAJETAS CLASE B': g.cajetasB || 0,
+      'LIBRAS CLASE C': g.lbsC || 0,
+      '# CAJETAS CLASE C': g.cajetasC || 0
+    }));
+    const wsCola = XLSX.utils.json_to_sheet(dataCola);
+    XLSX.utils.book_append_sheet(wb, wsCola, 'Liquidacion Rechazo - Cola');
+
+    // Hoja 3: Liquidación por Áreas
+    if (this.areaSettlements && this.areaSettlements.length > 0) {
+      const dataAreas = this.areaSettlements.map(a => ({
+        'ÁREA DE TRANSFORMACIÓN': a.destinationLabel,
+        'LIBRAS RECIBIDAS (Gavetas)': a.receivedLbs || 0,
+        'MASTERS PRODUCIDOS': a.mastersProduced || 0,
+        'PESO EMPACADO FINAL (Lbs)': a.masterWeightLbs || 0,
+        'MERMA DEL ÁREA (Lbs)': a.areaShrinkageLbs || 0,
+        'RENDIMIENTO DE ÁREA (%)': (a.areaYieldPercent || 0).toFixed(2) + '%'
+      }));
+      const wsAreas = XLSX.utils.json_to_sheet(dataAreas);
+      XLSX.utils.book_append_sheet(wb, wsAreas, 'Liquidación por Áreas');
+    }
+
+    // Hoja 4: Balance Consolidado (Masa)
+    const dataBalance = [{
+      'CONCEPTO': 'Libras Crudas Recibidas',
+      'VALOR': this.inputLbs
+    }, {
+      'CONCEPTO': 'Total Libras Clasificadas',
+      'VALOR': this.totalClassifiedLbs
+    }, {
+      'CONCEPTO': 'Merma de Clasificación',
+      'VALOR': this.mermaClasificacionLbs
+    }, {
+      'CONCEPTO': 'Total Libras Empacadas (Todas las áreas)',
+      'VALOR': this.totalAreaOutput
+    }, {
+      'CONCEPTO': 'Mermas de Transformación (Áreas)',
+      'VALOR': this.totalMermaAreas
+    }, {
+      'CONCEPTO': 'RENDIMIENTO FINAL (%)',
+      'VALOR': this.rendimientoFinal.toFixed(2) + '%'
+    }];
+    const wsBalance = XLSX.utils.json_to_sheet(dataBalance);
+    XLSX.utils.book_append_sheet(wb, wsBalance, 'Balance Consolidado');
+
+    // Generate Excel file
+    const fileName = `Liquidacion_${this.summary?.lotBase || 'SinLote'}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+  }
+
+  private buildMockClassificationSubLots(): any[] {
+    return [
+      { productType: 'ENTERO', talla: { name: '20/30' }, qualityClass: 'A', libras: 1000, cantidad: 25, loteSuffix: '-1' },
+      { productType: 'ENTERO', talla: { name: '30/40' }, qualityClass: 'A', libras: 1500, cantidad: 37, loteSuffix: '-2' },
+      { productType: 'ENTERO', talla: { name: '40/50' }, qualityClass: 'A', libras: 800, cantidad: 20, loteSuffix: '-3' },
+      // Rechazo Cola
+      { productType: 'COLA', talla: { name: 'U/15' }, qualityClass: 'A', libras: 300, cantidad: 7, loteSuffix: '-C1' },
+      { productType: 'COLA', talla: { name: 'U/15' }, qualityClass: 'B', libras: 150, cantidad: 3, loteSuffix: '-C1' },
+      { productType: 'COLA', talla: { name: '16/20' }, qualityClass: 'A', libras: 400, cantidad: 10, loteSuffix: '-C2' },
+      { productType: 'COLA', talla: { name: '16/20' }, qualityClass: 'B', libras: 200, cantidad: 5, loteSuffix: '-C2' },
+      { productType: 'COLA', talla: { name: '16/20' }, qualityClass: 'C', libras: 50, cantidad: 1, loteSuffix: '-C2' },
+    ];
   }
 
   setTab(tab: ActiveTab): void {
@@ -178,31 +299,25 @@ export class LiquidacionComponent implements OnInit {
 
   /** Builds mock area settlements enriched with display fields for the template. */
   private buildMockAreaSettlements(): any[] {
-    const ICONS: Record<string, string> = { BLOQUE: '🧊', IQF: '❄️', VALOR_AGREGADO: '⭐', SALMUERA: '🧂' };
-    const LABELS: Record<string, string> = { BLOQUE: 'Bloque', IQF: 'IQF', VALOR_AGREGADO: 'Valor Agregado', SALMUERA: 'Salmuera' };
-    return this.subLotsByDestino.map(g => {
-      const mockYield = g.key === 'VALOR_AGREGADO' ? 0.66 : 0.9;
-      const masterWt = g.totalLbs * mockYield;
-      return {
-        destinationType: g.key as any,
-        destinationLabel: LABELS[g.key] ?? g.key,
-        destinationIcon:  ICONS[g.key]  ?? '📦',
-        lotSuffix: '-',
-        receivedLbs: g.totalLbs,
-        mastersProduced: Math.ceil(masterWt / 40),
-        masterWeightLbs: masterWt,
-        areaShrinkageLbs: g.totalLbs - masterWt,
-        areaYieldPercent: mockYield * 100,
-        status: 'PENDING'
-      };
-    });
+    return [
+      {
+        destinationType: 'BLOQUE', destinationLabel: 'Bloque', destinationIcon: '🧊',
+        lotSuffix: '-', receivedLbs: 3300, mastersProduced: 80, masterWeightLbs: 3200,
+        areaShrinkageLbs: 100, areaYieldPercent: 96.9, status: 'PENDING'
+      },
+      {
+        destinationType: 'IQF', destinationLabel: 'IQF', destinationIcon: '❄️',
+        lotSuffix: '-', receivedLbs: 1100, mastersProduced: 50, masterWeightLbs: 1000,
+        areaShrinkageLbs: 100, areaYieldPercent: 90.9, status: 'PENDING'
+      }
+    ];
   }
 
   private buildMockConsolidated(): any {
     return {
       inputLbs: this.inputLbs,
       classifiedLbs: this.totalClassifiedLbs,
-      rechazoLbs: this.rechazoLbs,
+      rechazoLbs: this.colaLbs,
       mermaClasificacion: this.mermaClasificacionLbs,
       totalOutput: this.totalAreaOutput,
       totalMermaAreas: this.totalMermaAreas,

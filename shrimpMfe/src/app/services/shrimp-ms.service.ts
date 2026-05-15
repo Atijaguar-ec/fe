@@ -50,6 +50,7 @@ export interface ProductiveDestination {
   destinationType: 'BLOQUE' | 'IQF' | 'VALOR_AGREGADO' | 'SALMUERA';
   lotSuffix: string;
   allocatedWeightLbs: number;
+  presentation?: string;
 }
 
 export interface ProcessingLot {
@@ -137,6 +138,7 @@ export interface TransformWorkItem {
   libras?: number;
   maquina: string;
   destinationType: string;
+  presentationName?: string;
   status: 'PENDING' | 'IN_PROGRESS' | 'DONE';
 }
 
@@ -272,7 +274,7 @@ export class ShrimpMsService {
    */
   getClassificationSummary(stockOrderId: number): Observable<any> {
     return this.http.get<ApiResponse<any>>(
-      `${this.msBaseUrl}/classification/summary/${stockOrderId}`
+      `${this.msBaseUrl}/settlement/summary/${stockOrderId}`
     ).pipe(
       map(res => res.data),
       catchError(() => of(null))
@@ -353,7 +355,7 @@ export class ShrimpMsService {
    */
   listPendingSubLots(destinationType: string): Observable<TransformWorkItem[]> {
     return this.http.get<ApiResponse<TransformWorkItem[]>>(
-      `${this.msBaseUrl}/classifications/pending?destinationType=${destinationType}`
+      `${this.msBaseUrl}/productive-destination/pending?destinationType=${destinationType}`
     ).pipe(
       map(res => res.data ?? []),
       catchError(() => of([]))

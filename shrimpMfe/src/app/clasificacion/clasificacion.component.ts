@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { LotNumberUtil } from '../utils/lot-number.util';
 import { ShrimpDataService } from '../services/shrimp-data.service';
-import { ShrimpMsService, ShrimpSize } from '../services/shrimp-ms.service';
+import { ShrimpMsService, ShrimpSize, CommercialPresentation } from '../services/shrimp-ms.service';
 
 // ─── Domain Models ───────────────────────────────────────────────
 /**
@@ -24,6 +24,7 @@ export interface ClassificationRecord {
   libras?: number;                    // optional weight
   destino: string;                    // label: "Bloque", "IQF", etc.
   destinoKey: string;                 // key: "BLOQUE", "IQF", etc.
+  presentationName?: string;          // Extracted from CommercialPresentation for BLOQUE
   loteSuffix: string;
   maquina: string;
   timestamp: Date;
@@ -69,13 +70,21 @@ export class ClassificationComponent implements OnInit {
 
   // ─── UI Constants ────────────────────────────────────────────
   destinos = DESTINOS;
-  /** Typed array for quality class buttons — avoids TS2322 in strict templates */
-  readonly qualityClasses: Array<'A' | 'B' | 'C'> = ['A', 'B', 'C'];
+
+  /** Dynamic quality classes: Entero is strictly A. Cola can be A, B, or C. */
+  get availableQualityClasses(): Array<'A' | 'B' | 'C'> {
+    if (this.detectProductType() === 'ENTERO') {
+      return ['A'];
+    }
+    return ['A', 'B', 'C'];
+  }
 
   // ─── Form State ──────────────────────────────────────────────
   selectedReception: any = null;
   selectedTalla: ShrimpSize | null = null;
   selectedDestino: Destino | null = null;
+  selectedPresentation: CommercialPresentation | null = null;
+  presentacionesBloque: CommercialPresentation[] = [];
   selectedQualityClass: 'A' | 'B' | 'C' = 'A';
   maquina = '1';
   mermaLibras = 0;
@@ -150,6 +159,10 @@ export class ClassificationComponent implements OnInit {
       // Keep Cola semi-product for rejection/descabezado conversion
       this.colaSemiProduct = sps.find((sp: any) => sp.name === 'Cola');
       this.allSemiProducts = sps;
+    });
+
+    this.shrimpMs.listPresentations(this.COMPANY_ID).subscribe(list => {
+      this.presentacionesBloque = list.filter(p => p.destino === 'BLOQUE' && p.isActive !== false);
     });
   }
 
@@ -226,11 +239,12 @@ export class ClassificationComponent implements OnInit {
     );
   }
 
-  /** All tallas currently visible (standard + extended if toggle is on). */
+  /** All tallas currently visible based on selected quality class. */
   get tallasVisibles(): ShrimpSize[] {
-    return this.showExtendedSizes
-      ? [...this.tallasStandard, ...this.tallasExtended]
-      : this.tallasStandard;
+    if (this.selectedQualityClass === 'C') {
+      return this.tallasExtended; // Only BROKEN/OTROS
+    }
+    return this.tallasStandard; // A and B only show STANDARD sizes
   }
 
   /** Label for the quantity input — changes based on destination. */
@@ -261,9 +275,17 @@ export class ClassificationComponent implements OnInit {
     this.selectedQualityClass = 'A';
     this.cantidadAlerta = false;
 
+    this.cantidadAlerta = false;
+
     if (this.selectedReception) {
+      this.selectedQualityClass = 'A';
       this.loadTallasForReception();
     }
+  }
+
+  onQualityClassChanged(cls: 'A' | 'B' | 'C'): void {
+    this.selectedQualityClass = cls;
+    this.selectedTalla = null; // Tallas are logically tied to the selected quality class
   }
 
   /**
@@ -273,12 +295,27 @@ export class ClassificationComponent implements OnInit {
    */
   onDestinoChanged(): void {
     this.unidadActiva = this.selectedDestino?.key === 'BLOQUE' ? 'CAJETAS' : 'GAVETAS';
+    if (this.selectedDestino?.key !== 'BLOQUE') {
+      this.selectedPresentation = null;
+    }
   }
 
-  /** G3 guard: alert if quantity exceeds normal range. */
+  onPresentationChanged(): void {
+    this.recalculateBloqueWeight();
+  }
+
+  /** G3 guard: alert if quantity exceeds normal range, and auto-calculate weight for BLOQUE */
   onCantidadChange(): void {
     const n = parseInt(this.cantidad) || 0;
     this.cantidadAlerta = n > CANTIDAD_MAX_ALERT;
+    this.recalculateBloqueWeight();
+  }
+
+  private recalculateBloqueWeight(): void {
+    if (this.selectedDestino?.key === 'BLOQUE' && this.selectedPresentation && this.selectedPresentation.weightPerUnit) {
+      const n = parseInt(this.cantidad) || 0;
+      this.librasOpcional = (n * this.selectedPresentation.weightPerUnit).toFixed(2);
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -291,6 +328,11 @@ export class ClassificationComponent implements OnInit {
     const cantidad = parseInt(this.cantidad) || 0;
     if (cantidad <= 0) {
       this.errorMsg = `Ingrese la cantidad de ${this.cantidadLabel}.`;
+      return;
+    }
+
+    if (this.selectedDestino.key === 'BLOQUE' && !this.selectedPresentation) {
+      this.errorMsg = 'Debe seleccionar una presentación comercial para el bloque.';
       return;
     }
 
@@ -311,6 +353,7 @@ export class ClassificationComponent implements OnInit {
       libras,
       destino: this.selectedDestino.label,
       destinoKey: this.selectedDestino.key,
+      presentationName: this.selectedPresentation ? `${this.selectedPresentation.brandName} ${this.selectedPresentation.name}` : undefined,
       loteSuffix: this.getSuffixedLot(),
       maquina: this.maquina,
       timestamp: new Date()
@@ -323,6 +366,7 @@ export class ClassificationComponent implements OnInit {
     this.cantidad = '';
     this.librasOpcional = '';
     this.selectedDestino = null;
+    this.selectedPresentation = null;
     this.unidadActiva = 'CAJETAS';
     this.cantidadAlerta = false;
   }
@@ -492,9 +536,20 @@ export class ClassificationComponent implements OnInit {
             shrimpSize: r.talla.displayName,
             weightLbs: r.libras ?? 0,
             cajetasCount: r.unidad === 'CAJETAS' ? r.cantidad : 0
-          }).subscribe();
+          }).subscribe({
+            next: (detail) => {
+              // Create the Productive Destination so it appears in the Transformation Queue (Bloque/IQF/etc)
+              this.shrimpMs.createDestination({
+                classificationDetailId: detail.id,
+                destinationType: r.destinoKey as any,
+                lotSuffix: r.loteSuffix,
+                allocatedWeightLbs: r.libras ?? 0,
+                presentation: r.presentationName
+              }).subscribe();
+            }
+          });
         });
-        console.log('[Clasificación] Mirrored to ms-shrimp with qualityClass + ShrimpSize catalog');
+        console.log('[Clasificación] Mirrored to ms-shrimp with qualityClass + ShrimpSize catalog + Destinations + Presentation');
       },
       error: (e) => console.warn('[Clasificación] ms-shrimp mirror failed:', e)
     });

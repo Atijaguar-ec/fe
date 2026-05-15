@@ -7,6 +7,7 @@
       <p>Conciliación de masa por lote — Reporte planta DUFER</p>
     </div>
     <div class="liq-stats" *ngIf="summary">
+      <button class="liq-export-btn" (click)="exportToExcel()">📥 Exportar a Excel</button>
       <div class="liq-stat">
         <span class="liq-stat__val">{{ inputLbs | number:'1.0-0' }}</span>
         <span class="liq-stat__lbl">Lbs Entrada</span>
@@ -63,82 +64,117 @@
   <!-- ═══ TAB 1 — Clasificación Desglose ═══════════════════════ -->
   <div *ngIf="summary && activeTab === 'clasificacion'">
 
-    <!-- Per-destination groups — computed in .ts to avoid template assignments -->
-    <div *ngFor="let grupo of subLotsByDestino" class="liq-card" style="margin-bottom:1rem">
+    <!-- CUADRO 1: LIQUIDACION ENTERO -->
+    <div class="liq-card" style="margin-bottom:1rem" *ngIf="enteroGroups.length > 0">
       <div class="liq-card-header">
-        <span>{{ grupo.icon }}</span>
-        <h2>{{ grupo.label }}</h2>
-        <span class="liq-badge-count">{{ grupo.sublots.length }} sub-lotes</span>
-        <span class="liq-badge-lbs">{{ grupo.totalLbs | number:'1.0-0' }} lbs</span>
+        <span>🦐</span>
+        <h2>LIQUIDACION ENTERO</h2>
       </div>
       <table class="liq-table">
         <thead>
           <tr>
-            <th>Lote Sufijado</th>
-            <th>Talla (Catálogo)</th>
-            <th>Clase</th>
-            <th>Cantidad</th>
-            <th>Unidad</th>
-            <th>Libras</th>
-            <th>Máq.</th>
+            <th>LOTE</th>
+            <th>TALLA</th>
+            <th>LIBRAS CLASE A</th>
+            <th># CAJETAS CLASE A</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let s of grupo.sublots">
-            <td class="liq-table__lot">{{ s.loteSuffix || '—' }}</td>
-            <td>{{ s.talla?.displayName || s.talla?.name || s.shrimpSize || '—' }}</td>
-            <td>
-              <span class="liq-class-badge"
-                    [class.liq-class-badge--a]="s.qualityClass === 'A'"
-                    [class.liq-class-badge--b]="s.qualityClass === 'B'"
-                    [class.liq-class-badge--c]="s.qualityClass === 'C'">
-                {{ s.qualityClass || 'A' }}
-              </span>
-            </td>
-            <td class="liq-table__num">{{ s.cantidad ?? s.cajetasCount ?? '—' }}</td>
-            <td>{{ s.unidad || 'CAJETAS' }}</td>
+          <tr *ngFor="let g of enteroGroups">
+            <td class="liq-table__lot">{{ g.loteSuffix }}</td>
+            <td>{{ g.talla }}</td>
             <td class="liq-table__num liq-table__lbs">
-              <span *ngIf="s.libras">{{ s.libras | number:'1.0-1' }}</span>
-              <span *ngIf="!s.libras" class="liq-no-peso">⚠️ S/P</span>
+              <span *ngIf="g.lbsA">{{ g.lbsA | number:'1.0-1' }}</span>
+              <span *ngIf="!g.lbsA" class="liq-no-peso">—</span>
             </td>
-            <td>M{{ s.maquina || '?' }}</td>
+            <td class="liq-table__num">{{ g.cajetasA || '—' }}</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Balance box -->
+    <!-- CUADRO 2: LIQUIDACION RECHAZO - COLA -->
+    <div class="liq-card" style="margin-bottom:1rem" *ngIf="colaGroups.length > 0">
+      <div class="liq-card-header">
+        <span>✂️</span>
+        <h2>LIQUIDACION RECHAZO - COLA</h2>
+      </div>
+      <table class="liq-table">
+        <thead>
+          <tr>
+            <th>LOTE</th>
+            <th>TALLA</th>
+            <th>LIBRAS CLASE A</th>
+            <th># CAJETAS CLASE A</th>
+            <th>LIBRAS CLASE B</th>
+            <th>CAJETAS CLASE B</th>
+            <th>LIBRAS CLASE C</th>
+            <th>CAJETAS CLASE C</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let g of colaGroups">
+            <td class="liq-table__lot">{{ g.loteSuffix }}</td>
+            <td>{{ g.talla }}</td>
+            <!-- Clase A -->
+            <td class="liq-table__num liq-table__lbs">
+              <span *ngIf="g.lbsA">{{ g.lbsA | number:'1.0-1' }}</span><span *ngIf="!g.lbsA">—</span>
+            </td>
+            <td class="liq-table__num">{{ g.cajetasA || '—' }}</td>
+            <!-- Clase B -->
+            <td class="liq-table__num liq-table__lbs">
+              <span *ngIf="g.lbsB">{{ g.lbsB | number:'1.0-1' }}</span><span *ngIf="!g.lbsB">—</span>
+            </td>
+            <td class="liq-table__num">{{ g.cajetasB || '—' }}</td>
+            <!-- Clase C -->
+            <td class="liq-table__num liq-table__lbs">
+              <span *ngIf="g.lbsC">{{ g.lbsC | number:'1.0-1' }}</span><span *ngIf="!g.lbsC">—</span>
+            </td>
+            <td class="liq-table__num">{{ g.cajetasC || '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- BIOMASS DISTRIBUTION CHART -->
     <div class="liq-card liq-balance-box">
-      <div class="liq-balance-row">
-        <span>Ingreso Base</span>
-        <strong>{{ inputLbs | number:'1.2-2' }} lbs</strong>
+      <div class="liq-balance-header">
+        <h3>Distribución de Biomasa (Balance de Masa)</h3>
+        <span class="liq-input-badge">{{ inputLbs | number:'1.0-0' }} lbs recibidas</span>
       </div>
-      <div class="liq-balance-row liq-balance-row--muted" *ngIf="rechazoLbs > 0">
-        <span>Menos Rechazo (Cola)</span>
-        <strong>-{{ rechazoLbs | number:'1.2-2' }} lbs</strong>
-      </div>
-      <div class="liq-balance-row liq-balance-row--primary">
-        <span>Total Clasificado</span>
-        <strong>-{{ totalClassifiedLbs | number:'1.2-2' }} lbs</strong>
-      </div>
-      <div class="liq-balance-divider"></div>
-      <div class="liq-balance-row"
-           [class.liq-balance-row--danger]="mermaClasificacionLbs < 0"
-           [class.liq-balance-row--success]="mermaClasificacionLbs === 0">
-        <span>Merma Sistema (Balance)</span>
-        <strong>{{ mermaClasificacionLbs | number:'1.2-2' }} lbs</strong>
-      </div>
-      <div class="liq-yield-row">
-        <div class="liq-yield-header">
-          <span>Rendimiento Clasificación</span>
-          <strong [style.color]="rendimientoColor === 'green' ? '#16a34a' : rendimientoColor === 'yellow' ? '#d97706' : '#dc2626'">
-            {{ rendimientoClasificacion | number:'1.1-1' }}%
-          </strong>
+      
+      <div class="liq-biomass-bar">
+        <div class="liq-biomass-segment liq-biomass-entero" [style.width.%]="pctEntero" title="Entero: {{ enteroLbs | number:'1.0-0' }} lbs">
+          <span *ngIf="pctEntero > 5">{{ pctEntero | number:'1.1-1' }}%</span>
         </div>
-        <div class="liq-yield-bar">
-          <div class="liq-yield-fill"
-               [style.width.%]="rendimientoClasificacion > 100 ? 100 : rendimientoClasificacion"
-               [style.background]="rendimientoColor === 'green' ? '#16a34a' : rendimientoColor === 'yellow' ? '#d97706' : '#dc2626'">
+        <div class="liq-biomass-segment liq-biomass-cola" [style.width.%]="pctCola" title="Cola: {{ colaLbs | number:'1.0-0' }} lbs">
+          <span *ngIf="pctCola > 5">{{ pctCola | number:'1.1-1' }}%</span>
+        </div>
+        <div class="liq-biomass-segment liq-biomass-merma" [style.width.%]="pctMerma" title="Merma: {{ mermaClasificacionLbs | number:'1.0-0' }} lbs">
+          <span *ngIf="pctMerma > 5">{{ pctMerma | number:'1.1-1' }}%</span>
+        </div>
+      </div>
+
+      <div class="liq-biomass-legend">
+        <div class="liq-legend-item">
+          <div class="liq-legend-color" style="background: #10b981;"></div>
+          <div class="liq-legend-text">
+            <strong>Entero</strong>
+            <span>{{ enteroLbs | number:'1.0-0' }} lbs</span>
+          </div>
+        </div>
+        <div class="liq-legend-item">
+          <div class="liq-legend-color" style="background: #f59e0b;"></div>
+          <div class="liq-legend-text">
+            <strong>Cola Recuperada</strong>
+            <span>{{ colaLbs | number:'1.0-0' }} lbs</span>
+          </div>
+        </div>
+        <div class="liq-legend-item">
+          <div class="liq-legend-color" style="background: #ef4444;"></div>
+          <div class="liq-legend-text">
+            <strong>Merma (Cabezas)</strong>
+            <span>{{ mermaClasificacionLbs | number:'1.0-0' }} lbs</span>
           </div>
         </div>
       </div>
@@ -209,6 +245,39 @@
           ⚠️ Datos preliminares — áreas de transformación pendientes de cierre
         </div>
       </div>
+
+      <!-- END-TO-END BALANCE CHART -->
+      <div class="liq-biomass-bar" style="margin-top: 1.5rem; margin-bottom: 2rem;">
+        <div class="liq-biomass-segment" style="background: linear-gradient(to bottom, #3b82f6, #2563eb);" 
+             [style.width.%]="(consolidated.totalOutput / consolidated.inputLbs) * 100" 
+             title="Producto Final (Masters): {{ consolidated.totalOutput | number:'1.0-0' }} lbs">
+          <span>{{ (consolidated.totalOutput / consolidated.inputLbs) * 100 | number:'1.1-1' }}%</span>
+        </div>
+        <div class="liq-biomass-segment" style="background: linear-gradient(to bottom, #f43f5e, #e11d48);" 
+             [style.width.%]="(consolidated.totalMermaAreas / consolidated.inputLbs) * 100" 
+             title="Merma Transformación: {{ consolidated.totalMermaAreas | number:'1.0-0' }} lbs">
+        </div>
+        <div class="liq-biomass-segment" style="background: linear-gradient(to bottom, #ef4444, #dc2626);" 
+             [style.width.%]="(consolidated.mermaClasificacion / consolidated.inputLbs) * 100" 
+             title="Merma Clasificación: {{ consolidated.mermaClasificacion | number:'1.0-0' }} lbs">
+          <span>{{ (consolidated.mermaClasificacion / consolidated.inputLbs) * 100 | number:'1.1-1' }}%</span>
+        </div>
+      </div>
+      <div class="liq-biomass-legend" style="margin-bottom: 2rem;">
+        <div class="liq-legend-item">
+          <div class="liq-legend-color" style="background: #2563eb;"></div>
+          <div class="liq-legend-text"><strong>Producto Final Neto</strong><span>{{ consolidated.totalOutput | number:'1.0-0' }} lbs</span></div>
+        </div>
+        <div class="liq-legend-item">
+          <div class="liq-legend-color" style="background: #e11d48;"></div>
+          <div class="liq-legend-text"><strong>Merma Transformación</strong><span>{{ consolidated.totalMermaAreas | number:'1.0-0' }} lbs</span></div>
+        </div>
+        <div class="liq-legend-item">
+          <div class="liq-legend-color" style="background: #dc2626;"></div>
+          <div class="liq-legend-text"><strong>Merma Clasificación</strong><span>{{ consolidated.mermaClasificacion | number:'1.0-0' }} lbs</span></div>
+        </div>
+      </div>
+
       <table class="liq-report-table">
         <thead>
           <tr><th colspan="2">ENTRADA</th><th colspan="2">SALIDA</th></tr>
