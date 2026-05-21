@@ -74,14 +74,22 @@ export class PresentationSelectorModalComponent implements OnInit {
   }
 
   applyFilters(): void {
-    this.filteredPresentations = this.allPresentations.filter(p => {
+    const filtered = this.allPresentations.filter(p => {
       const matchesSearch = this.searchTerm ? 
         (p.name.toLowerCase().includes(this.searchTerm.toLowerCase()) || 
-         (p.presentationFormat && p.presentationFormat.toLowerCase().includes(this.searchTerm.toLowerCase()))) : true;
+         (p.brandName && p.brandName.toLowerCase().includes(this.searchTerm.toLowerCase()))) : true;
       const matchesBrand = this.selectedBrand ? p.brandName === this.selectedBrand : true;
       const matchesStyle = this.selectedStyle ? p.style === this.selectedStyle : true;
       
       return matchesSearch && matchesBrand && matchesStyle;
+    });
+
+    const seen = new Set<string>();
+    this.filteredPresentations = filtered.filter(p => {
+      const key = `${p.brandName}|${p.style}|${p.name}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
     });
   }
 

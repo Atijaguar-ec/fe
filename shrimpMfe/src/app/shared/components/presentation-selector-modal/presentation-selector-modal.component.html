@@ -31,7 +31,7 @@
             <th>Marca</th>
             <th>Estilo</th>
             <th>Presentación</th>
-            <th>Formato</th>
+
             <th>Peso / Unidad</th>
             <th>Acción</th>
           </tr>
@@ -41,7 +41,7 @@
             <td class="font-bold">{{ p.brandName }}</td>
             <td>{{ p.style || '-' }}</td>
             <td>{{ p.name }}</td>
-            <td>{{ p.presentationFormat || '-' }}</td>
+
             <td>{{ p.weightPerUnit }} {{ p.unitLabel }}s</td>
             <td>
               <button class="pres-btn pres-btn--primary pres-btn--small" (click)="selectPresentation(p)">

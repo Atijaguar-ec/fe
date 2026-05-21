@@ -1,186 +1,200 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ShrimpMsService, TransformWorkItem, CommercialPresentation } from '../../services/shrimp-ms.service';
+import { ShrimpMsService, TransformWorkItem, CommercialPresentation, ShrimpSize } from '../../services/shrimp-ms.service';
 import { PresentationSelectorModalComponent } from '../../shared/components/presentation-selector-modal/presentation-selector-modal.component';
+import { ShrimpDataService } from '../../services/shrimp-data.service';
 
-const VA_SUBTYPES = ['PPV', 'PUD', 'P&D', 'EZ-PEEL', 'Estuche'] as const;
+const VA_SUBTYPES = ['PPV', 'PUD', 'P&D', 'EZ-PEEL'] as const;
 type VaSubtype = typeof VA_SUBTYPES[number];
 
-/**
- * Valor Agregado transformation module (Lote base -3).
- * DUFER doc: "incluye PPV, PUD, P&D, EZ-PEEL, estuche...
- *  tratamiento previo de hidratación... puede empacarse en bloques sin IQF".
- * Note: Cola rendimiento ~66% is normal here.
- */
+interface FormatOption {
+  label: string;
+  unidadesPorMaster: number;
+  lbsPorUnidad: number;
+  pesoPerMaster: number;
+}
+
+interface WorkItemState {
+  item: TransformWorkItem;
+  librasRestantes: number;
+  librasOriginales: number;
+}
+
+interface VaLeftoverEntry {
+  id: number;
+  sourceSubLotId: string;
+  lote: string;
+  brandName: string;
+  talla: string;
+  qualityClass: string;
+  subtype: VaSubtype;
+  hidratacion: boolean;
+  unidades: number;
+  librasEstimadas: number;
+  timestamp: Date;
+}
+
+interface VaLeftoverGroup {
+  key: string;
+  brandName: string;
+  talla: string;
+  qualityClass: string;
+  subtype: VaSubtype;
+  hidratacion: boolean;
+  entries: VaLeftoverEntry[];
+  totalUnidades: number;
+  totalLibras: number;
+}
+
+let _nextId = Date.now();
+function nextId(): number { return _nextId++; }
+
 @Component({
   selector: 'app-valor-agregado',
   standalone: true,
   imports: [CommonModule, FormsModule, PresentationSelectorModalComponent],
   styleUrls: ['../shared/transform.styles.css'],
-  template: `
-<div class="transform-page">
-  <div class="transform-header">
-    <div>
-      <h1>⭐ Valor Agregado — Transformación</h1>
-      <p>Lote base <strong>-3</strong> · PPV / PUD / P&D / EZ-PEEL / Estuche · Rendimiento Cola ~66%</p>
-    </div>
-    <span class="badge badge-info">{{ workItems.length }} sub-lotes pendientes</span>
-  </div>
-
-  <div class="transform-grid">
-    <div>
-      <div class="transform-card">
-        <div class="transform-card-header">
-          <h2>📋 Cola de Trabajo</h2>
-          <button class="btn btn-teal" style="width:auto;padding:0.4rem 1rem;margin:0;min-height:36px;font-size:0.82rem" (click)="loadWorkItems()">⟳</button>
-        </div>
-        <div class="empty-state" *ngIf="workItems.length === 0">
-          <div class="empty-state__icon">📭</div>
-          <div class="empty-state__text">Sin sub-lotes V.A. pendientes</div>
-        </div>
-        <div class="work-queue" *ngIf="workItems.length > 0">
-          <div class="work-item" *ngFor="let item of workItems"
-               [style.border-left-color]="selectedItem?.subLotId === item.subLotId ? '#7c3aed' : ''"
-               (click)="selectedItem = item" style="cursor:pointer">
-            <div class="work-item__info">
-              <div class="work-item__lote">{{ item.lote }}-3
-                <span class="badge badge-info" style="margin-left:4px">{{ item.talla.displayName }}</span>
-              </div>
-              <div class="work-item__detail">{{ item.cantidad }} gavetas · Clase {{ item.qualityClass }}</div>
-            </div>
-            <div class="work-item__lbs" *ngIf="item.libras">{{ item.libras | number:'1.0-1' }} lbs</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="transform-card" style="margin-top:1rem" *ngIf="selectedItem">
-        <div class="transform-card-header">
-          <h2>➕ Registrar VA — {{ selectedItem.talla.displayName }}</h2>
-        </div>
-
-        <!-- G1: Sub-type from catalog -->
-        <div class="input-group">
-          <label class="input-label">Sub-tipo de proceso <span style="color:#dc2626">*</span></label>
-          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.5rem;margin-bottom:0.75rem">
-            <button *ngFor="let st of vaSubtypes"
-              style="padding:0.55rem;border-radius:8px;font-size:0.82rem;font-weight:700;border:2px solid #e5e7eb;background:#f9fafb;cursor:pointer;transition:all 0.12s"
-              [style.border-color]="selectedSubtype === st ? '#7c3aed' : ''"
-              [style.background]="selectedSubtype === st ? '#f5f3ff' : ''"
-              [style.color]="selectedSubtype === st ? '#7c3aed' : ''"
-              (click)="selectedSubtype = st">{{ st }}</button>
-          </div>
-        </div>
-
-        <!-- Toggle hidratación -->
-        <div class="input-group">
-          <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.88rem;font-weight:600;color:#374151">
-            <input type="checkbox" [(ngModel)]="hidratacion" style="width:18px;height:18px;cursor:pointer">
-            💧 Requiere tratamiento de hidratación previo
-          </label>
-        </div>
-
-        <div class="input-row-2">
-          <div class="input-group">
-            <label class="input-label">Presentación Comercial</label>
-            <div class="presentation-selector-box" *ngIf="selectedPresentation">
-              <div class="presentation-info">
-                <strong>{{ selectedPresentation.brandName }}</strong> — {{ selectedPresentation.style || '-' }}
-                <br>
-                <span class="text-gray-600">{{ selectedPresentation.name }} ({{ selectedPresentation.presentationFormat || '-' }})</span>
-              </div>
-              <button class="btn btn-outline-secondary btn-sm" (click)="openPresentationModal()">Cambiar</button>
-            </div>
-            <button class="btn btn-outline-primary w-full" *ngIf="!selectedPresentation" (click)="openPresentationModal()">
-              🔍 Buscar Presentación
-            </button>
-          </div>
-          <div class="input-group">
-            <label class="input-label">N° Masters</label>
-            <input type="number" class="input-field" [(ngModel)]="mastersCount" min="1" placeholder="Ej: 6">
-          </div>
-        </div>
-
-        <div class="input-group">
-          <label class="input-label">Peso Total Masters (lbs)</label>
-          <input type="number" class="input-field" [(ngModel)]="mastersTotalLbs" step="0.01" placeholder="Peso neto">
-        </div>
-
-        <div class="alert alert-warning" *ngIf="areaYield > 0 && areaYield < 70">
-          ℹ️ Rendimiento Cola {{ areaYield | number:'1.1-1' }}% — Normal para V.A. (esperado ~66%)
-        </div>
-
-        <button class="btn btn-primary"
-                [disabled]="!mastersCount || !selectedSubtype || !selectedPresentation || !mastersTotalLbs"
-                (click)="registrar()">✅ Registrar Master V.A.</button>
-      </div>
-    </div>
-
-    <div class="transform-card transform-balance-card">
-      <div class="transform-card-header">
-        <h2>⚖️ Liquidación V.A.</h2>
-        <span class="badge badge-info">-3</span>
-      </div>
-      <div class="area-balance">
-        <div class="area-balance__row"><span>Lbs Recibidas</span><strong>{{ totalReceivedLbs | number:'1.0-1' }} lbs</strong></div>
-        <div class="area-balance__row"><span>Masters Producidos</span><strong>{{ masters.length }}</strong></div>
-        <div class="area-balance__row"><span>Peso Masters</span><strong>{{ totalMasterWt | number:'1.0-1' }} lbs</strong></div>
-        <div class="area-balance__divider"></div>
-        <div class="area-balance__row"><span>Merma Área</span><strong>{{ areaShrinkage | number:'1.0-1' }} lbs</strong></div>
-      </div>
-      <div class="yield-indicator" *ngIf="totalReceivedLbs > 0">
-        <div class="yield-header">
-          <span>Rendimiento</span>
-          <strong [class.yield-value--green]="areaYield >= 70" [class.yield-value--yellow]="areaYield >= 55 && areaYield < 70" [class.yield-value--red]="areaYield < 55">{{ areaYield | number:'1.1-1' }}%</strong>
-        </div>
-        <div class="yield-bar">
-          <div class="yield-fill" [style.width.%]="areaYield > 100 ? 100 : areaYield"
-               [class.yield-fill--green]="areaYield >= 70" [class.yield-fill--yellow]="areaYield >= 55 && areaYield < 70" [class.yield-fill--red]="areaYield < 55"></div>
-        </div>
-        <div style="font-size:0.72rem;color:#6b7280;margin-top:4px">Referencia Cola: ~66%</div>
-      </div>
-      <div style="margin-top:1rem">
-        <div class="input-label" style="margin-bottom:0.5rem">Masters V.A. Registrados</div>
-        <div class="master-list">
-          <div class="master-item" *ngFor="let m of masters">
-            <div><div class="master-item__label">{{ m.count }} mst · {{ m.subtype }}</div><div class="master-item__detail">{{ m.talla }}{{ m.hidratacion ? ' · 💧' : '' }}</div></div>
-            <strong style="color:#16a34a;font-family:monospace">{{ m.lbs | number:'1.0-1' }} lbs</strong>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <app-presentation-selector-modal
-    [destino]="'VALOR_AGREGADO'"
-    [isVisible]="isPresentationModalOpen"
-    (onSelect)="onPresentationSelected($event)"
-    (onClose)="closePresentationModal()">
-  </app-presentation-selector-modal>
-</div>
-  `
+  templateUrl: './valor-agregado.component.html'
 })
 export class ValorAgregadoComponent implements OnInit {
+
+  // ─── Work Queue ──────────────────────────────────────────────
   workItems: TransformWorkItem[] = [];
-  presentations: CommercialPresentation[] = [];
-  masters: { count: number; lbs: number; subtype: string; talla: string; hidratacion: boolean }[] = [];
-  selectedItem: TransformWorkItem | null = null;
+  workStates: Map<string, WorkItemState> = new Map();
+  selectedState: WorkItemState | null = null;
+  
+  // ─── Presentations Catalog ───────────────────────────────────
+  COMPANY_ID: number | null = null;
+  allPresentations: CommercialPresentation[] = [];
+  availableFormats: FormatOption[] = [];
   selectedPresentation: CommercialPresentation | null = null;
-  selectedSubtype: VaSubtype | null = null;
-  hidratacion = false;
-  mastersCount = 0;
-  mastersTotalLbs = 0;
-  vaSubtypes = VA_SUBTYPES;
-  COMPANY_ID = 1;
+  selectedFormat: FormatOption | null = null;
   isPresentationModalOpen = false;
 
-  constructor(private shrimpMs: ShrimpMsService) {}
+  // ─── VA Form ─────────────────────────────────────────────────
+  selectedSubtype: VaSubtype | null = null;
+  hidratacion = false;
+  vaSubtypes = VA_SUBTYPES;
+  
+  tallasClaseC: ShrimpSize[] = [];
+  tallaBloque: ShrimpSize | null = null;
+  reportarBloque = false;
+  librasBloque = 0;
+
+  reportarMerma = false;
+  librasMerma = 0;
+
+  // Input del operario
+  librasAProcesar = 0; // Cuánta materia prima va a consumir
+  mastersCount = 0;
+  unidadesSobrantes = 0;
+  
+  // Calculado automáticamente
+  pesoTotalMasters = 0;
+  pesoSobrantes = 0;
+  totalProducidoLbs = 0;
+  areaYieldCalculated = 0;
+
+  // ─── Registered Masters ──────────────────────────────────────
+  masters: { count: number; lbs: number; subtype: string; talla: string; hidratacion: boolean; lote: string; destino: string }[] = [];
+  bloquesEnviados: { lbs: number; talla: string; timestamp: Date }[] = [];
+  desperdiciosRegistrados: { lbs: number; timestamp: Date }[] = [];
+
+  // ─── Leftovers ───────────────────────────────────────────────
+  leftoverBasket: VaLeftoverEntry[] = [];
+  leftoverGroups: VaLeftoverGroup[] = [];
+  showLeftoverConfirmModal = false;
+
+  // ─── Accumulators for Yield ──────────────────────────────────
+  accumulatedProcessedLbs = 0;
+  accumulatedCommercialLbs = 0;
+  accumulatedBloqueLbs = 0;
+  accumulatedDesperdicioLbs = 0;
+
+  constructor(private shrimpMs: ShrimpMsService, private dataService: ShrimpDataService) {}
 
   ngOnInit(): void {
+    this.dataService.getActiveCompany().subscribe(company => {
+      const companyIds = company?.data?.companyIds || company?.companyIds || [];
+      this.COMPANY_ID = companyIds.length > 0 ? companyIds[0] : null;
+      if (this.COMPANY_ID) {
+        this.loadPresentations();
+      }
+    });
     this.loadWorkItems();
+    this.loadLeftoversFromStorage();
+    this.shrimpMs.listSizes('COLA', 'BROKEN').subscribe(sizes => this.tallasClaseC = sizes);
+  }
+
+  loadPresentations(): void {
+    if (!this.COMPANY_ID) return;
+    this.shrimpMs.listPresentations(this.COMPANY_ID, 'VALOR_AGREGADO').subscribe(list => {
+      this.allPresentations = list.filter(p => p.isActive !== false);
+    });
   }
 
   loadWorkItems(): void {
-    this.shrimpMs.listPendingSubLots('VALOR_AGREGADO').subscribe(items => this.workItems = items);
+    this.shrimpMs.listPendingSubLots('VALOR_AGREGADO').subscribe(items => {
+      this.workItems = items;
+      // Initialize or update states
+      for (const item of items) {
+        if (!this.workStates.has(item.subLotId)) {
+          this.workStates.set(item.subLotId, {
+            item,
+            librasOriginales: item.libras || 0,
+            librasRestantes: item.libras || 0
+          });
+        }
+      }
+    });
+  }
+
+  selectItem(item: TransformWorkItem): void {
+    if (!this.workStates.has(item.subLotId)) {
+      this.workStates.set(item.subLotId, {
+        item,
+        librasOriginales: item.libras || 0,
+        librasRestantes: item.libras || 0
+      });
+    }
+    this.selectedState = this.workStates.get(item.subLotId) || null;
+    this.resetForm();
+  }
+
+  getLibrasRestantes(item: TransformWorkItem): number {
+    return this.workStates.get(item.subLotId)?.librasRestantes ?? (item.libras || 0);
+  }
+
+  get currentSubtypes(): VaSubtype[] {
+    return [...this.vaSubtypes];
+  }
+
+  resetForm(): void {
+    this.selectedPresentation = null;
+    this.selectedFormat = null;
+    this.availableFormats = [];
+    this.selectedSubtype = null;
+    this.tallaBloque = null;
+    this.reportarBloque = false;
+    this.librasBloque = 0;
+    this.reportarMerma = false;
+    this.librasMerma = 0;
+    this.hidratacion = false;
+    this.librasAProcesar = 0;
+    this.mastersCount = 0;
+    this.unidadesSobrantes = 0;
+    this.pesoTotalMasters = 0;
+    this.pesoSobrantes = 0;
+    this.totalProducidoLbs = 0;
+    this.areaYieldCalculated = 0;
+  }
+
+  usarTodasLibras(): void {
+    if (this.selectedState) {
+      this.librasAProcesar = this.selectedState.librasRestantes;
+      this.recalcular();
+    }
   }
 
   openPresentationModal(): void {
@@ -189,22 +203,270 @@ export class ValorAgregadoComponent implements OnInit {
 
   onPresentationSelected(p: CommercialPresentation): void {
     this.selectedPresentation = p;
+    this.selectedFormat = null;
     this.isPresentationModalOpen = false;
+
+    const brandName = p.brandName || '';
+    const style = p.style || '';
+    const name = p.name || '';
+
+    const matches = this.allPresentations.filter(pres => 
+      (pres.brandName || '') === brandName && (pres.style || '') === style && (pres.name || '') === name
+    );
+
+    this.availableFormats = [];
+    for (const pres of matches) {
+      const formats = this.parseFormatsList(pres.presentationFormat, pres.weightPerUnit);
+      this.availableFormats.push(...formats);
+    }
+    const seen = new Set<string>();
+    this.availableFormats = this.availableFormats.filter(f => {
+      if (seen.has(f.label)) return false;
+      seen.add(f.label);
+      return true;
+    });
+
+    if (this.availableFormats.length === 1) {
+      this.onFormatSelected(this.availableFormats[0]);
+    } else {
+      this.recalcular();
+    }
+  }
+
+  onFormatSelected(fmt: FormatOption): void {
+    this.selectedFormat = fmt;
+    this.recalcular();
   }
 
   closePresentationModal(): void {
     this.isPresentationModalOpen = false;
   }
 
-  registrar(): void {
-    if (!this.selectedItem || !this.selectedPresentation || !this.selectedSubtype || this.mastersCount <= 0) return;
-    this.masters.push({ count: this.mastersCount, lbs: this.mastersTotalLbs, subtype: this.selectedSubtype, talla: this.selectedItem.talla.displayName, hidratacion: this.hidratacion });
-    this.selectedItem = null; this.selectedPresentation = null; this.selectedSubtype = null;
-    this.hidratacion = false; this.mastersCount = 0; this.mastersTotalLbs = 0;
+  parseFormatsList(formatStr: string | undefined, weightPerUnit: number): FormatOption[] {
+    if (!formatStr) return [];
+    let rawFormats: string[];
+    if (formatStr.startsWith('[')) {
+      try {
+        rawFormats = JSON.parse(formatStr);
+      } catch {
+        rawFormats = [formatStr];
+      }
+    } else {
+      rawFormats = [formatStr];
+    }
+    
+    return rawFormats
+      .filter(f => f && f.trim())
+      .map(f => {
+        const label = f.trim();
+        const match = label.match(/^(\d+)\s*[xX×]\s*(\d+(?:\.\d+)?)/);
+        const unidades = match ? parseInt(match[1], 10) : 1;
+        const lbs = match ? parseFloat(match[2]) : weightPerUnit;
+        return {
+          label,
+          unidadesPorMaster: unidades,
+          lbsPorUnidad: lbs,
+          pesoPerMaster: unidades * lbs
+        };
+      });
   }
 
-  get totalReceivedLbs(): number { return this.workItems.filter(w => w.libras).reduce((s, w) => s + (w.libras ?? 0), 0); }
-  get totalMasterWt(): number { return this.masters.reduce((s, m) => s + m.lbs, 0); }
-  get areaShrinkage(): number { return this.totalReceivedLbs - this.totalMasterWt; }
-  get areaYield(): number { return this.totalReceivedLbs <= 0 ? 0 : (this.totalMasterWt / this.totalReceivedLbs) * 100; }
+  recalcular(): void {
+    if (!this.selectedState || !this.selectedFormat) return;
+
+    this.pesoTotalMasters = this.mastersCount * this.selectedFormat.pesoPerMaster;
+    this.pesoSobrantes = this.unidadesSobrantes * this.selectedFormat.lbsPorUnidad;
+    this.totalProducidoLbs = this.pesoTotalMasters + this.pesoSobrantes;
+    this.areaYieldCalculated = this.librasAProcesar > 0 ? (this.totalProducidoLbs / this.librasAProcesar) * 100 : 0;
+  }
+
+  get expectedYield(): number {
+    switch (this.selectedSubtype) {
+      case 'EZ-PEEL': return 0.85; // Easy peel conserva más cáscara
+      case 'PUD': return 0.72;     // Pelado sin desvenar pierde menos que P&D
+      case 'PPV':
+      case 'P&D': return 0.66;     // Pelado y desvenado (mayor merma)
+      default: return 0.66;
+    }
+  }
+
+  sugerirEmpaque(): void {
+    if (!this.selectedFormat || !this.librasAProcesar) return;
+    
+    // 1. Calculamos las libras comerciales estimadas basadas en el rendimiento histórico del subtipo
+    const librasEstimadas = this.librasAProcesar * this.expectedYield;
+    
+    // 2. Calculamos el total de estuches que se podrían llenar con esas libras
+    const totalEstuches = Math.floor(librasEstimadas / this.selectedFormat.lbsPorUnidad);
+    
+    // 3. Lo dividimos en Masters Completos y Unidades Sueltas
+    this.mastersCount = Math.floor(totalEstuches / this.selectedFormat.unidadesPorMaster);
+    this.unidadesSobrantes = totalEstuches % this.selectedFormat.unidadesPorMaster;
+    
+    this.recalcular();
+  }
+
+  isValidForm(): boolean {
+    if (!this.selectedState || this.librasAProcesar <= 0 || this.librasAProcesar > this.selectedState.librasRestantes) return false;
+    if (!this.selectedPresentation || !this.selectedSubtype) return false;
+    if (this.mastersCount <= 0 && this.unidadesSobrantes <= 0) return false;
+
+    if (this.reportarBloque) {
+      if (!this.tallaBloque || this.librasBloque <= 0) return false;
+    }
+
+    if (this.reportarMerma) {
+      if (this.librasMerma <= 0) return false;
+    }
+
+    return true;
+  }
+
+  confirmarLeftover(): void {
+    this.showLeftoverConfirmModal = true;
+  }
+
+  cancelarLeftover(): void {
+    this.showLeftoverConfirmModal = false;
+  }
+
+  ejecutarLeftover(): void {
+    this.showLeftoverConfirmModal = false;
+    this.registrar();
+  }
+
+  registrar(): void {
+    if (!this.isValidForm()) return;
+    
+    const state = this.selectedState!;
+    const brandName = this.selectedPresentation?.brandName || state.item.brandName || 'N/A';
+    const loteCompleto = state.item.lote + (state.item.loteSuffix || '-3');
+
+    // Registrar Masters
+    if (this.mastersCount > 0) {
+      this.masters.push({ 
+        count: this.mastersCount, 
+        lbs: this.pesoTotalMasters, 
+        subtype: this.selectedSubtype!, 
+        talla: state.item.talla.displayName, 
+        hidratacion: this.hidratacion,
+        lote: loteCompleto,
+        destino: 'TANQUES'
+      });
+    }
+
+    // Registrar Sobrantes
+    if (this.unidadesSobrantes > 0) {
+      this.leftoverBasket.push({
+        id: nextId(),
+        sourceSubLotId: state.item.subLotId,
+        lote: loteCompleto,
+        brandName,
+        talla: state.item.talla.displayName,
+        qualityClass: state.item.qualityClass,
+        subtype: this.selectedSubtype!,
+        hidratacion: this.hidratacion,
+        unidades: this.unidadesSobrantes,
+        librasEstimadas: this.pesoSobrantes,
+        timestamp: new Date()
+      });
+      this.saveLeftoversToStorage();
+      this.rebuildLeftoverGroups();
+    }
+
+    // Registrar Bloque
+    if (this.reportarBloque && this.librasBloque > 0) {
+      this.bloquesEnviados.push({
+        lbs: this.librasBloque,
+        talla: this.tallaBloque!.displayName,
+        timestamp: new Date()
+      });
+      this.accumulatedBloqueLbs += this.librasBloque;
+    }
+
+    // Registrar Merma
+    if (this.reportarMerma && this.librasMerma > 0) {
+      this.desperdiciosRegistrados.push({ lbs: this.librasMerma, timestamp: new Date() });
+      this.accumulatedDesperdicioLbs += this.librasMerma;
+    }
+
+    this.accumulatedCommercialLbs += (this.pesoTotalMasters + this.pesoSobrantes);
+
+    // Actualizar consumos y balance general
+    this.accumulatedProcessedLbs += this.librasAProcesar;
+
+    state.librasRestantes -= this.librasAProcesar;
+
+    // Si el sub-lote se agota, removerlo
+    if (state.librasRestantes <= 0) {
+      this.workStates.delete(state.item.subLotId);
+      this.workItems = this.workItems.filter(w => w.subLotId !== state.item.subLotId);
+    }
+
+    this.resetForm();
+    this.selectedState = null;
+  }
+
+  // ─── Leftover Management ───
+  
+  rebuildLeftoverGroups(): void {
+    const map = new Map<string, VaLeftoverGroup>();
+    for (const entry of this.leftoverBasket) {
+      const key = `${entry.brandName}|${entry.talla}|${entry.qualityClass}|${entry.subtype}|${entry.hidratacion}`;
+      if (!map.has(key)) {
+        map.set(key, {
+          key,
+          brandName: entry.brandName,
+          talla: entry.talla,
+          qualityClass: entry.qualityClass,
+          subtype: entry.subtype,
+          hidratacion: entry.hidratacion,
+          entries: [],
+          totalUnidades: 0,
+          totalLibras: 0
+        });
+      }
+      const g = map.get(key)!;
+      g.entries.push(entry);
+      g.totalUnidades += entry.unidades;
+      g.totalLibras += entry.librasEstimadas;
+    }
+    this.leftoverGroups = Array.from(map.values());
+  }
+
+  removeLeftoverEntry(entry: VaLeftoverEntry): void {
+    this.leftoverBasket = this.leftoverBasket.filter(e => e.id !== entry.id);
+    this.saveLeftoversToStorage();
+    this.rebuildLeftoverGroups();
+  }
+
+  private readonly STORAGE_KEY = 'va_leftovers_v1';
+
+  private saveLeftoversToStorage(): void {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify({ entries: this.leftoverBasket, savedAt: new Date().toISOString() }));
+    } catch { /* quota exceeded or private mode */ }
+  }
+
+  private loadLeftoversFromStorage(): void {
+    try {
+      const raw = localStorage.getItem(this.STORAGE_KEY);
+      if (raw) {
+        const data = JSON.parse(raw);
+        this.leftoverBasket = data.entries || [];
+        this.rebuildLeftoverGroups();
+      }
+    } catch { /* corrupted data */ }
+  }
+
+  // ─── Area Balance Metrics ───
+  
+  get totalReceivedLbs(): number { return this.accumulatedProcessedLbs; }
+  get totalMasterWt(): number { return this.accumulatedCommercialLbs; }
+  get areaShrinkage(): number { return this.totalReceivedLbs - this.totalMasterWt - this.accumulatedBloqueLbs - this.accumulatedDesperdicioLbs; }
+  get areaYield(): number { return this.totalReceivedLbs <= 0 ? 0 : ((this.totalMasterWt + this.accumulatedBloqueLbs) / this.totalReceivedLbs) * 100; }
+  
+  getTotalMastersCount(): number {
+    return this.masters.reduce((sum, m) => sum + m.count, 0);
+  }
 }

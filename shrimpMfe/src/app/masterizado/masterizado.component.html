@@ -2,7 +2,7 @@
   <div class="page-header">
     <div>
       <h1 class="page-title">📦 Empaque Final</h1>
-      <p class="page-subtitle">Embalaje de cajillas IQF y Marquesetas en Cajas Master para exportación</p>
+      <p class="page-subtitle">Mezcla y empacado de productos derivados de clasificación</p>
     </div>
     <div class="header-stats" *ngIf="createdMasters.length > 0">
       <div class="stat-chip status-chip" style="background: #e0f4fc; color: #0369a1; border: 1px solid #bae6fd;">
@@ -13,33 +13,67 @@
   </div>
 
   <div class="content-grid" style="display: grid; grid-template-columns: 350px 1fr; gap: 1.5rem; align-items: start;">
+    
     <!-- Left Column: Lote Selection & List -->
     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
       <div class="card form-card">
         <div class="card-header">
           <span class="step-number">1</span>
-          <h2>Seleccionar Lote</h2>
+          <h2>Área y Derivación</h2>
         </div>
         
         <div class="form-group">
-          <label class="form-label">Lote Base (Recepción)</label>
-          <select class="form-input form-select" [(ngModel)]="selectedLotId" (change)="onLotChange()">
-            <option [value]="null">-- Seleccione --</option>
-            <option *ngFor="let lot of receptions" [value]="lot.stockOrderId">
-              Lote {{ lot.internalLotBase }} ({{ lot.shrimpType }})
-            </option>
+          <label class="form-label">Área / Destino</label>
+          <select class="form-input form-select" [(ngModel)]="freezeType" (change)="onFreezeTypeChange()">
+            <option value="BLOQUE">Bloque</option>
+            <option value="IQF">IQF</option>
+            <option value="VALOR_AGREGADO">Valor Agregado</option>
+            <option value="SALMUERA">Salmuera</option>
           </select>
         </div>
 
-        <!-- Lot Info Card -->
-        <div *ngIf="selectedLot" style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-body); border-radius: 8px; border: 1px solid var(--border-light);">
-          <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Detalle del Lote</div>
-          <div style="font-size: 1.1rem; font-weight: 700; color: var(--ina-secondary); margin-bottom: 0.25rem;">
-            {{ selectedLot.internalLotBase }}
+        <div class="form-group">
+          <label class="form-label">Derivaciones Pendientes (Sub-Lotes)</label>
+          <p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0.5rem;">Puede seleccionar múltiples lotes para mezclar.</p>
+          
+          <div class="scrollable-list" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 6px; padding: 0.5rem; background: #fff;">
+            <div *ngIf="pendingSubLots.length === 0" style="font-size: 0.8rem; color: #6b7280; padding: 0.5rem; text-align: center;">
+              No hay derivaciones pendientes para esta área.
+            </div>
+            
+            <div *ngFor="let lot of pendingSubLots" 
+                 style="display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.5rem; border-bottom: 1px solid #f3f4f6; cursor: pointer; border-radius: 4px;"
+                 [style.background]="isSubLotSelected(lot) ? '#f0fdf4' : 'transparent'"
+                 (click)="toggleSubLotSelection(lot)">
+              <input type="checkbox" [checked]="isSubLotSelected(lot)" (click)="$event.stopPropagation(); toggleSubLotSelection(lot)" style="margin-top: 4px;">
+              <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 0.9rem; color: #1f2937;">Lote {{ lot.lote }}{{ lot.loteSuffix }}</div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #6b7280; margin-top: 2px;">
+                  <span>Talla: {{ lot.talla.displayName }}</span>
+                  <span style="font-weight: 600; color: #059669;">{{ lot.libras | number:'1.2-2' }} lbs</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
-            <span style="color: var(--text-secondary)">Tipo:</span>
-            <span style="font-weight: 600;"><span class="badge badge-info">{{ selectedLot.shrimpType }}</span></span>
+        </div>
+
+        <!-- Lot Info Card -->
+        <div *ngIf="selectedSubLots.length > 0" style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-body); border-radius: 8px; border: 1px solid var(--border-light);">
+          <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Balance de Masa Disponible</div>
+          
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
+            <span style="color: var(--text-secondary)">Lotes mezclados:</span>
+            <span style="font-weight: 700; color: var(--text-primary)">{{ selectedSubLots.length }}</span>
+          </div>
+          
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
+            <span style="color: var(--text-secondary)">Talla Principal:</span>
+            <span style="font-weight: 600;"><span class="badge badge-info">{{ primaryTalla }}</span></span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; font-size: 0.9rem; align-items: center; padding-top: 0.5rem; border-top: 1px dashed var(--border-light);">
+            <span style="color: var(--text-secondary)">Total Disponible:</span>
+            <span style="font-weight: 700; color: #16a34a; font-size: 1.1rem;">{{ availableLbs | number:'1.2-2' }} lbs</span>
           </div>
         </div>
       </div>
@@ -56,31 +90,23 @@
               <span class="badge badge-teal" style="font-size: 0.7rem;">{{ mc.shrimpSize }}</span>
             </div>
             <div style="color: var(--text-secondary); margin-bottom: 0.5rem;">Presentación: {{ mc.presentation }}</div>
-            <div *ngIf="mc.qrCode" class="qr-tag" style="font-family: monospace; font-size: 0.75rem; background: #e0f2fe; color: #0284c7; padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-block;">QR: {{ mc.qrCode }}</div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div *ngIf="mc.qrCode" class="qr-tag" style="font-family: monospace; font-size: 0.75rem; background: #e0f2fe; color: #0284c7; padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-block;">QR Guardado: {{ mc.qrCode | slice:0:15 }}...</div>
+            </div>
           </li>
         </ul>
       </div>
     </div>
 
     <!-- Right Column: Create Masters Form -->
-    <div class="card animate-fade-in-up" *ngIf="selectedLot">
+    <div class="card animate-fade-in-up" *ngIf="selectedSubLots.length > 0">
       <div class="card-header">
         <span class="step-number">2</span>
-        <h2>Crear Masters</h2>
+        <h2>Empaque y Registro</h2>
       </div>
 
       <div class="master-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; background: #f9fafb; padding: 1.5rem; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 1.5rem;">
         
-        <div class="form-group" style="grid-column: span 2;">
-          <label class="form-label">Tipo Congelación / Destino</label>
-          <select class="form-input form-select" [(ngModel)]="freezeType" (change)="onFreezeTypeChange()">
-            <option value="BLOQUE">Bloque</option>
-            <option value="IQF">IQF</option>
-            <option value="VALOR_AGREGADO">Valor Agregado</option>
-            <option value="SALMUERA">Salmuera</option>
-          </select>
-        </div>
-
         <div class="form-group" style="grid-column: span 2;">
           <label class="form-label">Presentación Comercial</label>
           <select class="form-input form-select" [(ngModel)]="selectedPresentation">
@@ -94,30 +120,33 @@
           </div>
         </div>
         
-        <div class="form-group">
-          <label class="form-label">Talla</label>
-          <select class="form-input form-select" [(ngModel)]="shrimpSize">
-            <option value="16/20">16/20</option>
-            <option value="21/25">21/25</option>
-            <option value="26/30">26/30</option>
-            <option value="31/35">31/35</option>
-            <option value="36/40">36/40</option>
-            <option value="41/50">41/50</option>
-            <option value="51/60">51/60</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Peso bruto por master (lbs)</label>
-          <input type="text" class="form-input" [value]="selectedPresentation?.weightPerUnit || ''" disabled style="background-color: #f3f4f6; color: #6b7280; font-weight: 600;">
-        </div>
-        
         <div class="form-group" style="grid-column: span 2; border-top: 1px dashed #d1d5db; padding-top: 1.5rem; margin-top: 0.5rem;">
           <label class="form-label" style="font-size: 0.9rem; color: var(--ina-secondary);">Cantidad de Masters a generar</label>
           <div style="display: flex; align-items: center; gap: 1rem;">
-            <input type="number" class="form-input form-input-lg" style="max-width: 150px; text-align: center;" [(ngModel)]="numMasters" min="1" max="100">
-            <span style="color: var(--text-secondary); font-size: 0.85rem;">Se generará un QR único por cada caja master.</span>
+            <input type="number" class="form-input form-input-lg" style="max-width: 150px; text-align: center;" [(ngModel)]="numMasters" min="1" max="1000">
+            <div style="display: flex; flex-direction: column;">
+              <span style="color: var(--text-primary); font-weight: 600;">Peso Total: {{ totalMastersWeight | number:'1.2-2' }} lbs</span>
+              <span *ngIf="totalMastersWeight > (availableLbs * 1.05)" style="color: #dc2626; font-size: 0.8rem; font-weight: 500;">
+                ❌ Excede el inventario disponible.
+              </span>
+              <span *ngIf="totalMastersWeight <= (availableLbs * 1.05)" style="color: #16a34a; font-size: 0.8rem; font-weight: 500;">
+                ✅ Balance de masa correcto.
+              </span>
+            </div>
           </div>
+        </div>
+
+        <div class="form-group" [style.grid-column]="freezeType === 'VALOR_AGREGADO' ? 'span 1' : 'span 2'" style="padding-top: 1rem;">
+          <label class="form-label" style="font-size: 0.9rem; color: var(--text-secondary);">Merma de Área (Opcional - Lbs)</label>
+          <input type="number" class="form-input" [(ngModel)]="areaShrinkageLbs" min="0" placeholder="0.00">
+          <p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">Pérdida de agua o glaseo.</p>
+        </div>
+
+        <!-- Solo visible si es Valor Agregado -->
+        <div class="form-group" style="padding-top: 1rem; border-left: 2px solid #ef4444; padding-left: 1rem;" *ngIf="freezeType === 'VALOR_AGREGADO'">
+          <label class="form-label" style="font-size: 0.9rem; color: #b91c1c;">Desperdicio (Físico - Lbs)</label>
+          <input type="number" class="form-input" style="border-color: #fca5a5; background-color: #fef2f2;" [(ngModel)]="wasteLbs" min="0" placeholder="0.00">
+          <p style="font-size: 0.75rem; color: #b91c1c; margin-top: 0.25rem;">Producto dañado / irrecuperable.</p>
         </div>
       </div>
 
@@ -127,16 +156,16 @@
 
       <div style="margin-top: 2rem; display: flex; justify-content: flex-end; border-top: 1px solid #e5e7eb; padding-top: 1.5rem;">
         <button class="btn btn-primary btn-lg" [disabled]="!isValid() || saving" (click)="createMasters()">
-          {{ saving ? '⏳ Procesando...' : '📦 Empacar y Generar QRs' }}
+          {{ saving ? '⏳ Procesando...' : '📦 Empacar' }}
         </button>
       </div>
     </div>
 
     <!-- Empty State -->
-    <div *ngIf="!selectedLot" class="card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 2rem; text-align: center; color: var(--text-muted); background: rgba(255,255,255,0.5); border-style: dashed;">
+    <div *ngIf="selectedSubLots.length === 0" class="card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 2rem; text-align: center; color: var(--text-muted); background: rgba(255,255,255,0.5); border-style: dashed;">
       <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;">👈</div>
-      <h3 style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Seleccione un lote</h3>
-      <p style="font-size: 0.9rem; max-width: 300px;">Elija un lote base en el panel izquierdo para comenzar el proceso de empacado y masterizado.</p>
+      <h3 style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Seleccione derivaciones</h3>
+      <p style="font-size: 0.9rem; max-width: 300px;">Elija uno o más sub-lotes pendientes en el panel izquierdo para comenzar el proceso de empacado y masterizado.</p>
     </div>
 
   </div>

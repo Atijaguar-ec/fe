@@ -1,0 +1,331 @@
+<div class="transform-page">
+  <div class="transform-header">
+    <div>
+      <h1>🧊 Bloque — Masterizado</h1>
+      <p>Armar cartones máster con cajetas congeladas · Seleccionar formato por marca · Procesamiento parcial permitido</p>
+    </div>
+    <span class="badge badge-info">{{ activeWorkItems.length }} sub-lotes con cajetas pendientes</span>
+  </div>
+
+  <div class="transform-grid">
+    <!-- ══════ LEFT COLUMN ══════════════════════════════════════ -->
+    <div>
+      <!-- ─── Work Queue ─────────────────────────────────────── -->
+      <div class="transform-card">
+        <div class="transform-card-header">
+          <h2>📋 Cola de Trabajo — Sub-lotes del Túnel</h2>
+          <button class="btn btn-teal" style="width:auto; padding: 0.4rem 1rem; margin:0; min-height:36px; font-size:0.82rem" (click)="loadWorkItems()">⟳ Actualizar</button>
+        </div>
+
+        <div class="empty-state" *ngIf="activeWorkItems.length === 0 && !isLoading">
+          <div class="empty-state__icon">📭</div>
+          <div class="empty-state__text">Sin sub-lotes pendientes para Bloque</div>
+          <div class="empty-state__hint">Los sub-lotes aparecen cuando se cierra una clasificación con destino Bloque</div>
+        </div>
+
+        <div class="work-queue" *ngIf="activeWorkItems.length > 0">
+          <div class="work-item" *ngFor="let state of activeWorkItems"
+               [style.border-left-color]="selectedState?.item?.subLotId === state.item.subLotId ? '#6366f1' : ''"
+               (click)="selectItem(state)" style="cursor:pointer">
+            <div class="work-item__info">
+              <div class="work-item__lote">
+                {{ state.item.lote }}
+                <span class="badge badge-teal" style="margin-left:4px">{{ state.item.talla.displayName }}</span>
+                <span class="badge badge-success" style="margin-left:4px">Clase {{ state.item.qualityClass }}</span>
+              </div>
+              <div class="work-item__detail">
+                M{{ state.item.maquina }} ·
+                <strong>{{ state.cajetasRestantes }}</strong>/<span style="opacity:0.6">{{ state.item.cantidad }}</span> cajetas
+                <span *ngIf="state.item.brandName" style="color: #6366f1; font-weight: 600;"> · 🏷 {{ state.item.brandName }}</span>
+                <span *ngIf="!state.item.brandName && state.item.presentationName" style="color: #6366f1; font-weight: 600;"> · 🏷 {{ state.item.presentationName }}</span>
+              </div>
+            </div>
+            <div class="work-item__lbs" *ngIf="state.librasRestantes">{{ state.librasRestantes | number:'1.0-1' }} lbs</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Master Creation Form (Partial Processing) ──────── -->
+      <div class="transform-card" style="margin-top:1rem" *ngIf="selectedState">
+        <div class="transform-card-header">
+          <h2>📦 Empaque — {{ selectedState.item.talla.displayName }}</h2>
+          <span class="badge badge-info" style="font-size: 0.8rem">🏷 {{ selectedState.item.brandName || selectedState.item.presentationName || 'Sin marca' }}</span>
+        </div>
+
+        <!-- Info Banner -->
+        <div class="alert alert-info" style="margin-bottom:1rem; padding: 0.75rem; background: #e0f2fe; border-left: 4px solid #0284c7; font-size: 0.85rem;">
+          <strong>Lote:</strong> {{ selectedState.item.lote }} ·
+          <strong>Disponibles:</strong> {{ selectedState.cajetasRestantes }} cajetas
+          <span *ngIf="selectedState.librasRestantes"> (~{{ selectedState.librasRestantes | number:'1.0-1' }} lbs)</span>
+          <span *ngIf="selectedState.cajetasRestantes < selectedState.item.cantidad"
+                style="margin-left: 0.5rem; color: #6366f1; font-weight: 600;">
+            (parcialmente procesado)
+          </span>
+        </div>
+
+        <!-- Step 1: Select Format -->
+        <div class="input-group" style="margin-bottom: 1rem;">
+          <label class="input-label">Formato de Presentación <span style="color: #ef4444;">*</span></label>
+          <div *ngIf="availableFormats.length === 0" class="alert alert-warning" style="padding: 0.6rem; font-size: 0.85rem; background: #fef3c7; border-left: 4px solid #f59e0b; margin-top: 0;">
+            ⚠️ No hay formatos configurados para la marca <strong>{{ selectedState.item.brandName || selectedState.item.presentationName }}</strong>. Configure en ⚙️ Marcas Comerciales.
+          </div>
+          <div class="format-grid" *ngIf="availableFormats.length > 0">
+            <button *ngFor="let fmt of availableFormats"
+                    class="format-btn"
+                    [class.format-btn--active]="selectedFormat?.label === fmt.label"
+                    (click)="onFormatSelected(fmt)">
+              <span class="format-btn__label">{{ fmt.label }}</span>
+              <span class="format-btn__detail">{{ fmt.cajetasPorMaster }} estuches</span>
+              <span class="format-btn__weight">{{ fmt.lbsPorEstuche }} lbs/est · <strong>{{ fmt.pesoPerMaster }} lbs</strong></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: How many cajetas to process (PARTIAL) -->
+        <div *ngIf="selectedFormat" style="margin-top: 1rem;">
+
+          <div class="input-row-2" style="margin-bottom: 1rem;">
+            <div class="input-group">
+              <label class="input-label">
+                Cajetas a procesar
+                <span style="font-size: 0.65rem; color: #6b7280; font-weight: 400;">
+                  (máx: {{ selectedState.cajetasRestantes }})
+                </span>
+              </label>
+              <input type="number" class="input-field" [(ngModel)]="cajetasAProcesar"
+                     (ngModelChange)="onCajetasChange()"
+                     [max]="selectedState.cajetasRestantes" min="1"
+                     placeholder="Cajetas">
+            </div>
+            <div class="input-group">
+              <label class="input-label" style="visibility: hidden;">Restantes</label>
+              <div style="display:flex; align-items:center; height:48px; font-size: 0.85rem; color: #6b7280;">
+                Quedarán {{ selectedState.cajetasRestantes - cajetasAProcesar }} cajetas
+                para otra presentación
+              </div>
+            </div>
+          </div>
+
+          <!-- Auto-calculated results -->
+          <div class="calc-results">
+            <div class="calc-result calc-result--primary">
+              <div class="calc-result__icon">📦</div>
+              <div class="calc-result__info">
+                <div class="calc-result__value">{{ mastersCalculados }}</div>
+                <div class="calc-result__label">Masters Completos ({{ selectedFormat.label }})</div>
+              </div>
+              <div class="calc-result__weight">{{ pesoTotalMasters | number:'1.1-1' }} lbs</div>
+            </div>
+            <div class="calc-result calc-result--warning" *ngIf="cajetasSobrantes > 0">
+              <div class="calc-result__icon">🧺</div>
+              <div class="calc-result__info">
+                <div class="calc-result__value">{{ cajetasSobrantes }}</div>
+                <div class="calc-result__label">Cajetas Pendientes</div>
+              </div>
+              <div class="calc-result__weight">~{{ pesoSobrantes | number:'1.1-1' }} lbs</div>
+              <button style="margin-left: auto; font-size: 0.75rem; padding: 0.35rem 0.75rem; background: transparent; border: 1.5px solid #d97706; color: #d97706; border-radius: 6px; cursor: pointer; font-weight: 600;"
+                      *ngIf="mastersCalculados === 0"
+                      [disabled]="cajetasAProcesar <= 0"
+                      (click)="confirmarLeftover()">
+                📥 Enviar a Pendientes
+              </button>
+            </div>
+          </div>
+
+          <div class="calc-formula" style="margin-top: 0.75rem; font-size: 0.8rem; color: #64748b; text-align: center;">
+            {{ cajetasAProcesar }} cajetas ÷ {{ selectedFormat.cajetasPorMaster }} caj/master =
+            <strong>{{ mastersCalculados }} master{{ mastersCalculados !== 1 ? 's' : '' }}</strong>
+            · {{ selectedFormat.pesoPerMaster }} lbs/master
+            <span *ngIf="cajetasSobrantes > 0"> + {{ cajetasSobrantes }} sobrantes</span>
+          </div>
+
+          <!-- Hint: can process rest in different format -->
+          <div *ngIf="selectedState.cajetasRestantes - cajetasAProcesar > 0"
+               style="margin-top: 0.5rem; padding: 0.5rem 0.75rem; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; font-size: 0.78rem; color: #4338ca;">
+            💡 <strong>Procesamiento parcial:</strong> Las {{ selectedState.cajetasRestantes - cajetasAProcesar }} cajetas restantes quedarán disponibles para seleccionar otro formato de la misma marca.
+          </div>
+
+          <button class="btn btn-primary"
+                  *ngIf="mastersCalculados > 0"
+                  [disabled]="cajetasAProcesar <= 0"
+                  (click)="registrarMasterizado()" style="margin-top: 1.5rem;">
+            ✅ Registrar {{ mastersCalculados }} Master{{ mastersCalculados !== 1 ? 's' : '' }}
+            <span *ngIf="cajetasSobrantes > 0"> (+ {{ cajetasSobrantes }} pendientes)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ═══ CAJETAS PENDIENTES (sobrantes que no completan 1 master) ═══ -->
+      <div class="transform-card leftover-card" style="margin-top: 1.5rem;" *ngIf="leftoverBasket.length > 0">
+        <div class="transform-card-header">
+          <h2>📋 Cajetas Pendientes</h2>
+          <span class="badge badge-warning">{{ leftoverBasket.length }} entrada{{ leftoverBasket.length !== 1 ? 's' : '' }}</span>
+        </div>
+        <p style="font-size: 0.82rem; color: #64748b; margin: 0 0 1rem 0;">
+          Cajetas que no alcanzaron para completar 1 master. Se agrupan por <strong>Marca + Talla + Clase</strong> para completar con otro lote.
+        </p>
+
+        <div class="leftover-groups">
+          <div class="leftover-group" *ngFor="let group of leftoverGroups"
+               [class.leftover-group--selected]="selectedLeftoverGroup?.key === group.key"
+               (click)="selectLeftoverGroup(group)">
+            <div class="leftover-group__header">
+              <div>
+                <strong>🏷 {{ group.brandName }}</strong> · {{ group.talla }} ·
+                <span class="badge"
+                      [class.badge-success]="group.qualityClass === 'A'"
+                      [class.badge-warning]="group.qualityClass === 'B'"
+                      [class.badge-danger]="group.qualityClass === 'C'">
+                  Clase {{ group.qualityClass }}
+                </span>
+              </div>
+              <span class="badge badge-info">{{ group.totalCajetas }} caj</span>
+            </div>
+
+            <div class="leftover-group__entries">
+              <div class="leftover-entry" *ngFor="let entry of group.entries">
+                <span class="leftover-entry__lote">{{ entry.lote }}</span>
+                <span class="leftover-entry__qty">{{ entry.cajetas }} caj</span>
+                <span class="leftover-entry__lbs">~{{ entry.librasEstimadas | number:'1.1-1' }} lbs</span>
+                <button class="leftover-entry__remove" (click)="removeLeftoverEntry(entry); $event.stopPropagation();" title="Quitar">✕</button>
+              </div>
+            </div>
+
+            <div class="leftover-group__total">
+              TOTAL: {{ group.totalCajetas }} cajetas (~{{ group.totalLibras | number:'1.1-1' }} lbs)
+            </div>
+
+            <!-- Leftover Master Creation -->
+            <div class="leftover-master-form" *ngIf="selectedLeftoverGroup?.key === group.key" (click)="$event.stopPropagation()">
+              <div class="input-group" style="margin-top: 0.75rem;">
+                <label class="input-label">Formato para master multi-lote · 🏷 {{ group.brandName }} · Lotes: {{ group.entries.length > 3 ? group.entries.slice(0,3).map(getLote).join(', ') + '...' : group.entries.map(getLote).join(', ') }}</label>
+                <div class="format-grid format-grid--sm">
+                  <button *ngFor="let fmt of leftoverFormats"
+                          class="format-btn format-btn--sm"
+                          [class.format-btn--active]="selectedLeftoverFormat?.label === fmt.label"
+                          (click)="onLeftoverFormatSelected(fmt)">
+                    {{ fmt.label }}
+                  </button>
+                </div>
+              </div>
+
+              <div *ngIf="selectedLeftoverFormat" style="margin-top: 0.75rem;">
+                <div class="calc-formula" style="font-size: 0.8rem; color: #64748b;">
+                  {{ group.totalCajetas }} caj ÷ {{ selectedLeftoverFormat.cajetasPorMaster }} =
+                  <strong>{{ leftoverMasters }} master{{ leftoverMasters !== 1 ? 's' : '' }}</strong>
+                  <span *ngIf="leftoverSobrantes > 0"> + {{ leftoverSobrantes }} siguen pendientes</span>
+                </div>
+                <button class="btn btn-primary" style="margin-top: 0.5rem; font-size: 0.85rem; padding: 0.5rem 1rem;"
+                        [disabled]="leftoverMasters <= 0"
+                        (click)="registrarLeftoverMaster()">
+                  ✅ Armar {{ leftoverMasters }} Master{{ leftoverMasters !== 1 ? 's' : '' }} Multi-Lote
+                </button>
+              </div>
+
+              <div *ngIf="leftoverFormats.length === 0" class="alert alert-warning" style="padding: 0.5rem; font-size: 0.8rem; margin-top: 0.5rem; background: #fef3c7; border-left: 3px solid #f59e0b;">
+                Sin formatos para {{ group.brandName }}. Configure en ⚙️ Marcas Comerciales.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty leftover state -->
+      <div class="transform-card" style="margin-top: 1.5rem; border: 2px dashed #fde68a; background: #fffbeb;"
+           *ngIf="leftoverBasket.length === 0 && bloquesCreados.length > 0">
+        <div style="text-align: center; padding: 1rem; font-size: 0.85rem; color: #92400e;">
+          🧺 Sin cajetas sobrantes en canasta
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ RIGHT COLUMN — Area Balance ═══════════════════════ -->
+    <div class="transform-card transform-balance-card">
+      <div class="transform-card-header">
+        <h2>⚖️ Liquidación Bloque</h2>
+        <span class="badge badge-info">Sesión Actual</span>
+      </div>
+
+      <div class="area-balance">
+        <div class="area-balance__row">
+          <span>Lbs Recibidas (materia prima)</span>
+          <strong>{{ totalReceivedLbs | number:'1.0-1' }} lbs</strong>
+        </div>
+        <div class="area-balance__row">
+          <span>Pendientes en Cola</span>
+          <strong style="color: #6366f1;">{{ pendingInQueueWt | number:'1.0-1' }} lbs</strong>
+        </div>
+        <div class="area-balance__divider"></div>
+        <div class="area-balance__row">
+          <span>📦 En Masters ({{ bloquesCreados.length }}) — producto</span>
+          <strong style="color: #16a34a;">{{ totalBloqueWt | number:'1.0-1' }} lbs</strong>
+        </div>
+        <div class="area-balance__row" *ngIf="leftoverBasket.length > 0">
+          <span>🧺 En Canasta Sobrantes — producto</span>
+          <strong style="color: #d97706;">{{ totalLeftoverWt | number:'1.0-1' }} lbs</strong>
+        </div>
+      </div>
+
+      <div style="padding: 0.5rem 0.75rem; font-size: 0.75rem; color: #64748b; background: #f8fafc; border-radius: 6px; margin-top: 0.5rem;">
+        ⚠️ Las lbs de Masters y Canasta son <strong>peso comercial</strong> (N×M del formato).
+        La diferencia con las lbs recibidas (materia prima cruda) es normal e incluye: agua, hielo, cabezas.
+      </div>
+
+      <div class="yield-indicator" *ngIf="totalBloqueWt > 0">
+        <div class="yield-header">
+          <span>Rendimiento Área</span>
+          <strong [class.yield-value--green]="areaYield >= 90"
+                  [class.yield-value--yellow]="areaYield >= 75 && areaYield < 90"
+                  [class.yield-value--red]="areaYield < 75">
+            {{ areaYield | number:'1.1-1' }}%
+          </strong>
+        </div>
+        <div class="yield-bar">
+          <div class="yield-fill"
+               [style.width.%]="areaYield > 100 ? 100 : areaYield"
+               [class.yield-fill--green]="areaYield >= 90"
+               [class.yield-fill--yellow]="areaYield >= 75 && areaYield < 90"
+               [class.yield-fill--red]="areaYield < 75">
+          </div>
+        </div>
+      </div>
+
+      <!-- Registered Masters List -->
+      <div style="margin-top:1rem">
+        <div class="input-label" style="margin-bottom:0.5rem">Masters Registrados</div>
+        <div class="master-list">
+          <div class="master-item" *ngFor="let b of bloquesCreados">
+            <div>
+              <div class="master-item__label">
+                {{ b.talla }} · Clase {{ b.qualityClass }}
+                <span *ngIf="b.isMultiLote" class="badge badge-warning" style="margin-left:4px; font-size: 0.65rem;">MULTI-LOTE</span>
+              </div>
+              <div class="master-item__detail">
+                🏷 {{ b.brandName }} · {{ b.formato }} · {{ b.mastersCount }} master{{ b.mastersCount !== 1 ? 's' : '' }} ({{ b.cajetasUsadas }} caj)
+              </div>
+            </div>
+            <strong style="color:#16a34a; font-family:monospace">{{ b.librasTotal | number:'1.0-1' }} lbs</strong>
+          </div>
+        </div>
+        <div class="empty-state" *ngIf="bloquesCreados.length === 0" style="padding:1.5rem">
+          <div class="empty-state__hint">Sin masters registrados aún</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Leftover Modal -->
+<div class="transform-modal-overlay" *ngIf="showLeftoverConfirmModal">
+  <div class="transform-modal-content">
+    <div style="font-size: 2.5rem; margin-bottom: 1rem;">🧺</div>
+    <h3 style="margin-top: 0; color: #1e293b;">¿Enviar a Pendientes?</h3>
+    <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.4;">
+      Las <strong>{{ cajetasSobrantes }} cajetas</strong> se enviarán al grupo de pendientes para que puedan ser completadas con otro lote.
+    </p>
+    <div style="display: flex; gap: 0.75rem; justify-content: center;">
+      <button class="btn" style="width: auto; background: #f1f5f9; color: #475569;" (click)="cancelarLeftover()">Cancelar</button>
+      <button class="btn btn-warning" style="width: auto;" (click)="ejecutarLeftover()">Confirmar Envío</button>
+    </div>
+  </div>
+</div>

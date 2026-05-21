@@ -140,7 +140,8 @@ export interface TransformWorkItem {
   libras?: number;
   maquina: string;
   destinationType: string;
-  presentationName?: string;
+  presentationName?: string;       // Legacy: full presentation string
+  brandName?: string;              // Brand name (for BLOQUE: set at classification)
   status: 'PENDING' | 'IN_PROGRESS' | 'DONE';
 }
 

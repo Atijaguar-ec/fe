@@ -24,7 +24,8 @@ export interface ClassificationRecord {
   libras?: number;                    // optional weight
   destino: string;                    // label: "Bloque", "IQF", etc.
   destinoKey: string;                 // key: "BLOQUE", "IQF", etc.
-  presentationName?: string;          // Extracted from CommercialPresentation for BLOQUE
+  presentationName?: string;          // Full label: "DUFER Caja 4 lbs" (brandName + name)
+  brandName?: string;                  // Raw brand only: "DUFER" — used by Bloques to filter formats
   loteSuffix: string;
   maquina: string;
   timestamp: Date;
@@ -352,6 +353,11 @@ export class ClassificationComponent implements OnInit {
       return;
     }
 
+    if (this.isExceedingBalance) {
+      this.errorMsg = 'No puede exceder el balance disponible en libras.';
+      return;
+    }
+
     if (this.selectedDestino.key === 'BLOQUE' && !this.selectedPresentation) {
       this.errorMsg = 'Debe seleccionar una presentación comercial para el bloque.';
       return;
@@ -375,6 +381,7 @@ export class ClassificationComponent implements OnInit {
       destino: this.selectedDestino.label,
       destinoKey: this.selectedDestino.key,
       presentationName: this.selectedPresentation ? `${this.selectedPresentation.brandName} ${this.selectedPresentation.name}` : undefined,
+      brandName: this.selectedPresentation?.brandName ?? undefined,
       loteSuffix: this.getSuffixedLot(),
       maquina: this.maquina,
       timestamp: new Date()

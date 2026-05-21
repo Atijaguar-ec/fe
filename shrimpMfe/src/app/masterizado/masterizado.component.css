@@ -43,3 +43,23 @@
 .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
 .btn-outline { background: transparent; color: #4a5568; border: 1px solid #cbd5e0; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
 .btn-outline:hover { background: #f7fafc; }
+
+@media print {
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+  /* Only show the print label area */
+  #print-label-area, #print-label-area * {
+    visibility: visible;
+  }
+  #print-label-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    border: none !important;
+    padding: 0 !important;
+  }
+}
+

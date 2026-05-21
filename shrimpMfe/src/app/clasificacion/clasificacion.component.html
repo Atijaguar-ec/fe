@@ -158,24 +158,17 @@
           </span>
         </div>
 
-        <!-- NEW: Presentation selection for BLOQUE -->
-        <div class="cls-presentation-row" *ngIf="selectedDestino.key === 'BLOQUE'" style="margin-bottom: 1rem;">
-          <div class="input-group">
-            <label class="input-label">Marca</label>
-            <div class="presentation-selector-box" *ngIf="selectedPresentation">
-              <div class="presentation-info">
-                <strong>{{ selectedPresentation.brandName }}</strong> — {{ selectedPresentation.style || '-' }}
-                <br>
-                <span class="text-gray-600">{{ selectedPresentation.name }} ({{ selectedPresentation.presentationFormat || '-' }})</span>
-              </div>
-              <button class="cls-btn cls-btn--outline" style="padding: 0.4rem 0.8rem; min-height: 36px; font-size: 0.8rem;" (click)="openPresentationModal()">Cambiar</button>
-            </div>
-            <button class="cls-btn cls-btn--outline cls-btn--block" *ngIf="!selectedPresentation" (click)="openPresentationModal()">
-              🔍 Buscar Marca
-            </button>
-          </div>
+        <!-- Presentation selection for BLOQUE -->
+        <div class="cls-presentation-row" *ngIf="selectedDestino?.key === 'BLOQUE'" style="margin-bottom: 1rem;">
+          <label class="cls-input-label">Presentación Comercial <span class="cls-required">*</span></label>
+          <select class="cls-input" [(ngModel)]="selectedPresentation" (ngModelChange)="onPresentationChanged()">
+            <option [ngValue]="null">-- Seleccione una Presentación --</option>
+            <option *ngFor="let p of presentacionesBloque" [ngValue]="p">
+              {{ p.brandName }} - {{ p.name }} ({{ p.weightPerUnit }} lbs)
+            </option>
+          </select>
           <div *ngIf="presentacionesBloque.length === 0" class="cls-field-warning" style="margin-top: 0.5rem;">
-            ⚠️ No hay marcas configuradas para Bloque.
+            ⚠️ No hay presentaciones configuradas para Bloque.
           </div>
         </div>
 

@@ -72,6 +72,19 @@ import { PresentationSelectorModalComponent } from '../../shared/components/pres
             <input type="number" class="input-field" [(ngModel)]="mastersCount" min="1" placeholder="Ej: 20">
           </div>
         </div>
+
+        <!-- Opciones de Glaseado -->
+        <div class="input-group" *ngIf="selectedPresentation && glazeOptions.length > 0" style="margin-bottom: 1rem;">
+          <label class="input-label">% de Glaseado <span style="color: #ef4444;">*</span></label>
+          <div class="format-grid">
+            <button *ngFor="let glaze of glazeOptions"
+                    class="format-btn format-btn--sm"
+                    [class.format-btn--active]="selectedGlaze === glaze"
+                    (click)="selectedGlaze = glaze">
+              <span class="format-btn__label">{{ glaze }}</span>
+            </button>
+          </div>
+        </div>
         <div class="input-group">
           <label class="input-label">Peso Total Masters (lbs)</label>
           <input type="number" class="input-field" [(ngModel)]="mastersTotalLbs" step="0.01" placeholder="Peso neto total en cartones">
@@ -81,7 +94,7 @@ import { PresentationSelectorModalComponent } from '../../shared/components/pres
           </div>
         </div>
         <button class="btn btn-primary"
-                [disabled]="!mastersCount || mastersCount <= 0 || !selectedPresentation || !mastersTotalLbs"
+                [disabled]="!mastersCount || mastersCount <= 0 || !selectedPresentation || !mastersTotalLbs || (glazeOptions.length > 0 && !selectedGlaze)"
                 (click)="registrarMaster()">✅ Registrar Master</button>
       </div>
     </div>
@@ -112,7 +125,7 @@ import { PresentationSelectorModalComponent } from '../../shared/components/pres
         <div class="input-label" style="margin-bottom:0.5rem">Masters IQF Registrados</div>
         <div class="master-list">
           <div class="master-item" *ngFor="let m of masters">
-            <div><div class="master-item__label">{{ m.count }} mst · {{ m.presentacion }}</div><div class="master-item__detail">{{ m.talla }}</div></div>
+            <div><div class="master-item__label">{{ m.count }} mst · {{ m.presentacion }}</div><div class="master-item__detail">{{ m.talla }} <span *ngIf="m.glaze">· {{ m.glaze }}</span></div></div>
             <strong style="color:#16a34a;font-family:monospace">{{ m.lbs | number:'1.0-1' }} lbs</strong>
           </div>
         </div>
@@ -134,13 +147,16 @@ import { PresentationSelectorModalComponent } from '../../shared/components/pres
 export class IqfComponent implements OnInit {
   workItems: TransformWorkItem[] = [];
   presentations: CommercialPresentation[] = [];
-  masters: { count: number; lbs: number; presentacion: string; talla: string }[] = [];
+  masters: { count: number; lbs: number; presentacion: string; talla: string; glaze?: string }[] = [];
   selectedItem: TransformWorkItem | null = null;
   selectedPresentation: CommercialPresentation | null = null;
   mastersCount = 0;
   mastersTotalLbs = 0;
   COMPANY_ID = 1;
   isPresentationModalOpen = false;
+
+  glazeOptions: string[] = [];
+  selectedGlaze: string | null = null;
 
   constructor(private shrimpMs: ShrimpMsService) {}
 
@@ -159,6 +175,14 @@ export class IqfComponent implements OnInit {
   onPresentationSelected(p: CommercialPresentation): void {
     this.selectedPresentation = p;
     this.isPresentationModalOpen = false;
+    
+    this.glazeOptions = [];
+    this.selectedGlaze = null;
+    if (p.style && p.style.startsWith('[')) {
+      try {
+        this.glazeOptions = JSON.parse(p.style);
+      } catch(e) {}
+    }
   }
 
   closePresentationModal(): void {
@@ -167,8 +191,15 @@ export class IqfComponent implements OnInit {
 
   registrarMaster(): void {
     if (!this.selectedItem || !this.selectedPresentation || this.mastersCount <= 0) return;
-    this.masters.push({ count: this.mastersCount, lbs: this.mastersTotalLbs, presentacion: `${this.selectedPresentation.brandName} ${this.selectedPresentation.name}`, talla: this.selectedItem.talla.displayName });
+    this.masters.push({ 
+      count: this.mastersCount, 
+      lbs: this.mastersTotalLbs, 
+      presentacion: `${this.selectedPresentation.brandName} ${this.selectedPresentation.name}`, 
+      talla: this.selectedItem.talla.displayName,
+      glaze: this.selectedGlaze || undefined
+    });
     this.selectedItem = null; this.selectedPresentation = null; this.mastersCount = 0; this.mastersTotalLbs = 0;
+    this.glazeOptions = []; this.selectedGlaze = null;
   }
 
   get totalReceivedLbs(): number { return this.workItems.filter(w => w.libras).reduce((s, w) => s + (w.libras ?? 0), 0); }

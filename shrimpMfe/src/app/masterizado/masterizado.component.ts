@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ShrimpMsService, CommercialPresentation } from '../services/shrimp-ms.service';
+import { ShrimpMsService, CommercialPresentation, TransformWorkItem } from '../services/shrimp-ms.service';
 import { ShrimpDataService } from '../services/shrimp-data.service';
 
 @Component({
@@ -13,14 +13,15 @@ import { ShrimpDataService } from '../services/shrimp-data.service';
 })
 export class MasterizadoComponent implements OnInit {
   COMPANY_ID: number | null = null;
-  receptions: any[] = [];
-  selectedLotId: number | null = null;
-  selectedLot: any = null;
-
-  // Master form
-  shrimpSize = '26/30';
+  
+  // Flow state
   freezeType = 'BLOQUE';
+  pendingSubLots: TransformWorkItem[] = [];
+  selectedSubLots: TransformWorkItem[] = [];
+
   numMasters = 1;
+  areaShrinkageLbs = 0; // Merma de área (Agua/Glaseo)
+  wasteLbs = 0; // Desperdicio (Solo para Valor Agregado)
 
   presentations: CommercialPresentation[] = [];
   filteredPresentations: CommercialPresentation[] = [];
@@ -37,10 +38,6 @@ export class MasterizadoComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.shrimpMs.listReceptions().subscribe(lots => {
-      this.receptions = lots.filter(l => l.status !== 'CLOSED');
-    });
-
     this.dataService.getActiveCompany().subscribe(company => {
       const companyIds = company?.data?.companyIds || company?.companyIds || [];
       this.COMPANY_ID = companyIds.length > 0 ? companyIds[0] : null;
@@ -48,6 +45,7 @@ export class MasterizadoComponent implements OnInit {
         this.loadPresentations();
       }
     });
+    this.loadPendingSubLots();
   }
 
   loadPresentations() {
@@ -58,15 +56,36 @@ export class MasterizadoComponent implements OnInit {
     });
   }
 
-  onLotChange() {
-    this.selectedLot = this.receptions.find(r => r.stockOrderId == this.selectedLotId) || null;
+  loadPendingSubLots() {
+    this.selectedSubLots = [];
+    this.createdMasters = [];
+    this.errorMsg = '';
+    this.successMsg = '';
+    
+    this.shrimpMs.listPendingSubLots(this.freezeType).subscribe(lots => {
+      this.pendingSubLots = lots;
+    });
+  }
+
+  onFreezeTypeChange() {
+    this.filterPresentations();
+    this.loadPendingSubLots();
+  }
+
+  toggleSubLotSelection(lot: TransformWorkItem) {
+    const index = this.selectedSubLots.findIndex(l => l.subLotId === lot.subLotId);
+    if (index > -1) {
+      this.selectedSubLots.splice(index, 1);
+    } else {
+      this.selectedSubLots.push(lot);
+    }
     this.createdMasters = [];
     this.errorMsg = '';
     this.successMsg = '';
   }
 
-  onFreezeTypeChange() {
-    this.filterPresentations();
+  isSubLotSelected(lot: TransformWorkItem): boolean {
+    return this.selectedSubLots.some(l => l.subLotId === lot.subLotId);
   }
 
   filterPresentations() {
@@ -76,29 +95,67 @@ export class MasterizadoComponent implements OnInit {
     }
   }
 
+  get availableLbs(): number {
+    return this.selectedSubLots.reduce((sum, lot) => sum + (lot.libras || 0), 0);
+  }
+
+  get primaryTalla(): string {
+    return this.selectedSubLots.length > 0 ? this.selectedSubLots[0].talla.displayName : '';
+  }
+
+  get totalMastersWeight(): number {
+    return this.selectedPresentation ? this.numMasters * this.selectedPresentation.weightPerUnit : 0;
+  }
+
   isValid() {
-    return this.selectedPresentation && this.shrimpSize && this.numMasters > 0 && this.selectedLot;
+    if (!this.selectedPresentation || this.numMasters <= 0 || this.selectedSubLots.length === 0) {
+      return false;
+    }
+    // Balance de masa (con tolerancia de 5% por variaciones de glaseo)
+    const requiredLbs = this.totalMastersWeight;
+    const availableLbs = this.availableLbs + (this.availableLbs * 0.05); 
+    
+    return requiredLbs <= availableLbs;
   }
 
   createMasters() {
-    if (!this.isValid() || !this.selectedPresentation) return;
+    if (!this.isValid() || !this.selectedPresentation || this.selectedSubLots.length === 0) return;
     this.saving = true;
     this.errorMsg = '';
+    this.successMsg = '';
 
-    // We need a processingLotId — for now create a processing lot, then master cartons
-    // In production this would be linked to an existing processing lot
+    // TODO: El backend de ApiProcessingLot solo acepta un destinationId actualmente.
+    // Usaremos el primero por ahora. En el futuro, se debe enviar la lista de selectedSubLots.
+    const primaryDestinationId = this.selectedSubLots[0].subLotId;
+
+    // Paso 1: Registrar Desperdicio si es Valor Agregado y hay cantidad
+    if (this.freezeType === 'VALOR_AGREGADO' && this.wasteLbs > 0) {
+      this.shrimpMs.createWasteRecord({
+        wasteType: 'DESPERDICIO_VALOR_AGREGADO',
+        weightLbs: this.wasteLbs,
+        reason: 'Desperdicio registrado durante masterizado de Valor Agregado'
+      }).subscribe({
+        error: (err) => console.error('Error guardando desperdicio:', err)
+      });
+    }
+
+    // Paso 2: Crear el lote de proceso vinculado a la derivación
     this.shrimpMs.createProcessingLot({
+      destinationId: primaryDestinationId,
       outputMasters: this.numMasters,
+      shrinkageLbs: this.areaShrinkageLbs,
       status: 'PROCESSING'
     }).subscribe({
       next: (lot) => {
-        // Create each master carton
+        // Paso 3: Crear cada master carton
         let completed = 0;
+        let hasErrors = false;
+        
         for (let i = 0; i < this.numMasters; i++) {
           this.shrimpMs.createMasterCarton({
             processingLotId: lot.id,
             brand: this.selectedPresentation!.brandName,
-            shrimpSize: this.shrimpSize,
+            shrimpSize: this.primaryTalla,
             presentation: this.selectedPresentation!.name,
             freezeType: this.freezeType,
             grossWeightLbs: this.selectedPresentation!.weightPerUnit
@@ -106,14 +163,13 @@ export class MasterizadoComponent implements OnInit {
             next: (mc) => {
               this.createdMasters.push(mc);
               completed++;
-              if (completed === this.numMasters) {
-                this.successMsg = `${this.numMasters} masters creados (${this.selectedPresentation!.brandName} / ${this.shrimpSize})`;
-                this.saving = false;
-              }
+              this.checkCompletion(completed, hasErrors);
             },
             error: (err) => {
-              this.errorMsg = err?.error?.errorMessage || 'Error al crear master';
-              this.saving = false;
+              this.errorMsg = err?.error?.errorMessage || 'Error al crear un master.';
+              hasErrors = true;
+              completed++;
+              this.checkCompletion(completed, hasErrors);
             }
           });
         }
@@ -123,5 +179,19 @@ export class MasterizadoComponent implements OnInit {
         this.saving = false;
       }
     });
+  }
+  
+  private checkCompletion(completed: number, hasErrors: boolean) {
+    if (completed === this.numMasters) {
+      if (!hasErrors) {
+        this.successMsg = `${this.numMasters} cajas master creadas exitosamente.`;
+      }
+      this.saving = false;
+      // Resetear campos de merma/desperdicio
+      this.areaShrinkageLbs = 0;
+      this.wasteLbs = 0;
+      // Recargar lista para actualizar saldos
+      this.loadPendingSubLots();
+    }
   }
 }
