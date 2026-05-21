@@ -95,10 +95,12 @@ export interface ColdStorageMovement {
 export interface CommercialPresentation {
   id: string;
   brandName: string;
-  destino: string;
+  destino: 'BLOQUE' | 'IQF' | 'VALOR_AGREGADO' | 'SALMUERA';
   name: string;
   weightPerUnit: number;
   unitLabel: string;
+  style?: string;
+  presentationFormat?: string;
   companyId: number;
   isActive: boolean;
 }

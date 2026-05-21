@@ -88,7 +88,7 @@ import { RouterModule } from '@angular/router';
             </a>
             <a routerLink="presentaciones" routerLinkActive="active" class="nav-item">
               <span class="nav-icon">⚙️</span>
-              <span class="nav-text">Presentaciones</span>
+              <span class="nav-text">Marcas</span>
             </a>
           </div>
         </nav>

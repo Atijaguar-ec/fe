@@ -1,0 +1,61 @@
+<div class="pres-overlay" *ngIf="isVisible" (click)="close()">
+  <div class="pres-modal pres-modal--large" (click)="$event.stopPropagation()">
+    
+    <div class="pres-modal__header">
+      <h2 class="pres-modal__title">📦 Seleccionar Marca ({{ destino | titlecase }})</h2>
+      <button class="pres-close-btn" (click)="close()">✖</button>
+    </div>
+
+    <div class="pres-filters">
+      <input type="text" 
+             placeholder="Buscar marca o formato..." 
+             [(ngModel)]="searchTerm" 
+             (ngModelChange)="applyFilters()"
+             class="pres-input search-input">
+             
+      <select [(ngModel)]="selectedBrand" (ngModelChange)="applyFilters()" class="pres-input">
+        <option value="">Todas las Marcas</option>
+        <option *ngFor="let b of availableBrands" [value]="b">{{ b }}</option>
+      </select>
+
+      <select [(ngModel)]="selectedStyle" (ngModelChange)="applyFilters()" class="pres-input">
+        <option value="">Todos los Estilos</option>
+        <option *ngFor="let s of availableStyles" [value]="s">{{ s }}</option>
+      </select>
+    </div>
+
+    <div class="pres-table-wrap">
+      <table class="pres-table">
+        <thead>
+          <tr>
+            <th>Marca</th>
+            <th>Estilo</th>
+            <th>Presentación</th>
+            <th>Formato</th>
+            <th>Peso / Unidad</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of filteredPresentations" class="pres-row">
+            <td class="font-bold">{{ p.brandName }}</td>
+            <td>{{ p.style || '-' }}</td>
+            <td>{{ p.name }}</td>
+            <td>{{ p.presentationFormat || '-' }}</td>
+            <td>{{ p.weightPerUnit }} {{ p.unitLabel }}s</td>
+            <td>
+              <button class="pres-btn pres-btn--primary pres-btn--small" (click)="selectPresentation(p)">
+                Seleccionar
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredPresentations.length === 0">
+            <td colspan="6" class="text-center p-4 text-gray-500">
+              No se encontraron marcas.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

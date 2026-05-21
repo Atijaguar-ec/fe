@@ -1,0 +1,157 @@
+.pres-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(6px);
+}
+
+.pres-modal {
+  background: white;
+  border-radius: 18px;
+  padding: 2rem;
+  width: 95%;
+  max-width: 560px;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.18);
+  animation: presScaleIn 0.2s ease;
+}
+
+.pres-modal--large {
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.pres-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.pres-modal__title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0;
+}
+
+.pres-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #9ca3af;
+  cursor: pointer;
+}
+
+.pres-close-btn:hover {
+  color: #4b5563;
+}
+
+.pres-filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.pres-input {
+  flex: 1;
+  background: #fff;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1f2937;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  min-height: 42px;
+}
+
+.search-input {
+  flex: 2;
+  min-width: 250px;
+}
+
+.pres-input:focus {
+  outline: none;
+  border-color: var(--ina-primary, #999933);
+  box-shadow: 0 0 0 3px rgba(153,153,51,0.12);
+}
+
+.pres-table-wrap {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.pres-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.pres-table th {
+  text-align: left;
+  padding: 0.6rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  border-bottom: 1px solid #f3f4f6;
+  position: sticky;
+  top: 0;
+  background: white;
+}
+
+.pres-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+}
+
+.pres-row:hover {
+  background: #fafbfc;
+}
+
+.font-bold {
+  font-weight: 600;
+}
+
+.pres-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 1.2rem;
+  font-weight: 700;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pres-btn--primary {
+  background: linear-gradient(135deg, var(--ina-primary, #999933), #8a8a2e);
+  color: white;
+}
+
+.pres-btn--primary:hover {
+  background: linear-gradient(135deg, #8a8a2e, #7a7a28);
+  transform: translateY(-1px);
+}
+
+.pres-btn--small {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
+}
+
+@keyframes presScaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}

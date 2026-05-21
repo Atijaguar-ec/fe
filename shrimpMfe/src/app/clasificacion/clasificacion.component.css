@@ -620,6 +620,17 @@
   transform: translateY(-1px);
 }
 
+.cls-btn--outline {
+  background: transparent;
+  color: var(--ina-primary, #999933);
+  border: 2px solid var(--ina-primary, #999933);
+}
+
+.cls-btn--outline:hover:not(:disabled) {
+  background: #fdfce8;
+  transform: translateY(-1px);
+}
+
 /* ─── Empty State ─────────────────────────────────────────────── */
 .cls-empty {
   display: flex;

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ShrimpMsService, TransformWorkItem, CommercialPresentation } from '../../services/shrimp-ms.service';
+import { PresentationSelectorModalComponent } from '../../shared/components/presentation-selector-modal/presentation-selector-modal.component';
 
 const VA_SUBTYPES = ['PPV', 'PUD', 'P&D', 'EZ-PEEL', 'Estuche'] as const;
 type VaSubtype = typeof VA_SUBTYPES[number];
@@ -15,7 +16,7 @@ type VaSubtype = typeof VA_SUBTYPES[number];
 @Component({
   selector: 'app-valor-agregado',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PresentationSelectorModalComponent],
   styleUrls: ['../shared/transform.styles.css'],
   template: `
 <div class="transform-page">
@@ -81,11 +82,18 @@ type VaSubtype = typeof VA_SUBTYPES[number];
 
         <div class="input-row-2">
           <div class="input-group">
-            <label class="input-label">Presentación</label>
-            <select class="input-field" [(ngModel)]="selectedPresentation">
-              <option [ngValue]="null">-- Seleccione --</option>
-              <option *ngFor="let p of presentations" [ngValue]="p">{{ p.brandName }} — {{ p.name }}</option>
-            </select>
+            <label class="input-label">Presentación Comercial</label>
+            <div class="presentation-selector-box" *ngIf="selectedPresentation">
+              <div class="presentation-info">
+                <strong>{{ selectedPresentation.brandName }}</strong> — {{ selectedPresentation.style || '-' }}
+                <br>
+                <span class="text-gray-600">{{ selectedPresentation.name }} ({{ selectedPresentation.presentationFormat || '-' }})</span>
+              </div>
+              <button class="btn btn-outline-secondary btn-sm" (click)="openPresentationModal()">Cambiar</button>
+            </div>
+            <button class="btn btn-outline-primary w-full" *ngIf="!selectedPresentation" (click)="openPresentationModal()">
+              🔍 Buscar Presentación
+            </button>
           </div>
           <div class="input-group">
             <label class="input-label">N° Masters</label>
@@ -142,6 +150,12 @@ type VaSubtype = typeof VA_SUBTYPES[number];
       </div>
     </div>
   </div>
+  <app-presentation-selector-modal
+    [destino]="'VALOR_AGREGADO'"
+    [isVisible]="isPresentationModalOpen"
+    (onSelect)="onPresentationSelected($event)"
+    (onClose)="closePresentationModal()">
+  </app-presentation-selector-modal>
 </div>
   `
 })
@@ -157,16 +171,29 @@ export class ValorAgregadoComponent implements OnInit {
   mastersTotalLbs = 0;
   vaSubtypes = VA_SUBTYPES;
   COMPANY_ID = 1;
+  isPresentationModalOpen = false;
 
   constructor(private shrimpMs: ShrimpMsService) {}
 
   ngOnInit(): void {
     this.loadWorkItems();
-    this.shrimpMs.listPresentations(this.COMPANY_ID, 'VALOR_AGREGADO').subscribe(p => this.presentations = p);
   }
 
   loadWorkItems(): void {
     this.shrimpMs.listPendingSubLots('VALOR_AGREGADO').subscribe(items => this.workItems = items);
+  }
+
+  openPresentationModal(): void {
+    this.isPresentationModalOpen = true;
+  }
+
+  onPresentationSelected(p: CommercialPresentation): void {
+    this.selectedPresentation = p;
+    this.isPresentationModalOpen = false;
+  }
+
+  closePresentationModal(): void {
+    this.isPresentationModalOpen = false;
   }
 
   registrar(): void {

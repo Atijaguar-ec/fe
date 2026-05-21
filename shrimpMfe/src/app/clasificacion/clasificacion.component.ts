@@ -51,10 +51,12 @@ const CANTIDAD_MAX_ALERT = 500;
 const YIELD_WARNING_PCT = 60;
 const YIELD_CONFIRM_PCT = 50;
 
+import { PresentationSelectorModalComponent } from '../shared/components/presentation-selector-modal/presentation-selector-modal.component';
+
 @Component({
   selector: 'app-clasificacion',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, PresentationSelectorModalComponent],
   templateUrl: './clasificacion.component.html',
   styleUrls: ['./clasificacion.component.css']
 })
@@ -88,6 +90,25 @@ export class ClassificationComponent implements OnInit {
   selectedQualityClass: 'A' | 'B' | 'C' = 'A';
   maquina = '1';
   mermaLibras = 0;
+
+  // ─── Modal State ──────────────────────────────────────────────
+  isPresentationModalOpen = false;
+
+  openPresentationModal(): void {
+    if (this.selectedDestino) {
+      this.isPresentationModalOpen = true;
+    }
+  }
+
+  onPresentationSelected(p: CommercialPresentation): void {
+    this.selectedPresentation = p;
+    this.isPresentationModalOpen = false;
+    this.onPresentationChanged();
+  }
+
+  closePresentationModal(): void {
+    this.isPresentationModalOpen = false;
+  }
 
   // ─── Talla Catalog (from ShrimpSize API) ────────────────────
   /** Standard sizes for the selected product type (HEAD-ON or SHELL-ON) */
@@ -401,17 +422,28 @@ export class ClassificationComponent implements OnInit {
     const pType = this.detectProductType(); // 'ENTERO' | 'COLA'
     const spNameRequired = pType === 'COLA' ? 'Cola' : 'Entero';
 
-    const action = this.classificationActions.find(a => {
+    // Strategy 1 — exact match: name / inputSemiProduct / translations contain product type
+    let action = this.classificationActions.find(a => {
       const m1 = a.name && a.name.includes(spNameRequired);
-      const m2 = a.inputSemiProduct && a.inputSemiProduct.name && a.inputSemiProduct.name.includes(spNameRequired);
-      const m3 = a.translations && a.translations.some((t: any) => t.name && t.name.includes(spNameRequired));
+      const m2 = a.inputSemiProduct?.name && a.inputSemiProduct.name.includes(spNameRequired);
+      const m3 = a.translations?.some((t: any) => t.name?.includes(spNameRequired));
       return m1 || m2 || m3;
     });
 
+    // Strategy 2 — fallback: company configured a single generic CLAS action (covers both types)
+    if (!action && this.classificationActions.length === 1) {
+      console.warn(
+        `[Clasificación] No se encontró acción específica para "${spNameRequired}". ` +
+        `Usando la única acción CLAS disponible como fallback: "${this.classificationActions[0].name}"`
+      );
+      action = this.classificationActions[0];
+    }
+
     if (!action) {
-      const availableNames = this.classificationActions.map(a => 
+      const availableNames = this.classificationActions.map(a =>
         a.name || (a.translations && a.translations[0]?.name) || 'unknown'
       ).join(', ');
+      console.error('[Clasificación] actions completas:', JSON.stringify(this.classificationActions, null, 2));
       this.errorMsg = `No hay acción de clasificación configurada para: ${spNameRequired}. Disponibles: ${availableNames}`;
       this.isSubmitting = false;
       return;
@@ -475,10 +507,21 @@ export class ClassificationComponent implements OnInit {
     // Use libras if available, otherwise 0 (backend accepts pending weight)
     const weight = r.libras ?? 0;
     
-    // Resolve INATrace semi-product ID (e.g. "Talla 21/25")
-    const spName = 'Talla ' + r.talla.name;
-    const sp = this.allSemiProducts.find(s => s.name === spName);
-    const spId = sp ? sp.id : (r.talla.semiProductId || r.talla.id);
+    // Resolve INATrace semi-product ID via 3-tier strategy:
+    // 1. semiProductId from ShrimpSize catalog (authoritative mapping, populated in DB)
+    // 2. Name-based lookup in Core SP list (fallback for legacy data)
+    // 3. talla.id as last resort (will likely fail, but surfaces a clear backend error)
+    let spId: number | undefined = r.talla.semiProductId ?? undefined;
+    if (!spId) {
+      const spByName = this.allSemiProducts.find(s =>
+        s.name === ('Talla ' + r.talla.name) ||
+        s.name.includes(r.talla.name)
+      );
+      spId = spByName?.id;
+    }
+    if (!spId) {
+      console.error('[Clasificacion] No se pudo resolver semiProductId para talla:', r.talla);
+    }
 
     return {
       semiProduct: { id: spId },

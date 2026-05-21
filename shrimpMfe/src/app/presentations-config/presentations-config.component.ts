@@ -19,8 +19,24 @@ interface GroupedBrand {
 export class PresentationsConfigComponent implements OnInit {
 
   COMPANY_ID: number | null = null;
-  groupedBrands: GroupedBrand[] = [];
   allPresentations: CommercialPresentation[] = [];
+
+  activeTab: string = 'BLOQUE';
+
+  get currentDestinoBrands(): GroupedBrand[] {
+    const map = new Map<string, CommercialPresentation[]>();
+    const filtered = this.allPresentations.filter(p => p.destino === this.activeTab);
+    
+    for (const p of filtered) {
+      const existing = map.get(p.brandName) || [];
+      existing.push(p);
+      map.set(p.brandName, existing);
+    }
+    
+    return Array.from(map.entries())
+      .map(([brandName, presentations]) => ({ brandName, presentations }))
+      .sort((a, b) => a.brandName.localeCompare(b.brandName));
+  }
 
   // ─── Modal State ──────────────────────────────────────
   showModal = false;
@@ -29,6 +45,9 @@ export class PresentationsConfigComponent implements OnInit {
     brandName: '',
     destino: 'BLOQUE',
     name: '',
+    productType: 'COLA',
+    style: 'SHELLON',
+    presentationFormat: '',
     weightPerUnit: null as number | null,
     unitLabel: 'cajeta'
   };
@@ -64,37 +83,33 @@ export class PresentationsConfigComponent implements OnInit {
     if (!this.COMPANY_ID) return;
     this.shrimpMs.listPresentations(this.COMPANY_ID).subscribe(list => {
       this.allPresentations = list;
-      this.groupByBrand();
     });
   }
 
-  private groupByBrand(): void {
-    const map = new Map<string, CommercialPresentation[]>();
-    for (const p of this.allPresentations) {
-      const existing = map.get(p.brandName) || [];
-      existing.push(p);
-      map.set(p.brandName, existing);
-    }
-    this.groupedBrands = Array.from(map.entries())
-      .map(([brandName, presentations]) => ({ brandName, presentations }))
-      .sort((a, b) => a.brandName.localeCompare(b.brandName));
+  get allBrandNames(): string[] {
+    return Array.from(new Set(this.allPresentations.map(p => p.brandName))).sort();
   }
 
   // ─── Modal ────────────────────────────────────────────
 
   openNew(): void {
     this.editingId = null;
-    this.form = { brandName: '', destino: 'BLOQUE', name: '', weightPerUnit: null, unitLabel: 'cajeta' };
+    this.form = { brandName: '', destino: this.activeTab, name: '', productType: 'COLA', style: 'SHELLON', presentationFormat: '', weightPerUnit: null, unitLabel: 'cajeta' };
+    this.onDestinoChange();
     this.errorMsg = '';
     this.showModal = true;
   }
 
   openEdit(p: CommercialPresentation): void {
     this.editingId = p.id;
+    const isEntero = p.style === 'HEADON';
     this.form = {
       brandName: p.brandName,
       destino: p.destino,
       name: p.name,
+      productType: isEntero ? 'ENTERO' : 'COLA',
+      style: p.style || (isEntero ? 'HEADON' : 'SHELLON'),
+      presentationFormat: p.presentationFormat || '',
       weightPerUnit: p.weightPerUnit,
       unitLabel: p.unitLabel
     };
@@ -110,6 +125,14 @@ export class PresentationsConfigComponent implements OnInit {
   onDestinoChange(): void {
     const match = this.destinos.find(d => d.key === this.form.destino);
     if (match) this.form.unitLabel = match.defaultUnit;
+  }
+
+  onProductTypeChange(): void {
+    if (this.form.productType === 'ENTERO') {
+      this.form.style = 'HEADON';
+    } else {
+      this.form.style = 'SHELLON';
+    }
   }
 
   save(): void {
