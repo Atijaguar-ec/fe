@@ -101,6 +101,7 @@ export interface CommercialPresentation {
   unitLabel: string;
   style?: string;
   presentationFormat?: string;
+  blocksOnly?: boolean;
   companyId: number;
   isActive: boolean;
 }
@@ -418,6 +419,12 @@ export class ShrimpMsService {
 
   deletePresentation(id: string): Observable<void> {
     return this.http.delete<ApiResponse<void>>(`${this.msBaseUrl}/commercial-presentation/${id}`).pipe(
+      map(res => res.data)
+    );
+  }
+
+  processVa(dto: any): Observable<any> {
+    return this.http.post<ApiResponse<any>>(`${this.msBaseUrl}/productive-destination/process-va`, dto).pipe(
       map(res => res.data)
     );
   }

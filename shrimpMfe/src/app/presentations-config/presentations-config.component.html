@@ -131,6 +131,13 @@
           <input *ngIf="form.productType === 'ENTERO'" type="text" [(ngModel)]="form.style" readonly class="pres-input" style="background-color: #f3f4f6;">
         </div>
 
+        <div class="pres-form-group pres-form-group--full" *ngIf="form.destino === 'VALOR_AGREGADO'">
+          <label class="pres-checkbox-label" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none;">
+            <input type="checkbox" [(ngModel)]="form.blocksOnly" style="width: 1.2rem; height: 1.2rem; cursor: pointer;">
+            <span style="font-weight: 600; color: #1e293b;">⭐ Marca Especial: Solo Bloques (Deriva siempre a Bloques en V.A.)</span>
+          </label>
+        </div>
+
         <!-- Format tags -->
         <div class="pres-form-group pres-form-group--full">
           <label>Formatos de Presentación</label>

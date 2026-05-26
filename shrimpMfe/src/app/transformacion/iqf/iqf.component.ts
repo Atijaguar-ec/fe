@@ -3,6 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ShrimpMsService, TransformWorkItem, CommercialPresentation } from '../../services/shrimp-ms.service';
 import { PresentationSelectorModalComponent } from '../../shared/components/presentation-selector-modal/presentation-selector-modal.component';
+import { ShrimpDataService } from '../../services/shrimp-data.service';
+
+interface FormatOption {
+  label: string;
+  unidadesPorMaster: number;
+  lbsPorUnidad: number;
+  pesoPerMaster: number;
+}
 
 /**
  * IQF transformation module (Lote base -2).
@@ -69,7 +77,25 @@ import { PresentationSelectorModalComponent } from '../../shared/components/pres
           </div>
           <div class="input-group">
             <label class="input-label">N° de Masters</label>
-            <input type="number" class="input-field" [(ngModel)]="mastersCount" min="1" placeholder="Ej: 20">
+            <input type="number" class="input-field" [(ngModel)]="mastersCount" (ngModelChange)="recalcular()" min="1" placeholder="Ej: 20">
+          </div>
+        </div>
+
+        <!-- Formato de Presentación -->
+        <div class="input-group" style="margin-bottom: 1rem; margin-top: 1rem;" *ngIf="selectedPresentation">
+          <label class="input-label">Formato de Presentación <span style="color: #ef4444;">*</span></label>
+          <div *ngIf="availableFormats.length === 0" class="alert alert-warning" style="padding: 0.6rem; font-size: 0.85rem; background: #fef3c7; border-left: 4px solid #f59e0b; margin-top: 0;">
+            ⚠️ No hay formatos configurados para {{ selectedPresentation.brandName }}.
+          </div>
+          <div class="format-grid" *ngIf="availableFormats.length > 0">
+            <button *ngFor="let fmt of availableFormats"
+                    class="format-btn"
+                    [class.format-btn--active]="selectedFormat?.label === fmt.label"
+                    (click)="onFormatSelected(fmt)">
+              <span class="format-btn__label">{{ fmt.label }}</span>
+              <span class="format-btn__detail">{{ fmt.unidadesPorMaster }} {{ selectedPresentation.unitLabel || 'funda' }}{{ fmt.unidadesPorMaster !== 1 ? 's' : '' }}</span>
+              <span class="format-btn__weight">{{ fmt.lbsPorUnidad }} lbs/{{ selectedPresentation.unitLabel || 'funda' }} · <strong>{{ fmt.pesoPerMaster }} lbs/master</strong></span>
+            </button>
           </div>
         </div>
 
@@ -94,7 +120,7 @@ import { PresentationSelectorModalComponent } from '../../shared/components/pres
           </div>
         </div>
         <button class="btn btn-primary"
-                [disabled]="!mastersCount || mastersCount <= 0 || !selectedPresentation || !mastersTotalLbs || (glazeOptions.length > 0 && !selectedGlaze)"
+                [disabled]="!mastersCount || mastersCount <= 0 || !selectedPresentation || !mastersTotalLbs || (glazeOptions.length > 0 && !selectedGlaze) || !selectedFormat"
                 (click)="registrarMaster()">✅ Registrar Master</button>
       </div>
     </div>
@@ -146,10 +172,12 @@ import { PresentationSelectorModalComponent } from '../../shared/components/pres
 })
 export class IqfComponent implements OnInit {
   workItems: TransformWorkItem[] = [];
-  presentations: CommercialPresentation[] = [];
+  allPresentations: CommercialPresentation[] = [];
+  availableFormats: FormatOption[] = [];
+  selectedPresentation: CommercialPresentation | null = null;
+  selectedFormat: FormatOption | null = null;
   masters: { count: number; lbs: number; presentacion: string; talla: string; glaze?: string }[] = [];
   selectedItem: TransformWorkItem | null = null;
-  selectedPresentation: CommercialPresentation | null = null;
   mastersCount = 0;
   mastersTotalLbs = 0;
   COMPANY_ID = 1;
@@ -158,10 +186,25 @@ export class IqfComponent implements OnInit {
   glazeOptions: string[] = [];
   selectedGlaze: string | null = null;
 
-  constructor(private shrimpMs: ShrimpMsService) {}
+  constructor(
+    private shrimpMs: ShrimpMsService,
+    private dataService: ShrimpDataService
+  ) {}
 
   ngOnInit(): void {
+    this.dataService.getActiveCompany().subscribe(company => {
+      const companyIds = company?.data?.companyIds || company?.companyIds || [];
+      this.COMPANY_ID = companyIds.length > 0 ? companyIds[0] : 1;
+      this.loadPresentations();
+    });
     this.loadWorkItems();
+  }
+
+  loadPresentations(): void {
+    if (!this.COMPANY_ID) return;
+    this.shrimpMs.listPresentations(this.COMPANY_ID, 'IQF').subscribe(list => {
+      this.allPresentations = list.filter(p => p.isActive !== false);
+    });
   }
 
   loadWorkItems(): void {
@@ -174,6 +217,7 @@ export class IqfComponent implements OnInit {
 
   onPresentationSelected(p: CommercialPresentation): void {
     this.selectedPresentation = p;
+    this.selectedFormat = null;
     this.isPresentationModalOpen = false;
     
     this.glazeOptions = [];
@@ -183,10 +227,80 @@ export class IqfComponent implements OnInit {
         this.glazeOptions = JSON.parse(p.style);
       } catch(e) {}
     }
+
+    const brandName = p.brandName || '';
+    const style = p.style || '';
+    const name = p.name || '';
+
+    const matches = this.allPresentations.filter(pres => 
+      (pres.brandName || '') === brandName && (pres.style || '') === style && (pres.name || '') === name
+    );
+
+    this.availableFormats = [];
+    for (const pres of matches) {
+      const formats = this.parseFormatsList(pres.presentationFormat, pres.weightPerUnit);
+      this.availableFormats.push(...formats);
+    }
+
+    if (this.availableFormats.length === 1) {
+      this.onFormatSelected(this.availableFormats[0]);
+    } else {
+      this.recalcular();
+    }
+  }
+
+  onFormatSelected(fmt: FormatOption): void {
+    this.selectedFormat = fmt;
+    this.recalcular();
   }
 
   closePresentationModal(): void {
     this.isPresentationModalOpen = false;
+  }
+
+  parseFormatsList(formatStr: string | undefined, weightPerUnit: number): FormatOption[] {
+    if (!formatStr) return [];
+    let rawFormats: string[];
+    if (formatStr.startsWith('[')) {
+      try {
+        rawFormats = JSON.parse(formatStr);
+      } catch {
+        rawFormats = [formatStr];
+      }
+    } else {
+      rawFormats = [formatStr];
+    }
+    
+    return rawFormats
+      .filter(f => f && f.trim())
+      .map(f => {
+        const label = f.trim();
+        const match = label.match(/^(\d+)\s*[xX×]\s*(\d+(?:\.\d+)?)/);
+        const unidades = match ? parseInt(match[1], 10) : 1;
+        const lbs = match ? parseFloat(match[2]) : weightPerUnit;
+        return {
+          label,
+          unidadesPorMaster: unidades,
+          lbsPorUnidad: lbs,
+          pesoPerMaster: unidades * lbs
+        };
+      });
+  }
+
+  recalcular(): void {
+    if (this.selectedFormat && this.mastersCount > 0) {
+      this.mastersTotalLbs = parseFloat((this.mastersCount * this.selectedFormat.pesoPerMaster).toFixed(2));
+    }
+  }
+
+  resetForm(): void {
+    this.selectedPresentation = null;
+    this.selectedFormat = null;
+    this.availableFormats = [];
+    this.mastersCount = 0;
+    this.mastersTotalLbs = 0;
+    this.glazeOptions = [];
+    this.selectedGlaze = null;
   }
 
   registrarMaster(): void {
@@ -194,12 +308,12 @@ export class IqfComponent implements OnInit {
     this.masters.push({ 
       count: this.mastersCount, 
       lbs: this.mastersTotalLbs, 
-      presentacion: `${this.selectedPresentation.brandName} ${this.selectedPresentation.name}`, 
+      presentacion: `${this.selectedPresentation.brandName} ${this.selectedPresentation.name}${this.selectedFormat ? ' (' + this.selectedFormat.label + ')' : ''}`, 
       talla: this.selectedItem.talla.displayName,
       glaze: this.selectedGlaze || undefined
     });
-    this.selectedItem = null; this.selectedPresentation = null; this.mastersCount = 0; this.mastersTotalLbs = 0;
-    this.glazeOptions = []; this.selectedGlaze = null;
+    this.selectedItem = null;
+    this.resetForm();
   }
 
   get totalReceivedLbs(): number { return this.workItems.filter(w => w.libras).reduce((s, w) => s + (w.libras ?? 0), 0); }

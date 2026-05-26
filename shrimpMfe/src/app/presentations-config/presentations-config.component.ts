@@ -51,7 +51,8 @@ export class PresentationsConfigComponent implements OnInit {
     glazes: '', // Virtual field for IQF glazes
     formats: '', // Virtual field for Bloque formats
     weightPerUnit: null as number | null,
-    unitLabel: 'cajeta'
+    unitLabel: 'cajeta',
+    blocksOnly: false
   };
   saving = false;
   errorMsg = '';
@@ -102,7 +103,7 @@ export class PresentationsConfigComponent implements OnInit {
 
   openNew(): void {
     this.editingId = null;
-    this.form = { brandName: '', destino: this.activeTab, name: '', productType: 'COLA', style: 'SHELLON', presentationFormat: '', glazes: '', formats: '', weightPerUnit: null, unitLabel: 'cajeta' };
+    this.form = { brandName: '', destino: this.activeTab, name: '', productType: 'COLA', style: 'SHELLON', presentationFormat: '', glazes: '', formats: '', weightPerUnit: null, unitLabel: 'cajeta', blocksOnly: false };
     this.formatTags = [];
     this.glazeTags = [];
     this.newFormatInput = '';
@@ -145,7 +146,8 @@ export class PresentationsConfigComponent implements OnInit {
       formats: '',
       glazes: '',
       weightPerUnit: p.weightPerUnit,
-      unitLabel: p.unitLabel
+      unitLabel: p.unitLabel,
+      blocksOnly: p.blocksOnly ?? false
     };
     this.errorMsg = '';
     this.showModal = true;

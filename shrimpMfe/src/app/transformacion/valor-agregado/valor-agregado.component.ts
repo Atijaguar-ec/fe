@@ -74,7 +74,14 @@ export class ValorAgregadoComponent implements OnInit {
 
   // ─── VA Form ─────────────────────────────────────────────────
   selectedSubtype: VaSubtype | null = null;
-  hidratacion = false;
+  hidratacion = false; // Deprecated
+  hydrationType: 'NINGUNO' | 'CARNAL' | 'OTRAS' = 'NINGUNO';
+  targetDestination: 'IQF' | 'BLOQUE' = 'IQF';
+  tanksCount = 0;
+  outputWeight = 0; // Manual entry weight for IQF / Bloques
+  cajetasCount = 0; // Only for Bloques
+  tallasClaseA: ShrimpSize[] = [];
+  tallaClaseA: ShrimpSize | null = null;
   vaSubtypes = VA_SUBTYPES;
   
   tallasClaseC: ShrimpSize[] = [];
@@ -95,6 +102,8 @@ export class ValorAgregadoComponent implements OnInit {
   pesoSobrantes = 0;
   totalProducidoLbs = 0;
   areaYieldCalculated = 0;
+  successMsg = '';
+  errorMsg = '';
 
   // ─── Registered Masters ──────────────────────────────────────
   masters: { count: number; lbs: number; subtype: string; talla: string; hidratacion: boolean; lote: string; destino: string }[] = [];
@@ -125,6 +134,7 @@ export class ValorAgregadoComponent implements OnInit {
     this.loadWorkItems();
     this.loadLeftoversFromStorage();
     this.shrimpMs.listSizes('COLA', 'BROKEN').subscribe(sizes => this.tallasClaseC = sizes);
+    this.shrimpMs.listSizes('COLA', 'STANDARD').subscribe(sizes => this.tallasClaseA = sizes);
   }
 
   loadPresentations(): void {
@@ -181,6 +191,12 @@ export class ValorAgregadoComponent implements OnInit {
     this.reportarMerma = false;
     this.librasMerma = 0;
     this.hidratacion = false;
+    this.hydrationType = 'NINGUNO';
+    this.targetDestination = 'IQF';
+    this.tanksCount = 0;
+    this.outputWeight = 0;
+    this.cajetasCount = 0;
+    this.tallaClaseA = null;
     this.librasAProcesar = 0;
     this.mastersCount = 0;
     this.unidadesSobrantes = 0;
@@ -272,12 +288,25 @@ export class ValorAgregadoComponent implements OnInit {
   }
 
   recalcular(): void {
-    if (!this.selectedState || !this.selectedFormat) return;
+    if (!this.selectedState) return;
 
-    this.pesoTotalMasters = this.mastersCount * this.selectedFormat.pesoPerMaster;
-    this.pesoSobrantes = this.unidadesSobrantes * this.selectedFormat.lbsPorUnidad;
-    this.totalProducidoLbs = this.pesoTotalMasters + this.pesoSobrantes;
+    if (this.targetDestination === 'IQF') {
+      this.totalProducidoLbs = this.outputWeight;
+    } else {
+      if (this.selectedFormat) {
+        this.pesoTotalMasters = this.mastersCount * this.selectedFormat.pesoPerMaster;
+        this.pesoSobrantes = this.unidadesSobrantes * this.selectedFormat.lbsPorUnidad;
+        this.totalProducidoLbs = this.pesoTotalMasters + this.pesoSobrantes;
+      } else {
+        this.totalProducidoLbs = this.outputWeight;
+      }
+    }
     this.areaYieldCalculated = this.librasAProcesar > 0 ? (this.totalProducidoLbs / this.librasAProcesar) * 100 : 0;
+  }
+
+  onCajetasChange(): void {
+    this.outputWeight = this.cajetasCount * (this.selectedPresentation?.weightPerUnit || 0);
+    this.recalcular();
   }
 
   get expectedYield(): number {
@@ -308,8 +337,15 @@ export class ValorAgregadoComponent implements OnInit {
 
   isValidForm(): boolean {
     if (!this.selectedState || this.librasAProcesar <= 0 || this.librasAProcesar > this.selectedState.librasRestantes) return false;
-    if (!this.selectedPresentation || !this.selectedSubtype) return false;
-    if (this.mastersCount <= 0 && this.unidadesSobrantes <= 0) return false;
+    if (!this.selectedSubtype) return false;
+
+    if (this.targetDestination === 'IQF') {
+      if (this.tanksCount <= 0 || this.outputWeight <= 0) return false;
+    } else {
+      if (!this.selectedPresentation) return false;
+      if (!this.tallaClaseA) return false;
+      if (this.cajetasCount <= 0 || this.outputWeight <= 0) return false;
+    }
 
     if (this.reportarBloque) {
       if (!this.tallaBloque || this.librasBloque <= 0) return false;
@@ -342,69 +378,110 @@ export class ValorAgregadoComponent implements OnInit {
     const brandName = this.selectedPresentation?.brandName || state.item.brandName || 'N/A';
     const loteCompleto = state.item.lote + (state.item.loteSuffix || '-3');
 
-    // Registrar Masters
-    if (this.mastersCount > 0) {
-      this.masters.push({ 
-        count: this.mastersCount, 
-        lbs: this.pesoTotalMasters, 
-        subtype: this.selectedSubtype!, 
-        talla: state.item.talla.displayName, 
-        hidratacion: this.hidratacion,
-        lote: loteCompleto,
-        destino: 'TANQUES'
-      });
-    }
+    const payload = {
+      destinationId: state.item.subLotId,
+      rawWeightProcessed: this.librasAProcesar,
+      subtype: this.selectedSubtype,
+      hydrationType: this.hydrationType,
+      commercialOutputWeight: this.totalProducidoLbs,
+      brandName: this.targetDestination === 'BLOQUE' ? brandName : '',
+      blocksOnly: this.targetDestination === 'BLOQUE',
+      tanksCount: this.targetDestination === 'IQF' ? this.tanksCount : null,
+      classASize: this.targetDestination === 'BLOQUE' ? (this.tallaClaseA?.name || null) : null,
+      cajetasCount: this.targetDestination === 'BLOQUE' ? this.cajetasCount : null,
+      reportRejection: this.reportarBloque,
+      rejectionSize: this.tallaBloque?.name || null,
+      rejectionWeight: this.librasBloque || 0,
+      reportWaste: this.reportarMerma,
+      wasteWeight: this.librasMerma || 0
+    };
 
-    // Registrar Sobrantes
-    if (this.unidadesSobrantes > 0) {
-      this.leftoverBasket.push({
-        id: nextId(),
-        sourceSubLotId: state.item.subLotId,
-        lote: loteCompleto,
-        brandName,
-        talla: state.item.talla.displayName,
-        qualityClass: state.item.qualityClass,
-        subtype: this.selectedSubtype!,
-        hidratacion: this.hidratacion,
-        unidades: this.unidadesSobrantes,
-        librasEstimadas: this.pesoSobrantes,
-        timestamp: new Date()
-      });
-      this.saveLeftoversToStorage();
-      this.rebuildLeftoverGroups();
-    }
+    this.shrimpMs.processVa(payload).subscribe({
+      next: () => {
+        // Registrar Masters
+        if (this.targetDestination === 'BLOQUE' && this.cajetasCount > 0) {
+          this.masters.push({ 
+            count: this.cajetasCount, 
+            lbs: this.outputWeight, 
+            subtype: this.selectedSubtype!, 
+            talla: this.tallaClaseA!.displayName, 
+            hidratacion: this.hydrationType !== 'NINGUNO',
+            lote: loteCompleto,
+            destino: 'BLOQUE'
+          });
+        } else if (this.targetDestination === 'IQF' && this.outputWeight > 0) {
+          this.masters.push({ 
+            count: this.tanksCount, 
+            lbs: this.outputWeight, 
+            subtype: this.selectedSubtype!, 
+            talla: state.item.talla.displayName, 
+            hidratacion: this.hydrationType !== 'NINGUNO',
+            lote: loteCompleto,
+            destino: 'IQF'
+          });
+        }
 
-    // Registrar Bloque
-    if (this.reportarBloque && this.librasBloque > 0) {
-      this.bloquesEnviados.push({
-        lbs: this.librasBloque,
-        talla: this.tallaBloque!.displayName,
-        timestamp: new Date()
-      });
-      this.accumulatedBloqueLbs += this.librasBloque;
-    }
+        // Registrar Sobrantes
+        if (this.targetDestination === 'BLOQUE' && this.unidadesSobrantes > 0) {
+          this.leftoverBasket.push({
+            id: nextId(),
+            sourceSubLotId: state.item.subLotId,
+            lote: loteCompleto,
+            brandName,
+            talla: this.tallaClaseA!.displayName,
+            qualityClass: state.item.qualityClass,
+            subtype: this.selectedSubtype!,
+            hidratacion: this.hydrationType !== 'NINGUNO',
+            unidades: this.unidadesSobrantes,
+            librasEstimadas: this.pesoSobrantes,
+            timestamp: new Date()
+          });
+          this.saveLeftoversToStorage();
+          this.rebuildLeftoverGroups();
+        }
 
-    // Registrar Merma
-    if (this.reportarMerma && this.librasMerma > 0) {
-      this.desperdiciosRegistrados.push({ lbs: this.librasMerma, timestamp: new Date() });
-      this.accumulatedDesperdicioLbs += this.librasMerma;
-    }
+        // Registrar Bloque
+        if (this.reportarBloque && this.librasBloque > 0) {
+          this.bloquesEnviados.push({
+            lbs: this.librasBloque,
+            talla: this.tallaBloque!.displayName,
+            timestamp: new Date()
+          });
+          this.accumulatedBloqueLbs += this.librasBloque;
+        }
 
-    this.accumulatedCommercialLbs += (this.pesoTotalMasters + this.pesoSobrantes);
+        // Registrar Merma
+        if (this.reportarMerma && this.librasMerma > 0) {
+          this.desperdiciosRegistrados.push({ lbs: this.librasMerma, timestamp: new Date() });
+          this.accumulatedDesperdicioLbs += this.librasMerma;
+        }
 
-    // Actualizar consumos y balance general
-    this.accumulatedProcessedLbs += this.librasAProcesar;
+        this.accumulatedCommercialLbs += this.outputWeight;
 
-    state.librasRestantes -= this.librasAProcesar;
+        // Actualizar consumos y balance general
+        this.accumulatedProcessedLbs += this.librasAProcesar;
 
-    // Si el sub-lote se agota, removerlo
-    if (state.librasRestantes <= 0) {
-      this.workStates.delete(state.item.subLotId);
-      this.workItems = this.workItems.filter(w => w.subLotId !== state.item.subLotId);
-    }
+        state.librasRestantes -= this.librasAProcesar;
 
-    this.resetForm();
-    this.selectedState = null;
+        // Si el sub-lote se agota, removerlo
+        if (state.librasRestantes <= 0) {
+          this.workStates.delete(state.item.subLotId);
+          this.workItems = this.workItems.filter(w => w.subLotId !== state.item.subLotId);
+        }
+
+        this.successMsg = 'Proceso de Valor Agregado registrado con éxito';
+        this.errorMsg = '';
+        setTimeout(() => this.successMsg = '', 4000);
+
+        this.resetForm();
+        this.selectedState = null;
+        this.loadWorkItems();
+      },
+      error: (err) => {
+        this.errorMsg = err?.error?.errorMessage || 'Error al procesar Valor Agregado';
+        setTimeout(() => this.errorMsg = '', 6000);
+      }
+    });
   }
 
   // ─── Leftover Management ───

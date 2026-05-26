@@ -1,4 +1,13 @@
 <div class="transform-page">
+  <!-- Success Banner -->
+  <div class="alert alert-success" style="background:#dcfce7; border-left:4px solid #16a34a; color:#14532d; padding:1rem; border-radius:8px; margin-bottom:1rem;" *ngIf="successMsg">
+    ✅ {{ successMsg }}
+  </div>
+  <!-- Error Banner -->
+  <div class="alert alert-danger" style="background:#fee2e2; border-left:4px solid #dc2626; color:#7f1d1d; padding:1rem; border-radius:8px; margin-bottom:1rem;" *ngIf="errorMsg">
+    ⚠️ {{ errorMsg }}
+  </div>
+
   <div class="transform-header">
     <div>
       <h1>⭐ Valor Agregado — Transformación</h1>
@@ -40,130 +49,134 @@
           <h2>➕ Registrar VA — {{ selectedState.item.talla.displayName }}</h2>
         </div>
 
-
-          <!-- Sub-type -->
-          <div class="input-group">
-            <label class="input-label">Sub-tipo de proceso <span style="color:#dc2626">*</span></label>
-            <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem">
-              <button *ngFor="let st of currentSubtypes"
-                style="flex: 1; padding:0.55rem;border-radius:8px;font-size:0.82rem;font-weight:700;border:2px solid #e5e7eb;background:#f9fafb;cursor:pointer;transition:all 0.12s"
-                [style.border-color]="selectedSubtype === st ? '#7c3aed' : ''"
-                [style.background]="selectedSubtype === st ? '#f5f3ff' : ''"
-                [style.color]="selectedSubtype === st ? '#7c3aed' : ''"
-                (click)="selectedSubtype = st">{{ st }}</button>
-            </div>
-          </div>
-
-        <!-- Hidratación -->
+        <!-- Estilos (formerly Sub-tipo de proceso) -->
         <div class="input-group">
-          <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.88rem;font-weight:600;color:#374151">
-            <input type="checkbox" [(ngModel)]="hidratacion" style="width:18px;height:18px;cursor:pointer">
-            💧 Requiere tratamiento de hidratación previo
-          </label>
+          <label class="input-label">Estilos <span style="color:#dc2626">*</span></label>
+          <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem">
+            <button *ngFor="let st of currentSubtypes"
+              style="flex: 1; padding:0.55rem;border-radius:8px;font-size:0.82rem;font-weight:700;border:2px solid #e5e7eb;background:#f9fafb;cursor:pointer;transition:all 0.12s"
+              [style.border-color]="selectedSubtype === st ? '#7c3aed' : ''"
+              [style.background]="selectedSubtype === st ? '#f5f3ff' : ''"
+              [style.color]="selectedSubtype === st ? '#7c3aed' : ''"
+              (click)="selectedSubtype = st">{{ st }}</button>
+          </div>
         </div>
 
+        <!-- Hidratación (Radio) -->
+        <div class="input-group">
+          <label class="input-label">Tratamiento de hidratación previo <span style="color:#dc2626">*</span></label>
+          <div style="display:flex; gap:0.5rem; margin-bottom:0.75rem">
+            <button style="flex: 1; padding:0.55rem;border-radius:8px;font-size:0.82rem;font-weight:700;border:2px solid #e5e7eb;background:#f9fafb;cursor:pointer;transition:all 0.12s"
+              [style.border-color]="hydrationType === 'NINGUNO' ? '#7c3aed' : ''"
+              [style.background]="hydrationType === 'NINGUNO' ? '#f5f3ff' : ''"
+              [style.color]="hydrationType === 'NINGUNO' ? '#7c3aed' : ''"
+              (click)="hydrationType = 'NINGUNO'">Sin Hidratar (Ninguno)</button>
+            <button style="flex: 1; padding:0.55rem;border-radius:8px;font-size:0.82rem;font-weight:700;border:2px solid #e5e7eb;background:#f9fafb;cursor:pointer;transition:all 0.12s"
+              [style.border-color]="hydrationType === 'CARNAL' ? '#7c3aed' : ''"
+              [style.background]="hydrationType === 'CARNAL' ? '#f5f3ff' : ''"
+              [style.color]="hydrationType === 'CARNAL' ? '#7c3aed' : ''"
+              (click)="hydrationType = 'CARNAL'">💧 Carnal</button>
+            <button style="flex: 1; padding:0.55rem;border-radius:8px;font-size:0.82rem;font-weight:700;border:2px solid #e5e7eb;background:#f9fafb;cursor:pointer;transition:all 0.12s"
+              [style.border-color]="hydrationType === 'OTRAS' ? '#7c3aed' : ''"
+              [style.background]="hydrationType === 'OTRAS' ? '#f5f3ff' : ''"
+              [style.color]="hydrationType === 'OTRAS' ? '#7c3aed' : ''"
+              (click)="hydrationType = 'OTRAS'">💧 Otras</button>
+          </div>
+        </div>
 
+        <!-- Libras Crudas A Procesar -->
+        <div class="input-group">
+          <label class="input-label">Libras Crudas a Procesar <span style="color:#dc2626">*</span></label>
+          <div style="display:flex; gap:0.5rem; align-items:center">
+            <input type="number" class="input-field" [(ngModel)]="librasAProcesar" (ngModelChange)="recalcular()" min="0.1" [max]="selectedState.librasRestantes" placeholder="Extraídas de gaveta">
+            <button class="btn" style="padding: 0.5rem; width:auto; background: #e2e8f0; font-size:0.75rem" (click)="usarTodasLibras()">TODO</button>
+          </div>
+          <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">Disponibles: {{ selectedState.librasRestantes | number:'1.1-2' }} lbs</div>
+        </div>
 
-        <div class="input-row-2">
-          <!-- Libras A Procesar -->
+        <!-- Destino de Congelación -->
+        <div class="input-group" style="margin-top:1rem">
+          <label class="input-label">Destino de Congelación <span style="color:#dc2626">*</span></label>
+          <div style="display:flex; gap:0.5rem; margin-bottom:0.75rem">
+            <button style="flex: 1; padding:0.6rem;border-radius:8px;font-size:0.88rem;font-weight:700;border:2px solid #e5e7eb;background:#f9fafb;cursor:pointer;transition:all 0.12s"
+              [style.border-color]="targetDestination === 'IQF' ? '#7c3aed' : ''"
+              [style.background]="targetDestination === 'IQF' ? '#f5f3ff' : ''"
+              [style.color]="targetDestination === 'IQF' ? '#7c3aed' : ''"
+              (click)="targetDestination = 'IQF'; recalcular()">❄️ Enviar a IQF</button>
+            <button style="flex: 1; padding:0.6rem;border-radius:8px;font-size:0.88rem;font-weight:700;border:2px solid #e5e7eb;background:#f9fafb;cursor:pointer;transition:all 0.12s"
+              [style.border-color]="targetDestination === 'BLOQUE' ? '#7c3aed' : ''"
+              [style.background]="targetDestination === 'BLOQUE' ? '#f5f3ff' : ''"
+              [style.color]="targetDestination === 'BLOQUE' ? '#7c3aed' : ''"
+              (click)="targetDestination = 'BLOQUE'; recalcular()">🧊 Enviar a Bloque (Marca Especial)</button>
+          </div>
+        </div>
+
+        <!-- CONDITIONAL AREA: IQF -->
+        <div class="input-row-2 animate-fade-in-up" *ngIf="targetDestination === 'IQF'" style="margin-top:1rem; background:#f8fafc; padding:1rem; border-radius:8px; border:1px solid #e2e8f0;">
           <div class="input-group">
-            <label class="input-label">Libras Crudas a Procesar <span style="color:#dc2626">*</span></label>
-            <div style="display:flex; gap:0.5rem; align-items:center">
-              <input type="number" class="input-field" [(ngModel)]="librasAProcesar" (ngModelChange)="recalcular()" min="0.1" [max]="selectedState.librasRestantes" placeholder="Extraídas de gaveta">
-              <button class="btn" style="padding: 0.5rem; width:auto; background: #e2e8f0; font-size:0.75rem" (click)="usarTodasLibras()">TODO</button>
-            </div>
-            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">Disponibles: {{ selectedState.librasRestantes | number:'1.1-2' }} lbs</div>
+            <label class="input-label">Número de Tanques <span style="color:#dc2626">*</span></label>
+            <input type="number" class="input-field" [(ngModel)]="tanksCount" min="1" placeholder="Ej: 2 tanques">
           </div>
           <div class="input-group">
-            <label class="input-label">Presentación Comercial <span style="color:#dc2626">*</span></label>
-            <div class="presentation-selector-box" *ngIf="selectedPresentation">
-              <div class="presentation-info">
-                <strong>{{ selectedPresentation.brandName }}</strong> — {{ selectedPresentation.style || '-' }}
-                <br>
-                <span style="color:#6b7280; font-size: 0.8rem;">{{ selectedPresentation.name }}</span>
-              </div>
-              <button class="btn" style="width: auto; background: #e2e8f0; color: #475569; padding: 0.4rem 0.8rem; font-size: 0.75rem;" (click)="openPresentationModal()">Cambiar</button>
-            </div>
-            <button class="btn btn-outline-primary" style="width:100%" *ngIf="!selectedPresentation" (click)="openPresentationModal()">
-              🔍 Buscar Presentación
-            </button>
+            <label class="input-label">Peso de Salida (lbs) <span style="color:#dc2626">*</span></label>
+            <input type="number" class="input-field" [(ngModel)]="outputWeight" (ngModelChange)="recalcular()" min="0.1" placeholder="Ej: 250 lbs">
           </div>
         </div>
 
-        <div class="input-group" style="margin-bottom: 1rem; margin-top: 1rem;" *ngIf="selectedPresentation">
-          <label class="input-label">Formato de Presentación <span style="color: #ef4444;">*</span></label>
-          <div *ngIf="availableFormats.length === 0" class="alert alert-warning" style="padding: 0.6rem; font-size: 0.85rem; background: #fef3c7; border-left: 4px solid #f59e0b; margin-top: 0;">
-            ⚠️ No hay formatos configurados para {{ selectedPresentation.brandName }}.
-          </div>
-          <div class="format-grid" *ngIf="availableFormats.length > 0">
-            <button *ngFor="let fmt of availableFormats"
-                    class="format-btn"
-                    [class.format-btn--active]="selectedFormat?.label === fmt.label"
-                    (click)="onFormatSelected(fmt)">
-              <span class="format-btn__label">{{ fmt.label }}</span>
-              <span class="format-btn__detail">{{ fmt.unidadesPorMaster }} estuches</span>
-              <span class="format-btn__weight">{{ fmt.lbsPorUnidad }} lbs/est · <strong>{{ fmt.pesoPerMaster }} lbs</strong></span>
-            </button>
-          </div>
-        </div>
-
-        <div class="input-row-2" *ngIf="selectedPresentation">
-          <!-- Masters -->
-          <div class="input-group">
-            <label class="input-label">N° Masters Completos</label>
-            <input type="number" class="input-field" [(ngModel)]="mastersCount" (ngModelChange)="recalcular()" min="0" placeholder="0">
-          </div>
-          <!-- Pendientes -->
-          <div class="input-group">
-            <label class="input-label">Unidades Pendientes (Sueltas)</label>
-            <input type="number" class="input-field" [(ngModel)]="unidadesSobrantes" (ngModelChange)="recalcular()" min="0" placeholder="0">
-          </div>
-        </div>
-        
-        <!-- Suggestion Button -->
-        <div style="display:flex; justify-content:flex-end; width:100%; margin-top: 0.25rem; margin-bottom: 1rem;" *ngIf="selectedFormat && librasAProcesar > 0">
-          <button class="btn" style="background:#f0fdf4; color:#16a34a; border: 1px solid #bbf7d0; font-size:0.75rem; padding: 0.4rem 0.8rem; width: auto; font-weight: 600;" (click)="sugerirEmpaque()" title="Calcula un estimado basado en el rendimiento histórico esperado.">
-            ✨ Sugerir Cantidades (~{{ expectedYield * 100 | number:'1.0-0' }}% Rend.)
-          </button>
-        </div>
-
-
-
-        <!-- Resultados del cálculo -->
-        <div class="calc-results" *ngIf="selectedPresentation && (mastersCount > 0 || unidadesSobrantes > 0)">
-          <div class="calc-result calc-result--primary" *ngIf="mastersCount > 0">
-            <div class="calc-result__icon">📦</div>
-            <div class="calc-result__info">
-              <div class="calc-result__value">{{ mastersCount }}</div>
-              <div class="calc-result__label">Masters Completos ({{ selectedFormat?.label }})</div>
-            </div>
-            <div class="calc-result__weight">{{ pesoTotalMasters | number:'1.1-1' }} lbs</div>
-          </div>
+        <!-- CONDITIONAL AREA: BLOQUE -->
+        <div class="animate-fade-in-up" *ngIf="targetDestination === 'BLOQUE'" style="margin-top:1rem; background:#f5f3ff; padding:1.25rem; border-radius:8px; border:1px solid #ddd6fe;">
           
-          <div class="calc-result calc-result--warning" *ngIf="unidadesSobrantes > 0">
-            <div class="calc-result__icon">🧺</div>
-            <div class="calc-result__info">
-              <div class="calc-result__value">{{ unidadesSobrantes }}</div>
-              <div class="calc-result__label">Unidades Pendientes</div>
+          <div class="input-row-2">
+            <!-- Talla Clase A -->
+            <div class="input-group">
+              <label class="input-label">Talla de Salida Clase A <span style="color:#dc2626">*</span></label>
+              <select class="input-field" [(ngModel)]="tallaClaseA" style="width: 100%;">
+                <option [ngValue]="null" disabled selected>Selecciona talla Clase A...</option>
+                <option *ngFor="let size of tallasClaseA" [ngValue]="size">{{ size.displayName }}</option>
+              </select>
             </div>
-            <div class="calc-result__weight">~{{ pesoSobrantes | number:'1.1-1' }} lbs</div>
-            <button style="margin-left: auto; font-size: 0.75rem; padding: 0.35rem 0.75rem; background: transparent; border: 1.5px solid #d97706; color: #d97706; border-radius: 6px; cursor: pointer; font-weight: 600;"
-                    *ngIf="mastersCount === 0"
-                    [disabled]="!isValidForm()"
-                    (click)="confirmarLeftover()">
-              📥 Enviar a Pendientes
-            </button>
+
+            <!-- Presentación -->
+            <div class="input-group">
+              <label class="input-label">Presentación Comercial (Marca) <span style="color:#dc2626">*</span></label>
+              <div class="presentation-selector-box" *ngIf="selectedPresentation">
+                <div class="presentation-info">
+                  <strong>{{ selectedPresentation.brandName }}</strong> — {{ selectedPresentation.style || '-' }}
+                  <br>
+                  <span style="color:#6b7280; font-size: 0.8rem;">{{ selectedPresentation.name }}</span>
+                </div>
+                <button class="btn" style="width: auto; background: #e2e8f0; color: #475569; padding: 0.4rem 0.8rem; font-size: 0.75rem;" (click)="openPresentationModal()">Cambiar</button>
+              </div>
+              <button class="btn btn-outline-primary" style="width:100%; min-height:42px" *ngIf="!selectedPresentation" (click)="openPresentationModal()">
+                🔍 Buscar Presentación
+              </button>
+            </div>
           </div>
+
+          <div class="input-row-2" *ngIf="selectedPresentation" style="margin-top: 1rem;">
+            <!-- Cajetas -->
+            <div class="input-group">
+              <label class="input-label">Cajetas <span style="color:#dc2626">*</span></label>
+              <input type="number" class="input-field" [(ngModel)]="cajetasCount" (ngModelChange)="onCajetasChange()" min="1" placeholder="Ej: 10 cajetas">
+            </div>
+            <!-- Libras -->
+            <div class="input-group">
+              <label class="input-label">Libras <span style="color:#dc2626">*</span></label>
+              <input type="number" class="input-field" [(ngModel)]="outputWeight" (ngModelChange)="recalcular()" min="0.1" placeholder="Ej: 44.00">
+            </div>
+          </div>
+
         </div>
 
+        <!-- Rendimiento Alert -->
         <div class="alert" [ngClass]="{'alert-success': areaYieldCalculated >= 60, 'alert-warning': areaYieldCalculated >= 50 && areaYieldCalculated < 60, 'alert-error': areaYieldCalculated > 0 && areaYieldCalculated < 50}" *ngIf="areaYieldCalculated > 0" style="margin-top: 1rem">
-          <div style="font-weight: 700; margin-bottom: 0.25rem;">Rendimiento Cola: {{ areaYieldCalculated | number:'1.1-1' }}%</div>
+          <div style="font-weight: 700; margin-bottom: 0.25rem;">Rendimiento Realizado: {{ areaYieldCalculated | number:'1.1-1' }}%</div>
           <div style="font-size: 0.8rem; color: inherit; opacity: 0.9;">
-            Produciendo {{ pesoTotalMasters + pesoSobrantes | number:'1.1-1' }} lbs comerciales a partir de {{ librasAProcesar | number:'1.1-1' }} lbs de gaveta. (Esperado ~66%)
+            Produciendo {{ totalProducidoLbs | number:'1.1-1' }} lbs comerciales a partir de {{ librasAProcesar | number:'1.1-1' }} lbs de gaveta. (Esperado ~{{ expectedYield * 100 | number:'1.0-0' }}%)
           </div>
         </div>
 
-        <!-- Empaque en Bloque (Opcional) -->
+        <!-- Empaque en Bloque (Opcional - Reclamado como Desperdicio/Segunda) -->
         <div class="input-group" style="background:#eff6ff; padding:1rem; border-radius:8px; border:1px solid #bfdbfe; margin-top:1.5rem;">
           <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.9rem;font-weight:700;color:#1e3a8a;margin-bottom:0.5rem;">
             <input type="checkbox" [(ngModel)]="reportarBloque" style="width:18px;height:18px;cursor:pointer">
@@ -197,12 +210,12 @@
           </div>
         </div>
 
+        <!-- Registrar Button -->
         <button class="btn btn-primary"
-                *ngIf="mastersCount > 0"
                 [disabled]="!isValidForm()"
                 (click)="registrar()" style="margin-top: 1.5rem;">
-          ✅ Registrar {{ mastersCount }} Master{{ mastersCount !== 1 ? 's' : '' }}
-          <span *ngIf="unidadesSobrantes > 0"> (+ {{ unidadesSobrantes }} pendientes)</span>
+          ✅ Registrar Proceso de Valor Agregado
+          <span *ngIf="targetDestination === 'BLOQUE' && cajetasCount > 0"> ({{ cajetasCount }} Cajeta{{ cajetasCount !== 1 ? 's' : '' }})</span>
         </button>
 
 
@@ -273,7 +286,7 @@
         <div class="master-list">
           <div class="master-item" *ngFor="let m of masters">
             <div>
-              <div class="master-item__label" style="font-family: inherit">{{ m.count }} mst · {{ m.subtype }}</div>
+              <div class="master-item__label" style="font-family: inherit">{{ m.count }} {{ m.destino === 'BLOQUE' ? 'caj' : 'mst' }} · {{ m.subtype }}</div>
               <div class="master-item__detail">{{ m.talla }}{{ m.hidratacion ? ' · 💧' : '' }} · <span style="color:#0ea5e9;font-weight:600">{{ m.destino }}</span></div>
             </div>
             <strong style="color:#16a34a;font-family:monospace">{{ m.lbs | number:'1.0-1' }} lbs</strong>
