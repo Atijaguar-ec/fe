@@ -108,15 +108,15 @@
       <div class="master-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; background: #f9fafb; padding: 1.5rem; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 1.5rem;">
         
         <div class="form-group" style="grid-column: span 2;">
-          <label class="form-label">Presentación Comercial</label>
+          <label class="form-label">Marca</label>
           <select class="form-input form-select" [(ngModel)]="selectedPresentation">
-            <option [ngValue]="null">-- Seleccione Presentación --</option>
+            <option [ngValue]="null">-- Seleccione Marca --</option>
             <option *ngFor="let p of filteredPresentations" [ngValue]="p">
               {{ p.brandName }} — {{ p.name }} ({{ p.weightPerUnit }} lbs/{{ p.unitLabel }})
             </option>
           </select>
           <div *ngIf="filteredPresentations.length === 0" style="margin-top: 0.5rem; font-size: 0.8rem; color: #dc2626;">
-            ⚠️ No hay presentaciones configuradas para este tipo de congelación.
+            ⚠️ No hay marcas configuradas para este tipo de congelación.
           </div>
         </div>
         

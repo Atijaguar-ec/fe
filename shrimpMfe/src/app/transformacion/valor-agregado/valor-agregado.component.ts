@@ -74,7 +74,6 @@ export class ValorAgregadoComponent implements OnInit {
 
   // ─── VA Form ─────────────────────────────────────────────────
   selectedSubtype: VaSubtype | null = null;
-  hidratacion = false; // Deprecated
   hydrationType: 'NINGUNO' | 'CARNAL' | 'OTRAS' = 'NINGUNO';
   targetDestination: 'IQF' | 'BLOQUE' = 'IQF';
   tanksCount = 0;
@@ -93,13 +92,9 @@ export class ValorAgregadoComponent implements OnInit {
   librasMerma = 0;
 
   // Input del operario
-  librasAProcesar = 0; // Cuánta materia prima va a consumir
-  mastersCount = 0;
-  unidadesSobrantes = 0;
-  
+  librasAProcesar = 0;
+
   // Calculado automáticamente
-  pesoTotalMasters = 0;
-  pesoSobrantes = 0;
   totalProducidoLbs = 0;
   areaYieldCalculated = 0;
   successMsg = '';
@@ -190,7 +185,6 @@ export class ValorAgregadoComponent implements OnInit {
     this.librasBloque = 0;
     this.reportarMerma = false;
     this.librasMerma = 0;
-    this.hidratacion = false;
     this.hydrationType = 'NINGUNO';
     this.targetDestination = 'IQF';
     this.tanksCount = 0;
@@ -198,10 +192,6 @@ export class ValorAgregadoComponent implements OnInit {
     this.cajetasCount = 0;
     this.tallaClaseA = null;
     this.librasAProcesar = 0;
-    this.mastersCount = 0;
-    this.unidadesSobrantes = 0;
-    this.pesoTotalMasters = 0;
-    this.pesoSobrantes = 0;
     this.totalProducidoLbs = 0;
     this.areaYieldCalculated = 0;
   }
@@ -290,17 +280,8 @@ export class ValorAgregadoComponent implements OnInit {
   recalcular(): void {
     if (!this.selectedState) return;
 
-    if (this.targetDestination === 'IQF') {
-      this.totalProducidoLbs = this.outputWeight;
-    } else {
-      if (this.selectedFormat) {
-        this.pesoTotalMasters = this.mastersCount * this.selectedFormat.pesoPerMaster;
-        this.pesoSobrantes = this.unidadesSobrantes * this.selectedFormat.lbsPorUnidad;
-        this.totalProducidoLbs = this.pesoTotalMasters + this.pesoSobrantes;
-      } else {
-        this.totalProducidoLbs = this.outputWeight;
-      }
-    }
+    // Both IQF and BLOQUE use outputWeight directly
+    this.totalProducidoLbs = this.outputWeight;
     this.areaYieldCalculated = this.librasAProcesar > 0 ? (this.totalProducidoLbs / this.librasAProcesar) * 100 : 0;
   }
 
@@ -309,31 +290,7 @@ export class ValorAgregadoComponent implements OnInit {
     this.recalcular();
   }
 
-  get expectedYield(): number {
-    switch (this.selectedSubtype) {
-      case 'EZ-PEEL': return 0.85; // Easy peel conserva más cáscara
-      case 'PUD': return 0.72;     // Pelado sin desvenar pierde menos que P&D
-      case 'PPV':
-      case 'P&D': return 0.66;     // Pelado y desvenado (mayor merma)
-      default: return 0.66;
-    }
-  }
 
-  sugerirEmpaque(): void {
-    if (!this.selectedFormat || !this.librasAProcesar) return;
-    
-    // 1. Calculamos las libras comerciales estimadas basadas en el rendimiento histórico del subtipo
-    const librasEstimadas = this.librasAProcesar * this.expectedYield;
-    
-    // 2. Calculamos el total de estuches que se podrían llenar con esas libras
-    const totalEstuches = Math.floor(librasEstimadas / this.selectedFormat.lbsPorUnidad);
-    
-    // 3. Lo dividimos en Masters Completos y Unidades Sueltas
-    this.mastersCount = Math.floor(totalEstuches / this.selectedFormat.unidadesPorMaster);
-    this.unidadesSobrantes = totalEstuches % this.selectedFormat.unidadesPorMaster;
-    
-    this.recalcular();
-  }
 
   isValidForm(): boolean {
     if (!this.selectedState || this.librasAProcesar <= 0 || this.librasAProcesar > this.selectedState.librasRestantes) return false;
@@ -419,25 +376,6 @@ export class ValorAgregadoComponent implements OnInit {
             lote: loteCompleto,
             destino: 'IQF'
           });
-        }
-
-        // Registrar Sobrantes
-        if (this.targetDestination === 'BLOQUE' && this.unidadesSobrantes > 0) {
-          this.leftoverBasket.push({
-            id: nextId(),
-            sourceSubLotId: state.item.subLotId,
-            lote: loteCompleto,
-            brandName,
-            talla: this.tallaClaseA!.displayName,
-            qualityClass: state.item.qualityClass,
-            subtype: this.selectedSubtype!,
-            hidratacion: this.hydrationType !== 'NINGUNO',
-            unidades: this.unidadesSobrantes,
-            librasEstimadas: this.pesoSobrantes,
-            timestamp: new Date()
-          });
-          this.saveLeftoversToStorage();
-          this.rebuildLeftoverGroups();
         }
 
         // Registrar Bloque

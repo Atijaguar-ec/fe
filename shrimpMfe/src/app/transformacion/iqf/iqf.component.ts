@@ -62,7 +62,7 @@ interface FormatOption {
         </div>
         <div class="input-row-2">
           <div class="input-group">
-            <label class="input-label">Presentación Comercial</label>
+            <label class="input-label">Marca</label>
             <div class="presentation-selector-box" *ngIf="selectedPresentation">
               <div class="presentation-info">
                 <strong>{{ selectedPresentation.brandName }}</strong> — {{ selectedPresentation.style || '-' }}
@@ -72,7 +72,7 @@ interface FormatOption {
               <button class="btn btn-outline-secondary btn-sm" (click)="openPresentationModal()">Cambiar</button>
             </div>
             <button class="btn btn-outline-primary w-full" *ngIf="!selectedPresentation" (click)="openPresentationModal()">
-              🔍 Buscar Presentación
+              🔍 Buscar Marca
             </button>
           </div>
           <div class="input-group">
@@ -180,7 +180,7 @@ export class IqfComponent implements OnInit {
   selectedItem: TransformWorkItem | null = null;
   mastersCount = 0;
   mastersTotalLbs = 0;
-  COMPANY_ID = 1;
+  COMPANY_ID: number | null = null;
   isPresentationModalOpen = false;
 
   glazeOptions: string[] = [];
@@ -194,8 +194,10 @@ export class IqfComponent implements OnInit {
   ngOnInit(): void {
     this.dataService.getActiveCompany().subscribe(company => {
       const companyIds = company?.data?.companyIds || company?.companyIds || [];
-      this.COMPANY_ID = companyIds.length > 0 ? companyIds[0] : 1;
-      this.loadPresentations();
+      this.COMPANY_ID = companyIds.length > 0 ? companyIds[0] : null;
+      if (this.COMPANY_ID) {
+        this.loadPresentations();
+      }
     });
     this.loadWorkItems();
   }
@@ -314,6 +316,7 @@ export class IqfComponent implements OnInit {
     });
     this.selectedItem = null;
     this.resetForm();
+    this.loadWorkItems();
   }
 
   get totalReceivedLbs(): number { return this.workItems.filter(w => w.libras).reduce((s, w) => s + (w.libras ?? 0), 0); }
