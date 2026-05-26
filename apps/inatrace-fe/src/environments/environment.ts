@@ -32,7 +32,7 @@ export const environment = {
   beycoAuthURL: (window['env'] || {})['beycoAuthURL'] || '',
   beycoClientId: (window['env'] || {})['beycoClientId'] || '',
   apiBaseUrl: (window['env'] || {})['apiBaseUrl'] || 'http://localhost:8082/api',
-  keycloakUrl: (window['env'] || {})['keycloakUrl'] || 'http://Alvaros-MacBook-Pro.local:8080/',
+  keycloakUrl: (window['env'] || {})['keycloakUrl'] || 'http://alvaros-macbook-pro.local:8080/',
   keycloakRealm: (window['env'] || {})['keycloakRealm'] || 'inatrace_duffer',
   keycloakClientId: (window['env'] || {})['keycloakClientId'] || 'inatrace-frontend',
   enableShrimpModule: (window['env'] || {})['enableShrimpModule'] === 'true'

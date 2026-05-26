@@ -520,11 +520,20 @@ export class ClassificationComponent implements OnInit {
     // 3. talla.id as last resort (will likely fail, but surfaces a clear backend error)
     let spId: number | undefined = r.talla.semiProductId ?? undefined;
     if (!spId) {
+      // Tier 2: Name-based lookup in Core semi-products
       const spByName = this.allSemiProducts.find(s =>
         s.name === ('Talla ' + r.talla.name) ||
         s.name.includes(r.talla.name)
       );
       spId = spByName?.id;
+    }
+    if (!spId) {
+      // Tier 3: Fallback to base product type (Entero/Cola)
+      const pType = this.detectProductType();
+      const baseName = pType === 'COLA' ? 'Cola' : 'Entero';
+      const baseSp = this.allSemiProducts.find(s => s.name === baseName);
+      spId = baseSp?.id;
+      console.warn(`[Clasificacion] Talla "${r.talla.name}" sin semiProduct, usando fallback "${baseName}" (id=${spId})`);
     }
     if (!spId) {
       console.error('[Clasificacion] No se pudo resolver semiProductId para talla:', r.talla);

@@ -810,8 +810,8 @@ export class ReceptionComponent implements OnInit {
     
     const isEditing = !!this.editingRecordId;
     
-    // 4.5 lbs de tara estándar por cada gaveta/bin plástico en DUFER
-    const TARE_PER_BIN = 4.5;
+    // Se establece la tara en 0.0 para que el peso bruto ingresado sea igual al neto
+    const TARE_PER_BIN = 0.0;
     const calculatedTare = this.bines! * TARE_PER_BIN;
 
     // Preparar payload para el Core
