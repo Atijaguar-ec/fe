@@ -60,7 +60,7 @@ pipeline {
 
   environment {
     REGISTRY = 'ghcr.io'
-    NODE_VERSION = '14'
+    NODE_VERSION = '20'
     DOCKER_BUILDKIT = '1'
     COMPOSE_DOCKER_CLI_BUILD = '1'
     COMPOSE_DIR = 'ci'
