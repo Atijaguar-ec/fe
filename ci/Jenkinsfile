@@ -385,7 +385,7 @@ ENABLE_SHRIMP_MODULE=false
 APP_BASE_URL=https://inatrace.espam.edu.ec
 API_BASE_URL=https://inatrace.espam.edu.ec/api
 KEYCLOAK_URL=https://inatrace.espam.edu.ec/auth/
-KEYCLOAK_REALM=inatrace
+KEYCLOAK_REALM=inatrace_fortaleza
 KEYCLOAK_CLIENT_ID=inatrace-frontend
 """.stripIndent().trim() + '\n'
           writeFile file: "${env.WORKSPACE}/ci/.env.deploy", text: envContent
