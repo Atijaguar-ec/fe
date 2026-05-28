@@ -380,6 +380,7 @@ HEALTHCHECK_RETRIES=3
 HEALTHCHECK_START_PERIOD=10s
 NGINX_CONF_PATH=./nginx.conf
 ENABLE_SHRIMP_MODULE=false
+COMPOSE_PROJECT_NAME=inatrace-frontend-fortaleza
 
 # Keycloak and API variables for Production
 APP_BASE_URL=https://inatrace.espam.edu.ec
