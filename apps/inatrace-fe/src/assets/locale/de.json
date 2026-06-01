@@ -3196,7 +3196,28 @@
   "productLabel.b2c.productTitleColor": "Product title color",
   "productLabel.b2c.graphicQuality": "Enable 'Quality' graphic",
   "productLabel.sideTitle.archiveProduct": "Archive product",
-  "productLabelPayments.tableCol.delete": "Delete",
+  "productLabelPayments.tableCol.delete": "Löschen",
   "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Total quantities",
-  "productLabelStockProcessingOrderDetail.orderID.label": "Order ID:"
+  "productLabelStockProcessingOrderDetail.orderID.label": "Order ID:",
+  "productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name": "Firmeninterne ID",
+  "collectorDetail.textinput.areaUnit.error": "Flächeneinheit ist erforderlich",
+  "productLabelPayments": {
+    "tableCol": {
+      "delete": "Löschen"
+    }
+  },
+  "collectorDetail": {
+    "textinput": {
+      "areaUnit": {
+        "error": "Flächeneinheit ist erforderlich"
+      }
+    }
+  },
+  "productLabelStakeholdersCollectors": {
+    "sortOptions": {
+      "farmerCompanyInternalId": {
+        "name": "Firmeninterne ID"
+      }
+    }
+  }
 }

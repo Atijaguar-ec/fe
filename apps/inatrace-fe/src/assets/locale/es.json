@@ -3261,7 +3261,7 @@
   },
   "productLabelPayments": {
     "tableCol": {
-      "delete": " Eliminar "
+      "delete": "Eliminar"
     }
   },
   "productLabelStockProcessingOrderDetail": {
@@ -3281,5 +3281,21 @@
   "productLabel.sideTitle.archiveProduct": "Archivar producto",
   "productLabelPayments.tableCol.delete": "Eliminar",
   "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Cantidades totales",
-  "productLabelStockProcessingOrderDetail.orderID.label": "ID de pedido:"
+  "productLabelStockProcessingOrderDetail.orderID.label": "ID de pedido:",
+  "productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name": "Cédula/ID",
+  "collectorDetail.textinput.areaUnit.error": "La unidad de área es requerida",
+  "collectorDetail": {
+    "textinput": {
+      "areaUnit": {
+        "error": "La unidad de área es requerida"
+      }
+    }
+  },
+  "productLabelStakeholdersCollectors": {
+    "sortOptions": {
+      "farmerCompanyInternalId": {
+        "name": "Cédula/ID"
+      }
+    }
+  }
 }

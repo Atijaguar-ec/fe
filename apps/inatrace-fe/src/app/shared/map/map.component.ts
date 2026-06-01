@@ -276,30 +276,43 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.subscriptions.add(
       this.mapStyle.valueChanges.subscribe((value) => {
         if (this.map) {
-          this.map.setStyle(`${this.MAPBOX_STYLE_BASE_PATH}${value}`);
+          if (!environment.mapboxAccessToken) {
+            console.warn('Mapbox Access Token is missing. Switching to free raster fallback style.');
+            this.map.setStyle(this.getFreeFallbackStyle(value));
+          } else {
+            this.map.setStyle(`${this.MAPBOX_STYLE_BASE_PATH}${value}`);
+          }
         }
       }),
     );
   }
 
-  flyToCurrentPosition(): void {
-    navigator.geolocation.getCurrentPosition((position) => {
-      if (this.map) {
-        this.map.flyTo({
-          center: [position.coords.longitude, position.coords.latitude],
-        });
-      }
-    });
-  }
-
-  buildMap(): void {
-    let mapStyleDefinition: any = `${this.MAPBOX_STYLE_BASE_PATH}${this.mapStyle.value}`;
-
-    if (!environment.mapboxAccessToken) {
-      console.warn(
-        'Mapbox Access Token is missing. Falling back to OpenStreetMap free raster tiles.',
-      );
-      mapStyleDefinition = {
+  getFreeFallbackStyle(value: string): any {
+    if (value === 'satellite-streets-v12') {
+      return {
+        version: 8,
+        sources: {
+          'esri-tiles': {
+            type: 'raster',
+            tiles: [
+              'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+            ],
+            tileSize: 256,
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS'
+          }
+        },
+        layers: [
+          {
+            id: 'esri-tiles-layer',
+            type: 'raster',
+            source: 'esri-tiles',
+            minzoom: 0,
+            maxzoom: 19
+          }
+        ]
+      };
+    } else {
+      return {
         version: 8,
         sources: {
           'osm-tiles': {
@@ -322,6 +335,27 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         ]
       };
     }
+  }
+
+  flyToCurrentPosition(): void {
+    navigator.geolocation.getCurrentPosition((position) => {
+      if (this.map) {
+        this.map.flyTo({
+          center: [position.coords.longitude, position.coords.latitude],
+        });
+      }
+    });
+  }
+
+  buildMap(): void {
+    let mapStyleDefinition: any = `${this.MAPBOX_STYLE_BASE_PATH}${this.mapStyle.value}`;
+
+    if (!environment.mapboxAccessToken) {
+      console.warn(
+        'Mapbox Access Token is missing. Falling back to free raster tiles.',
+      );
+      mapStyleDefinition = this.getFreeFallbackStyle(this.mapStyle.value);
+    }
  
     const mapOptions: any = {
       accessToken: environment.mapboxAccessToken || 'INVALID_TOKEN_FALLBACK', // Maplibre internally demands a string here but won't validate it if tile source doesn't require it
@@ -341,6 +375,35 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.map.on('click', (e) => this.mapClicked(e));
     this.map.on('load', () => this.mapLoaded());
+
+    // Re-draw layers (polygons) when map style is loaded or conmuted
+    this.map.on('style.load', () => {
+      this.rebuildPlotsAndLayers();
+    });
+  }
+
+  rebuildPlotsAndLayers() {
+    if (!this.map) {
+      return;
+    }
+
+    if (!this.editMode) {
+      if (this.plots && this.plots.length > 0) {
+        this.plots.forEach((plot) => {
+          this.showPlot(
+            plot.plotName,
+            this.getCoordinatesArray(plot.coordinates),
+          );
+        });
+      }
+    } else {
+      if (this.showPlotVisible) {
+        this.showPlot(
+          'polygonPreview',
+          this.getCoordinatesArray(this.plotCoordinates),
+        );
+      }
+    }
   }
 
   placeMarkerOnMap(lat: number, lng: number, plot?: ApiPlot, isPin?: boolean) {
@@ -532,7 +595,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.plots && this.plots.length > 0) {
         this.setExistingPlots(this.plots);
       } else {
-        if (this.pin?.latitude && this.pin?.longitude) {
+        if (this.pin && this.pin.latitude != null && !isNaN(Number(this.pin.latitude)) && this.pin.longitude != null && !isNaN(Number(this.pin.longitude))) {
           this.setPin(this.pin);
           this.map.fitBounds(this.getInitialMapExtremes(this.plotCoordinates));
         }

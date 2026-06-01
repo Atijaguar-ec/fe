@@ -3295,7 +3295,7 @@
   },
   "productLabelPayments": {
     "tableCol": {
-      "delete": " Delete "
+      "delete": "Delete"
     }
   },
   "productLabelStockProcessingOrderDetail": {
@@ -3315,5 +3315,21 @@
   "productLabel.sideTitle.archiveProduct": "Archive product",
   "productLabelPayments.tableCol.delete": "Delete",
   "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Total quantities",
-  "productLabelStockProcessingOrderDetail.orderID.label": "Order ID:"
+  "productLabelStockProcessingOrderDetail.orderID.label": "Order ID:",
+  "productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name": "Company Internal ID",
+  "collectorDetail.textinput.areaUnit.error": "Area unit is required",
+  "collectorDetail": {
+    "textinput": {
+      "areaUnit": {
+        "error": "Area unit is required"
+      }
+    }
+  },
+  "productLabelStakeholdersCollectors": {
+    "sortOptions": {
+      "farmerCompanyInternalId": {
+        "name": "Company Internal ID"
+      }
+    }
+  }
 }

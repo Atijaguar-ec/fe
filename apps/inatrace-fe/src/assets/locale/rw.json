@@ -3290,7 +3290,28 @@
   "productLabel.b2c.productTitleColor": "Product title color",
   "productLabel.b2c.graphicQuality": "Enable 'Quality' graphic",
   "productLabel.sideTitle.archiveProduct": "Archive product",
-  "productLabelPayments.tableCol.delete": "Delete",
+  "productLabelPayments.tableCol.delete": "Gusiba",
   "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Total quantities",
-  "productLabelStockProcessingOrderDetail.orderID.label": "Order ID:"
+  "productLabelStockProcessingOrderDetail.orderID.label": "Order ID:",
+  "productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name": "Nomero y'umuhinzi",
+  "collectorDetail.textinput.areaUnit.error": "Ingano y'umurima irasabwa",
+  "productLabelPayments": {
+    "tableCol": {
+      "delete": "Gusiba"
+    }
+  },
+  "collectorDetail": {
+    "textinput": {
+      "areaUnit": {
+        "error": "Ingano y'umurima irasabwa"
+      }
+    }
+  },
+  "productLabelStakeholdersCollectors": {
+    "sortOptions": {
+      "farmerCompanyInternalId": {
+        "name": "Nomero y'umuhinzi"
+      }
+    }
+  }
 }
