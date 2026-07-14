@@ -760,6 +760,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   get showOrganic() {
+    if (this.companyProfile?.configuration?.onlyOrganicProduction === true) {
+      return false;
+    }
     return this.facility && this.facility.displayOrganic || this.stockOrderForm.get('organic').value;
   }
 
@@ -992,6 +995,20 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if (pd != null) {
       this.stockOrderForm.get('productionDate').setValue(dateISOString(pd));
     }
+    if (this.companyProfile?.configuration?.onlyOrganicProduction === true) {
+      this.stockOrderForm.get('organic').setValue('true');
+      const certs = this.getDefaultFDVCertifications();
+      if (certs) {
+        this.stockOrderForm.get('organicCertification').setValue(certs);
+      }
+    }
+  }
+
+  private getDefaultFDVCertifications(): string {
+    if (this.companyProfile?.certifications && this.companyProfile.certifications.length > 0) {
+      return this.companyProfile.certifications.map(c => c.type).filter(Boolean).join(', ');
+    }
+    return '';
   }
 
   private async setIdentifier() {

@@ -363,6 +363,13 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
       ApiPurchaseOrderFarmerValidationScheme(),
     );
 
+    if (this.companyProfile?.configuration?.onlyOrganicProduction === true) {
+      const organicControl = this.emptyFarmersFormArray.get('organic');
+      if (organicControl) {
+        organicControl.setValue('true');
+      }
+    }
+
     this.farmersFormArray.push(_.cloneDeep(this.emptyFarmersFormArray));
 
     // Initialize preferred way of payments
@@ -685,6 +692,9 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   showOrganic(idx: number) {
+    if (this.companyProfile?.configuration?.onlyOrganicProduction === true) {
+      return false;
+    }
     return (
       (this.facility && this.facility.displayOrganic) ||
       this.farmersFormArray.at(idx).get('organic').value

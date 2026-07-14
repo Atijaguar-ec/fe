@@ -265,6 +265,7 @@
                     </single-choice>
 
                     <checkbox-input
+                      *ngIf="companyProfile?.configuration?.onlyOrganicProduction !== true"
                       [form]="organicFormControl"
                       (onClick)="refreshDeliveriesData()"
                     >

@@ -2995,6 +2995,8 @@
     "breadCrumb.stockOrders.beycoOrder": "Exportar a Beyco",
     "companyDetail.beycoIntegration.title": "Integración Beyco",
     "companyDetail.beycoIntegration.allowConfirmation": "La empresa está autorizada a exportar existencias a la plataforma Beyco",
+    "companyDetail.configuration.title": "Configuración de la empresa",
+    "companyDetail.configuration.onlyOrganicProduction": "Solo producción orgánica (automatiza y oculta los campos de certificación orgánica)",
     "productLabelStakeholders.dataSharingAgreements.listEditor.item.attachment-uploader.content": "Suba acuerdo de transferencia de datos",
     "stockOrderItem.textinput.currencyForEndCustomer.label": "Moneda nacional del consumidor",
     "stockOrderItem.textinput.currencyForEndCustomer.error.required": "Se requiere moneda nacional del consumidor",

@@ -543,6 +543,25 @@
 
       <div class="af-form-row">
         <div class="af-form-block--c12">
+          <h2 i18n="@@companyDetail.configuration.title">
+            Configuración de la empresa
+          </h2>
+          <div class="af-form-element pt-0">
+            <checkbox-input
+              [form]="onlyOrganicProductionControl"
+            >
+              <checkbox-input-rich-label
+                i18n="@@companyDetail.configuration.onlyOrganicProduction"
+              >
+                Solo producción orgánica (automatiza y oculta los campos de certificación orgánica).
+              </checkbox-input-rich-label>
+            </checkbox-input>
+          </div>
+        </div>
+      </div>
+
+      <div class="af-form-row">
+        <div class="af-form-block--c12">
           <h2 i18n="@@companyDetail.beycoIntegration.title">
             Beyco Integration
           </h2>
