@@ -572,7 +572,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if ((this.order as any)?.variety != null) {
       this.ensureVarietyOption((this.order as any).variety);
       this.stockOrderForm.get('variety').setValue((this.order as any).variety);
-    } else if (this.companyProfile?.configuration?.onlyNacionalVariety) {
+    }
+    // Si la empresa usa solo variedad Nacional, siempre sobrescribir con NACIONAL
+    if (this.companyProfile?.configuration?.onlyNacionalVariety) {
       this.stockOrderForm.get('variety').setValue('NACIONAL');
     }
     // Ensure organicCertification control exists and set value if backend provides it
