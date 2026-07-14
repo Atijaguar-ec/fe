@@ -224,7 +224,7 @@
                     {{ tx.sourceStockOrder.identifier }}
                     {{ tx.sourceStockOrder.internalLotNumber }} ({{
                       tx.status
-                    }})</span
+                    }})<span *ngIf="tx.sourceStockOrder.variety" class="text-info font-weight-bold"> - {{ tx.sourceStockOrder.variety }}</span></span
                   >
                   <span *ngIf="tx.sourceStockOrder.productionDate" class="ml-2 text-muted">{{ tx.sourceStockOrder.productionDate | date:'dd/MM/yyyy' }}</span>
                   <span
@@ -336,14 +336,14 @@
             <div class="af-c8">
               <ng-container *ngIf="item.orderType === 'PURCHASE_ORDER'">
                 <span
-                  >{{ item.lotPrefix }} {{ item.identifier }} {{ item.internalLotNumber }} ({{ formatUserCustomer(item.producerUserCustomer) }})</span
+                  >{{ item.lotPrefix }} {{ item.identifier }} {{ item.internalLotNumber }} ({{ formatUserCustomer(item.producerUserCustomer) }})<span *ngIf="item.variety" class="text-info font-weight-bold"> - {{ item.variety }}</span></span
                 >
                 <span *ngIf="item.productionDate" class="ml-2 text-muted">{{ item.productionDate | date:'dd/MM/yyyy' }}</span>
               </ng-container>
               <ng-container *ngIf="item.orderType != 'PURCHASE_ORDER'">
                 <span
                   >{{ item.lotPrefix }} {{ item.identifier }}
-                  {{ item.internalLotNumber }}</span
+                  {{ item.internalLotNumber }}<span *ngIf="item.variety" class="text-info font-weight-bold"> - {{ item.variety }}</span></span
                 >
                 <span *ngIf="item.productionDate" class="ml-2 text-muted">{{ item.productionDate | date:'dd/MM/yyyy' }}</span>
                 <span
