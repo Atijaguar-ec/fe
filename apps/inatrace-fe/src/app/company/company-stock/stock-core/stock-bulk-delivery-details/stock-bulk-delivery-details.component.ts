@@ -942,10 +942,17 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   private async setIdentifiers() {
+    const countCache: { [key: string]: number } = {};
+
     await Promise.all(
       this.farmersFormArray.controls.map(async (control) => {
+        const farmerId = control.get('producerUserCustomer').value?.id;
+        const productionDate = this.purchaseOrderBulkForm.get('productionDate').value;
+        const companyId = this.companyProfile?.id;
+        if (!farmerId || !productionDate) return;
+
         const farmerResponse = await this.companyControllerService
-          .getUserCustomer(control.get('producerUserCustomer').value?.id)
+          .getUserCustomer(farmerId)
           .pipe(take(1))
           .toPromise();
 
@@ -954,11 +961,36 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
           farmerResponse.status === StatusEnum.OK &&
           farmerResponse.data
         ) {
+          const cacheKey = `${farmerId}_${productionDate}`;
+          if (countCache[cacheKey] === undefined) {
+            let count = 0;
+            if (companyId) {
+              const ordersRes = await this.stockOrderControllerService.getStockOrdersInFacilityForCustomerByMap({
+                companyId,
+                limit: 1000,
+                offset: 0,
+                companyCustomerId: farmerId
+              }).pipe(take(1)).toPromise();
+
+              if (ordersRes && ordersRes.status === StatusEnum.OK && ordersRes.data && ordersRes.data.items) {
+                count = ordersRes.data.items.filter(o => o.productionDate === productionDate && o.identifier?.startsWith('PT-')).length;
+              }
+            }
+            countCache[cacheKey] = count;
+          }
+
+          countCache[cacheKey]++;
+          const seq = countCache[cacheKey];
+
+          const internalId = farmerResponse.data.farmerCompanyInternalId ? ` (${farmerResponse.data.farmerCompanyInternalId})` : '';
           const identifier =
             'PT-' +
             farmerResponse.data.surname +
+            internalId +
             '-' +
-            this.purchaseOrderBulkForm.get('productionDate').value;
+            productionDate +
+            '-' +
+            seq;
           control.get('identifier').setValue(identifier);
         }
       }),

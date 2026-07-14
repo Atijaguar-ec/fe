@@ -1000,7 +1000,27 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       .getUserCustomer(this.stockOrderForm.get('producerUserCustomer').value?.id).pipe(take(1)).toPromise();
 
     if (farmerResponse && farmerResponse.status === StatusEnum.OK && farmerResponse.data) {
-      const identifier = 'PT-' + farmerResponse.data.surname + '-' + this.stockOrderForm.get('productionDate').value;
+      const farmerId = farmerResponse.data.id;
+      const productionDate = this.stockOrderForm.get('productionDate').value;
+      const companyId = this.companyProfile?.id;
+
+      let seq = 1;
+      if (companyId && farmerId && productionDate) {
+        const ordersRes = await this.stockOrderControllerService.getStockOrdersInFacilityForCustomerByMap({
+          companyId,
+          limit: 1000,
+          offset: 0,
+          companyCustomerId: farmerId
+        }).pipe(take(1)).toPromise();
+
+        if (ordersRes && ordersRes.status === StatusEnum.OK && ordersRes.data && ordersRes.data.items) {
+          const sameDayOrders = ordersRes.data.items.filter(o => o.productionDate === productionDate && o.identifier?.startsWith('PT-'));
+          seq = sameDayOrders.length + 1;
+        }
+      }
+
+      const internalId = farmerResponse.data.farmerCompanyInternalId ? ` (${farmerResponse.data.farmerCompanyInternalId})` : '';
+      const identifier = 'PT-' + farmerResponse.data.surname + internalId + '-' + productionDate + '-' + seq;
       this.stockOrderForm.get('identifier').setValue(identifier);
     }
   }
