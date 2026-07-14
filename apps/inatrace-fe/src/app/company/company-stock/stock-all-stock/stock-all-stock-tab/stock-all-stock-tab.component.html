@@ -290,6 +290,16 @@
             </div>
 
             <button
+              (click)="exportGroupedStockToExcel()"
+              class="btn ml-2"
+              type="button"
+            >
+              <span i18n="@@productLabelStock.button.exportExcel"
+                >Export to Excel</span
+              >
+            </button>
+
+            <button
               *ngIf="isAuthRoleToExportToBeyco && isBeycoAuthorized"
               [disabled]="
                 !showGroupView ||

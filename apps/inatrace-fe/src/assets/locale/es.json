@@ -221,9 +221,9 @@
     "collectorDetail.textinput.name.error": "Se requiere el nombre",
     "collectorDetail.textinput.areaUnit.required.error": "Se requiere una unidad de área",
     "collectorDetail.textinput.userCustomerId.label": "ID de usuario",
-    "collectorDetail.textinput.farmerCompanyInternalId.label": "Identificación interna del agricultor (ID)",
-    "collectorDetail.textinput.farmerCompanyInternalId.placeholder": "Introduzca identificación interna del agricultor (ID)",
-    "collectorDetail.textinput.farmerCompanyInternalId.error": "Se requiere Identificación interna del agricultor (ID)",
+    "collectorDetail.textinput.farmerCompanyInternalId.label": "Identificación del agricultor (Cédula)",
+    "collectorDetail.textinput.farmerCompanyInternalId.placeholder": "Ingrese la cédula del agricultor",
+    "collectorDetail.textinput.farmerCompanyInternalId.error": "La cédula del agricultor es requerida",
     "collectorDetail.list-editor.cooperatives.label": "Proveedor de",
     "collectorDetail.list-editor.cooperatives.addText": "Añadir nuevo",
     "collectorDetail.section.balance": "Saldo del agricultor",
@@ -3245,6 +3245,57 @@
     "guidedTour.paymentsSection.addPaymentButton": "Aquí puede añadir un nuevo pago. También puede ir al menú de entregas y seleccionar 'Añadir pago de saldo' en el menú Acción.",
     "guidedTour.allStockSection.title": "TODAS LAS EXISTENCIAS",
     "guidedTour.allStockSection.allStockSubmenu": "En el submenú 'Todas las existencias' encontrará todos los productos disponibles en sus instalaciones y podrá acceder al historial de existencias, a los datos geográficos y a los códigos QR generados.",
-    "guidedTour.allStockSection.selectFacility": "Aquí selecciona la instalación donde se encuentra actualmente su (semi) producto."
+    "guidedTour.allStockSection.selectFacility": "Aquí selecciona la instalación donde se encuentra actualmente su (semi) producto.",
+    "productLabelStock.button.exportExcel": "Exportar a Excel",
+    "collectorDetail.section.plots": " Parcelas ",
+    "breadCrumb.orders.globalOrder": "Orden",
+    "orderList.sortOptions.orderId.name": "ID de Orden"
+  },
+  "productLabel": {
+    "b2c": {
+      "tertiaryColor": "Color terciario",
+      "quaternaryColor": "Color cuaternario",
+      "productTitleColor": "Color del título del producto",
+      "graphicQuality": " Habilitar gráfico de 'Calidad' "
+    }
+  },
+  "productLabelPayments": {
+    "tableCol": {
+      "delete": "Eliminar"
+    }
+  },
+  "productLabelStockProcessingOrderDetail": {
+    "section": {
+      "output": {
+        "totalQuantitiesSectionTitle": " Cantidades totales "
+      }
+    },
+    "orderID": {
+      "label": "ID de pedido:"
+    }
+  },
+  "productLabel.b2c.tertiaryColor": "Color terciario",
+  "productLabel.b2c.quaternaryColor": "Color cuaternario",
+  "productLabel.b2c.productTitleColor": "Color del título del producto",
+  "productLabel.b2c.graphicQuality": "Habilitar gráfico de 'Calidad'",
+  "productLabel.sideTitle.archiveProduct": "Archivar producto",
+  "productLabelPayments.tableCol.delete": "Eliminar",
+  "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Cantidades totales",
+  "productLabelStockProcessingOrderDetail.orderID.label": "ID de pedido:",
+  "productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name": "Cédula/ID",
+  "collectorDetail.textinput.areaUnit.error": "La unidad de área es requerida",
+  "collectorDetail": {
+    "textinput": {
+      "areaUnit": {
+        "error": "La unidad de área es requerida"
+      }
+    }
+  },
+  "productLabelStakeholdersCollectors": {
+    "sortOptions": {
+      "farmerCompanyInternalId": {
+        "name": "Cédula/ID"
+      }
+    }
   }
 }

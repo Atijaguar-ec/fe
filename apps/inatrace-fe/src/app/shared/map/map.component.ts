@@ -121,23 +121,25 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   getInitialMapExtremes(
     coordinates: Array<ApiPlotCoordinate>,
   ): [[number, number], [number, number]] {
-    let latMin = coordinates[0].latitude;
-    let latMax = coordinates[0].latitude;
-    let lngMin = coordinates[0].longitude;
-    let lngMax = coordinates[0].longitude;
+    let latMin = Number(coordinates[0].latitude);
+    let latMax = Number(coordinates[0].latitude);
+    let lngMin = Number(coordinates[0].longitude);
+    let lngMax = Number(coordinates[0].longitude);
 
     coordinates.forEach((v) => {
-      if (latMax < v.latitude) {
-        latMax = v.latitude;
+      let lat = Number(v.latitude);
+      let lng = Number(v.longitude);
+      if (latMax < lat) {
+        latMax = lat;
       }
-      if (latMin > v.latitude) {
-        latMin = v.latitude;
+      if (latMin > lat) {
+        latMin = lat;
       }
-      if (lngMax < v.longitude) {
-        lngMax = v.longitude;
+      if (lngMax < lng) {
+        lngMax = lng;
       }
-      if (lngMin > v.longitude) {
-        lngMin = v.longitude;
+      if (lngMin > lng) {
+        lngMin = lng;
       }
     });
     const offset = 0.02;
@@ -178,7 +180,10 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const allPlotsCoordinates = [];
     plots.forEach((plot) => {
-      allPlotsCoordinates.push(...plot.coordinates);
+      if (plot.coordinates) {
+        const valid = plot.coordinates.filter(c => c && c.longitude != null && !isNaN(Number(c.longitude)) && c.latitude != null && !isNaN(Number(c.latitude)));
+        allPlotsCoordinates.push(...valid);
+      }
     });
 
     if (allPlotsCoordinates.length > 0) {
@@ -198,8 +203,11 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.markers.length > 0) {
       this.deletePlot();
     }
-    coordinates.forEach((v) => this.placeMarkerOnMap(v.latitude, v.longitude));
-    this.map.fitBounds(this.getInitialMapExtremes(this.plotCoordinates));
+    const validCoords = coordinates ? coordinates.filter(c => c && c.longitude != null && !isNaN(Number(c.longitude)) && c.latitude != null && !isNaN(Number(c.latitude))) : [];
+    validCoords.forEach((v) => this.placeMarkerOnMap(Number(v.latitude), Number(v.longitude)));
+    if (validCoords.length > 0) {
+      this.map.fitBounds(this.getInitialMapExtremes(validCoords));
+    }
     this.plotCoordinatesChange.emit(this.plotCoordinates);
   }
 
@@ -268,30 +276,43 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.subscriptions.add(
       this.mapStyle.valueChanges.subscribe((value) => {
         if (this.map) {
-          this.map.setStyle(`${this.MAPBOX_STYLE_BASE_PATH}${value}`);
+          if (!environment.mapboxAccessToken) {
+            console.warn('Mapbox Access Token is missing. Switching to free raster fallback style.');
+            this.map.setStyle(this.getFreeFallbackStyle(value));
+          } else {
+            this.map.setStyle(`${this.MAPBOX_STYLE_BASE_PATH}${value}`);
+          }
         }
       }),
     );
   }
 
-  flyToCurrentPosition(): void {
-    navigator.geolocation.getCurrentPosition((position) => {
-      if (this.map) {
-        this.map.flyTo({
-          center: [position.coords.longitude, position.coords.latitude],
-        });
-      }
-    });
-  }
-
-  buildMap(): void {
-    let mapStyleDefinition: any = `${this.MAPBOX_STYLE_BASE_PATH}${this.mapStyle.value}`;
-
-    if (!environment.mapboxAccessToken) {
-      console.warn(
-        'Mapbox Access Token is missing. Falling back to OpenStreetMap free raster tiles.',
-      );
-      mapStyleDefinition = {
+  getFreeFallbackStyle(value: string): any {
+    if (value === 'satellite-streets-v12') {
+      return {
+        version: 8,
+        sources: {
+          'esri-tiles': {
+            type: 'raster',
+            tiles: [
+              'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+            ],
+            tileSize: 256,
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS'
+          }
+        },
+        layers: [
+          {
+            id: 'esri-tiles-layer',
+            type: 'raster',
+            source: 'esri-tiles',
+            minzoom: 0,
+            maxzoom: 19
+          }
+        ]
+      };
+    } else {
+      return {
         version: 8,
         sources: {
           'osm-tiles': {
@@ -314,13 +335,34 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         ]
       };
     }
+  }
+
+  flyToCurrentPosition(): void {
+    navigator.geolocation.getCurrentPosition((position) => {
+      if (this.map) {
+        this.map.flyTo({
+          center: [position.coords.longitude, position.coords.latitude],
+        });
+      }
+    });
+  }
+
+  buildMap(): void {
+    let mapStyleDefinition: any = `${this.MAPBOX_STYLE_BASE_PATH}${this.mapStyle.value}`;
+
+    if (!environment.mapboxAccessToken) {
+      console.warn(
+        'Mapbox Access Token is missing. Falling back to free raster tiles.',
+      );
+      mapStyleDefinition = this.getFreeFallbackStyle(this.mapStyle.value);
+    }
  
     const mapOptions: any = {
       accessToken: environment.mapboxAccessToken || 'INVALID_TOKEN_FALLBACK', // Maplibre internally demands a string here but won't validate it if tile source doesn't require it
       container: this.mapId, // id of div that holds the map
       style: mapStyleDefinition,
       zoom: 10,
-      center: [this.initialLng ?? 14.995463, this.initialLat ?? 46.151241],
+      center: [this.initialLng ?? -78.1834, this.initialLat ?? -1.8312],
       cooperativeGestures: true,
     };
     this.map = new mapboxgl.Map(mapOptions);
@@ -333,6 +375,35 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.map.on('click', (e) => this.mapClicked(e));
     this.map.on('load', () => this.mapLoaded());
+
+    // Re-draw layers (polygons) when map style is loaded or conmuted
+    this.map.on('style.load', () => {
+      this.rebuildPlotsAndLayers();
+    });
+  }
+
+  rebuildPlotsAndLayers() {
+    if (!this.map) {
+      return;
+    }
+
+    if (!this.editMode) {
+      if (this.plots && this.plots.length > 0) {
+        this.plots.forEach((plot) => {
+          this.showPlot(
+            plot.plotName,
+            this.getCoordinatesArray(plot.coordinates),
+          );
+        });
+      }
+    } else {
+      if (this.showPlotVisible) {
+        this.showPlot(
+          'polygonPreview',
+          this.getCoordinatesArray(this.plotCoordinates),
+        );
+      }
+    }
   }
 
   placeMarkerOnMap(lat: number, lng: number, plot?: ApiPlot, isPin?: boolean) {
@@ -524,7 +595,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.plots && this.plots.length > 0) {
         this.setExistingPlots(this.plots);
       } else {
-        if (this.pin?.latitude && this.pin?.longitude) {
+        if (this.pin && this.pin.latitude != null && !isNaN(Number(this.pin.latitude)) && this.pin.longitude != null && !isNaN(Number(this.pin.longitude))) {
           this.setPin(this.pin);
           this.map.fitBounds(this.getInitialMapExtremes(this.plotCoordinates));
         }
@@ -656,8 +727,15 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getCoordinatesArray(plotCoordinates: ApiPlotCoordinate[]): number[][] {
+    if (!plotCoordinates || plotCoordinates.length === 0) {
+      return [];
+    }
+    const validCoords = plotCoordinates.filter(c => c && c.longitude != null && !isNaN(Number(c.longitude)) && c.latitude != null && !isNaN(Number(c.latitude)));
+    if (validCoords.length === 0) {
+      return [];
+    }
     const coords = [];
-    plotCoordinates.forEach((v) => coords.push([v.longitude, v.latitude]));
+    validCoords.forEach((v) => coords.push([Number(v.longitude), Number(v.latitude)]));
     coords.push(coords[0]);
     return coords;
   }
@@ -665,17 +743,24 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   private setPlotCenterMarker(plot: ApiPlot) {
     const plotCoordinates: ApiPlotCoordinate[] = plot.coordinates;
 
-    let lonCenter = plotCoordinates.reduce(
-      (sum, element) => (sum += element.longitude),
-      0,
-    );
-    lonCenter = lonCenter / plotCoordinates.length;
+    if (!plotCoordinates || plotCoordinates.length === 0) {
+      return;
+    }
 
-    let latCenter = plotCoordinates.reduce(
-      (sum, element) => (sum += element.latitude),
+    let validCoords = plotCoordinates.filter(c => c && c.longitude != null && !isNaN(Number(c.longitude)) && c.latitude != null && !isNaN(Number(c.latitude)));
+    if (validCoords.length === 0) return;
+
+    let lonCenter = validCoords.reduce(
+      (sum, element) => (sum += Number(element.longitude)),
       0,
     );
-    latCenter = latCenter / plotCoordinates.length;
+    lonCenter = lonCenter / validCoords.length;
+
+    let latCenter = validCoords.reduce(
+      (sum, element) => (sum += Number(element.latitude)),
+      0,
+    );
+    latCenter = latCenter / validCoords.length;
 
     this.placeMarkerOnMap(latCenter, lonCenter, plot);
   }

@@ -321,4 +321,51 @@ export class GroupStockOrderControllerService {
         return handle;
     }
 
+    /**
+     * Export grouped stock orders to Excel by company
+     * 
+     * @param companyId Company ID
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public exportGroupedStockOrdersExcelByCompany(companyId: number, observe: any = 'body', reportProgress: boolean = false, additionalHeaders?: Array<Array<string>>): Observable<any> {
+        if (companyId === null || companyId === undefined) {
+            throw new Error('Required parameter companyId was null or undefined when calling exportGroupedStockOrdersExcelByCompany.');
+        }
+
+        let queryParameters = new HttpParams({encoder: new CustomHttpUrlEncodingCodec()});
+
+        let headers = this.defaultHeaders;
+
+        // to determine the Accept header
+        let httpHeaderAccepts: string[] = [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ];
+        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+        if (additionalHeaders) {
+            for(let pair of additionalHeaders) {
+                headers = headers.set(pair[0], pair[1]);
+            }
+        }
+
+        const handle = this.httpClient.get(`${this.configuration.basePath}/api/chain/group-stock-order/export/company/${encodeURIComponent(String(companyId))}`,
+            {
+                params: queryParameters,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress,
+                responseType: 'blob' as any
+            }
+        );
+        if(typeof this.configuration.errorHandler === 'function') {
+          return handle.pipe(catchError(err => this.configuration.errorHandler(err, 'exportGroupedStockOrdersExcelByCompany')));
+        }
+        return handle;
+    }
+
 }

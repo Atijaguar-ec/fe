@@ -38,6 +38,7 @@ import { ApiSemiProduct } from '../../../../../../api/model/apiSemiProduct';
 import { ApiFinalProduct } from '../../../../../../api/model/apiFinalProduct';
 import StatusEnum = ApiTransaction.StatusEnum;
 import OrderTypeEnum = ApiStockOrder.OrderTypeEnum;
+import { ApiUserCustomer } from '../../../../../../api/model/apiUserCustomer';
 
 @Component({
   selector: 'app-processing-order-input',
@@ -186,6 +187,11 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
       : 0;
 
     return existingInputTRCount + selectedInputSOCount === 0;
+  }
+
+  formatUserCustomer(user: ApiUserCustomer | null | undefined): string {
+    if (!user) return '';
+    return [user.name, user.surname].filter(Boolean).join(' ');
   }
 
   ngOnInit(): void {

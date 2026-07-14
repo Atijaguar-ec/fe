@@ -28,6 +28,7 @@ Ubicado en el sistema operativo host (fuera de los contenedores Docker) en `/etc
 **Reglas de ruteo principales** (Ver `fe/ci/host-nginx.conf`):
 - `URL /` → proxy a `127.0.0.1:8081` (Contenedor Frontend).
 - `URL /api/` → proxy a `127.0.0.1:8082` (Contenedor Backend).
+- `URL /auth/` → proxy a `127.0.0.1:8083` (Contenedor Keycloak).
 - `URL /jenkins/` → proxy a `127.0.0.1:8080`.
 - `URL /wms/` → proxy a `ide.ambiente.gob.ec:8080`.
 

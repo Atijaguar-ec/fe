@@ -704,7 +704,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       const moistureControl = this.stockOrderForm.get('moisturePercentage');
       if (moistureControl && moistureControl.value) {
         const moisturePercent = Number(moistureControl.value);
-        netWeight = baseWeight * (moisturePercent / 100);
+        const moistureDeduction = baseWeight * (moisturePercent / 100);
+        netWeight = baseWeight - moistureDeduction;
       }
 
       if (netWeight < 0) {
@@ -823,8 +824,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       let finalNetWeight = baseWeight;
       if (this.stockOrderForm.get('moisturePercentage').value) {
         const moisturePercent = Number(this.stockOrderForm.get('moisturePercentage').value);
-        finalNetWeight = baseWeight * (moisturePercent / 100);
-        const moistureDeduction = baseWeight - finalNetWeight;
+        const moistureDeduction = baseWeight * (moisturePercent / 100);
+        finalNetWeight = baseWeight - moistureDeduction;
         this.stockOrderForm.get('moistureWeightDeduction').setValue(moistureDeduction.toFixed(2), { emitEvent: false });
       } else {
         this.stockOrderForm.get('moistureWeightDeduction').setValue(null, { emitEvent: false });

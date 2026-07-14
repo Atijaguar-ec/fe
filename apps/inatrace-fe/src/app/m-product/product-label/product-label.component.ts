@@ -90,6 +90,8 @@ import { SelectedUserCompanyService } from '../../core/selected-user-company.ser
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { SelfOnboardingService } from '../../shared-services/self-onboarding.service';
 
+declare const $localize: any;
+
 @Component({
   selector: 'app-product-label',
   templateUrl: './product-label.component.html',
@@ -136,7 +138,7 @@ export class ProductLabelComponent
   }
 
   @ViewChild('createProductTooltip')
-  createProductTooltip: NgbTooltip;
+  createProductTooltip!: NgbTooltip;
 
   get currentLabelName() {
     // if(this.currentLabel && this.currentLabel.title) return this.currentLabel.title
@@ -215,7 +217,7 @@ export class ProductLabelComponent
   }
 
   get graphicFairPriceUnits() {
-    const obj = {};
+    const obj: any = {};
 
     obj['DISABLED'] = 'Disabled';
     obj['PER_CONTAINER'] = 'Per container';
@@ -228,7 +230,7 @@ export class ProductLabelComponent
   gMap = null;
   gInfoWindow = null;
   gInfoWindowText = '';
-  productForm: UntypedFormGroup;
+  productForm!: UntypedFormGroup;
   countries: any = [];
   markers: any = [];
   journeyMarkers: any[] = [];
@@ -237,7 +239,7 @@ export class ProductLabelComponent
     lng: 21.514503,
   };
   defaultZoom = 3;
-  bounds: any;
+  bounds!: any;
   initialBounds: any = [];
 
   faTimes = faTimes;
@@ -259,10 +261,11 @@ export class ProductLabelComponent
 
   editInfoLabelLink = '';
 
-  valueChainName: string;
+  valueChainName!: string;
 
   companyId: number | null = null;
   isOwner = false;
+  isSystemAdmin = false;
 
   unsubscribeList = new UnsubscribeList();
 
@@ -272,7 +275,7 @@ export class ProductLabelComponent
 
   action = this.route.snapshot.data.action;
 
-  availableMedia: ApiProductLabelCompanyDocument[];
+  availableMedia!: ApiProductLabelCompanyDocument[];
   mediaForm = new UntypedFormGroup({});
 
   viewIcon = faEye;
@@ -379,11 +382,12 @@ export class ProductLabelComponent
       this.productForm.updateValueAndValidity();
       this.initializeOriginLocations();
       this.initializeMarkers();
-      this.isOwner = product.associatedCompanies.some(
-        (value) =>
-          value.type === ApiProductCompany.TypeEnum.OWNER &&
-          value.company.id === this.companyId,
-      );
+      this.isOwner = 
+        (product.associatedCompanies && product.associatedCompanies.some(
+          (value) =>
+            value.type === ApiProductCompany.TypeEnum.OWNER &&
+            value.company.id === this.companyId,
+        )) || (product.company && product.company.id === this.companyId);
     }),
     shareReplay(1),
   );
@@ -456,163 +460,163 @@ export class ProductLabelComponent
 
   // PRODUCT
   @ViewChild('productName', { static: false })
-  productNameTmpl: TemplateRef<any>;
+  productNameTmpl!: TemplateRef<any>;
 
   @ViewChild('productLogo', { static: false })
-  productLogoTmpl: TemplateRef<any>;
+  productLogoTmpl!: TemplateRef<any>;
 
   @ViewChild('productDescription', { static: false })
-  productDescriptionTmpl: TemplateRef<any>;
+  productDescriptionTmpl!: TemplateRef<any>;
 
   @ViewChild('origin', { static: false })
-  originValueTmpl: TemplateRef<any>;
+  originValueTmpl!: TemplateRef<any>;
 
   productElements: any[] = [];
 
   // PROCESS
   @ViewChild('production', { static: false })
-  productionTmpl: TemplateRef<any>;
+  productionTmpl!: TemplateRef<any>;
 
   processElements: any[] = [];
 
   // SOCIAL RESPONSIBILITY
   @ViewChild('laborPolicies', { static: false })
-  laborPoliciesTmpl: TemplateRef<any>;
+  laborPoliciesTmpl!: TemplateRef<any>;
 
   socialResponsibilityElements: any[] = [];
 
   // ENVIRONMENTAL SUSTAINABILITY
   @ViewChild('environmentalyFriendlyProduction', { static: false })
-  environmentalyFriendlyProductionTmpl: TemplateRef<any>;
+  environmentalyFriendlyProductionTmpl!: TemplateRef<any>;
 
   @ViewChild('sustainablePackaging', { static: false })
-  sustainablePackagingTmpl: TemplateRef<any>;
+  sustainablePackagingTmpl!: TemplateRef<any>;
 
   @ViewChild('co2Footprint', { static: false })
-  co2FootprintTmpl: TemplateRef<any>;
+  co2FootprintTmpl!: TemplateRef<any>;
 
   environmentalSustainabilityElements: any[] = [];
 
   // COMPANY
   @ViewChild('companyName', { static: false })
-  companyNameTmpl: TemplateRef<any>;
+  companyNameTmpl!: TemplateRef<any>;
 
   @ViewChild('companyLogo', { static: false })
-  companyLogoTmpl: TemplateRef<any>;
+  companyLogoTmpl!: TemplateRef<any>;
 
   @ViewChild('companyHeadquarters', { static: false })
-  companyHeadquartersTmpl: TemplateRef<any>;
+  companyHeadquartersTmpl!: TemplateRef<any>;
 
   @ViewChild('aboutTheCompany', { static: false })
-  aboutTheCompanyTmpl: TemplateRef<any>;
+  aboutTheCompanyTmpl!: TemplateRef<any>;
 
   @ViewChild('nameOfManagerCEO', { static: false })
-  nameOfManagerCEOTmpl: TemplateRef<any>;
+  nameOfManagerCEOTmpl!: TemplateRef<any>;
 
   @ViewChild('contactEmail', { static: false })
-  contactEmailTmpl: TemplateRef<any>;
+  contactEmailTmpl!: TemplateRef<any>;
 
   @ViewChild('contactPhoneNumber', { static: false })
-  contactPhoneNumberTmpl: TemplateRef<any>;
+  contactPhoneNumberTmpl!: TemplateRef<any>;
 
   @ViewChild('companyWebPage', { static: false })
-  companyWebPageTmpl: TemplateRef<any>;
+  companyWebPageTmpl!: TemplateRef<any>;
 
   @ViewChild('facebook', { static: false })
-  facebookTmpl: TemplateRef<any>;
+  facebookTmpl!: TemplateRef<any>;
 
   @ViewChild('instagram', { static: false })
-  instagramTmpl: TemplateRef<any>;
+  instagramTmpl!: TemplateRef<any>;
 
   @ViewChild('twitter', { static: false })
-  twitterTmpl: TemplateRef<any>;
+  twitterTmpl!: TemplateRef<any>;
 
   @ViewChild('youtube', { static: false })
-  youtubeTmpl: TemplateRef<any>;
+  youtubeTmpl!: TemplateRef<any>;
 
   @ViewChild('other', { static: false })
-  otherTmpl: TemplateRef<any>;
+  otherTmpl!: TemplateRef<any>;
 
   companyElements: any[] = [];
 
   // B2C
   @ViewChild('b2cPrimaryColor', { static: false })
-  b2cPrimaryColor: TemplateRef<any>;
+  b2cPrimaryColor!: TemplateRef<any>;
 
   @ViewChild('b2cSecondaryColor', { static: false })
-  b2cSecondaryColor: TemplateRef<any>;
+  b2cSecondaryColor!: TemplateRef<any>;
 
   @ViewChild('b2cTertiaryColor', { static: false })
-  b2cTertiaryColor: TemplateRef<any>;
+  b2cTertiaryColor!: TemplateRef<any>;
 
   @ViewChild('b2cQuaternaryColor', { static: false })
-  b2cQuaternaryColor: TemplateRef<any>;
+  b2cQuaternaryColor!: TemplateRef<any>;
 
   @ViewChild('b2cProductTitleColor', { static: false })
-  b2cProductTitleColor: TemplateRef<any>;
+  b2cProductTitleColor!: TemplateRef<any>;
 
   @ViewChild('b2cHeadingColor', { static: false })
-  b2cHeadingColor: TemplateRef<any>;
+  b2cHeadingColor!: TemplateRef<any>;
 
   @ViewChild('b2cTextColor', { static: false })
-  b2cTextColor: TemplateRef<any>;
+  b2cTextColor!: TemplateRef<any>;
 
   @ViewChild('b2cTabFairPrices', { static: false })
-  b2cTabFairPrices: TemplateRef<any>;
+  b2cTabFairPrices!: TemplateRef<any>;
 
   @ViewChild('b2cTabProducers', { static: false })
-  b2cTabProducers: TemplateRef<any>;
+  b2cTabProducers!: TemplateRef<any>;
 
   @ViewChild('b2cTabQuality', { static: false })
-  b2cTabQuality: TemplateRef<any>;
+  b2cTabQuality!: TemplateRef<any>;
 
   @ViewChild('b2cTabFeedback', { static: false })
-  b2cTabFeedback: TemplateRef<any>;
+  b2cTabFeedback!: TemplateRef<any>;
 
   @ViewChild('b2cProductFont', { static: false })
-  b2cProductFont: TemplateRef<any>;
+  b2cProductFont!: TemplateRef<any>;
 
   @ViewChild('b2cTextFont', { static: false })
-  b2cTextFont: TemplateRef<any>;
+  b2cTextFont!: TemplateRef<any>;
 
   @ViewChild('b2cLandingPageImage', { static: false })
-  b2cLandingPageImage: TemplateRef<any>;
+  b2cLandingPageImage!: TemplateRef<any>;
 
   @ViewChild('b2cLandingPageBackgroundImage', { static: false })
-  b2cLandingPageBackgroundImage: TemplateRef<any>;
+  b2cLandingPageBackgroundImage!: TemplateRef<any>;
 
   @ViewChild('b2cHeaderBackgroundImage', { static: false })
-  b2cHeaderBackgroundImage: TemplateRef<any>;
+  b2cHeaderBackgroundImage!: TemplateRef<any>;
 
   @ViewChild('b2cMedia', { static: false })
-  b2cMedia: TemplateRef<any>;
+  b2cMedia!: TemplateRef<any>;
 
   @ViewChild('b2cPricePaidToProducerGraphic', { static: false })
-  b2cPricePaidToProducer: TemplateRef<any>;
+  b2cPricePaidToProducer!: TemplateRef<any>;
 
   @ViewChild('b2cFarmGatePriceGraphic', { static: false })
-  b2cFarmGatePrice: TemplateRef<any>;
+  b2cFarmGatePrice!: TemplateRef<any>;
 
   @ViewChild('b2cPrices', { static: false })
-  b2cPrices: TemplateRef<any>;
+  b2cPrices!: TemplateRef<any>;
 
   @ViewChild('b2cGraphicQuality', { static: false })
-  b2cGraphicQuality: TemplateRef<any>;
+  b2cGraphicQuality!: TemplateRef<any>;
 
   b2cElements: any[] = [];
 
   // SETTINGS
   @ViewChild('language', { static: false })
-  languageTmpl: TemplateRef<any>;
+  languageTmpl!: TemplateRef<any>;
 
   @ViewChild('gdprText', { static: false })
-  gdprTextTmpl: TemplateRef<any>;
+  gdprTextTmpl!: TemplateRef<any>;
 
   @ViewChild('privacyPolicyText', { static: false })
-  privacyPolicyTextTmpl: TemplateRef<any>;
+  privacyPolicyTextTmpl!: TemplateRef<any>;
 
   @ViewChild('termsOfUseText', { static: false })
-  termsOfUseTextTmpl: TemplateRef<any>;
+  termsOfUseTextTmpl!: TemplateRef<any>;
 
   settingsElements: any[] = [];
 
@@ -620,7 +624,7 @@ export class ProductLabelComponent
 
   sectionToNameToObj = new Map();
 
-  labelSelect$ = new BehaviorSubject(null);
+  labelSelect$ = new BehaviorSubject<any>(null);
 
   visibilityMap = new Map();
 
@@ -630,7 +634,7 @@ export class ProductLabelComponent
   editTitleMode = false;
 
   @ViewChild('labelTitleInput', { static: false })
-  labelTitleInput: TextinputComponent;
+  labelTitleInput!: TextinputComponent;
 
   publishString = $localize`:@@productLabel.qrLabels.publish:Publish`;
   unpublishString = $localize`:@@productLabel.qrLabels.unpublish:Unpublish`;
@@ -656,11 +660,11 @@ export class ProductLabelComponent
     super();
     this.generateLabelMaps();
     if (
-      this.router.getCurrentNavigation().extras.state &&
-      this.router.getCurrentNavigation().extras.state.labelId
+      this.router.getCurrentNavigation()?.extras?.state &&
+      this.router.getCurrentNavigation()?.extras?.state?.labelId
     ) {
       this.redirectToCertainLabel =
-        this.router.getCurrentNavigation().extras.state.labelId;
+        this.router.getCurrentNavigation()?.extras?.state?.labelId;
       this.initialReload = true;
     }
   }
@@ -672,6 +676,7 @@ export class ProductLabelComponent
           switchMap((up) => {
             if (up) {
               this.showLabelInfoLink = 'SYSTEM_ADMIN' === up.role;
+              this.isSystemAdmin = 'SYSTEM_ADMIN' === up.role;
               return this.selUserCompanyService.selectedCompanyProfile$;
             }
           }),
@@ -694,9 +699,9 @@ export class ProductLabelComponent
                 this.selfOnboardingService.addProductCurrentStep$.subscribe(
                   (step) => {
                     if (step == 4) {
-                      this.createProductTooltip.open();
+                      this.createProductTooltip?.open();
                     } else {
-                      this.createProductTooltip.close();
+                      this.createProductTooltip?.close();
                     }
                   },
                 ),
@@ -975,6 +980,29 @@ export class ProductLabelComponent
     try {
       this.globalEventsManager.showLoading(true);
       const data = this.productForm.value;
+      
+      // Fallback: Delete associatedCompanies from the payload to completely bypass the backend
+      // check that incorrectly enforces OWNER update and crashes with 500.
+      delete data.associatedCompanies;
+
+      // Fix backend NPE bug when process, responsibility, or sustainability are sent as objects with all null values
+      const cleanEmptyGroups = (obj: any, keys: string[]) => {
+        keys.forEach(key => {
+          if (obj[key] && typeof obj[key] === 'object') {
+            const hasValue = Object.values(obj[key]).some(v => v !== null && v !== '');
+            if (!hasValue) {
+              delete obj[key];
+            }
+          }
+        });
+      };
+      cleanEmptyGroups(data, ['process', 'responsibility', 'sustainability']);
+
+      // Ensure settings.language always has a value — la columna BD es NOT NULL, default ES
+      if (data.settings && !data.settings.language) {
+        data.settings.language = 'ES';
+      }
+
       const res = await this.productController
         .updateProduct(data)
         .pipe(take(1))
@@ -1023,6 +1051,11 @@ export class ProductLabelComponent
 
       data['labelId'] = this.currentLabel.id;
       data['id'] = this.pId;
+
+      // Ensure settings.language always has a value — la columna BD es NOT NULL, default ES
+      if (data.settings && !data.settings.language) {
+        data.settings.language = 'ES';
+      }
 
       const resC = await this.productController
         .updateProductLabelContent(data as ApiProductLabelContent)
@@ -1199,7 +1232,7 @@ export class ProductLabelComponent
 
   openInfoWindow(gMarker, marker) {
     this.gInfoWindowText = marker.infoText;
-    this.gInfoWindow.open(gMarker);
+    this.gInfoWindow?.open(gMarker);
   }
 
   removeJourneyMarker(i: number) {
@@ -2303,7 +2336,7 @@ export class ProductLabelComponent
   }
 
   canEdit() {
-    return this.isOwner;
+    return this.isOwner || this.isSystemAdmin;
   }
 
   public get journeyMarkersCtrl(): UntypedFormArray {

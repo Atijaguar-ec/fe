@@ -1,0 +1,12 @@
+{
+  "root": true,
+  "ignorePatterns": ["**/*"],
+  "plugins": ["@nx"],
+  "overrides": [
+    {
+      "files": ["*.ts", "*.js"],
+      "extends": [],
+      "rules": {}
+    }
+  ]
+}
