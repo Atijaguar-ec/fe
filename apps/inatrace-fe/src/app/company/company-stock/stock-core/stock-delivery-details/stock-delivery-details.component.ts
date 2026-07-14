@@ -197,6 +197,14 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
+  get shouldShowVariety(): boolean {
+    return this.productFieldVisibilityService.shouldShowField('variety') && !this.companyProfile?.configuration?.onlyNacionalVariety;
+  }
+
+  get shouldShowParcelLot(): boolean {
+    return this.productFieldVisibilityService.shouldShowField('parcelLot');
+  }
+
   private initializeVarietyOptions() {
     this.varietyOptionsMap = {
       NACIONAL: 'Nacional',
@@ -475,7 +483,10 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
     // Add Variety control (for cacao)
     if (!this.stockOrderForm.get('variety')) {
-      this.stockOrderForm.addControl('variety', new FormControl(null));
+      const defaultVariety = this.companyProfile?.configuration?.onlyNacionalVariety ? 'NACIONAL' : null;
+      this.stockOrderForm.addControl('variety', new FormControl(defaultVariety));
+    } else if (this.companyProfile?.configuration?.onlyNacionalVariety) {
+      this.stockOrderForm.get('variety').setValue('NACIONAL');
     }
     // Add Organic Certification control
     if (!this.stockOrderForm.get('organicCertification')) {
@@ -555,11 +566,14 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
     // Ensure variety control exists and set value if backend provides it
     if (!this.stockOrderForm.get('variety')) {
-      this.stockOrderForm.addControl('variety', new FormControl(null));
+      const defaultVariety = this.companyProfile?.configuration?.onlyNacionalVariety ? 'NACIONAL' : null;
+      this.stockOrderForm.addControl('variety', new FormControl(defaultVariety));
     }
     if ((this.order as any)?.variety != null) {
       this.ensureVarietyOption((this.order as any).variety);
       this.stockOrderForm.get('variety').setValue((this.order as any).variety);
+    } else if (this.companyProfile?.configuration?.onlyNacionalVariety) {
+      this.stockOrderForm.get('variety').setValue('NACIONAL');
     }
     // Ensure organicCertification control exists and set value if backend provides it
     if (!this.stockOrderForm.get('organicCertification')) {

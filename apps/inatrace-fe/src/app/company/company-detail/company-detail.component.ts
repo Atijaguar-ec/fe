@@ -84,6 +84,7 @@ export class CompanyDetailComponent
   valueChainsCodebook: ActiveValueChainService;
   valueChainsForm = new UntypedFormControl(null);
   onlyOrganicProductionControl = new UntypedFormControl(false);
+  onlyNacionalVarietyControl = new UntypedFormControl(false);
 
   valueChains: Array<ApiValueChain> = [];
   selectedCompanyValueChainsControl = new UntypedFormControl(null, [
@@ -286,12 +287,14 @@ export class CompanyDetailComponent
 
         const config = company.data.configuration || {};
         this.onlyOrganicProductionControl.setValue(!!config.onlyOrganicProduction);
+        this.onlyNacionalVarietyControl.setValue(!!config.onlyNacionalVariety);
 
         // If user is not enrolled in company enrolled, disable the form
         if (!this.isCompanyAdmin) {
           this.companyDetailForm.disable();
           this.valueChainsForm.disable();
           this.onlyOrganicProductionControl.disable();
+          this.onlyNacionalVarietyControl.disable();
         }
 
         this.globalEventsManager.showLoading(false);
@@ -399,6 +402,7 @@ export class CompanyDetailComponent
 
       formValue.configuration = formValue.configuration || {};
       formValue.configuration.onlyOrganicProduction = !!this.onlyOrganicProductionControl.value;
+      formValue.configuration.onlyNacionalVariety = !!this.onlyNacionalVarietyControl.value;
 
       const res: ApiResponseApiBaseEntity = await this.companyController
         .updateCompany({ ...formValue, id: companyId })
@@ -432,6 +436,7 @@ export class CompanyDetailComponent
       const formValue = { ...this.companyDetailForm.value };
       formValue.configuration = formValue.configuration || {};
       formValue.configuration.onlyOrganicProduction = !!this.onlyOrganicProductionControl.value;
+      formValue.configuration.onlyNacionalVariety = !!this.onlyNacionalVarietyControl.value;
 
       const res: ApiResponseApiBaseEntity = await this.companyController
         .createCompany(formValue)

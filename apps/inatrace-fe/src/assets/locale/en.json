@@ -3058,6 +3058,7 @@
     "companyDetail.beycoIntegration.allowConfirmation": "Company is allowed to export stock orders on Beyco platform.",
     "companyDetail.configuration.title": "Company Configuration",
     "companyDetail.configuration.onlyOrganicProduction": "Only organic production (automatically populates and hides organic options).",
+    "companyDetail.configuration.onlyNacionalVariety": "Only Nacional variety (automatically defaults and hides variety options).",
     "common.filter.from.label": "From",
     "common.filter.to.label": "To",
     "companyDetailProcessingActions.valueChains.select.label": "Select value chain",

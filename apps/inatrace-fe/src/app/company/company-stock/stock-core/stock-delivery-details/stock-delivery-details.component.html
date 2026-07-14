@@ -209,12 +209,9 @@
             <!-- Parcel Lot and Variety (Dynamic) -->
             <div
               class="af-row"
-              *ngIf="
-                productFieldVisibilityService.shouldShowField('parcelLot') ||
-                productFieldVisibilityService.shouldShowField('variety')
-              "
+              *ngIf="shouldShowParcelLot || shouldShowVariety"
             >
-              <div class="af-c6">
+              <div [class]="shouldShowVariety ? 'af-c6' : 'af-c12'" *ngIf="shouldShowParcelLot">
                 <textinput
                   [form]="stockOrderForm.get('parcelLot')"
                   label="Lote (Parcela)"
@@ -245,7 +242,7 @@
                   </ng-container>
                 </textinput>
               </div>
-              <div class="af-c6">
+              <div class="af-c6" *ngIf="shouldShowVariety">
                 <single-choice
                   [formControlInput]="$any(stockOrderForm.get('variety'))"
                   [codebookService]="varietyOptions"
