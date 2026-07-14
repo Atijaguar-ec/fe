@@ -205,6 +205,17 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     return this.productFieldVisibilityService.shouldShowField('parcelLot');
   }
 
+  get selectedEmployeeName(): string {
+    if (!this.employeeForm.value) {
+      return this.currentLoggedInUser ? `${this.currentLoggedInUser.name} ${this.currentLoggedInUser.surname}` : '';
+    }
+    if (!this.companyProfile) {
+      return '';
+    }
+    const user = this.companyProfile.users.find(u => String(u.id) === String(this.employeeForm.value));
+    return user ? `${user.name} ${user.surname}` : '';
+  }
+
   private initializeVarietyOptions() {
     this.varietyOptionsMap = {
       NACIONAL: 'Nacional',

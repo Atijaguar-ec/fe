@@ -130,6 +130,17 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
     };
   }
 
+  get selectedEmployeeName(): string {
+    if (!this.employeeForm.value) {
+      return this.currentLoggedInUser ? `${this.currentLoggedInUser.name} ${this.currentLoggedInUser.surname}` : '';
+    }
+    if (!this.companyProfile) {
+      return '';
+    }
+    const user = this.companyProfile.users.find(u => String(u.id) === String(this.employeeForm.value));
+    return user ? `${user.name} ${user.surname}` : '';
+  }
+
   get orderType(): StockOrderType {
     // order type is fixed to PURCHASE_ORDER
     return 'PURCHASE_ORDER' as StockOrderType;

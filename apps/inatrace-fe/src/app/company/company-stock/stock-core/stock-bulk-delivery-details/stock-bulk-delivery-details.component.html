@@ -67,29 +67,15 @@
                   </div>
 
                   <div class="af-c3 af-md-c6 af-sm-c11">
-                    <single-choice
+                    <textinput
+                      [valueTextInput]="true"
+                      [value]="selectedEmployeeName"
+                      [readOnly]="true"
                       label="Cooperative employee"
                       i18n-label="Cooperative employee"
-                      [formControlInput]="employeeForm"
-                      [codebookService]="codebookUsers"
-                      style="min-width: 150px"
-                      [isInvalidChoice]="submitted && employeeForm.invalid"
+                      style="width: 100%"
                     >
-                      <ng-container *ngIf="submitted">
-                        <div
-                          *ngIf="employeeForm.errors as errors"
-                          class="sc-invalid-feedback"
-                        >
-                          <div
-                            *ngIf="errors.required"
-                            i18n="
-                              @@productLabelStockPurchaseOrdersModal.singleChoice.farmer.error"
-                          >
-                            Cooperative employee is required
-                          </div>
-                        </div>
-                      </ng-container>
-                    </single-choice>
+                    </textinput>
                   </div>
 
                   <div class="af-c3 af-md-c6 af-sm-c11">
