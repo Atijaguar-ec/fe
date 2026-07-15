@@ -570,7 +570,11 @@ export class StockProcessingOrderDetailsComponent
     fieldsToReset.forEach((fieldName) => {
       const control = group.get(fieldName);
       if (control && !control.disabled) {
-        control.setValue(null, { emitEvent: false });
+        if (fieldName === 'variety' && this.companyProfile?.configuration?.onlyNacionalVariety) {
+          control.setValue('NACIONAL', { emitEvent: false });
+        } else {
+          control.setValue(null, { emitEvent: false });
+        }
       }
     });
   }

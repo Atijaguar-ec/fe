@@ -15,6 +15,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ApiProcessingAction } from '../../../../../../api/model/apiProcessingAction';
+import { ApiCompanyGet } from '../../../../../../api/model/apiCompanyGet';
 import { ProcessingActionType } from '../../../../../../shared/types';
 import { ApiFinalProduct } from '../../../../../../api/model/apiFinalProduct';
 import { ApiProcessingActionOutputSemiProduct } from '../../../../../../api/model/apiProcessingActionOutputSemiProduct';
@@ -97,6 +98,13 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
 
   @Input()
   outputSemiProductsCodebook: StaticSemiProductsService;
+
+  @Input()
+  companyProfile: ApiCompanyGet;
+
+  get shouldShowVariety(): boolean {
+    return !this.companyProfile?.configuration?.onlyNacionalVariety;
+  }
 
   @Output()
   calcTotalOutputQuantity = new EventEmitter<void>();
@@ -322,6 +330,9 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
           ? OrderTypeEnum.GENERALORDER
           : OrderTypeEnum.PROCESSINGORDER,
       productionDate: dateISOString(new Date()),
+      variety: this.companyProfile?.configuration?.onlyNacionalVariety
+        ? 'NACIONAL'
+        : undefined,
     };
 
     const targetStockOrderGroup = generateFormFromMetadata(
