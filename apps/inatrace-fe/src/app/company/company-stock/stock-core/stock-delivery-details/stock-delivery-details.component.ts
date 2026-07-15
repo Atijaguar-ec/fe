@@ -596,6 +596,16 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       const value = (this.order as any).organicCertification;
       this.stockOrderForm.get('organicCertification').setValue(value);
     }
+    // Si la empresa solo tiene producción orgánica, forzar organic a 'true' y cargar certificaciones por defecto
+    if (this.companyProfile?.configuration?.onlyOrganicProduction === true) {
+      this.stockOrderForm.get('organic').setValue('true');
+      if (!this.stockOrderForm.get('organicCertification').value) {
+        const certs = this.getDefaultFDVCertifications();
+        if (certs) {
+          this.stockOrderForm.get('organicCertification').setValue(certs);
+        }
+      }
+    }
     // Ensure moisture percentage controls exist
     if (!this.stockOrderForm.get('moisturePercentage')) {
       this.stockOrderForm.addControl('moisturePercentage', new FormControl(null));

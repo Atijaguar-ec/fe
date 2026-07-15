@@ -754,7 +754,9 @@
             <div
               class="af-row"
               *ngIf="
-                showOrganic && stockOrderForm.get('organic').value != null && stockOrderForm.get('organic').value !== ''
+                (showOrganic || companyProfile?.configuration?.onlyOrganicProduction === true) &&
+                stockOrderForm.get('organic').value != null &&
+                stockOrderForm.get('organic').value !== ''
               "
             >
               <div class="af-c12">
