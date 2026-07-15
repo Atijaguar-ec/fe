@@ -34,6 +34,7 @@ import ProcessingEvidenceField = ApiProcessingEvidenceField.TypeEnum;
 import { ApiProcessingEvidenceField } from '../../../../../../api/model/apiProcessingEvidenceField';
 import { Subscription } from 'rxjs';
 import { StaticSemiProductsService } from '../static-semi-products.service';
+import { EnumSifrant } from '../../../../../shared-services/enum-sifrant';
 
 @Component({
   selector: 'app-processing-order-output',
@@ -46,6 +47,11 @@ import { StaticSemiProductsService } from '../static-semi-products.service';
 })
 export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
   readonly faTrashAlt = faTrashAlt;
+
+  varietyOptions: EnumSifrant = EnumSifrant.fromObject({
+    NACIONAL: 'Nacional',
+    CCN51: 'CCN51',
+  });
 
   // List for holding references to observable subscriptions
   subscriptions: Subscription[] = [];
@@ -120,7 +126,11 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
     return tsoGroup.get('repackedOutputsArray') as UntypedFormArray;
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.varietyOptions.setPlaceholder(
+      $localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.variety.placeholder:Selecciona la variedad`
+    );
+  }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((sub) => sub.unsubscribe());

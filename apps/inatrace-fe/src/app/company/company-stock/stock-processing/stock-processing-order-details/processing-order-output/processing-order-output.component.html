@@ -218,6 +218,7 @@
       <div class="af-c6">
         <single-choice
           [formControlInput]="$any(tsoGroup.get('variety'))"
+          [codebookService]="varietyOptions"
           label="Variedad"
           i18n-label="@@productLabelStockProcessingOrderDetail.singleChoice.variety.label"
           style="width: 100%"
