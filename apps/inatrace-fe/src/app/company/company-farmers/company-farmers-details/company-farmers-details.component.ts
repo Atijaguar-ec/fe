@@ -581,7 +581,11 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
       this.farmerForm.get('hasSmartphone').setValue(false);
     }
 
-    if (this.farmerForm.get('farm.organic').value === null) {
+    if (this.company?.configuration?.onlyOrganicProduction === true) {
+      this.farmerForm.get('farm.organic').setValue(true);
+      this.farmerForm.get('farm.areaOrganicCertified').setValue(null);
+      this.farmerForm.get('farm.startTransitionToOrganic').setValue(null);
+    } else if (this.farmerForm.get('farm.organic').value === null) {
       this.farmerForm.get('farm.organic').setValue(false);
     }
 

@@ -15,6 +15,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ApiProcessingAction } from '../../../../../../api/model/apiProcessingAction';
+import { ApiCompanyGet } from '../../../../../../api/model/apiCompanyGet';
 import { ProcessingActionType } from '../../../../../../shared/types';
 import { ApiFinalProduct } from '../../../../../../api/model/apiFinalProduct';
 import { ApiProcessingActionOutputSemiProduct } from '../../../../../../api/model/apiProcessingActionOutputSemiProduct';
@@ -34,6 +35,7 @@ import ProcessingEvidenceField = ApiProcessingEvidenceField.TypeEnum;
 import { ApiProcessingEvidenceField } from '../../../../../../api/model/apiProcessingEvidenceField';
 import { Subscription } from 'rxjs';
 import { StaticSemiProductsService } from '../static-semi-products.service';
+import { EnumSifrant } from '../../../../../shared-services/enum-sifrant';
 
 @Component({
   selector: 'app-processing-order-output',
@@ -46,6 +48,11 @@ import { StaticSemiProductsService } from '../static-semi-products.service';
 })
 export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
   readonly faTrashAlt = faTrashAlt;
+
+  varietyOptions: EnumSifrant = EnumSifrant.fromObject({
+    NACIONAL: 'Nacional',
+    CCN51: 'CCN51',
+  });
 
   // List for holding references to observable subscriptions
   subscriptions: Subscription[] = [];
@@ -92,6 +99,13 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
   @Input()
   outputSemiProductsCodebook: StaticSemiProductsService;
 
+  @Input()
+  companyProfile: ApiCompanyGet;
+
+  get shouldShowVariety(): boolean {
+    return !this.companyProfile?.configuration?.onlyNacionalVariety;
+  }
+
   @Output()
   calcTotalOutputQuantity = new EventEmitter<void>();
 
@@ -120,7 +134,11 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
     return tsoGroup.get('repackedOutputsArray') as UntypedFormArray;
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.varietyOptions.setPlaceholder(
+      $localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.variety.placeholder:Selecciona la variedad`
+    );
+  }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
@@ -312,6 +330,9 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
           ? OrderTypeEnum.GENERALORDER
           : OrderTypeEnum.PROCESSINGORDER,
       productionDate: dateISOString(new Date()),
+      variety: this.companyProfile?.configuration?.onlyNacionalVariety
+        ? 'NACIONAL'
+        : undefined,
     };
 
     const targetStockOrderGroup = generateFormFromMetadata(

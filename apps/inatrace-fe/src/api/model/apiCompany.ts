@@ -98,6 +98,10 @@ export interface ApiCompany {
      * Is company allowed to export orders to Beyco platform
      */
     allowBeycoIntegration?: boolean;
+    /**
+     * Company configuration key-value store
+     */
+    configuration?: { [key: string]: any };
 }
 
 /**
@@ -174,7 +178,11 @@ export namespace ApiCompany {
         /**
          * Is company allowed to export orders to Beyco platform
          */
-        allowBeycoIntegration = 'allowBeycoIntegration'
+        allowBeycoIntegration = 'allowBeycoIntegration',
+        /**
+         * Company configuration key-value store
+         */
+        configuration = 'configuration'
     }
 
 
@@ -398,6 +406,17 @@ export namespace ApiCompany {
                     isListContainer: false,
                     complexType: ''
                 },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'configuration',
+                    classname: 'ApiCompany',
+                    dataType: 'any',
+                    isPrimitiveType: false,
+                    isListContainer: false,
+                    complexType: ''
+                },
             ],
             validators: {
                 id: [
@@ -453,6 +472,8 @@ export namespace ApiCompany {
                 currency: [
                 ],
                 allowBeycoIntegration: [
+                ],
+                configuration: [
                 ],
             }
         }

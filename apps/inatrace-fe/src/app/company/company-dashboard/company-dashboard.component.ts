@@ -67,6 +67,7 @@ export class CompanyDashboardComponent implements OnInit {
   };
 
   companyValueChains = [];
+  companyProfile: any = null;
 
   evidenceFields = [];
 
@@ -273,6 +274,7 @@ export class CompanyDashboardComponent implements OnInit {
     this.companyControllerService
       .getCompany(this.companyId)
       .subscribe((next) => {
+        this.companyProfile = next?.data;
         this.companyValueChains = next.data.valueChains;
 
         this.companyValueChains.forEach((valueChain) => {

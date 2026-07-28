@@ -130,6 +130,17 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
     };
   }
 
+  get selectedEmployeeName(): string {
+    if (!this.employeeForm.value) {
+      return this.currentLoggedInUser ? `${this.currentLoggedInUser.name} ${this.currentLoggedInUser.surname}` : '';
+    }
+    if (!this.companyProfile) {
+      return '';
+    }
+    const user = this.companyProfile.users.find(u => String(u.id) === String(this.employeeForm.value));
+    return user ? `${user.name} ${user.surname}` : '';
+  }
+
   get orderType(): StockOrderType {
     // order type is fixed to PURCHASE_ORDER
     return 'PURCHASE_ORDER' as StockOrderType;
@@ -362,6 +373,13 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
       ) as ApiPurchaseOrderFarmer,
       ApiPurchaseOrderFarmerValidationScheme(),
     );
+
+    if (this.companyProfile?.configuration?.onlyOrganicProduction === true) {
+      const organicControl = this.emptyFarmersFormArray.get('organic');
+      if (organicControl) {
+        organicControl.setValue('true');
+      }
+    }
 
     this.farmersFormArray.push(_.cloneDeep(this.emptyFarmersFormArray));
 
@@ -685,6 +703,9 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   showOrganic(idx: number) {
+    if (this.companyProfile?.configuration?.onlyOrganicProduction === true) {
+      return false;
+    }
     return (
       (this.facility && this.facility.displayOrganic) ||
       this.farmersFormArray.at(idx).get('organic').value

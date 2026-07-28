@@ -115,6 +115,10 @@ export interface ApiCompanyGet {
      * Flag indicating that the company supports collectors for deliveries
      */
     supportsCollectors?: boolean;
+    /**
+     * Company configuration key-value store
+     */
+    configuration?: { [key: string]: any };
 }
 
 /**
@@ -207,7 +211,11 @@ export namespace ApiCompanyGet {
         /**
          * Flag indicating that the company supports collectors for deliveries
          */
-        supportsCollectors = 'supportsCollectors'
+        supportsCollectors = 'supportsCollectors',
+        /**
+         * Company configuration key-value store
+         */
+        configuration = 'configuration'
     }
 
     /**
@@ -507,6 +515,17 @@ export namespace ApiCompanyGet {
                     isListContainer: false,
                     complexType: ''
                 },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'configuration',
+                    classname: 'ApiCompanyGet',
+                    dataType: 'any',
+                    isPrimitiveType: false,
+                    isListContainer: false,
+                    complexType: ''
+                },
             ],
             validators: {
                 id: [
@@ -570,6 +589,8 @@ export namespace ApiCompanyGet {
                 companyRoles: [
                 ],
                 supportsCollectors: [
+                ],
+                configuration: [
                 ],
             }
         }
@@ -645,6 +666,9 @@ export namespace ApiCompanyGet {
   //                   validators: []
   //               },
   //               supportsCollectors: {
+  //                   validators: []
+  //               },
+  //               configuration: {
   //                   validators: []
   //               },
   //     }

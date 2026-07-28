@@ -209,12 +209,9 @@
             <!-- Parcel Lot and Variety (Dynamic) -->
             <div
               class="af-row"
-              *ngIf="
-                productFieldVisibilityService.shouldShowField('parcelLot') ||
-                productFieldVisibilityService.shouldShowField('variety')
-              "
+              *ngIf="shouldShowParcelLot || shouldShowVariety"
             >
-              <div class="af-c6">
+              <div [class]="shouldShowVariety ? 'af-c6' : 'af-c12'" *ngIf="shouldShowParcelLot">
                 <textinput
                   [form]="stockOrderForm.get('parcelLot')"
                   label="Lote (Parcela)"
@@ -245,7 +242,7 @@
                   </ng-container>
                 </textinput>
               </div>
-              <div class="af-c6">
+              <div class="af-c6" *ngIf="shouldShowVariety">
                 <single-choice
                   [formControlInput]="$any(stockOrderForm.get('variety'))"
                   [codebookService]="varietyOptions"
@@ -260,29 +257,15 @@
 
             <div class="af-row">
               <div class="af-c12">
-                <single-choice
+                <textinput
+                  [valueTextInput]="true"
+                  [value]="selectedEmployeeName"
+                  [readOnly]="true"
                   label="Cooperative employee"
                   i18n-label="Cooperative employee"
-                  [formControlInput]="employeeForm"
-                  [codebookService]="codebookUsers"
-                  style="min-width: 150px"
-                  [isInvalidChoice]="submitted && employeeForm.invalid"
+                  style="width: 100%"
                 >
-                  <ng-container *ngIf="submitted">
-                    <div
-                      *ngIf="employeeForm.errors as errors"
-                      class="sc-invalid-feedback"
-                    >
-                      <div
-                        *ngIf="errors.required"
-                        i18n="
-                          @@productLabelStockPurchaseOrdersModal.singleChoice.farmer.error"
-                      >
-                        Cooperative employee is required
-                      </div>
-                    </div>
-                  </ng-container>
-                </single-choice>
+                </textinput>
               </div>
             </div>
           </div>
@@ -771,7 +754,8 @@
             <div
               class="af-row"
               *ngIf="
-                showOrganic && (stockOrderForm.get('organic').value === 'true' || stockOrderForm.get('organic').value === true || stockOrderForm.get('organicCertification').value != null)
+                companyProfile?.configuration?.onlyOrganicProduction !== true &&
+                (stockOrderForm.get('organic').value === 'true' || stockOrderForm.get('organic').value === true || stockOrderForm.get('organicCertification').value != null)
               "
             >
               <div class="af-c12">

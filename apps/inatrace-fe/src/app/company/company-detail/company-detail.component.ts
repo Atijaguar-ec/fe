@@ -83,6 +83,8 @@ export class CompanyDetailComponent
   sub: Subscription;
   valueChainsCodebook: ActiveValueChainService;
   valueChainsForm = new UntypedFormControl(null);
+  onlyOrganicProductionControl = new UntypedFormControl(false);
+  onlyNacionalVarietyControl = new UntypedFormControl(false);
 
   valueChains: Array<ApiValueChain> = [];
   selectedCompanyValueChainsControl = new UntypedFormControl(null, [
@@ -283,10 +285,16 @@ export class CompanyDetailComponent
         this.fillWebPageAndSocialMediaForm();
         this.initializeListManagers();
 
+        const config = company.data.configuration || {};
+        this.onlyOrganicProductionControl.setValue(!!config.onlyOrganicProduction);
+        this.onlyNacionalVarietyControl.setValue(!!config.onlyNacionalVariety);
+
         // If user is not enrolled in company enrolled, disable the form
         if (!this.isCompanyAdmin) {
           this.companyDetailForm.disable();
           this.valueChainsForm.disable();
+          this.onlyOrganicProductionControl.disable();
+          this.onlyNacionalVarietyControl.disable();
         }
 
         this.globalEventsManager.showLoading(false);
@@ -392,6 +400,10 @@ export class CompanyDetailComponent
       delete formValue.companyRoles;
       delete formValue.supportsCollectors;
 
+      formValue.configuration = formValue.configuration || {};
+      formValue.configuration.onlyOrganicProduction = !!this.onlyOrganicProductionControl.value;
+      formValue.configuration.onlyNacionalVariety = !!this.onlyNacionalVarietyControl.value;
+
       const res: ApiResponseApiBaseEntity = await this.companyController
         .updateCompany({ ...formValue, id: companyId })
         .pipe(take(1))
@@ -421,8 +433,13 @@ export class CompanyDetailComponent
 
     try {
       this.globalEventsManager.showLoading(true);
+      const formValue = { ...this.companyDetailForm.value };
+      formValue.configuration = formValue.configuration || {};
+      formValue.configuration.onlyOrganicProduction = !!this.onlyOrganicProductionControl.value;
+      formValue.configuration.onlyNacionalVariety = !!this.onlyNacionalVarietyControl.value;
+
       const res: ApiResponseApiBaseEntity = await this.companyController
-        .createCompany(this.companyDetailForm.value)
+        .createCompany(formValue)
         .pipe(take(1))
         .toPromise();
       if (res && res.status === 'OK') {

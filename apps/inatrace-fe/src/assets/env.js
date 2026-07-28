@@ -19,4 +19,7 @@
 
   // Feature flags
   window['env']['enableShrimpModule'] = 'false';
+
+  // Keycloak authentication
+  window['env']['keycloakRealm'] = 'fortaleza';
 })(this);

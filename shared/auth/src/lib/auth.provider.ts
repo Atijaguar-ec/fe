@@ -89,7 +89,7 @@ export function provideInatraceAuth(config: InatraceAuthConfig) {
       },
       features: [
         withAutoRefreshToken({
-          sessionTimeout: 60000
+          sessionTimeout: 1800000
         })
       ],
       providers: [

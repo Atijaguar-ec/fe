@@ -197,6 +197,25 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
+  get shouldShowVariety(): boolean {
+    return this.productFieldVisibilityService.shouldShowField('variety') && !this.companyProfile?.configuration?.onlyNacionalVariety;
+  }
+
+  get shouldShowParcelLot(): boolean {
+    return this.productFieldVisibilityService.shouldShowField('parcelLot');
+  }
+
+  get selectedEmployeeName(): string {
+    if (!this.employeeForm.value) {
+      return this.currentLoggedInUser ? `${this.currentLoggedInUser.name} ${this.currentLoggedInUser.surname}` : '';
+    }
+    if (!this.companyProfile) {
+      return '';
+    }
+    const user = this.companyProfile.users.find(u => String(u.id) === String(this.employeeForm.value));
+    return user ? `${user.name} ${user.surname}` : '';
+  }
+
   private initializeVarietyOptions() {
     this.varietyOptionsMap = {
       NACIONAL: 'Nacional',
@@ -514,7 +533,10 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
     // Add Variety control (for cacao)
     if (!this.stockOrderForm.get('variety')) {
-      this.stockOrderForm.addControl('variety', new FormControl(null));
+      const defaultVariety = this.companyProfile?.configuration?.onlyNacionalVariety ? 'NACIONAL' : null;
+      this.stockOrderForm.addControl('variety', new FormControl(defaultVariety));
+    } else if (this.companyProfile?.configuration?.onlyNacionalVariety) {
+      this.stockOrderForm.get('variety').setValue('NACIONAL');
     }
     // Add Organic Certification control
     if (!this.stockOrderForm.get('organicCertification')) {
@@ -594,11 +616,16 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
     // Ensure variety control exists and set value if backend provides it
     if (!this.stockOrderForm.get('variety')) {
-      this.stockOrderForm.addControl('variety', new FormControl(null));
+      const defaultVariety = this.companyProfile?.configuration?.onlyNacionalVariety ? 'NACIONAL' : null;
+      this.stockOrderForm.addControl('variety', new FormControl(defaultVariety));
     }
     if ((this.order as any)?.variety != null) {
       this.ensureVarietyOption((this.order as any).variety);
       this.stockOrderForm.get('variety').setValue((this.order as any).variety);
+    }
+    // Si la empresa usa solo variedad Nacional, siempre sobrescribir con NACIONAL
+    if (this.companyProfile?.configuration?.onlyNacionalVariety) {
+      this.stockOrderForm.get('variety').setValue('NACIONAL');
     }
     // Ensure organicCertification control exists and set value if backend provides it
     if (!this.stockOrderForm.get('organicCertification')) {
@@ -611,6 +638,16 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       const keys = Object.keys(this.certificationTypeMap);
       if (keys.length > 0) {
         this.stockOrderForm.get('organicCertification').setValue(keys[0]);
+      }
+    }
+    // Si la empresa solo tiene producción orgánica, forzar organic a 'true' y cargar certificaciones por defecto
+    if (this.companyProfile?.configuration?.onlyOrganicProduction === true) {
+      this.stockOrderForm.get('organic').setValue('true');
+      if (!this.stockOrderForm.get('organicCertification').value) {
+        const certs = this.getDefaultFDVCertifications();
+        if (certs) {
+          this.stockOrderForm.get('organicCertification').setValue(certs);
+        }
       }
     }
     // Ensure moisture percentage controls exist
@@ -875,6 +912,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   get showOrganic() {
+    if (this.companyProfile?.configuration?.onlyOrganicProduction === true) {
+      return false;
+    }
     return this.facility && this.facility.displayOrganic || this.stockOrderForm.get('organic').value;
   }
 
@@ -1108,19 +1148,39 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.stockOrderForm.get('productionDate').setValue(dateISOString(pd));
     }
     this.updateWeekNumberFromDate();
-    const tKey = this.getTransitionCertificationKey();
-    const isCCN51 = this.stockOrderForm.get('variety')?.value === 'CCN51';
-    if (isCCN51) {
-      this.stockOrderForm.get('organicCertification')?.setValue(tKey);
+
+    if (this.companyProfile?.configuration?.onlyOrganicProduction === true) {
+      // Empresas con producción exclusivamente orgánica (ej. Fortaleza del Valle):
+      // organic siempre 'true', certificación tomada del perfil de la empresa.
+      this.stockOrderForm.get('organic').setValue('true');
+      const certs = this.getDefaultFDVCertifications();
+      if (certs) {
+        this.stockOrderForm.get('organicCertification').setValue(certs);
+      }
     } else {
-      const organicVal = this.stockOrderForm.get('organic')?.value;
-      if (organicVal === 'false' || organicVal === false) {
-        const certControl = this.stockOrderForm.get('organicCertification');
-        if (certControl && !certControl.value) {
-          certControl.setValue(tKey);
+      // Resto de empresas (ej. UNOCACE): CCN51 o "No" orgánico defaultea a
+      // certificación de transición.
+      const tKey = this.getTransitionCertificationKey();
+      const isCCN51 = this.stockOrderForm.get('variety')?.value === 'CCN51';
+      if (isCCN51) {
+        this.stockOrderForm.get('organicCertification')?.setValue(tKey);
+      } else {
+        const organicVal = this.stockOrderForm.get('organic')?.value;
+        if (organicVal === 'false' || organicVal === false) {
+          const certControl = this.stockOrderForm.get('organicCertification');
+          if (certControl && !certControl.value) {
+            certControl.setValue(tKey);
+          }
         }
       }
     }
+  }
+
+  private getDefaultFDVCertifications(): string {
+    if (this.companyProfile?.certifications && this.companyProfile.certifications.length > 0) {
+      return this.companyProfile.certifications.map(c => c.type).filter(Boolean).join(', ');
+    }
+    return '';
   }
 
   private async setIdentifier() {

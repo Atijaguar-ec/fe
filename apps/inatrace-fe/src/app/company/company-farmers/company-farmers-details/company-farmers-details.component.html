@@ -480,40 +480,42 @@
               >
             </ng-container>
 
-            <checkbox-input [form]="$any(farmerForm.get('farm.organic'))">
-              <checkbox-input-rich-label
-                i18n="@@collectorDetail.checkbox-input.organicFarm"
+            <ng-container *ngIf="company?.configuration?.onlyOrganicProduction !== true">
+              <checkbox-input [form]="$any(farmerForm.get('farm.organic'))">
+                <checkbox-input-rich-label
+                  i18n="@@collectorDetail.checkbox-input.organicFarm"
+                >
+                  Organic farm
+                </checkbox-input-rich-label>
+              </checkbox-input>
+  
+              <textinput
+                [form]="$any(farmerForm.get('farm.areaOrganicCertified'))"
+                style="width: 100%"
+                [label]="
+                  appendAreaUnit(
+                    areaTranslations.organicCertifiedLabel,
+                    areaUnit.value
+                  )
+                "
+                [placeholder]="
+                  appendAreaUnit(
+                    areaTranslations.organicCertifiedPlaceholder,
+                    areaUnit.value
+                  )
+                "
               >
-                Organic farm
-              </checkbox-input-rich-label>
-            </checkbox-input>
-
-            <textinput
-              [form]="$any(farmerForm.get('farm.areaOrganicCertified'))"
-              style="width: 100%"
-              [label]="
-                appendAreaUnit(
-                  areaTranslations.organicCertifiedLabel,
-                  areaUnit.value
-                )
-              "
-              [placeholder]="
-                appendAreaUnit(
-                  areaTranslations.organicCertifiedPlaceholder,
-                  areaUnit.value
-                )
-              "
-            >
-            </textinput>
-
-            <app-datepicker
-              [form]="farmerForm.get('farm.startTransitionToOrganic')"
-              label="Start transition to organic"
-              style="width: 100%"
-              i18n-label="
-                @@collectorDetail.textinput.startTransitionToOrganic.label"
-            >
-            </app-datepicker>
+              </textinput>
+  
+              <app-datepicker
+                [form]="farmerForm.get('farm.startTransitionToOrganic')"
+                label="Start transition to organic"
+                style="width: 100%"
+                i18n-label="
+                  @@collectorDetail.textinput.startTransitionToOrganic.label"
+              >
+              </app-datepicker>
+            </ng-container>
           </div>
         </div>
 
