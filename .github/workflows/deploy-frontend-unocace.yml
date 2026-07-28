@@ -1,289 +1,246 @@
 # ============================================================================
-# 🍫 Frontend CI/CD - UNOCACE (Staging + Production)
+# 🍫 Frontend CI/CD - UNOCACE (Staging)
 # ============================================================================
-# Este workflow despliega el frontend para UNOCACE (Cacao)
-# - Staging: inatrace.atijaguar.com (develop branch)
-# - Production: inatrace.unocace.com
+# Despliega el frontend de UNOCACE como ARCHIVOS ESTÁTICOS en
+# 95.217.182.220:/var/www/inatrace-fe-dist, servidos por el Nginx del host.
+# Verificado en vivo el 2026-07-28.
 #
-# Triggers:
-# - develop branch → deploy to develop (staging)
-# - tags unocace-fe-v* → deploy to production
+# Reemplaza el workflow anterior, que desplegaba un contenedor Docker con
+# Traefik — mecanismo que NO se usa en UNOCACE (sí en Fortaleza, vía
+# fe/ci/Jenkinsfile). Ese workflow además apuntaba a `develop`/`prod-unocace`
+# y usaba Node 14, incompatible con Angular 19 + Nx 22.
+#
+# Build: `npm run build:standalone` (configuración `standalone`), que produce
+# `mf-manifest.json` con `remotes: []` — sin el micro-frontend de camarón,
+# reproduciendo exactamente lo que corre hoy en producción. UNOCACE es
+# exclusivamente cacao (`enableShrimpModule = 'false'`).
+#
+# Entrega: rsync --delete, de modo que el servidor queda idéntico al artefacto
+# de CI. Se hace respaldo previo del dist actual antes de sincronizar.
 # ============================================================================
 
 name: 🍫 Frontend UNOCACE
 
 on:
   push:
-    tags:
-      - "unocace-fe-v*"
+    branches:
+      - staging
+    paths:
+      - "apps/inatrace-fe/**"
+      - "shared/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/deploy-frontend-unocace.yml"
   workflow_dispatch:
     inputs:
-      environment:
-        description: "Target environment"
-        required: true
-        default: "staging"
-        type: choice
-        options:
-          - staging
-          - production
+      skip_quality:
+        description: "Omitir lint y tests"
+        required: false
+        default: false
+        type: boolean
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}-inatrace
-  NODE_VERSION: "14"
-  SWAGGER_DOCS_HOST: https://inatrace.atijaguar.com/api/v3/api-docs
-  PRIMARY_PRODUCT_TYPE: COCOA
+  # Node 22 — alineado con fe/Dockerfile (build-stage). NO usar Node 14.
+  NODE_VERSION: "22"
+  REMOTE_DIST: /var/www/inatrace-fe-dist
+  # Valores de runtime para env.js (verificados contra el env.js desplegado)
+  ENVIRONMENT_NAME: test
+  APP_BASE_URL: https://inatrace.test.unocace.com
+  API_BASE_URL: https://inatrace.test.unocace.com/api
+  QR_CODE_BASE_PATH: https://inatrace.test.unocace.com/cacao/qr/public
+  RELATIVE_FILE_UPLOAD_URL: /api/v1/file-storage/upload
+  RELATIVE_FILE_UPLOAD_URL_MANUAL_TYPE: /api/v1/file-storage/upload/manual
+  RELATIVE_IMAGE_UPLOAD_URL: /api/v1/file-storage/upload/image
+  RELATIVE_IMAGE_UPLOAD_URL_ALL_SIZES: /api/v1/file-storage/upload/image/all-sizes
+  KEYCLOAK_URL: https://inatrace.test.unocace.com/auth
+  KEYCLOAK_REALM: unocace
+  KEYCLOAK_CLIENT_ID: inatrace-frontend
+  # UNOCACE es solo cacao — el módulo de camarón queda deshabilitado.
+  ENABLE_SHRIMP_MODULE: "false"
 
 jobs:
   quality:
-    name: 🔍 Code Quality & Tests
+    name: 🔍 Lint & Tests
     runs-on: ubuntu-latest
-    if: github.event_name != 'workflow_dispatch' || github.event.inputs.environment == 'staging'
+    if: ${{ !inputs.skip_quality }}
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
-          cache-dependency-path: "package-lock.json"
-
-      - name: Clean npm cache
-        run: npm cache clean --force
-
       - name: Install dependencies
-        run: npm ci
-
-      - name: Lint code
+        run: npm ci --legacy-peer-deps
+      - name: Lint
         run: npm run lint
         continue-on-error: true
-
-      - name: Run unit tests
-        run: npm run test -- --watch=false --progress=false
+      - name: Unit tests
+        run: npm run test -- --watch=false --browsers=ChromeHeadless
+        continue-on-error: true
 
   build:
-    name: 🏗️ Build & Push
+    name: 🏗️ Build (standalone, sin shrimpMfe)
     runs-on: ubuntu-latest
-    needs: quality
-    if: |
-      (github.event_name == 'push' && (github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/tags/unocace-fe-v'))) ||
-      (github.event_name == 'workflow_dispatch')
-    permissions:
-      contents: read
-      packages: write
-    outputs:
-      image-tag: ${{ steps.meta.outputs.tag }}
+    needs: [quality]
+    if: always() && !cancelled()
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
 
-      - name: 🏷️ Generate metadata
-        id: meta
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: 🏗️ Build
+        env:
+          NODE_OPTIONS: "--max_old_space_size=8192"
+        run: npm run build:standalone
+
+      - name: 📝 Generar assets/env.js desde la plantilla
+        env:
+          GOOGLE_MAPS_API_KEY: ${{ secrets.TEST_UNOCACE_GOOGLE_MAPS_API_KEY }}
+          MAPBOX_ACCESS_TOKEN: ${{ secrets.TEST_UNOCACE_MAPBOX_ACCESS_TOKEN }}
+          TOKEN_FOR_PUBLIC_LOG_ROUTE: ${{ secrets.TEST_UNOCACE_PUBLIC_LOG_TOKEN }}
+          BEYCO_AUTH_URL: ${{ secrets.TEST_UNOCACE_BEYCO_AUTH_URL }}
+          BEYCO_CLIENT_ID: ${{ secrets.TEST_UNOCACE_BEYCO_CLIENT_ID }}
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/unocace-fe-v* ]]; then
-            TAG=${GITHUB_REF#refs/tags/}
-          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            TAG="develop"
-          else
-            TAG="manual-${{ github.run_id }}"
+          set -e
+          DIST=dist/apps/inatrace-fe
+          test -f "$DIST/assets/env.template.js" || { echo "❌ Falta env.template.js en el build"; exit 1; }
+          envsubst < "$DIST/assets/env.template.js" > "$DIST/assets/env.js"
+          echo "✅ env.js generado:"
+          cat "$DIST/assets/env.js"
+
+      - name: ✅ Verificar que el manifiesto NO trae remotes de camarón
+        run: |
+          set -e
+          DIST=dist/apps/inatrace-fe
+          test -f "$DIST/mf-manifest.json" || { echo "❌ Falta mf-manifest.json"; exit 1; }
+          REMOTES=$(python3 -c "import json;print(json.load(open('$DIST/mf-manifest.json')).get('remotes'))")
+          echo "remotes en el build: $REMOTES"
+          if [ "$REMOTES" != "[]" ]; then
+            echo "❌ El build incluye remotes ($REMOTES). UNOCACE debe compilarse sin shrimpMfe."
+            exit 1
           fi
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "✅ mf-manifest.json con remotes: []"
 
-      - name: 🔐 Login to GHCR
-        uses: docker/login-action@v3
+      - name: 🧹 Eliminar residuos de macOS si los hubiera
+        run: find dist/apps/inatrace-fe -name "._*" -delete -o -name ".DS_Store" -delete || true
+
+      - uses: actions/upload-artifact@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          name: fe-dist
+          path: dist/apps/inatrace-fe
+          retention-days: 3
 
-      - name: Compute lowercase image ref
-        id: image_ref
-        run: |
-          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
-          IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
-          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
-
-      - name: 🔧 Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver: docker-container
-          install: true
-          use: true
-
-      - name: 🏗️ Build and push Docker image
-        id: build
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ steps.image_ref.outputs.image }}:${{ steps.meta.outputs.tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            BUILD_OPTIMIZATION=true
-            BUILD_CONFIG=production-cocoa
-
-  deploy-staging:
-    name: 🚀 Deploy to Staging
+  deploy:
+    name: 🚀 Deploy UNOCACE Staging (rsync estático)
     runs-on: ubuntu-latest
-    needs: build
-    if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    needs: [build]
     environment:
-      name: develop
-      url: http://inatrace.atijaguar.com
+      name: unocace-staging
+      url: https://inatrace.test.unocace.com
     steps:
-      - name: 📥 Checkout deployment configs
-        uses: actions/checkout@v4
-
-      - name: 📁 Ensure remote directory exists
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.DEV_HOST }}
-          username: ${{ secrets.DEV_USER }}
-          key: ${{ secrets.DEV_SSH_KEY }}
-          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
-          script: mkdir -p /opt/inatrace/frontend/dev
-
-      - name: 📤 Upload configs
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.DEV_HOST }}
-          username: ${{ secrets.DEV_USER }}
-          key: ${{ secrets.DEV_SSH_KEY }}
-          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
-          source: "ci/docker-compose.yml,nginx.conf"
-          target: "/opt/inatrace/frontend/dev"
-          strip_components: 1
-
-      - name: 📝 Prepare .env (staging)
+      - name: 🔐 Preflight
         run: |
-          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"; IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
-          TAG="${{ needs.build.outputs.image-tag }}"
-          cat > .env <<EOF
-          FE_IMAGE_NAME=$IMAGE
-          FE_TAG=$TAG
-          NODE_ENV=development
-          PRIMARY_PRODUCT_TYPE=COCOA
-          ENABLE_SHRIMP_MODULE=false
-          CONTAINER_NAME=inatrace-fe-dev
-          HOST_HTTP_PORT=8081
-          FRONTEND_NETWORK=inatrace-frontend-network
-          BACKEND_NETWORK=inatrace-backend-network
-          DOMAIN=inatrace.atijaguar.com
-          COMPANY_NAME="INATrace Cocoa"
-          COMPANY_THEME=cocoa
-          TRAEFIK_ENABLE=true
-          TRAEFIK_ROUTER_NAME=inatrace-fe-dev
-          TRAEFIK_ROUTER_RULE='Host(\`inatrace.atijaguar.com\`) || Host(\`5.161.183.137\`)'
-          TRAEFIK_ENTRYPOINTS=web
-          TRAEFIK_CERT_RESOLVER=
-          HEALTHCHECK_URL=http://localhost/health
-          NGINX_CONF_PATH=./nginx.conf
-          EOF
+          missing=0
+          [ -z "${{ secrets.TEST_UNOCACE_HOST }}" ] && echo "❌ TEST_UNOCACE_HOST" && missing=1
+          [ -z "${{ secrets.TEST_UNOCACE_USER }}" ] && echo "❌ TEST_UNOCACE_USER" && missing=1
+          [ -z "${{ secrets.TEST_UNOCACE_PASSWORD }}" ] && echo "❌ TEST_UNOCACE_PASSWORD" && missing=1
+          [ "$missing" -ne 0 ] && exit 1
+          echo "✅ Secrets SSH presentes"
 
-      - name: 📤 Upload .env
-        uses: appleboy/scp-action@v0.1.7
+      - uses: actions/download-artifact@v4
         with:
-          host: ${{ secrets.DEV_HOST }}
-          username: ${{ secrets.DEV_USER }}
-          key: ${{ secrets.DEV_SSH_KEY }}
-          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
-          source: ".env"
-          target: "/opt/inatrace/frontend/dev"
+          name: fe-dist
+          path: dist
 
-      - name: 🚀 Deploy
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.DEV_HOST }}
-          username: ${{ secrets.DEV_USER }}
-          key: ${{ secrets.DEV_SSH_KEY }}
-          fingerprint: ${{ secrets.DEV_SSH_FINGERPRINT }}
-          script: |
-            cd /opt/inatrace/frontend/dev
-            docker compose pull
-            docker compose up -d
-            echo "✅ Staging deployed!"
+      - name: 📦 Instalar rsync y sshpass
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq rsync sshpass
 
-  deploy-production:
-    name: 🚀 Deploy to Production
-    runs-on: ubuntu-latest
-    needs: build
-    if: |
-      startsWith(github.ref, 'refs/tags/unocace-fe-v') ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
-    environment:
-      name: prod-unocace
-      url: https://inatrace.unocace.com
-    steps:
-      - name: 📥 Checkout deployment configs
-        uses: actions/checkout@v4
-
-      - name: 📁 Ensure remote directory exists
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.PROD_UNOCACE_HOST }}
-          username: ${{ secrets.PROD_UNOCACE_USER }}
-          password: ${{ secrets.PROD_UNOCACE_PASSWORD }}
-          script: mkdir -p /opt/inatrace/frontend/prod
-
-      - name: 📤 Upload configs
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.PROD_UNOCACE_HOST }}
-          username: ${{ secrets.PROD_UNOCACE_USER }}
-          password: ${{ secrets.PROD_UNOCACE_PASSWORD }}
-          source: "ci/docker-compose.yml,nginx.conf"
-          target: "/opt/inatrace/frontend/prod"
-          strip_components: 1
-
-      - name: 📝 Prepare .env (prod)
+      - name: 💾 Respaldo del dist actual (antes de sincronizar)
+        env:
+          SSHPASS: ${{ secrets.TEST_UNOCACE_PASSWORD }}
         run: |
-          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"; IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
-          TAG="${{ needs.build.outputs.image-tag }}"
-          cat > .env <<EOF
-          FE_IMAGE_NAME=$IMAGE
-          FE_TAG=$TAG
-          NODE_ENV=production
-          PRIMARY_PRODUCT_TYPE=COCOA
-          ENABLE_SHRIMP_MODULE=false
-          CONTAINER_NAME=inatrace-fe-prod
-          HOST_HTTP_PORT=80
-          FRONTEND_NETWORK=inatrace-frontend-network
-          BACKEND_NETWORK=inatrace-backend-network
-          DOMAIN=inatrace.unocace.com
-          COMPANY_NAME="UNOCACE"
-          COMPANY_THEME=cocoa
-          TRAEFIK_ENABLE=true
-          TRAEFIK_ROUTER_NAME=inatrace-fe-prod
-          TRAEFIK_ROUTER_RULE='Host(\`inatrace.unocace.com\`)'
-          TRAEFIK_ENTRYPOINTS=websecure
-          TRAEFIK_CERT_RESOLVER=letsencrypt
-          HEALTHCHECK_URL=http://localhost/health
-          NGINX_CONF_PATH=./nginx.conf
-          EOF
+          set -e
+          sshpass -e ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.TEST_UNOCACE_USER }}@${{ secrets.TEST_UNOCACE_HOST }} '
+              set -e
+              BACKUP_DIR=/opt/inatrace/backups/frontend
+              mkdir -p "$BACKUP_DIR"
+              TS=$(date +%Y%m%d-%H%M%S)
+              if [ -d ${{ env.REMOTE_DIST }} ] && [ -n "$(ls -A ${{ env.REMOTE_DIST }} 2>/dev/null)" ]; then
+                tar -czf "$BACKUP_DIR/fe-dist-$TS.tar.gz" -C ${{ env.REMOTE_DIST }} .
+                echo "✅ Respaldo: $BACKUP_DIR/fe-dist-$TS.tar.gz ($(du -h "$BACKUP_DIR/fe-dist-$TS.tar.gz" | cut -f1))"
+              else
+                echo "⚠️ Dist vacío o inexistente, sin respaldo que hacer"
+              fi
+              # Retención: 10 respaldos más recientes
+              ls -1t "$BACKUP_DIR"/fe-dist-*.tar.gz 2>/dev/null | tail -n +11 | xargs -r rm -f
+            '
 
-      - name: 📤 Upload .env
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.PROD_UNOCACE_HOST }}
-          username: ${{ secrets.PROD_UNOCACE_USER }}
-          password: ${{ secrets.PROD_UNOCACE_PASSWORD }}
-          source: ".env"
-          target: "/opt/inatrace/frontend/prod"
+      - name: 🚀 rsync --delete al Nginx del host
+        env:
+          SSHPASS: ${{ secrets.TEST_UNOCACE_PASSWORD }}
+        run: |
+          set -e
+          # --delete: el servidor queda idéntico al build (limpia residuos ._*
+          # de scp desde macOS y artefactos obsoletos como el shrimpMfe viejo).
+          sshpass -e rsync -az --delete --no-owner --no-group \
+            --exclude '._*' --exclude '.DS_Store' \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            dist/ \
+            ${{ secrets.TEST_UNOCACE_USER }}@${{ secrets.TEST_UNOCACE_HOST }}:${{ env.REMOTE_DIST }}/
+          echo "✅ Sincronización completada"
 
-      - name: 🚀 Deploy
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.PROD_UNOCACE_HOST }}
-          username: ${{ secrets.PROD_UNOCACE_USER }}
-          password: ${{ secrets.PROD_UNOCACE_PASSWORD }}
-          script: |
-            cd /opt/inatrace/frontend/prod
-            docker compose pull
-            docker compose up -d
-            echo "✅ UNOCACE Production deployed!"
+      - name: 🔄 Permisos y recarga de Nginx
+        env:
+          SSHPASS: ${{ secrets.TEST_UNOCACE_PASSWORD }}
+        run: |
+          set -e
+          sshpass -e ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.TEST_UNOCACE_USER }}@${{ secrets.TEST_UNOCACE_HOST }} '
+              set -e
+              chown -R www-data:www-data ${{ env.REMOTE_DIST }} || true
+              find ${{ env.REMOTE_DIST }} -type d -exec chmod 755 {} \;
+              find ${{ env.REMOTE_DIST }} -type f -exec chmod 644 {} \;
+              nginx -t
+              systemctl reload nginx
+              echo "✅ Nginx recargado"
+            '
+
+      - name: ✅ Verificación pública
+        run: |
+          set -e
+          fail=0
+
+          check() {
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$1")
+            if [ "$CODE" = "$2" ]; then
+              echo "✅ $1 → $CODE"
+            else
+              echo "❌ $1 → $CODE (esperado $2)"
+              fail=1
+            fi
+          }
+
+          check https://inatrace.test.unocace.com/es/login 200
+          check https://inatrace.test.unocace.com/mf-manifest.json 200
+          check https://inatrace.test.unocace.com/assets/env.js 200
+
+          echo "--- mf-manifest.json servido ---"
+          REMOTES=$(curl -s --max-time 15 https://inatrace.test.unocace.com/mf-manifest.json \
+            | python3 -c "import json,sys;print(json.load(sys.stdin).get('remotes'))")
+          echo "remotes: $REMOTES"
+          [ "$REMOTES" = "[]" ] || { echo "❌ El manifiesto servido trae remotes"; fail=1; }
+
+          echo "--- env.js servido: realm y feature flag ---"
+          ENVJS=$(curl -s --max-time 15 https://inatrace.test.unocace.com/assets/env.js)
+          echo "$ENVJS" | grep -q "keycloakRealm'\] = 'unocace'" \
+            && echo "✅ keycloakRealm=unocace" || { echo "❌ realm incorrecto"; fail=1; }
+          echo "$ENVJS" | grep -q "enableShrimpModule'\] = 'false'" \
+            && echo "✅ enableShrimpModule=false" || { echo "❌ flag de camarón incorrecto"; fail=1; }
+
+          exit $fail

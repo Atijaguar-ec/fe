@@ -100,6 +100,33 @@
             "path": "apps/inatrace-fe/webpack.prod.config.ts"
           }
         },
+        "standalone": {
+          "fileReplacements": [
+            {
+              "replace": "apps/inatrace-fe/src/environments/environment.ts",
+              "with": "apps/inatrace-fe/src/environments/environment.prod.ts"
+            }
+          ],
+          "optimization": true,
+          "outputHashing": "all",
+          "sourceMap": false,
+          "namedChunks": false,
+          "extractLicenses": true,
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "2mb",
+              "maximumError": "5mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "6kb"
+            }
+          ],
+          "customWebpackConfig": {
+            "path": "apps/inatrace-fe/webpack.standalone.config.ts"
+          }
+        },
         "dev": {
           "fileReplacements": [
             {
