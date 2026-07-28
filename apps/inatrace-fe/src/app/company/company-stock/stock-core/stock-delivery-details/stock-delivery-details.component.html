@@ -738,7 +738,7 @@
             <div class="af-row" *ngIf="showOrganic">
               <div class="af-c12">
                 <single-choice
-                  label="Organic"
+                  label="¿Tiene certificado Orgánico?"
                   i18n-label="
                     @@productLabelStockPurchaseOrdersModal.singleChoice.organic.label"
                   [formControlInput]="stockOrderForm.get('organic')"
@@ -771,7 +771,7 @@
             <div
               class="af-row"
               *ngIf="
-                showOrganic && stockOrderForm.get('organic').value != null && stockOrderForm.get('organic').value !== ''
+                showOrganic && (stockOrderForm.get('organic').value === 'true' || stockOrderForm.get('organic').value === true || stockOrderForm.get('organicCertification').value != null)
               "
             >
               <div class="af-c12">

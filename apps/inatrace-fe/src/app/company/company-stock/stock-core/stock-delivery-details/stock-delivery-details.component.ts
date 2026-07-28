@@ -210,9 +210,48 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.varietyOptions.setPlaceholder($localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.variety.placeholder:Selecciona la variedad`);
   }
 
+  private getTransitionCertificationKey(): string {
+    const keys = Object.keys(this.certificationTypeMap);
+    return keys.find((k) => k.toLowerCase().includes('transition') || k.toLowerCase().includes('transicion')) || 'Transición / Fairtrade / SPP';
+  }
+
   private refreshCertificationTypeOptions() {
-    this.certificationTypeOptions = EnumSifrant.fromObject(this.certificationTypeMap);
-    this.certificationTypeOptions.setPlaceholder($localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.organicsCertificationType.placeholder:Seleccionar opción ...`);
+    const organicVal = this.stockOrderForm?.get('organic')?.value;
+    const isOrganic = organicVal === 'true' || organicVal === true;
+    const isNonOrganic = organicVal === 'false' || organicVal === false;
+
+    const filteredMap: { [key: string]: string } = {};
+
+    Object.keys(this.certificationTypeMap).forEach((key) => {
+      const lowerKey = key.toLowerCase();
+      const isOrganicCert = lowerKey.includes('biosuisse') || lowerKey.includes('naturland');
+      const isTransitionCert = lowerKey.includes('transicion') || lowerKey.includes('transition');
+
+      if (isOrganic) {
+        if (!isTransitionCert) {
+          filteredMap[key] = this.certificationTypeMap[key];
+        }
+      } else if (isNonOrganic) {
+        if (isTransitionCert) {
+          filteredMap[key] = this.certificationTypeMap[key];
+        }
+      } else {
+        filteredMap[key] = this.certificationTypeMap[key];
+      }
+    });
+
+    this.certificationTypeOptions = EnumSifrant.fromObject(filteredMap);
+    this.certificationTypeOptions.setPlaceholder(
+      $localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.organicsCertificationType.placeholder:Seleccionar opción ...`
+    );
+
+    const keys = Object.keys(filteredMap);
+    if (keys.length > 0 && this.stockOrderForm) {
+      const currentVal = this.stockOrderForm.get('organicCertification')?.value;
+      if (!currentVal || !keys.includes(currentVal)) {
+        this.stockOrderForm.get('organicCertification')?.setValue(keys[0]);
+      }
+    }
   }
 
   private async loadCertificationTypes() {
@@ -568,6 +607,11 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if ((this.order as any)?.organicCertification != null) {
       const value = (this.order as any).organicCertification;
       this.stockOrderForm.get('organicCertification').setValue(value);
+    } else {
+      const keys = Object.keys(this.certificationTypeMap);
+      if (keys.length > 0) {
+        this.stockOrderForm.get('organicCertification').setValue(keys[0]);
+      }
     }
     // Ensure moisture percentage controls exist
     if (!this.stockOrderForm.get('moisturePercentage')) {
@@ -581,6 +625,28 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   private setupFormListeners() {
+    const varietyControl = this.stockOrderForm.get('variety');
+    if (varietyControl) {
+      varietyControl.valueChanges.subscribe((val) => {
+        if (val === 'CCN51') {
+          const tKey = this.getTransitionCertificationKey();
+          this.stockOrderForm.get('organicCertification')?.setValue(tKey);
+        }
+      });
+    }
+
+    const organicControl = this.stockOrderForm.get('organic');
+    if (organicControl) {
+      organicControl.valueChanges.subscribe((val) => {
+        this.refreshCertificationTypeOptions();
+        const certControl = this.stockOrderForm.get('organicCertification');
+        if (certControl && (!certControl.value || val === 'false' || val === false)) {
+          const tKey = this.getTransitionCertificationKey();
+          certControl.setValue(tKey);
+        }
+      });
+    }
+
     // Listen to changes in fields that affect net weight calculation
     const fieldsToWatch = ['totalGrossQuantity', 'moisturePercentage', 'tare', 'damagedWeightDeduction'];
     fieldsToWatch.forEach(fieldName => {
@@ -602,6 +668,55 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         });
       }
     });
+
+    const productionDateControl = this.stockOrderForm.get('productionDate');
+    if (productionDateControl) {
+      productionDateControl.valueChanges.subscribe((val) => {
+        if (val) {
+          const week = this.calculateISOWeek(val);
+          if (week && week >= 1 && week <= 53) {
+            this.stockOrderForm.get('weekNumber')?.setValue(week);
+          }
+        }
+      });
+    }
+  }
+
+  calculateISOWeek(dateInput: any): number {
+    if (!dateInput) return null;
+
+    // 'new Date(dateInput)' on a date-only string ('YYYY-MM-DD') parses it as
+    // UTC midnight, but setHours() below operates in local time. In negative
+    // UTC offsets (e.g. Ecuador, UTC-5) that shifts the date back one day,
+    // which can flip the computed ISO week near a week boundary. Parse the
+    // Y-M-D components directly into a local Date to avoid the UTC/local mix.
+    let d: Date;
+    if (typeof dateInput === 'string') {
+      const match = dateInput.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      d = match
+        ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+        : new Date(dateInput);
+    } else {
+      d = new Date(dateInput);
+    }
+    if (isNaN(d.getTime())) return null;
+
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+
+    const yearStart = new Date(d.getFullYear(), 0, 1);
+    const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+    return weekNo;
+  }
+
+  private updateWeekNumberFromDate(): void {
+    const pd = this.stockOrderForm.get('productionDate')?.value;
+    if (pd) {
+      const week = this.calculateISOWeek(pd);
+      if (week && week >= 1 && week <= 53) {
+        this.stockOrderForm.get('weekNumber')?.setValue(week);
+      }
+    }
   }
 
   private cannotUpdatePO() {
@@ -991,6 +1106,20 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     const pd = this.stockOrderForm.get('productionDate').value;
     if (pd != null) {
       this.stockOrderForm.get('productionDate').setValue(dateISOString(pd));
+    }
+    this.updateWeekNumberFromDate();
+    const tKey = this.getTransitionCertificationKey();
+    const isCCN51 = this.stockOrderForm.get('variety')?.value === 'CCN51';
+    if (isCCN51) {
+      this.stockOrderForm.get('organicCertification')?.setValue(tKey);
+    } else {
+      const organicVal = this.stockOrderForm.get('organic')?.value;
+      if (organicVal === 'false' || organicVal === false) {
+        const certControl = this.stockOrderForm.get('organicCertification');
+        if (certControl && !certControl.value) {
+          certControl.setValue(tKey);
+        }
+      }
     }
   }
 

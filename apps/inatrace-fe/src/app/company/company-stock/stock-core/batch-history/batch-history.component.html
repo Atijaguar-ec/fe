@@ -29,6 +29,10 @@
               <table class="af-table af-table--200 table-striped">
                 <tbody> 
 
+                <tr *ngIf="stockOrder.id">
+                  <th>Id</th>
+                  <td>{{ stockOrder.id }}</td>
+                </tr>
                 <tr *ngIf="!stockOrder.purchaseOrder">
                   <th i18n="@@orderHistoryView.tableCol.internalLotNumber">Internal lot name</th>
                   <td>{{ stockOrder.internalLotNumber }}</td>

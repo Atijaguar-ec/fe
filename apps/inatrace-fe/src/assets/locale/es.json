@@ -2703,7 +2703,7 @@
     "productLabelStockFacilityModal.checkbox.priceReductionDamage.label": "Mostrar 'Descuento para defectos'",
     "productLabelStockPurchaseOrdersModal.organic.yes": "Sí",
     "productLabelStockPurchaseOrdersModal.organic.no": "No",
-    "productLabelStockPurchaseOrdersModal.singleChoice.organic.label": "Organico",
+    "productLabelStockPurchaseOrdersModal.singleChoice.organic.label": "¿Tiene certificado Orgánico?",
     "productLabelStockPurchaseOrdersModal.singleChoice.organic.error": "Se requiere organico",
     "productLabelStockPurchaseOrdersModal.textinput.tare.label": "Tara",
     "productLabelStockPurchaseOrdersModal.textinput.tare.placeholder": "Introduzca tara",
