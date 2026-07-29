@@ -163,16 +163,19 @@ jobs:
       - name: 💾 Respaldo del dist actual (antes de sincronizar)
         env:
           SSHPASS: ${{ secrets.TEST_UNOCACE_PASSWORD }}
+          SSH_USER: ${{ secrets.TEST_UNOCACE_USER }}
+          SSH_HOST: ${{ secrets.TEST_UNOCACE_HOST }}
         run: |
           set -e
+          echo "debug: host length=${#SSH_HOST} user length=${#SSH_USER}"
           sshpass -e ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.TEST_UNOCACE_USER }}@${{ secrets.TEST_UNOCACE_HOST }} '
+            "${SSH_USER}@${SSH_HOST}" '
               set -e
               BACKUP_DIR=/opt/inatrace/backups/frontend
               mkdir -p "$BACKUP_DIR"
               TS=$(date +%Y%m%d-%H%M%S)
-              if [ -d ${{ env.REMOTE_DIST }} ] && [ -n "$(ls -A ${{ env.REMOTE_DIST }} 2>/dev/null)" ]; then
-                tar -czf "$BACKUP_DIR/fe-dist-$TS.tar.gz" -C ${{ env.REMOTE_DIST }} .
+              if [ -d '"${{ env.REMOTE_DIST }}"' ] && [ -n "$(ls -A '"${{ env.REMOTE_DIST }}"' 2>/dev/null)" ]; then
+                tar -czf "$BACKUP_DIR/fe-dist-$TS.tar.gz" -C '"${{ env.REMOTE_DIST }}"' .
                 echo "✅ Respaldo: $BACKUP_DIR/fe-dist-$TS.tar.gz ($(du -h "$BACKUP_DIR/fe-dist-$TS.tar.gz" | cut -f1))"
               else
                 echo "⚠️ Dist vacío o inexistente, sin respaldo que hacer"
@@ -184,6 +187,8 @@ jobs:
       - name: 🚀 rsync --delete al Nginx del host
         env:
           SSHPASS: ${{ secrets.TEST_UNOCACE_PASSWORD }}
+          SSH_USER: ${{ secrets.TEST_UNOCACE_USER }}
+          SSH_HOST: ${{ secrets.TEST_UNOCACE_HOST }}
         run: |
           set -e
           # --delete: el servidor queda idéntico al build (limpia residuos ._*
@@ -192,20 +197,22 @@ jobs:
             --exclude '._*' --exclude '.DS_Store' \
             -e "ssh -o StrictHostKeyChecking=no" \
             dist/ \
-            ${{ secrets.TEST_UNOCACE_USER }}@${{ secrets.TEST_UNOCACE_HOST }}:${{ env.REMOTE_DIST }}/
+            "${SSH_USER}@${SSH_HOST}:${{ env.REMOTE_DIST }}/"
           echo "✅ Sincronización completada"
 
       - name: 🔄 Permisos y recarga de Nginx
         env:
           SSHPASS: ${{ secrets.TEST_UNOCACE_PASSWORD }}
+          SSH_USER: ${{ secrets.TEST_UNOCACE_USER }}
+          SSH_HOST: ${{ secrets.TEST_UNOCACE_HOST }}
         run: |
           set -e
           sshpass -e ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.TEST_UNOCACE_USER }}@${{ secrets.TEST_UNOCACE_HOST }} '
+            "${SSH_USER}@${SSH_HOST}" '
               set -e
-              chown -R www-data:www-data ${{ env.REMOTE_DIST }} || true
-              find ${{ env.REMOTE_DIST }} -type d -exec chmod 755 {} \;
-              find ${{ env.REMOTE_DIST }} -type f -exec chmod 644 {} \;
+              chown -R www-data:www-data '"${{ env.REMOTE_DIST }}"' || true
+              find '"${{ env.REMOTE_DIST }}"' -type d -exec chmod 755 {} \;
+              find '"${{ env.REMOTE_DIST }}"' -type f -exec chmod 644 {} \;
               nginx -t
               systemctl reload nginx
               echo "✅ Nginx recargado"
