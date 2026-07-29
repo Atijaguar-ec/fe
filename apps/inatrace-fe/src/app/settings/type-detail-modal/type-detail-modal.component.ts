@@ -257,13 +257,13 @@ export class TypeDetailModalComponent implements OnInit {
         .setValue(this.form.get('translations.0.label').value);
     }
     if (this.type === 'certification-types') {
-      const labelValue = this.form.get('label')?.value;
+      const nameValue = this.form.get('name')?.value;
       const translationsArray = this.form.get('translations') as UntypedFormArray;
-      if (labelValue && translationsArray) {
+      if (nameValue && translationsArray) {
         translationsArray.controls.forEach((ctrl) => {
           const nameControl = ctrl.get('name');
           if (nameControl && !nameControl.value) {
-            nameControl.setValue(labelValue);
+            nameControl.setValue(nameValue);
           }
         });
       }

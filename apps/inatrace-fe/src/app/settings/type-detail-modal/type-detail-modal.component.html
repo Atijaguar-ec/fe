@@ -425,18 +425,18 @@
 
         <textinput
           hideAsterisk="true"
-          [form]="$any(form.get('label'))"
+          [form]="$any(form.get('name'))"
           label="Etiqueta"
           style="width: 100%"
           placeholder="Ingresa la etiqueta"
           i18n-label="@@certificationTypeDetail.textinput.label.label"
           i18n-placeholder="
             @@certificationTypeDetail.textinput.label.placeholder"
-          [isInvalid]="submitted && form.get('label').invalid"
+          [isInvalid]="submitted && form.get('name').invalid"
         >
           <ng-container *ngIf="submitted">
             <div
-              *ngIf="form.get('label').errors as errors"
+              *ngIf="form.get('name').errors as errors"
               class="sc-invalid-feedback"
             >
               <div

@@ -200,7 +200,7 @@ export const ApiCertificationTypeValidationScheme = {
     code: {
       validators: [UndesrcoreAndCapitalsValidator(), Validators.required],
     },
-    label: {
+    name: {
       validators: [Validators.required],
     },
     category: {
