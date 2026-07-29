@@ -48,6 +48,9 @@ export class SettingsComponent
   allProductTypes = 0;
   showedProductTypes = 0;
 
+  allCertificationTypes = 0;
+  showedCertificationTypes = 0;
+
   parentReloadProcEvidTypes = false;
   parentReloadProcEvidFields = false;
   parentReloadFacility = false;
@@ -55,6 +58,7 @@ export class SettingsComponent
   parentReloadAction = false;
   parentReloadSemiProducts = false;
   parentReloadProductTypes = false;
+  parentReloadCertificationTypes = false;
 
   allSemiProducts = 0;
   showedSemiProducts = 0;
@@ -140,6 +144,9 @@ export class SettingsComponent
     if (type === 'product-types') {
       this.showedProductTypes = event;
     }
+    if (type === 'certification-types') {
+      this.showedCertificationTypes = event;
+    }
   }
 
   onCountAll(event, type) {
@@ -163,6 +170,9 @@ export class SettingsComponent
     }
     if (type === 'product-types') {
       this.allProductTypes = event;
+    }
+    if (type === 'certification-types') {
+      this.allCertificationTypes = event;
     }
   }
 
@@ -272,6 +282,9 @@ export class SettingsComponent
     if (type === 'product-types') {
       addTitle = $localize`:@@settingsPage.newProductTypes.addTitle:Add new product type`;
     }
+    if (type === 'certification-types') {
+      addTitle = $localize`:@@settingsPage.newCertificationType.addTitle:Add new certification type`;
+    }
 
     this.modalService.open(
       TypeDetailModalComponent,
@@ -302,6 +315,9 @@ export class SettingsComponent
           }
           if (type === 'product-types') {
             this.parentReloadProductTypes = !this.parentReloadProductTypes;
+          }
+          if (type === 'certification-types') {
+            this.parentReloadCertificationTypes = !this.parentReloadCertificationTypes;
           }
         },
       },

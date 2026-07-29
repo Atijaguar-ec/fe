@@ -14,6 +14,7 @@ import {
   ApiSemiProductValidationScheme,
   ApiProcessingEvidenceFieldValidationScheme,
   ApiProductTypeValidationScheme,
+  ApiCertificationTypeValidationScheme,
 } from './validation';
 import _ from 'lodash-es';
 import { EnumSifrant } from '../../shared-services/enum-sifrant';
@@ -32,6 +33,8 @@ import { ApiSemiProductTranslation } from '../../../api/model/apiSemiProductTran
 import LanguageEnum = ApiSemiProductTranslation.LanguageEnum;
 import { ProductTypeControllerService } from '../../../api/api/productTypeController.service';
 import { ApiProductType } from '../../../api/model/apiProductType';
+import { CertificationTypeControllerService } from '../../../api/api/certificationTypeController.service';
+import { ApiCertificationType } from '../../../api/model/apiCertificationType';
 import { AuthService } from '../../core/auth.service';
 
 @Component({
@@ -65,6 +68,12 @@ export class TypeDetailModalComponent implements OnInit {
   codebookProcessingEvidenceFieldType = EnumSifrant.fromObject(
     this.processingEvidenceFieldType,
   );
+  codebookCertificationCategoryType = EnumSifrant.fromObject(
+    this.certificationCategoryType,
+  );
+  codebookCertificationStatusType = EnumSifrant.fromObject(
+    this.certificationStatusType,
+  );
 
   languages = [
     LanguageEnum.EN,
@@ -84,6 +93,7 @@ export class TypeDetailModalComponent implements OnInit {
     private processingEvidenceFieldService: ProcessingEvidenceFieldControllerService,
     private semiProductService: SemiProductControllerService,
     private productTypeService: ProductTypeControllerService,
+    private certificationTypeService: CertificationTypeControllerService,
     public activeMeasureUnitTypeService: ActiveMeasureUnitTypeService,
     private authService: AuthService,
   ) {}
@@ -206,6 +216,31 @@ export class TypeDetailModalComponent implements OnInit {
       this.finalizeForm();
     }
 
+    if (this.type === 'certification-types') {
+      if (!this.update) {
+        this.form = generateFormFromMetadata(
+          ApiCertificationType.formMetadata(),
+          defaultEmptyObject(
+            ApiCertificationType.formMetadata(),
+          ) as ApiCertificationType,
+          ApiCertificationTypeValidationScheme,
+        );
+      } else {
+        this.form = generateFormFromMetadata(
+          ApiCertificationType.formMetadata(),
+          this.typeElement,
+          ApiCertificationTypeValidationScheme,
+        );
+      }
+      if (!this.update) {
+        this.form.get('status')?.setValue(ApiCertificationType.StatusEnum.ACTIVE);
+        this.form
+          .get('category')
+          ?.setValue(ApiCertificationType.CategoryEnum.CERTIFICATE);
+      }
+      this.updateCertificationTypeTranslations();
+    }
+
     // If in edit mode and logged in as a Regional admin, disable the form (Regional admin cannot edit, only create)
     if (this.update && this.isRegionalAdmin) {
       this.form.disable();
@@ -220,6 +255,18 @@ export class TypeDetailModalComponent implements OnInit {
       this.form
         .get('label')
         .setValue(this.form.get('translations.0.label').value);
+    }
+    if (this.type === 'certification-types') {
+      const labelValue = this.form.get('label')?.value;
+      const translationsArray = this.form.get('translations') as UntypedFormArray;
+      if (labelValue && translationsArray) {
+        translationsArray.controls.forEach((ctrl) => {
+          const nameControl = ctrl.get('name');
+          if (nameControl && !nameControl.value) {
+            nameControl.setValue(labelValue);
+          }
+        });
+      }
     }
     this.submitted = true;
     if (this.form.invalid) {
@@ -286,6 +333,13 @@ export class TypeDetailModalComponent implements OnInit {
       }
     }
 
+    if (this.type === 'certification-types') {
+      res = await this.certificationTypeService
+        .createOrUpdateCertificationType(data)
+        .pipe(take(1))
+        .toPromise();
+    }
+
     if (res && res.status === 'OK') {
       if (this.saveCallback) {
         this.saveCallback();
@@ -317,6 +371,20 @@ export class TypeDetailModalComponent implements OnInit {
       $localize`:@@processingEvidenceFieldType.exchange_rate:Exchange rate`;
     obj['TIMESTAMP'] =
       $localize`:@@processingEvidenceFieldType.timestamp:Timestamp`;
+    return obj;
+  }
+
+  get certificationCategoryType() {
+    const obj = {};
+    obj['CERTIFICATE'] = $localize`:@@certificationType.category.certificate:Certificate`;
+    obj['SEAL'] = $localize`:@@certificationType.category.seal:Seal`;
+    return obj;
+  }
+
+  get certificationStatusType() {
+    const obj = {};
+    obj['ACTIVE'] = $localize`:@@certificationType.status.active:Active`;
+    obj['INACTIVE'] = $localize`:@@certificationType.status.inactive:Inactive`;
     return obj;
   }
 
@@ -365,6 +433,26 @@ export class TypeDetailModalComponent implements OnInit {
       (this.form.get('translations') as UntypedFormArray).push(
         new UntypedFormGroup({
           label: new UntypedFormControl(translation ? translation.label : ''),
+          language: new UntypedFormControl(lang),
+        }),
+      );
+    }
+  }
+
+  updateCertificationTypeTranslations() {
+    if (!this.form.contains('translations')) {
+      this.form.addControl('translations', new UntypedFormArray([]));
+    }
+
+    const translations = this.form.get('translations').value;
+    this.form.removeControl('translations');
+    this.form.addControl('translations', new UntypedFormArray([]));
+
+    for (const lang of this.languages) {
+      const translation = translations.find((t) => t.language === lang);
+      (this.form.get('translations') as UntypedFormArray).push(
+        new UntypedFormGroup({
+          name: new UntypedFormControl(translation ? translation.name : ''),
           language: new UntypedFormControl(lang),
         }),
       );
