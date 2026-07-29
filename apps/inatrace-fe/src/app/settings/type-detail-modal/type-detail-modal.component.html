@@ -470,8 +470,8 @@
         <div class="spacer-title-section"></div>
 
         <small i18n="@@certificationTypeDetail.hint.translations">
-          Especifica la etiqueta en inglés y agrega traducciones para todos
-          los idiomas utilizados.
+          Especifica la etiqueta en inglés y agrega la traducción al
+          español.
         </small>
 
         <div class="d-flex af-translation-language">
@@ -492,34 +492,6 @@
               alt="Selected EN lang"
             />
             <span>EN</span>
-          </div>
-          <div
-            (click)="selectLanguage(languageEnum.DE)"
-            [ngClass]="
-              selectedLanguage === languageEnum.DE
-                ? 'af-translation-language--selected'
-                : ''
-            "
-          >
-            <img
-              src="../../../assets/icons/icon-flag--germany.svg"
-              alt="Select DE lang"
-            />
-            <span>DE</span>
-          </div>
-          <div
-            (click)="selectLanguage(languageEnum.RW)"
-            [ngClass]="
-              selectedLanguage === languageEnum.RW
-                ? 'af-translation-language--selected'
-                : ''
-            "
-          >
-            <img
-              src="../../../assets/icons/icon-flag--rwanda.svg"
-              alt="Select RW lang"
-            />
-            <span>RW</span>
           </div>
           <div
             (click)="selectLanguage(languageEnum.ES)"

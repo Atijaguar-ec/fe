@@ -3128,7 +3128,7 @@
     "certificationTypeDetail.singleChoice.category.error": "Category is required",
     "certificationTypeDetail.singleChoice.status.label": "Status",
     "certificationTypeDetail.singleChoice.status.error": "Status is required",
-    "certificationTypeDetail.hint.translations": "Specify label in English and add translations for all used languages.",
+    "certificationTypeDetail.hint.translations": "Specify label in English and add the Spanish translation.",
     "certificationTypeDetail.translation.label": "Label",
     "certificationTypeDetail.translation.placeholder": "Enter label",
     "certificationTypeDetail.translation.error": "English translation is required",

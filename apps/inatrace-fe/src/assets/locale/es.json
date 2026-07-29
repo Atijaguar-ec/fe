@@ -3082,7 +3082,7 @@
     "certificationTypeDetail.singleChoice.category.error": "La categoría es obligatoria",
     "certificationTypeDetail.singleChoice.status.label": "Estado",
     "certificationTypeDetail.singleChoice.status.error": "El estado es obligatorio",
-    "certificationTypeDetail.hint.translations": "Especifica la etiqueta en inglés y agrega traducciones para todos los idiomas utilizados.",
+    "certificationTypeDetail.hint.translations": "Especifica la etiqueta en inglés y agrega la traducción al español.",
     "certificationTypeDetail.translation.label": "Etiqueta",
     "certificationTypeDetail.translation.placeholder": "Ingresa la etiqueta",
     "certificationTypeDetail.translation.error": "La traducción al inglés es obligatoria",

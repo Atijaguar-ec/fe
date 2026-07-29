@@ -81,6 +81,8 @@ export class TypeDetailModalComponent implements OnInit {
     LanguageEnum.RW,
     LanguageEnum.ES,
   ];
+  // Tipos de certificación solo necesitan EN/ES (UNOCACE es hispanohablante).
+  certificationLanguages = [LanguageEnum.EN, LanguageEnum.ES];
   selectedLanguage = LanguageEnum.EN;
 
   isRegionalAdmin = false;
@@ -439,7 +441,7 @@ export class TypeDetailModalComponent implements OnInit {
     this.form.removeControl('translations');
     this.form.addControl('translations', new UntypedFormArray([]));
 
-    for (const lang of this.languages) {
+    for (const lang of this.certificationLanguages) {
       const translation = translations.find((t) => t.language === lang);
       (this.form.get('translations') as UntypedFormArray).push(
         new UntypedFormGroup({
