@@ -229,9 +229,27 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.varietyOptions.setPlaceholder($localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.variety.placeholder:Selecciona la variedad`);
   }
 
+  /** Quita tildes/diacríticos para comparar sin depender de la acentuación exacta
+   *  (ej. "transición" vs "transicion") — los nombres vienen de un catálogo editable
+   *  desde el admin, no hay garantía de que siempre estén escritos sin tilde. */
+  private stripAccents(value: string): string {
+    return value
+      .replace(/[áàäâ]/g, 'a')
+      .replace(/[éèëê]/g, 'e')
+      .replace(/[íìïî]/g, 'i')
+      .replace(/[óòöô]/g, 'o')
+      .replace(/[úùüû]/g, 'u')
+      .replace(/ñ/g, 'n');
+  }
+
   private getTransitionCertificationKey(): string {
     const keys = Object.keys(this.certificationTypeMap);
-    return keys.find((k) => k.toLowerCase().includes('transition') || k.toLowerCase().includes('transicion')) || 'Transición / Fairtrade / SPP';
+    return (
+      keys.find((k) => {
+        const normalized = this.stripAccents(k.toLowerCase());
+        return normalized.includes('transition') || normalized.includes('transicion');
+      }) || 'Transición / Fairtrade / SPP'
+    );
   }
 
   private refreshCertificationTypeOptions() {
@@ -242,7 +260,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     const filteredMap: { [key: string]: string } = {};
 
     Object.keys(this.certificationTypeMap).forEach((key) => {
-      const lowerKey = key.toLowerCase();
+      const lowerKey = this.stripAccents(key.toLowerCase());
       const isOrganicCert = lowerKey.includes('biosuisse') || lowerKey.includes('naturland');
       const isTransitionCert = lowerKey.includes('transicion') || lowerKey.includes('transition');
 
