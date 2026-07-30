@@ -31,3 +31,48 @@ El proyecto ha transicionado activamente bajo metodologías **SDD**.
 - **Modificación de Código**: No edites `package.json` a menos de tratar incompatibilidades estrictas del Angular 19 Toolkit.
 - Antes de consolidar integraciones, asegúrate que `nx test` pase los Unit Tests locales, puntualmente en flujos aislados Keycloak u operaciones MFE.
 - Los "Codebooks" operan como vocabularios dinámicos asíncronos controlados desde Base de Datos (Ej: `CertificationType`); el Front debe inyectarlos bajo listas selectivas e inyecciones de `CodebookTranslations`.
+
+## 6. Catálogos administrables (`settings/type-list` + `type-detail-modal`) — trampas conocidas
+
+> Extraído en vivo el 2026-07-29 al portar la administración de
+> `CertificationType` desde una rama vieja (`develop`, estructura pre-Nx) a
+> `staging`. Ver también `backend/agent-context.md` sección "6bis" — la
+> mayoría de estos bugs son mitad-frontend mitad-backend, revisar ambos lados
+> juntos, no solo el que muestra el síntoma.
+
+- **El nombre del campo en el form NO siempre coincide con lo que "se ve" en
+  otro tipo ya existente usado como plantilla.** Antes de bindear
+  `form.get('label')` (u otro nombre) en un tipo nuevo, abrí el modelo real
+  en `apps/inatrace-fe/src/api/model/apiXxx.ts` y confirmá el nombre exacto
+  del campo generado — `CertificationType` usa `name`, no `label`, pese a que
+  el resto de tipos parecidos (facility-types, measurement-unit-types) sí
+  usan `label`. Si el campo no existe en el `FormGroup` (porque
+  `generateFormFromMetadata` solo crea controles para los campos que
+  `formMetadata()` define), el `<textinput>` no revienta ni marca error: solo
+  se queda mudo, sin mostrar ni guardar nada, y es fácil no notarlo.
+
+- **Comparaciones de texto contra catálogos editables desde un admin (no
+  contra un enum fijo en código) deben normalizar tildes/diacríticos.** El
+  dato lo puede editar cualquier usuario desde la pantalla de administración
+  — no asumas que "Transición" siempre se escribe así; comparar contra el
+  literal `'transicion'` (sin tilde) falla en JS porque no hay normalización
+  automática de Unicode (`'transición'.includes('transicion')` es `false`).
+  Ver `stripAccents()` en `stock-delivery-details.component.ts` como patrón
+  a reutilizar — **no** escribas a mano en el código fuente los puntos de
+  código Unicode de diacríticos combinantes (el bloque "Combining Diacritical
+  Marks", U+0300 a U+036F): al escribirlos, copiarlos o pegarlos, un editor
+  o herramienta puede insertar los caracteres combinantes reales en el
+  archivo en vez de preservar una secuencia de escape de texto plano,
+  corrompiendo la regex en silencio (sin error de compilación — hace falta
+  revisar con `xxd`/hexdump para notarlo). Preferí un reemplazo explícito de
+  vocales acentuadas precompuestas (`á`, `é`, `í`,
+  `ó`, `ú`, `ñ`), que son caracteres normales de un solo code point.
+
+- **Que el guardado no tire error 500/405 no significa que la UI lo haya
+  detectado.** El flujo `save()` de `type-detail-modal.component.ts` decide
+  cerrar el modal y refrescar la lista únicamente si `res.status === 'OK'`
+  — si el backend responde con la entidad pelada en vez de un wrapper
+  `ApiResponse`, el guardado queda persistido en la base pero el modal se
+  queda abierto sin ningún aviso de error. Verificá con la pestaña Network
+  (no solo "¿tiró excepción?") que la respuesta real tenga forma
+  `{status: "OK", data: {...}}`.
