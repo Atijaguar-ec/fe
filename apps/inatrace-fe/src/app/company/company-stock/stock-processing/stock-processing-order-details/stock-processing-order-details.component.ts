@@ -428,13 +428,10 @@ export class StockProcessingOrderDetailsComponent
 
     const ref = selected[0];
 
-    // Para el número de lote, usar internalLotNumber si existe, sino usar identifier como fallback
-    const getLotNumber = (s: any) =>
-      s.internalLotNumber || s.identifier || null;
-    const refLotNumber = getLotNumber(ref);
-    const sameLot = selected.every((s) => getLotNumber(s) === refLotNumber);
-
+    const procDate = this.procOrderGroup?.get('date')?.value || ref.productionDate || new Date();
     const sameWeek = selected.every((s) => s.weekNumber === ref.weekNumber);
+    const weekNo = (sameWeek && ref.weekNumber != null) ? ref.weekNumber : (this.calculateISOWeekNumber(procDate) || 1);
+
     const sameProducer = selected.every(
       (s) => s.producerUserCustomer?.id === ref.producerUserCustomer?.id,
     );
@@ -456,15 +453,17 @@ export class StockProcessingOrderDetailsComponent
     const sameParcelLot = selected.every((s) => s.parcelLot === ref.parcelLot);
     const sameVariety = selected.every((s) => s.variety === ref.variety);
 
-    this.targetStockOrdersArray.controls.forEach((group) => {
-      // Handle internal lot number - propagate and lock if all inputs share the same lot
-      // Usar internalLotNumber si existe, sino usar identifier como fallback (para entregas iniciales)
+    this.targetStockOrdersArray.controls.forEach((group, index) => {
+      // Handle internal lot number - generate standardized lot code LOTE2026-22-01
       const iln = group.get('internalLotNumber');
-      if (sameLot && refLotNumber && iln) {
-        iln.setValue(refLotNumber, { emitEvent: false });
-        iln.disable({ emitEvent: false });
-      } else if (iln && iln.disabled) {
-        iln.enable({ emitEvent: false });
+      if (iln) {
+        if (iln.disabled) {
+          iln.enable({ emitEvent: false });
+        }
+        if (!this.editing) {
+          const standardLotCode = this.generateStandardLotCode(procDate, weekNo, index + 1);
+          iln.setValue(standardLotCode, { emitEvent: false });
+        }
       }
 
       // Handle week number
@@ -472,8 +471,10 @@ export class StockProcessingOrderDetailsComponent
       if (wn) {
         if (sameWeek && ref.weekNumber != null) {
           wn.setValue(ref.weekNumber, { emitEvent: false });
-          wn.disable({ emitEvent: false });
-        } else if (wn.disabled) {
+        } else {
+          wn.setValue(weekNo, { emitEvent: false });
+        }
+        if (wn.disabled) {
           wn.enable({ emitEvent: false });
         }
       }
@@ -577,6 +578,33 @@ export class StockProcessingOrderDetailsComponent
         }
       }
     });
+  }
+
+  private calculateISOWeekNumber(dateInput: Date | string): number {
+    if (!dateInput) return null;
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return null;
+
+    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+
+    const yearStart = new Date(d.getFullYear(), 0, 1);
+    const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+    return weekNo;
+  }
+
+  private generateStandardLotCode(dateInput: Date | string, weekNumberInput?: number, seqIndex: number = 1): string {
+    const d = dateInput ? new Date(dateInput) : new Date();
+    const year = isNaN(d.getTime()) ? new Date().getFullYear() : d.getFullYear();
+
+    let week = weekNumberInput;
+    if (!week || week < 1 || week > 53) {
+      week = this.calculateISOWeekNumber(d) || 1;
+    }
+
+    const weekStr = String(week).padStart(2, '0');
+    const seqStr = String(seqIndex).padStart(2, '0');
+
+    return `LOTE${year}-${weekStr}-${seqStr}`;
   }
 
   processingActionSelected(event: ApiProcessingAction): void {
