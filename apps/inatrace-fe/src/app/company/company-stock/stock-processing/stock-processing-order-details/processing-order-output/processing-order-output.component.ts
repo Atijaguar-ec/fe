@@ -106,6 +106,10 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
     return !this.companyProfile?.configuration?.onlyNacionalVariety;
   }
 
+  get shouldShowParcelLot(): boolean {
+    return !!this.companyProfile?.configuration?.enableParcelLot;
+  }
+
   @Output()
   calcTotalOutputQuantity = new EventEmitter<void>();
 

@@ -188,8 +188,8 @@
     </div>
 
     <!-- CACAO FIELDS: Parcel Lot and Variety -->
-    <div class="af-row">
-      <div [class]="shouldShowVariety ? 'af-c6' : 'af-c12'">
+    <div class="af-row" *ngIf="shouldShowParcelLot || shouldShowVariety">
+      <div [class]="(shouldShowParcelLot && shouldShowVariety) ? 'af-c6' : 'af-c12'" *ngIf="shouldShowParcelLot">
         <textinput
           [form]="$any(tsoGroup.get('parcelLot'))"
           label="Lote (Parcela)"
@@ -215,7 +215,7 @@
           </ng-container>
         </textinput>
       </div>
-      <div class="af-c6" *ngIf="shouldShowVariety">
+      <div [class]="(shouldShowParcelLot && shouldShowVariety) ? 'af-c6' : 'af-c12'" *ngIf="shouldShowVariety">
         <single-choice
           [formControlInput]="$any(tsoGroup.get('variety'))"
           [codebookService]="varietyOptions"

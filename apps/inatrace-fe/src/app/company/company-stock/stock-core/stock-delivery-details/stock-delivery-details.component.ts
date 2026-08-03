@@ -202,7 +202,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   get shouldShowParcelLot(): boolean {
-    return this.productFieldVisibilityService.shouldShowField('parcelLot');
+    return this.productFieldVisibilityService.shouldShowField('parcelLot') && !!this.companyProfile?.configuration?.enableParcelLot;
   }
 
   get selectedEmployeeName(): string {
