@@ -462,6 +462,13 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
           default:
             value = evidenceFieldValue.stringValue;
         }
+      } else {
+        switch (field.type) {
+          case ProcessingEvidenceField.DATE:
+          case ProcessingEvidenceField.TIMESTAMP:
+            value = dateISOString(new Date());
+            break;
+        }
       }
 
       if (field.mandatory) {
