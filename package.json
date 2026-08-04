@@ -5,7 +5,6 @@
     "ng": "ng",
     "start": "nx serve inatrace-fe",
     "build": "nx build inatrace-fe",
-    "build:test": "nx build inatrace-fe --configuration=test --aot=true --buildOptimizer=true --optimization=true",
     "build:prod": "nx build shrimpMfe --configuration=production && nx build inatrace-fe --configuration=production",
     "build:standalone": "nx build inatrace-fe --configuration=standalone",
     "test": "nx test inatrace-fe",
