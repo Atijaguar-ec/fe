@@ -107,9 +107,7 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
   }
 
   get shouldShowParcelLot(): boolean {
-    // Siempre visible en Procesamiento, independientemente de la configuración
-    // enableParcelLot de la empresa (decisión de producto 2026-08-05).
-    return true;
+    return !!this.companyProfile?.configuration?.enableParcelLot;
   }
 
   @Output()
