@@ -76,3 +76,35 @@ El proyecto ha transicionado activamente bajo metodologías **SDD**.
   queda abierto sin ningún aviso de error. Verificá con la pestaña Network
   (no solo "¿tiró excepción?") que la respuesta real tenga forma
   `{status: "OK", data: {...}}`.
+
+## 7. Visibilidad del campo `parcelLot` (Lote/Parcela) — asimetría intencional entre Recepción y Procesamiento
+
+> Extraído en vivo el 2026-08-05 tras una sesión de QA en `staging` contra
+> Fortaleza del Valle (`testinatrace.espam.edu.ec`). Documentado porque **ya
+> causó una regresión dentro de la misma sesión**: al "igualar" el
+> comportamiento de los dos formularios se rompió lo que el usuario pidió,
+> y hubo que revertir.
+
+Existen **dos getters `shouldShowParcelLot` casi idénticos por nombre, pero
+con reglas deliberadamente distintas** — no son el mismo control ni deberían
+unificarse sin pedirlo explícitamente:
+
+- **Recepción** —
+  `stock-core/stock-delivery-details/stock-delivery-details.component.ts:204`
+  → **siempre visible** (solo respeta el gate de tipo de producto de
+  `ProductFieldVisibilityService`, ignora la config de empresa). Decisión de
+  producto tomada el 2026-08-05.
+- **Procesamiento** —
+  `stock-processing/.../processing-order-output.component.ts:109` →
+  **condicionado** por `companyProfile?.configuration?.enableParcelLot`
+  (toggle por empresa, default `false`, editable en
+  `company-detail.component.html` sección "Configuración de la empresa").
+
+El toggle `enableParcelLot` en `company-detail` sigue existiendo en la UI y
+**sí tiene efecto real en Procesamiento**, pero **no tiene ningún efecto en
+Recepción** desde el 2026-08-05 (commit `632d3663` en `fe`, revertido
+parcialmente en `0af6a99a` para restaurar solo Procesamiento). Antes de
+"limpiar" esta asimetría por parecer inconsistente, o de copiar el patrón de
+un formulario al otro asumiendo que deberían comportarse igual: **confirmar
+con el usuario cuál es el alcance querido** — ya ocurrió una vez que un
+cambio hecho "para ambos" tuvo que deshacerse en el mismo turno.
