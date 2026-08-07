@@ -89,7 +89,16 @@ export function provideInatraceAuth(config: InatraceAuthConfig) {
       },
       features: [
         withAutoRefreshToken({
-          sessionTimeout: 1800000
+          sessionTimeout: 1800000,
+          // 'none' es deliberado. El default de keycloak-angular es 'logout', que
+          // ejecuta keycloak.logout() ante CUALQUIER fallo de updateToken():
+          //   updateToken().catch(() => this.executeOnInactivityTimeout())
+          // Eso convierte un fallo transitorio de refresco (microcorte de red,
+          // cookie bloqueada, sesión de cliente vencida en Keycloak) en un cierre
+          // de sesión inmediato + localStorage.clear() + redirect, y el usuario
+          // pierde todo lo que estaba cargando sin ningún aviso.
+          // Ocurrió en producción el 2026-08-07: ver fe/agent-context.md sección 9.
+          onInactivityTimeout: 'none'
         })
       ],
       providers: [

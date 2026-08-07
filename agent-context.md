@@ -155,3 +155,53 @@ límite. Si el log muestra `Resuming build ... after Jenkins restart` seguido de
 `context canceled`, el build murió por el reinicio del servicio, no por el
 código: relanzá el job en vez de investigar el diff.
 
+
+## 9. Pérdida de datos por logout automático de Keycloak (2026-08-07)
+
+> Diagnóstico completo de un caso real en producción: los usuarios cargaban una
+> Recepción, se distraían un minuto y **el formulario se borraba solo**.
+> Documentado con la cadena causal entera porque los síntomas apuntaban a
+> lugares equivocados (cookies, i18n, polling) y se descartaron uno por uno.
+
+### La cadena
+
+1. Keycloak invalida la sesión de cliente (en prod, por un `Client Session Max`
+   de **60 segundos** en el realm `inatrace_fortaleza`).
+2. keycloak-js dispara `TokenExpired` → `AutoRefreshTokenService.processTokenExpiredEvent()`
+   → `keycloak.updateToken()`.
+3. El `POST /auth/realms/<realm>/protocol/openid-connect/token` responde **400**.
+4. keycloak-angular ejecuta `updateToken().catch(() => executeOnInactivityTimeout())`
+   y su default es **`'logout'`**.
+5. `logout()` → `localStorage.clear()` + redirect → recarga completa, formulario perdido.
+
+### Reglas para no reintroducirlo
+
+- **`withAutoRefreshToken` sin `onInactivityTimeout` explícito es peligroso.**
+  El default `'logout'` convierte cualquier fallo transitorio de refresco en
+  pérdida de datos del usuario. En `shared/auth/src/lib/auth.provider.ts` está
+  fijado en `'none'` a propósito: **no lo quites ni lo "simplifiques"**.
+
+- **El interceptor amplifica el problema.** `core/token.interceptor.ts` llama
+  `auth.logout()` ante *cualquier* 401 que no sea `/login`, `/logout` o
+  `/user/profile` en rutas ignoradas. No distingue "sesión vencida" de "esta
+  petición puntual falló". Si tocás manejo de errores HTTP, tenelo presente.
+
+- **Un "se refresca solo" casi nunca es un `setInterval`.** Antes de buscar
+  timers, mirá en DevTools → Network (con *Preserve log*) si hay un `POST` al
+  endpoint `/token` con 400/401 justo antes del refresco. La pista definitiva
+  está en el stack: `processTokenExpiredEvent → updateToken`.
+
+- **Los tiempos de sesión viven en Keycloak, no en el código.** Consultables sin
+  la consola web:
+  ```sql
+  SELECT name, value FROM realm_attribute
+   WHERE realm_id=(SELECT id FROM realm WHERE name='<realm>')
+     AND name LIKE 'clientSession%';
+  SELECT access_token_lifespan, sso_idle_timeout, sso_max_lifespan
+    FROM realm WHERE name='<realm>';
+  ```
+  Ojo: `clientSessionMaxLifespan` en **segundos**; `0` significa heredar
+  `sso_max_lifespan`. Un valor bajo ahí rompe la app aunque el código esté bien.
+  Keycloak cachea la config del realm en memoria: cambiarla por `UPDATE` directo
+  **no aplica** sin reiniciar el contenedor — usar la Admin Console.
+
