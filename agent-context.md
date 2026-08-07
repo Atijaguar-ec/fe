@@ -108,3 +108,50 @@ parcialmente en `0af6a99a` para restaurar solo Procesamiento). Antes de
 un formulario al otro asumiendo que deberían comportarse igual: **confirmar
 con el usuario cuál es el alcance querido** — ya ocurrió una vez que un
 cambio hecho "para ambos" tuvo que deshacerse en el mismo turno.
+
+## 8. Despliegue y verificación en producción (Fortaleza)
+
+> Extraído el 2026-08-07 durante el primer despliegue real a producción.
+> Complementa `backend/agent-context.md` sección 11, que tiene el detalle de
+> infraestructura. Leé ambas antes de tocar el pipeline.
+
+### Cómo verificar que un cambio de UI realmente llegó
+
+No alcanza con que el job de Jenkins diga `SUCCESS`. El contenedor de frontend
+de producción sirve desde **`/app`**, no desde `/usr/share/nginx/html` (esa
+ruta existe en el `nginx.conf` pero está vacía — buscar ahí da falso negativo):
+
+```bash
+docker exec inatrace-fe-prod-fortaleza sh -c "grep -oh 'TU_ETIQUETA' /app/*.js | sort | uniq -c"
+```
+
+Contar ocurrencias es más útil que buscar presencia: si cambiaste una etiqueta
+en un solo formulario, el conteo esperado distingue "se desplegó bien" de
+"se desplegó de más". Ejemplo real: tras renombrar la etiqueta solo en
+Recepción, lo correcto es **1× `N° Parcela` + 3× `Lote (Parcela)`** (las tres
+restantes son Procesamiento, exportación a PDF y el checkbox de configuración
+de empresa, que se dejaron a propósito).
+
+El micro-frontend de camarón se sirve desde `/app/shrimpMfe/` en el mismo
+contenedor, aunque Fortaleza no lo use.
+
+### Las imágenes rotas casi nunca son culpa del frontend
+
+Un `500` en `/api/public/image/{storageKey}` es del backend: el archivo no
+existe en disco. Los registros de `document` se migran con el `pg_dump`, pero
+**los archivos subidos no** — ver `backend/agent-context.md` 11.5. Antes de
+buscar el bug en Angular, mirá `docker logs inatrace-be | grep NoSuchFile`.
+
+Ojo: el navegador puede pedir `storageKey` que **ya no existen en la tabla
+`document`** (caché o registros borrados). Esos devuelven
+`INVALID_REQUEST Invalid storage key or file type` y no se arreglan copiando
+archivos.
+
+### Un job en rojo no siempre es un bug del código
+
+`Deploy-Frontend` corre el build de Angular dentro de Docker en el agente de
+Jenkins, que vive en el servidor de **staging** y suele estar con `/var` al
+límite. Si el log muestra `Resuming build ... after Jenkins restart` seguido de
+`context canceled`, el build murió por el reinicio del servicio, no por el
+código: relanzá el job en vez de investigar el diff.
+
