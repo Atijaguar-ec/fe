@@ -465,9 +465,15 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
       } else {
         switch (field.type) {
           case ProcessingEvidenceField.DATE:
-          case ProcessingEvidenceField.TIMESTAMP:
-            value = dateISOString(new Date());
+          case ProcessingEvidenceField.TIMESTAMP: {
+            // dateValue es Instant en el backend, asi que el valor por defecto
+            // debe ser un Date (no "yyyy-MM-dd") para que Jackson lo deserialice.
+            // Mediodia, igual que el datepicker, para que el dia no cambie en UTC.
+            const today = new Date();
+            today.setHours(12, 0, 0, 0);
+            value = today;
             break;
+          }
         }
       }
 
