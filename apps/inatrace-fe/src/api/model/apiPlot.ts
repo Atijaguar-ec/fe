@@ -53,6 +53,18 @@ export interface ApiPlot {
      */
     geoId?: string;
     /**
+     * Production estimate for the plot (two decimal places)
+     */
+    productionEstimate?: number;
+    /**
+     * Certification scheme of the plot
+     */
+    certificationType?: ApiPlot.CertificationTypeEnum;
+    /**
+     * Cocoa variety grown on the plot (ORGANICO = 1, CCN51 = 2)
+     */
+    cocoaVariety?: ApiPlot.CocoaVarietyEnum;
+    /**
      * Date of transitioning into organic production
      */
     organicStartOfTransition?: Date;
@@ -104,6 +116,18 @@ export namespace ApiPlot {
          */
         geoId = 'geoId',
         /**
+         * Production estimate for the plot (two decimal places)
+         */
+        productionEstimate = 'productionEstimate',
+        /**
+         * Certification scheme of the plot
+         */
+        certificationType = 'certificationType',
+        /**
+         * Cocoa variety grown on the plot (ORGANICO = 1, CCN51 = 2)
+         */
+        cocoaVariety = 'cocoaVariety',
+        /**
          * Date of transitioning into organic production
          */
         organicStartOfTransition = 'organicStartOfTransition',
@@ -119,6 +143,24 @@ export namespace ApiPlot {
          * Date of last update
          */
         farmerId = 'farmerId'
+    }
+
+    /**
+     * All possible values of certificationType.
+     */
+    export enum CertificationTypeEnum {
+        ORGANICOUENOPBIOSUISSENATURLANDFAIRTRADESPP = 'ORGANICO_UE_NOP_BIOSUISSE_NATURLAND_FAIRTRADE_SPP',
+        ORGANICOUENOPBIOSUISSEFAIRTRADESPP = 'ORGANICO_UE_NOP_BIOSUISSE_FAIRTRADE_SPP',
+        ORGANICOUENOPFAIRTRADESPP = 'ORGANICO_UE_NOP_FAIRTRADE_SPP',
+        CONVENCIONALFAIRTRADE = 'CONVENCIONAL_FAIRTRADE'
+    }
+
+    /**
+     * All possible values of cocoaVariety.
+     */
+    export enum CocoaVarietyEnum {
+        ORGANICO = 'ORGANICO',
+        CCN51 = 'CCN51'
     }
 
 
@@ -209,6 +251,41 @@ export namespace ApiPlot {
                     isReadOnly: false,
                     isEnum: false,
                     required: false,
+                    name: 'productionEstimate',
+                    classname: 'ApiPlot',
+                    dataType: 'number',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: true,
+                    datatypeWithEnum: 'ApiPlot.CertificationTypeEnum',
+                    required: false,
+                    name: 'certificationType',
+                    classname: 'ApiPlot',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: true,
+                    datatypeWithEnum: 'ApiPlot.CocoaVarietyEnum',
+                    required: false,
+                    name: 'cocoaVariety',
+                    classname: 'ApiPlot',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
                     name: 'organicStartOfTransition',
                     classname: 'ApiPlot',
                     dataType: 'Date',
@@ -265,6 +342,12 @@ export namespace ApiPlot {
                 size: [
                 ],
                 geoId: [
+                ],
+                productionEstimate: [
+                ],
+                certificationType: [
+                ],
+                cocoaVariety: [
                 ],
                 organicStartOfTransition: [
                 ],

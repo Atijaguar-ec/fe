@@ -140,6 +140,30 @@
               >
               </textinput>
               <textinput
+                [form]="$any(this.form.get('productionEstimate'))"
+                label="Estimación de producción"
+                type="number"
+                step="0.01"
+                style="width: 100%"
+                placeholder="0.00"
+                i18n-label="@@plotDetail.textinput.productionEstimate.label"
+              >
+              </textinput>
+              <single-choice
+                label="Tipo de certificación"
+                i18n-label="@@plotDetail.singleChoice.certificationType.label"
+                [formControlInput]="$any(this.form.get('certificationType'))"
+                [codebookService]="certificationTypeCodebook"
+              >
+              </single-choice>
+              <single-choice
+                label="Variedad del cacao"
+                i18n-label="@@plotDetail.singleChoice.cocoaVariety.label"
+                [formControlInput]="$any(this.form.get('cocoaVariety'))"
+                [codebookService]="cocoaVarietyCodebook"
+              >
+              </single-choice>
+              <textinput
                 *ngIf="plotType == 'boundaries' || null"
                 readOnly="true"
                 [form]="$any(this.form.get('size'))"

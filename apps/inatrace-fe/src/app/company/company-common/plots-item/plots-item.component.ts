@@ -14,6 +14,7 @@ import { CompanyProductTypesService } from '../../../shared-services/company-pro
 import { Feature, Polygon } from '@turf/turf';
 import { ApiPlotValidationScheme } from '../plots-form/validation';
 import { faCopy } from '@fortawesome/free-solid-svg-icons';
+import { EnumSifrant } from '../../../shared-services/enum-sifrant';
 
 @Component({
   selector: 'app-plots-item',
@@ -57,6 +58,22 @@ export class PlotsItemComponent
 
   plotType: 'boundaries' | 'single_point' = 'boundaries';
   selectPlotType = true;
+
+  // Catálogo cerrado de certificaciones, definido por la organización. Las etiquetas
+  // son nombres comerciales, así que no se traducen.
+  certificationTypeCodebook = EnumSifrant.fromObject({
+    ORGANICO_UE_NOP_BIOSUISSE_NATURLAND_FAIRTRADE_SPP:
+      'Organico UE/NOP/Biosuisse/Naturland/Fairtrade/SPP',
+    ORGANICO_UE_NOP_BIOSUISSE_FAIRTRADE_SPP:
+      'Organico UE/NOP/Biosuisse/Fairtrade/SPP',
+    ORGANICO_UE_NOP_FAIRTRADE_SPP: 'Organico UE/NOP/Fairtrade/SPP',
+    CONVENCIONAL_FAIRTRADE: 'Convencional Fairtrade',
+  });
+
+  cocoaVarietyCodebook = EnumSifrant.fromObject({
+    ORGANICO: 'Orgánico',
+    CCN51: 'CCN51',
+  });
 
   constructor(
     protected globalEventsManager: GlobalEventManagerService,
