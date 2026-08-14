@@ -86,6 +86,7 @@ export class CompanyDetailComponent
   onlyOrganicProductionControl = new UntypedFormControl(false);
   onlyNacionalVarietyControl = new UntypedFormControl(false);
   enableParcelLotControl = new UntypedFormControl(false);
+  numericVarietyOptionsControl = new UntypedFormControl(false);
 
   valueChains: Array<ApiValueChain> = [];
   selectedCompanyValueChainsControl = new UntypedFormControl(null, [
@@ -290,6 +291,7 @@ export class CompanyDetailComponent
         this.onlyOrganicProductionControl.setValue(!!config.onlyOrganicProduction);
         this.onlyNacionalVarietyControl.setValue(!!config.onlyNacionalVariety);
         this.enableParcelLotControl.setValue(!!config.enableParcelLot);
+        this.numericVarietyOptionsControl.setValue(!!config.numericVarietyOptions);
 
         // If user is not enrolled in company enrolled, disable the form
         if (!this.isCompanyAdmin) {
@@ -298,6 +300,7 @@ export class CompanyDetailComponent
           this.onlyOrganicProductionControl.disable();
           this.onlyNacionalVarietyControl.disable();
           this.enableParcelLotControl.disable();
+          this.numericVarietyOptionsControl.disable();
         }
 
         this.globalEventsManager.showLoading(false);
@@ -407,6 +410,7 @@ export class CompanyDetailComponent
       formValue.configuration.onlyOrganicProduction = !!this.onlyOrganicProductionControl.value;
       formValue.configuration.onlyNacionalVariety = !!this.onlyNacionalVarietyControl.value;
       formValue.configuration.enableParcelLot = !!this.enableParcelLotControl.value;
+      formValue.configuration.numericVarietyOptions = !!this.numericVarietyOptionsControl.value;
 
       const res: ApiResponseApiBaseEntity = await this.companyController
         .updateCompany({ ...formValue, id: companyId })
@@ -442,6 +446,7 @@ export class CompanyDetailComponent
       formValue.configuration.onlyOrganicProduction = !!this.onlyOrganicProductionControl.value;
       formValue.configuration.onlyNacionalVariety = !!this.onlyNacionalVarietyControl.value;
       formValue.configuration.enableParcelLot = !!this.enableParcelLotControl.value;
+      formValue.configuration.numericVarietyOptions = !!this.numericVarietyOptionsControl.value;
 
       const res: ApiResponseApiBaseEntity = await this.companyController
         .createCompany(formValue)

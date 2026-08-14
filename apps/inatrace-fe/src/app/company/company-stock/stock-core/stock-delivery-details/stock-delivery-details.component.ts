@@ -92,6 +92,12 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   varietyOptionsMap: Record<string, string> = {};
   varietyOptions: EnumSifrant = EnumSifrant.fromObject({});
 
+  // N° Parcela ya no se tipea libremente: se elige entre las parcelas que el
+  // agricultor tiene registradas. parcelLotOptions se recalcula cada vez que
+  // cambia el agricultor seleccionado (ver refreshParcelLotOptions()).
+  parcelLotOptions: EnumSifrant = EnumSifrant.fromObject({});
+  private parcelLotCount = 0;
+
   private facility: ApiFacility;
 
   private purchaseOrderId = this.route.snapshot.params.purchaseOrderId;
@@ -219,11 +225,26 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   private initializeVarietyOptions() {
-    this.varietyOptionsMap = {
-      NACIONAL: 'Nacional',
-      CCN51: 'CCN51'
-    };
+    // numericVarietyOptions (config por empresa, hoy solo UNOCACE): el combo
+    // muestra únicamente "1" y "2" (Orgánico y CCN51 respectivamente). El valor
+    // GUARDADO es literalmente "1"/"2", no un identificador interno tipo
+    // ORGANICO/CCN51: historial (batch-history), procesamiento y el PDF export
+    // muestran stockOrder.variety como texto crudo, sin pasar por este combo,
+    // así que el dato en sí tiene que ser ya el "1"/"2" que se pidió.
+    this.varietyOptionsMap = this.companyProfile?.configuration?.numericVarietyOptions
+      ? { '1': '1', '2': '2' }
+      : { NACIONAL: 'Nacional', CCN51: 'CCN51' };
     this.refreshVarietyOptions();
+  }
+
+  /**
+   * "CCN51" se guarda como "2" cuando numericVarietyOptions está activo (ver
+   * initializeVarietyOptions). Los efectos que dependen de la variedad CCN51
+   * (autocompletar certificación de transición) deben reconocerla en ambas
+   * representaciones en vez de comparar contra el literal 'CCN51'.
+   */
+  private isCcn51VarietyValue(val: string): boolean {
+    return val === 'CCN51' || (!!this.companyProfile?.configuration?.numericVarietyOptions && val === '2');
   }
 
   private refreshVarietyOptions() {
@@ -323,6 +344,73 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.varietyOptionsMap[value] = value;
       this.refreshVarietyOptions();
     }
+  }
+
+  /**
+   * Recalcula las opciones de N° Parcela a partir de las parcelas registradas
+   * para el agricultor.
+   *
+   * existingValue, cuando se pasa, se conserva como opción aunque exceda la
+   * cantidad actual de parcelas del agricultor (edición de una entrega antigua
+   * cuyo agricultor perdió parcelas después) — nunca se limpia el control.
+   * Sin existingValue (agricultor recién elegido en el selector), el número de
+   * parcela del agricultor anterior no aplica y el control se limpia.
+   */
+  private async refreshParcelLotOptions(farmerId?: number, existingValue?: string | number) {
+    if (!farmerId) {
+      this.parcelLotCount = 0;
+      this.buildParcelLotOptions();
+      if (existingValue == null) {
+        this.stockOrderForm?.get('parcelLot')?.setValue(null);
+      }
+      return;
+    }
+
+    try {
+      const farmerResponse = await this.companyControllerService
+        .getUserCustomer(farmerId)
+        .pipe(take(1))
+        .toPromise();
+
+      this.parcelLotCount = farmerResponse?.data?.plots?.length ?? 0;
+    } catch (_) {
+      this.parcelLotCount = 0;
+    }
+
+    this.buildParcelLotOptions();
+
+    if (existingValue != null) {
+      // El valor guardado puede no estar entre las opciones actuales (parcela
+      // eliminada después de la entrega); se agrega igual para que se siga viendo.
+      if (this.parcelLotOptionsMap[existingValue] === undefined) {
+        this.parcelLotOptionsMap[existingValue] = this.parcelLotLabel(existingValue);
+        this.buildParcelLotOptions(false);
+      }
+    } else {
+      // Cambió el agricultor: el número de parcela del agricultor anterior no aplica.
+      this.stockOrderForm?.get('parcelLot')?.setValue(null);
+    }
+  }
+
+  private parcelLotOptionsMap: Record<string, string> = {};
+
+  private parcelLotLabel(n: string | number): string {
+    return $localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.parcelLot.option:Parcela ${n}`;
+  }
+
+  private buildParcelLotOptions(resetMap = true) {
+    if (resetMap) {
+      this.parcelLotOptionsMap = {};
+      for (let i = 1; i <= this.parcelLotCount; i++) {
+        this.parcelLotOptionsMap[String(i)] = this.parcelLotLabel(i);
+      }
+    }
+    this.parcelLotOptions = EnumSifrant.fromObject(this.parcelLotOptionsMap);
+    this.parcelLotOptions.setPlaceholder(
+      this.parcelLotCount > 0
+        ? $localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.parcelLot.placeholder:Selecciona la parcela`
+        : $localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.parcelLot.empty:El agricultor no tiene parcelas registradas`,
+    );
   }
 
   get tareLabel() {
@@ -433,6 +521,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.submitted = false;
 
     this.initializeData().then(() => {
+      // Recalcula con companyProfile ya disponible (ngOnInit la llamó antes, sin
+      // configuración todavía, solo para no mostrar el combo vacío un instante).
+      this.initializeVarietyOptions();
       // Solo se ofrecen productores activos: suspendidos y retirados no admiten transacciones nuevas
       this.farmersCodebook = new CompanyUserCustomersByRoleService(this.companyControllerService, this.companyProfile?.id, 'FARMER', true);
       this.collectorsCodebook = new CompanyUserCustomersByRoleService(this.companyControllerService, this.companyProfile?.id, 'COLLECTOR', true);
@@ -635,6 +726,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if ((this.order as any)?.parcelLot != null) {
       this.stockOrderForm.get('parcelLot').setValue((this.order as any).parcelLot);
     }
+    // Entregas anteriores a este campo no tienen parcelLot; igual se cargan las
+    // opciones del agricultor por si se quiere completar el dato ahora.
+    this.refreshParcelLotOptions(this.order.producerUserCustomer?.id, (this.order as any)?.parcelLot);
     // Ensure variety control exists and set value if backend provides it
     if (!this.stockOrderForm.get('variety')) {
       const defaultVariety = this.companyProfile?.configuration?.onlyNacionalVariety ? 'NACIONAL' : null;
@@ -686,7 +780,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     const varietyControl = this.stockOrderForm.get('variety');
     if (varietyControl) {
       varietyControl.valueChanges.subscribe((val) => {
-        if (val === 'CCN51') {
+        if (this.isCcn51VarietyValue(val)) {
           const tKey = this.getTransitionCertificationKey();
           this.stockOrderForm.get('organicCertification')?.setValue(tKey);
         }
@@ -808,6 +902,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.stockOrderForm.get('producerUserCustomer').markAsDirty();
     this.stockOrderForm.get('producerUserCustomer').updateValueAndValidity();
     this.codebookPreferredWayOfPayment = EnumSifrant.fromObject(this.preferredWayOfPaymentList);
+    this.refreshParcelLotOptions(event?.id);
   }
 
   setCollector(event: ApiUserCustomer) {
@@ -1182,7 +1277,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       // Resto de empresas (ej. UNOCACE): CCN51 o "No" orgánico defaultea a
       // certificación de transición.
       const tKey = this.getTransitionCertificationKey();
-      const isCCN51 = this.stockOrderForm.get('variety')?.value === 'CCN51';
+      const isCCN51 = this.isCcn51VarietyValue(this.stockOrderForm.get('variety')?.value);
       if (isCCN51) {
         this.stockOrderForm.get('organicCertification')?.setValue(tKey);
       } else {

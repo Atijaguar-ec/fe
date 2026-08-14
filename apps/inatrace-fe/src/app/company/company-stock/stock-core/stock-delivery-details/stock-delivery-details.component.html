@@ -212,19 +212,16 @@
               *ngIf="shouldShowParcelLot || shouldShowVariety"
             >
               <div [class]="shouldShowVariety ? 'af-c6' : 'af-c12'" *ngIf="shouldShowParcelLot">
-                <textinput
-                  [form]="stockOrderForm.get('parcelLot')"
+                <single-choice
+                  [formControlInput]="$any(stockOrderForm.get('parcelLot'))"
+                  [codebookService]="parcelLotOptions"
                   label="N° Parcela"
                   i18n-label="
                     @@productLabelStockPurchaseOrdersModal.textinput.parcelLot.label"
                   style="width: 100%"
-                  placeholder="Ingrese el lote de la parcela"
-                  i18n-placeholder="
-                    @@productLabelStockPurchaseOrdersModal.textinput.parcelLot.placeholder"
-                  [isInvalid]="
+                  [isInvalidChoice]="
                     submitted && stockOrderForm.get('parcelLot').invalid
                   "
-                  type="number"
                 >
                   <ng-container *ngIf="submitted">
                     <div
@@ -240,7 +237,7 @@
                       </div>
                     </div>
                   </ng-container>
-                </textinput>
+                </single-choice>
               </div>
               <div class="af-c6" *ngIf="shouldShowVariety">
                 <single-choice
