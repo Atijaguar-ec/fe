@@ -105,7 +105,7 @@
             </single-choice>
 
             <single-choice
-              label="Status"
+              label="Estado"
               i18n-label="@@farmerDetail.label.status"
               [formControlInput]="$any(farmerForm.get('status'))"
               [codebookService]="statusCodebook"
@@ -129,7 +129,7 @@
             <textinput
               *ngIf="farmerForm.get('status').value !== 'ACTIVE'"
               [form]="$any(farmerForm.get('statusReason'))"
-              label="Reason for the status change"
+              label="Motivo del cambio de estado"
               style="width: 100%"
               placeholder=""
               i18n-label="@@farmerDetail.label.statusReason"
