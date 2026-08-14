@@ -205,3 +205,137 @@ código: relanzá el job en vez de investigar el diff.
   Keycloak cachea la config del realm en memoria: cambiarla por `UPDATE` directo
   **no aplica** sin reiniciar el contenedor — usar la Admin Console.
 
+
+---
+
+## 10. `single-choice` + `EnumSifrant`: un valor fuera del catálogo se muestra VACÍO
+
+> Extraído el 2026-08-14 en una revisión QA. **Regresión real introducida y
+> corregida en la misma sesión** — es la trampa más fácil de reintroducir de
+> todo el frontend.
+
+### 10.1 El mecanismo
+
+`EnumSifrant.isEnumFormControl()` devuelve **`true`**. En esa rama,
+`single-choice` no muestra el valor del form control tal cual: lo resuelve con
+
+```ts
+enumValueToObject(val, options) {
+  let res = enumOptions.find(x => x.id === val);
+  if (!res) return null;   // ← el valor desaparece de la vista
+  ...
+}
+```
+
+Si el valor guardado **no está entre las opciones del codebook**, el combo se
+ve vacío. El dato no se pierde (el `FormControl` lo conserva y se envía al
+guardar), pero **el usuario no lo ve**, que es igual de grave.
+
+> Contraste importante: los codebooks que **no** son `EnumSifrant` (p. ej.
+> `CompanyUserCustomersByRoleService`) caen en la rama
+> `this.modelChoice = this.formControlInput.value`, que **sí** muestra el valor
+> aunque no esté en la lista. Por eso filtrar agricultores suspendidos del
+> selector de Recepción es seguro, pero cambiar un catálogo `EnumSifrant` no.
+
+### 10.2 Caso concreto que ocurrió
+
+La config de empresa `numericVarietyOptions` (solo UNOCACE) hace que Entregas
+guarde la variedad como `"1"`/`"2"` en vez de `NACIONAL`/`CCN51`. Procesamiento
+**propaga** ese valor desde las entregas de entrada
+(`stock-processing-order-details.component.ts` → `variety.setValue(ref.variety)`),
+pero su combo tenía el catálogo **hardcodeado**:
+
+```ts
+varietyOptions = EnumSifrant.fromObject({ NACIONAL: 'Nacional', CCN51: 'CCN51' });
+```
+
+Resultado: variedad en blanco en Procesamiento para UNOCACE.
+
+### 10.3 Reglas
+
+1. Si cambiás el **vocabulario de valores** de un campo, buscá **todas** las
+   pantallas que lo renderizan, no solo la que editás:
+   ```bash
+   grep -rn "\.variety\b" apps/inatrace-fe/src/app/
+   ```
+   Para `variety` son cinco lugares: Entregas, Procesamiento (output **e**
+   input, este último lo muestra como texto junto al lote), `batch-history` y
+   `pdf-generator.service`.
+2. Las pantallas que muestran el valor como **texto crudo** (`{{ stockOrder.variety }}`
+   en `batch-history`, el PDF) **no traducen nada**. Por eso el valor guardado
+   para `numericVarietyOptions` es literalmente `"1"`/`"2"` y no un id interno:
+   si se guardara `ORGANICO`, esas pantallas mostrarían `ORGANICO`.
+3. Un catálogo que depende de config de empresa **no puede inicializarse en la
+   declaración del campo** — ahí `companyProfile` todavía es `undefined`. Va en
+   `ngOnInit` (si es `@Input`) o después de resolver el perfil (en Entregas se
+   rehace dentro de `reloadOrder()`).
+
+---
+
+## 11. Estado del productor (`status`) — qué NO tocar
+
+> Agregado el 2026-08-14 junto con la feature.
+
+- **El filtro es opt-in, no por defecto.** El endpoint
+  `/userCustomers/{companyId}/{type}` devuelve **todos** los estados salvo que
+  se pida `onlyAvailableForTransactions=true` (o `status=X`). Es intencional:
+  el listado administrativo tiene que seguir viendo suspendidos y retirados
+  para poder reactivarlos.
+- **Dónde SÍ se filtra:** Recepción y Recepción masiva
+  (`new CompanyUserCustomersByRoleService(..., 'FARMER', true)`).
+- **Dónde NO, a propósito:** Pagos y dashboard. Liquidar lo ya devengado a un
+  agricultor retirado y consultar históricos **no** son transacciones nuevas.
+  Decisión de producto del 2026-08-14 — si se cambia, es pasando `true` en las
+  tres instanciaciones de `stock-payments-*`, pero **preguntá antes**.
+- **El validador `required` de `status` está en el esquema compartido**
+  (`company-collectors-details/validation.ts`, usado por agricultores **y**
+  acopiadores). Por eso la ficha de acopiador **también** expone el campo: sin
+  eso, marcar `required` rompe el alta de acopiadores. No quites el campo de una
+  de las dos pantallas sin ajustar el esquema.
+
+---
+
+## 12. `parcelLot` en Entregas es un combo derivado del agricultor
+
+> Agregado el 2026-08-14. Complementa la §7 (asimetría Recepción/Procesamiento),
+> que **sigue vigente**.
+
+En **Recepción** ya no es texto libre: es un `single-choice` poblado con
+`Parcela 1..N`, donde N = cantidad de parcelas registradas del agricultor
+seleccionado (`getUserCustomer(farmerId).plots.length`). Se recalcula en
+`setFarmer()` y en `editStockOrder()`.
+
+Dos cosas que hay que preservar al tocarlo:
+
+1. **Al editar una entrega vieja, el valor guardado se conserva como opción
+   aunque exceda las parcelas actuales** del agricultor (parcela borrada
+   después). Ver `refreshParcelLotOptions(farmerId, existingValue)`: con
+   `existingValue` nunca limpia el control. Sin esa salvaguarda, y por el
+   mecanismo de §10.1, editar una entrega antigua **borraría el dato en
+   silencio**.
+2. **En Procesamiento sigue siendo `textinput`**, y está bien: ahí el valor se
+   **propaga automáticamente** desde las entregas de entrada, no lo elige el
+   usuario contra un agricultor. No "unifiques" los dos formularios.
+
+### 12.1 Regla de negocio: sin parcela no se vende
+
+Decisión de producto del 2026-08-14: **un agricultor sin parcelas registradas no
+puede vender cacao.** Se implementa así, y no de otra forma:
+
+- N° Parcela es **`Validators.required`** cuando el campo se muestra y el tipo de
+  orden es `PURCHASE_ORDER` (ver `updateParcelLotValidator()`). Si el agricultor
+  no tiene parcelas, el combo queda vacío → no hay nada que elegir → la entrega
+  no se puede guardar.
+- El agricultor **sigue visible** en el selector, a propósito. Se evaluó
+  ocultarlo y se descartó: el operador tiene que poder encontrarlo y entender
+  por qué no puede venderle. El mensaje de error se lo dice y lo manda a
+  cargarle la parcela.
+- Aplica **solo donde el campo se muestra** (hoy cacao, vía
+  `ProductFieldVisibilityService`). No extender a otros productos sin pedirlo:
+  bloquearía flujos que hoy funcionan.
+
+Contexto de datos al momento de implementarlo (UNOCACE staging): **581 de 979
+agricultores no tenían ninguna parcela**, pero solo **1 de 636 recepciones**
+existentes carecía de `parcelLot` — por eso volver el campo obligatorio no
+rompe la edición del histórico. Si vas a tocar esta regla, **volvé a medir**
+esas dos cifras antes.

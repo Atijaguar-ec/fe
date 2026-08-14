@@ -398,6 +398,34 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     return $localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.parcelLot.option:Parcela ${n}`;
   }
 
+  /**
+   * Regla de negocio (2026-08-14): un agricultor sin parcelas registradas no puede
+   * vender cacao. Se implementa haciendo N° Parcela obligatorio siempre que el campo
+   * se muestre: si el agricultor no tiene parcelas el combo queda vacío, no hay nada
+   * que elegir y la entrega no se puede guardar.
+   *
+   * Solo aplica donde el campo es visible (hoy cacao, vía ProductFieldVisibilityService),
+   * para no bloquear productos que nunca tuvieron este campo.
+   */
+  private updateParcelLotValidator() {
+    const control = this.stockOrderForm?.get('parcelLot');
+    if (!control) {
+      return;
+    }
+
+    control.setValidators(
+      this.orderType === 'PURCHASE_ORDER' && this.shouldShowParcelLot
+        ? [Validators.required, Validators.pattern(/^[0-9]+$/)]
+        : [Validators.pattern(/^[0-9]+$/)],
+    );
+    control.updateValueAndValidity({ emitEvent: false });
+  }
+
+  /** true cuando hay un agricultor elegido y no tiene ninguna parcela registrada. */
+  get selectedFarmerHasNoPlots(): boolean {
+    return !!this.searchFarmers?.value && this.parcelLotCount === 0;
+  }
+
   private buildParcelLotOptions(resetMap = true) {
     if (resetMap) {
       this.parcelLotOptionsMap = {};
@@ -1134,6 +1162,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   updateValidators() {
+    this.updateParcelLotValidator();
     this.stockOrderForm.get('organic').setValidators(
         this.orderType === 'PURCHASE_ORDER' &&
         this.facility &&

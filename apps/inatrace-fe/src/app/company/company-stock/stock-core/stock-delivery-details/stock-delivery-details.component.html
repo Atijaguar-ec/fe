@@ -229,6 +229,22 @@
                       class="sc-invalid-feedback"
                     >
                       <div
+                        *ngIf="errors.required && selectedFarmerHasNoPlots"
+                        i18n="
+                          @@productLabelStockPurchaseOrdersModal.singleChoice.parcelLot.error.noPlots"
+                      >
+                        El agricultor no tiene parcelas registradas, por lo que no
+                        puede vender. Registre una parcela en su ficha para
+                        continuar.
+                      </div>
+                      <div
+                        *ngIf="errors.required && !selectedFarmerHasNoPlots"
+                        i18n="
+                          @@productLabelStockPurchaseOrdersModal.singleChoice.parcelLot.error.required"
+                      >
+                        Seleccione la parcela de origen
+                      </div>
+                      <div
                         *ngIf="errors.pattern"
                         i18n="
                           @@productLabelStockPurchaseOrdersModal.textinput.parcelLot.error.pattern"
