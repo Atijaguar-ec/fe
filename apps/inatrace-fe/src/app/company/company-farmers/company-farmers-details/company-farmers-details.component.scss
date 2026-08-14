@@ -47,3 +47,12 @@
 .farm-info-spacer {
   height: 12px;
 }
+
+.status-audit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}

@@ -51,6 +51,18 @@ export interface ApiUserCustomer {
      */
     status?: ApiUserCustomer.StatusEnum;
     /**
+     * Reason given for the last status change
+     */
+    statusReason?: string;
+    /**
+     * When the status was last changed (read-only)
+     */
+    statusUpdateTimestamp?: Date;
+    /**
+     * Name of the user that performed the last status change (read-only)
+     */
+    statusUpdatedBy?: string;
+    /**
      * Name
      */
     name?: string;
@@ -127,6 +139,18 @@ export namespace ApiUserCustomer {
          * Status within the organization (ACTIVE, SUSPENDED, RETIRED)
          */
         status = 'status',
+        /**
+         * Reason given for the last status change
+         */
+        statusReason = 'statusReason',
+        /**
+         * When the status was last changed (read-only)
+         */
+        statusUpdateTimestamp = 'statusUpdateTimestamp',
+        /**
+         * Name of the user that performed the last status change (read-only)
+         */
+        statusUpdatedBy = 'statusUpdatedBy',
         /**
          * Name
          */
@@ -260,6 +284,39 @@ export namespace ApiUserCustomer {
                     datatypeWithEnum: 'ApiUserCustomer.StatusEnum',
                     required: false,
                     name: 'status',
+                    classname: 'ApiUserCustomer',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'statusReason',
+                    classname: 'ApiUserCustomer',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'statusUpdateTimestamp',
+                    classname: 'ApiUserCustomer',
+                    dataType: 'Date',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'statusUpdatedBy',
                     classname: 'ApiUserCustomer',
                     dataType: 'string',
                     isPrimitiveType: true,
@@ -440,6 +497,14 @@ export namespace ApiUserCustomer {
                 type: [
                 ],
                 status: [
+                ],
+                statusReason: [
+                        ['minlength', 0],
+                        ['maxlength', 255],
+                ],
+                statusUpdateTimestamp: [
+                ],
+                statusUpdatedBy: [
                 ],
                 name: [
                         ['minlength', 0],

@@ -127,6 +127,34 @@
             </single-choice>
 
             <textinput
+              *ngIf="farmerForm.get('status').value !== 'ACTIVE'"
+              [form]="$any(farmerForm.get('statusReason'))"
+              label="Reason for the status change"
+              style="width: 100%"
+              placeholder=""
+              i18n-label="@@farmerDetail.label.statusReason"
+            >
+            </textinput>
+
+            <div
+              *ngIf="farmerForm.get('statusUpdateTimestamp').value"
+              class="status-audit"
+            >
+              <span i18n="@@farmerDetail.status.lastChange">
+                Último cambio de estado:
+              </span>
+              <span>
+                {{
+                  farmerForm.get('statusUpdateTimestamp').value
+                    | date: 'dd/MM/yyyy HH:mm'
+                }}
+              </span>
+              <span *ngIf="farmerForm.get('statusUpdatedBy').value">
+                — {{ farmerForm.get('statusUpdatedBy').value }}
+              </span>
+            </div>
+
+            <textinput
               *ngIf="update"
               [readOnly]="true"
               [form]="$any(farmerForm.get('id'))"

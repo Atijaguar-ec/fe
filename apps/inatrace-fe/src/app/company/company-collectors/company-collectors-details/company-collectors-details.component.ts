@@ -92,6 +92,12 @@ export class CompanyCollectorsDetailsComponent implements OnInit {
     DIVERSE: $localize`:@@collectorDetail.gender.diverse:Diverse`,
   });
 
+  statusCodebook = EnumSifrant.fromObject({
+    ACTIVE: $localize`:@@farmerDetail.status.active:Activo`,
+    SUSPENDED: $localize`:@@farmerDetail.status.suspended:Suspendido`,
+    RETIRED: $localize`:@@farmerDetail.status.retired:Retirado`,
+  });
+
   readonly collectorType = UserCustomerTypeEnum.COLLECTOR;
 
   certificationListManager = null;
@@ -286,6 +292,9 @@ export class CompanyCollectorsDetailsComponent implements OnInit {
       ApiAddress.formMetadata(),
     ) as ApiAddress;
 
+    // Un acopiador nuevo entra a la organización como Activo
+    collector.status = ApiUserCustomer.StatusEnum.ACTIVE;
+
     return collector;
   }
 
@@ -299,6 +308,13 @@ export class CompanyCollectorsDetailsComponent implements OnInit {
 
   prepareData() {
     this.collectorForm.get('type').setValue(UserCustomerTypeEnum.COLLECTOR);
+
+    // Acopiadores dados de alta antes de que existiera el estado
+    if (!this.collectorForm.get('status').value) {
+      this.collectorForm
+        .get('status')
+        .setValue(ApiUserCustomer.StatusEnum.ACTIVE);
+    }
 
     if (this.collectorForm.get('hasSmartphone').value === null) {
       this.collectorForm.get('hasSmartphone').setValue(false);
