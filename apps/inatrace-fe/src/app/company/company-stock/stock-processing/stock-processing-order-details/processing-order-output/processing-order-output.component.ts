@@ -49,6 +49,12 @@ import { EnumSifrant } from '../../../../../shared-services/enum-sifrant';
 export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
   readonly faTrashAlt = faTrashAlt;
 
+  // Se reconstruye en ngOnInit según la configuración de la empresa: con
+  // numericVarietyOptions las entregas guardan la variedad como "1"/"2", y ese
+  // valor se propaga a Procesamiento (ver propagación en
+  // stock-processing-order-details.component.ts). Si el combo no ofrece esas
+  // opciones, EnumSifrant.enumValueToObject() no encuentra el valor y
+  // single-choice lo muestra vacío.
   varietyOptions: EnumSifrant = EnumSifrant.fromObject({
     NACIONAL: 'Nacional',
     CCN51: 'CCN51',
@@ -139,6 +145,9 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    if (this.companyProfile?.configuration?.numericVarietyOptions) {
+      this.varietyOptions = EnumSifrant.fromObject({ '1': '1', '2': '2' });
+    }
     this.varietyOptions.setPlaceholder(
       $localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.variety.placeholder:Selecciona la variedad`
     );

@@ -240,6 +240,7 @@ export class CompanyFarmersListComponent
   isSystemOrRegionalAdmin = false;
 
   subs!: Subscription;
+  private statusFilterSub!: Subscription;
 
   @ViewChild('addFarmerButtonTooltip')
   addFarmerButtonTooltip!: NgbTooltip;
@@ -286,7 +287,7 @@ export class CompanyFarmersListComponent
         }
       });
 
-    this.statusFilterForm.valueChanges.subscribe((value) => {
+    this.statusFilterSub = this.statusFilterForm.valueChanges.subscribe((value) => {
       this.page = 1;
       this.pagination$.next(1);
       this.statusFilter$.next(value ?? null);
@@ -308,6 +309,9 @@ export class CompanyFarmersListComponent
   ngOnDestroy(): void {
     if (this.subs) {
       this.subs.unsubscribe();
+    }
+    if (this.statusFilterSub) {
+      this.statusFilterSub.unsubscribe();
     }
   }
 
