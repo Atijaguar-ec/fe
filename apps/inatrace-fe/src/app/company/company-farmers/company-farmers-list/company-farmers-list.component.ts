@@ -29,6 +29,7 @@ import { NgbModalImproved } from '../../../core/ngb-modal-improved/ngb-modal-imp
 import { ApiCompany } from '../../../../api/model/apiCompany';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { SelfOnboardingService } from '../../../shared-services/self-onboarding.service';
+import { EnumSifrant } from '../../../shared-services/enum-sifrant';
 
 @Component({
   selector: 'app-company-farmers-list',
@@ -60,6 +61,29 @@ export class CompanyFarmersListComponent
   pagination$ = new BehaviorSubject(1);
   search$ = new BehaviorSubject('BY_NAME');
   ping$ = new BehaviorSubject(null);
+
+  // Filtro por estado. null = todos, para que suspendidos y retirados
+  // sigan siendo gestionables desde este listado.
+  statusFilterForm = new UntypedFormControl(null);
+  statusFilter$ = new BehaviorSubject<
+    'ACTIVE' | 'SUSPENDED' | 'RETIRED' | null
+  >(null);
+
+  statusCodebook = EnumSifrant.fromObject({
+    ACTIVE: $localize`:@@farmerDetail.status.active:Activo`,
+    SUSPENDED: $localize`:@@farmerDetail.status.suspended:Suspendido`,
+    RETIRED: $localize`:@@farmerDetail.status.retired:Retirado`,
+  });
+
+  private readonly statusLabels = {
+    ACTIVE: $localize`:@@farmerDetail.status.active:Activo`,
+    SUSPENDED: $localize`:@@farmerDetail.status.suspended:Suspendido`,
+    RETIRED: $localize`:@@farmerDetail.status.retired:Retirado`,
+  };
+
+  statusLabel(status: string): string {
+    return this.statusLabels[status] ?? '-';
+  }
 
   showRwanda = false;
   showHonduras = false;
@@ -110,6 +134,11 @@ export class CompanyFarmersListComponent
       inactive: true,
     },
     {
+      key: 'status',
+      name: $localize`:@@productLabelStakeholdersCollectors.sortOptions.status.name:Estado`,
+      inactive: true,
+    },
+    {
       key: 'actions',
       name: $localize`:@@productLabelStakeholdersCollectors.sortOptions.actions.name:Actions`,
       inactive: true,
@@ -151,6 +180,11 @@ export class CompanyFarmersListComponent
       inactive: true,
     },
     {
+      key: 'status',
+      name: $localize`:@@productLabelStakeholdersCollectors.sortOptions.status.name:Estado`,
+      inactive: true,
+    },
+    {
       key: 'actions',
       name: $localize`:@@productLabelStakeholdersCollectors.sortOptions.actions.name:Actions`,
       inactive: true,
@@ -189,6 +223,11 @@ export class CompanyFarmersListComponent
     {
       key: 'village',
       name: $localize`:@@productLabelStakeholdersCollectors.sortOptions.village.name:Village`,
+      inactive: true,
+    },
+    {
+      key: 'status',
+      name: $localize`:@@productLabelStakeholdersCollectors.sortOptions.status.name:Estado`,
       inactive: true,
     },
     {
@@ -246,6 +285,12 @@ export class CompanyFarmersListComponent
           this.loadFarmers().then();
         }
       });
+
+    this.statusFilterForm.valueChanges.subscribe((value) => {
+      this.page = 1;
+      this.pagination$.next(1);
+      this.statusFilter$.next(value ?? null);
+    });
   }
 
   ngAfterViewInit() {
@@ -273,8 +318,9 @@ export class CompanyFarmersListComponent
       this.search$,
       this.pagination$,
       this.ping$,
+      this.statusFilter$,
     ]).pipe(
-      map(([sort, queryString, search, page, ping]) => {
+      map(([sort, queryString, search, page, ping, statusFilter]) => {
         const params: GetUserCustomersForCompanyAndType.PartialParamMap = {
           companyId: this.organizationId,
           type: 'FARMER',
@@ -284,6 +330,7 @@ export class CompanyFarmersListComponent
           limit: this.pageSize,
           query: queryString,
           searchBy: search,
+          ...(statusFilter ? { status: statusFilter } : {}),
         };
         return params;
       }),

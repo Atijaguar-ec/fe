@@ -297,15 +297,18 @@ export class StockBulkDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.submitted = false;
 
     this.initializeData().then(() => {
+      // Solo se ofrecen productores activos: suspendidos y retirados no admiten transacciones nuevas
       this.farmersCodebook = new CompanyUserCustomersByRoleService(
         this.companyControllerService,
         this.companyProfile?.id,
         'FARMER',
+        true,
       );
       this.collectorsCodebook = new CompanyUserCustomersByRoleService(
         this.companyControllerService,
         this.companyProfile?.id,
         'COLLECTOR',
+        true,
       );
 
       this.newPurchaseBulkOrder();

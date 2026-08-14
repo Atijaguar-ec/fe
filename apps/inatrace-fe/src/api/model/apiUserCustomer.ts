@@ -47,6 +47,10 @@ export interface ApiUserCustomer {
      */
     type?: ApiUserCustomer.TypeEnum;
     /**
+     * Status within the organization (ACTIVE, SUSPENDED, RETIRED)
+     */
+    status?: ApiUserCustomer.StatusEnum;
+    /**
      * Name
      */
     name?: string;
@@ -120,6 +124,10 @@ export namespace ApiUserCustomer {
          */
         type = 'type',
         /**
+         * Status within the organization (ACTIVE, SUSPENDED, RETIRED)
+         */
+        status = 'status',
+        /**
          * Name
          */
         name = 'name',
@@ -177,6 +185,15 @@ export namespace ApiUserCustomer {
     }
 
     /**
+     * All possible values of status.
+     */
+    export enum StatusEnum {
+        ACTIVE = 'ACTIVE',
+        SUSPENDED = 'SUSPENDED',
+        RETIRED = 'RETIRED'
+    }
+
+    /**
      * All possible values of gender.
      */
     export enum GenderEnum {
@@ -231,6 +248,18 @@ export namespace ApiUserCustomer {
                     datatypeWithEnum: 'ApiUserCustomer.TypeEnum',
                     required: false,
                     name: 'type',
+                    classname: 'ApiUserCustomer',
+                    dataType: 'string',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: true,
+                    datatypeWithEnum: 'ApiUserCustomer.StatusEnum',
+                    required: false,
+                    name: 'status',
                     classname: 'ApiUserCustomer',
                     dataType: 'string',
                     isPrimitiveType: true,
@@ -409,6 +438,8 @@ export namespace ApiUserCustomer {
                 farmerCompanyInternalId: [
                 ],
                 type: [
+                ],
+                status: [
                 ],
                 name: [
                         ['minlength', 0],

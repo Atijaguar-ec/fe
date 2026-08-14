@@ -86,6 +86,12 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
     DIVERSE: $localize`:@@collectorDetail.gender.diverse:Diverse`,
   });
 
+  statusCodebook = EnumSifrant.fromObject({
+    ACTIVE: $localize`:@@farmerDetail.status.active:Activo`,
+    SUSPENDED: $localize`:@@farmerDetail.status.suspended:Suspendido`,
+    RETIRED: $localize`:@@farmerDetail.status.retired:Retirado`,
+  });
+
   readonly farmerType = UserCustomerTypeEnum.FARMER;
 
   // payments table parameters
@@ -565,6 +571,9 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
       ApiAddress.formMetadata(),
     ) as ApiAddress;
 
+    // Un agricultor nuevo entra a la organización como Activo
+    farmer.status = ApiUserCustomer.StatusEnum.ACTIVE;
+
     return farmer;
   }
 
@@ -576,6 +585,11 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
 
   prepareData() {
     this.farmerForm.get('type').setValue(UserCustomerTypeEnum.FARMER);
+
+    // Agricultores dados de alta antes de que existiera el estado
+    if (!this.farmerForm.get('status').value) {
+      this.farmerForm.get('status').setValue(ApiUserCustomer.StatusEnum.ACTIVE);
+    }
 
     if (this.farmerForm.get('hasSmartphone').value === null) {
       this.farmerForm.get('hasSmartphone').setValue(false);

@@ -1068,6 +1068,14 @@ export namespace GetUserCustomersForCompanyAndType {
        */
       searchBy?: string;
       /**
+       * Filter by status within the organization. When omitted, user customers of every status are returned.
+       */
+      status?: 'ACTIVE' | 'SUSPENDED' | 'RETIRED';
+      /**
+       * When true, only user customers eligible for transactions (status ACTIVE) are returned. Takes precedence over &#39;status&#39;.
+       */
+      onlyAvailableForTransactions?: boolean;
+      /**
        * Only count, only fetch, or return both values (if null)
        */
       requestType?: 'COUNT' | 'FETCH';
@@ -1110,6 +1118,14 @@ export namespace GetUserCustomersForCompanyAndType {
        * Search by parameter
        */
       searchBy = 'searchBy',
+      /**
+       * Filter by status within the organization. When omitted, user customers of every status are returned.
+       */
+      status = 'status',
+      /**
+       * When true, only user customers eligible for transactions (status ACTIVE) are returned. Takes precedence over &#39;status&#39;.
+       */
+      onlyAvailableForTransactions = 'onlyAvailableForTransactions',
       /**
        * Only count, only fetch, or return both values (if null)
        */
@@ -3570,6 +3586,8 @@ export class CompanyControllerService {
       map.language,
       map.query,
       map.searchBy,
+      map.status,
+      map.onlyAvailableForTransactions,
       map.requestType,
       map.limit,
       map.offset,
@@ -3597,10 +3615,10 @@ export class CompanyControllerService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getUserCustomersForCompanyAndType(companyId: number, type: 'COLLECTOR' | 'FARMER', language?: 'EN' | 'DE' | 'RW' | 'ES', query?: string, searchBy?: string, requestType?: 'COUNT' | 'FETCH', limit?: number, offset?: number, sortBy?: string, sort?: 'ASC' | 'DESC', observe?: 'body', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<ApiPaginatedResponseApiUserCustomer>;
-    public getUserCustomersForCompanyAndType(companyId: number, type: 'COLLECTOR' | 'FARMER', language?: 'EN' | 'DE' | 'RW' | 'ES', query?: string, searchBy?: string, requestType?: 'COUNT' | 'FETCH', limit?: number, offset?: number, sortBy?: string, sort?: 'ASC' | 'DESC', observe?: 'response', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpResponse<ApiPaginatedResponseApiUserCustomer>>;
-    public getUserCustomersForCompanyAndType(companyId: number, type: 'COLLECTOR' | 'FARMER', language?: 'EN' | 'DE' | 'RW' | 'ES', query?: string, searchBy?: string, requestType?: 'COUNT' | 'FETCH', limit?: number, offset?: number, sortBy?: string, sort?: 'ASC' | 'DESC', observe?: 'events', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpEvent<ApiPaginatedResponseApiUserCustomer>>;
-    public getUserCustomersForCompanyAndType(companyId: number, type: 'COLLECTOR' | 'FARMER', language?: 'EN' | 'DE' | 'RW' | 'ES', query?: string, searchBy?: string, requestType?: 'COUNT' | 'FETCH', limit?: number, offset?: number, sortBy?: string, sort?: 'ASC' | 'DESC', observe: any = 'body', reportProgress: boolean = false, additionalHeaders?: Array<Array<string>>): Observable<any> {
+    public getUserCustomersForCompanyAndType(companyId: number, type: 'COLLECTOR' | 'FARMER', language?: 'EN' | 'DE' | 'RW' | 'ES', query?: string, searchBy?: string, status?: 'ACTIVE' | 'SUSPENDED' | 'RETIRED', onlyAvailableForTransactions?: boolean, requestType?: 'COUNT' | 'FETCH', limit?: number, offset?: number, sortBy?: string, sort?: 'ASC' | 'DESC', observe?: 'body', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<ApiPaginatedResponseApiUserCustomer>;
+    public getUserCustomersForCompanyAndType(companyId: number, type: 'COLLECTOR' | 'FARMER', language?: 'EN' | 'DE' | 'RW' | 'ES', query?: string, searchBy?: string, status?: 'ACTIVE' | 'SUSPENDED' | 'RETIRED', onlyAvailableForTransactions?: boolean, requestType?: 'COUNT' | 'FETCH', limit?: number, offset?: number, sortBy?: string, sort?: 'ASC' | 'DESC', observe?: 'response', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpResponse<ApiPaginatedResponseApiUserCustomer>>;
+    public getUserCustomersForCompanyAndType(companyId: number, type: 'COLLECTOR' | 'FARMER', language?: 'EN' | 'DE' | 'RW' | 'ES', query?: string, searchBy?: string, status?: 'ACTIVE' | 'SUSPENDED' | 'RETIRED', onlyAvailableForTransactions?: boolean, requestType?: 'COUNT' | 'FETCH', limit?: number, offset?: number, sortBy?: string, sort?: 'ASC' | 'DESC', observe?: 'events', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpEvent<ApiPaginatedResponseApiUserCustomer>>;
+    public getUserCustomersForCompanyAndType(companyId: number, type: 'COLLECTOR' | 'FARMER', language?: 'EN' | 'DE' | 'RW' | 'ES', query?: string, searchBy?: string, status?: 'ACTIVE' | 'SUSPENDED' | 'RETIRED', onlyAvailableForTransactions?: boolean, requestType?: 'COUNT' | 'FETCH', limit?: number, offset?: number, sortBy?: string, sort?: 'ASC' | 'DESC', observe: any = 'body', reportProgress: boolean = false, additionalHeaders?: Array<Array<string>>): Observable<any> {
         if (companyId === null || companyId === undefined) {
             throw new Error('Required parameter companyId was null or undefined when calling getUserCustomersForCompanyAndType.');
         }
@@ -3614,6 +3632,12 @@ export class CompanyControllerService {
         }
         if (searchBy !== undefined && searchBy !== null) {
             queryParameters = queryParameters.set('searchBy', <any>searchBy);
+        }
+        if (status !== undefined && status !== null) {
+            queryParameters = queryParameters.set('status', <any>status);
+        }
+        if (onlyAvailableForTransactions !== undefined && onlyAvailableForTransactions !== null) {
+            queryParameters = queryParameters.set('onlyAvailableForTransactions', <any>onlyAvailableForTransactions);
         }
         if (requestType !== undefined && requestType !== null) {
             queryParameters = queryParameters.set('requestType', <any>requestType);

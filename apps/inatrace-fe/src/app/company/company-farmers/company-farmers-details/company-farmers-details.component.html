@@ -104,6 +104,28 @@
               </ng-container>
             </single-choice>
 
+            <single-choice
+              label="Status"
+              i18n-label="@@farmerDetail.label.status"
+              [formControlInput]="$any(farmerForm.get('status'))"
+              [codebookService]="statusCodebook"
+              [isInvalidChoice]="submitted && farmerForm.get('status').invalid"
+            >
+              <ng-container *ngIf="submitted">
+                <div
+                  *ngIf="farmerForm.get('status').errors as errors"
+                  class="sc-invalid-feedback"
+                >
+                  <div
+                    *ngIf="errors.required"
+                    i18n="@@farmerDetail.status.error.required"
+                  >
+                    El estado es obligatorio
+                  </div>
+                </div>
+              </ng-container>
+            </single-choice>
+
             <textinput
               *ngIf="update"
               [readOnly]="true"

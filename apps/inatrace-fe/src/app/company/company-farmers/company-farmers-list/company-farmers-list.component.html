@@ -82,6 +82,14 @@
           (categoryChange)="onCategoryChange($event)"
         >
         </app-search-textinput>
+
+        <single-choice
+          label="Status"
+          i18n-label="@@farmerList.label.statusFilter"
+          [formControlInput]="statusFilterForm"
+          [codebookService]="statusCodebook"
+        >
+        </single-choice>
       </div>
     </div>
 
@@ -169,6 +177,10 @@
               </ng-container>
 
               <td [attr.data-label]="sortOptions[7].name">
+                <span>{{ statusLabel(farmer.status) }}</span>
+              </td>
+
+              <td [attr.data-label]="sortOptions[8].name">
                 <span>
                   <a
                     i18n="@@productLabelStakeholdersCollectors.tableCol.edit"

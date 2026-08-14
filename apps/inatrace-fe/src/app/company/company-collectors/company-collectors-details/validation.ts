@@ -153,6 +153,12 @@ export const ApiUserCustomerValidationScheme = {
     type: {
       validators: [],
     },
+    // Sin Validators.required: este esquema lo comparten agricultores y acopiadores,
+    // y la pantalla de acopiadores no expone el campo. El backend garantiza ACTIVE
+    // por defecto, y el formulario de agricultor siempre lo trae con valor.
+    status: {
+      validators: [],
+    },
     bank: ApiBankInformationValidationScheme,
     farm: ApiFarmInformationValidationScheme,
     cooperatives: ApiUserCustomerCooperativeValidationScheme,

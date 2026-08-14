@@ -433,8 +433,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.submitted = false;
 
     this.initializeData().then(() => {
-      this.farmersCodebook = new CompanyUserCustomersByRoleService(this.companyControllerService, this.companyProfile?.id, 'FARMER');
-      this.collectorsCodebook = new CompanyUserCustomersByRoleService(this.companyControllerService, this.companyProfile?.id, 'COLLECTOR');
+      // Solo se ofrecen productores activos: suspendidos y retirados no admiten transacciones nuevas
+      this.farmersCodebook = new CompanyUserCustomersByRoleService(this.companyControllerService, this.companyProfile?.id, 'FARMER', true);
+      this.collectorsCodebook = new CompanyUserCustomersByRoleService(this.companyControllerService, this.companyProfile?.id, 'COLLECTOR', true);
 
       if (this.update) {
         this.editStockOrder().then();

@@ -14,6 +14,13 @@ export class CompanyUserCustomersByRoleService extends GeneralSifrantService<Api
     private companyControllerService: CompanyControllerService,
     private companyId: number,
     private role: string,
+    /**
+     * Cuando es true solo se ofrecen productores en estado ACTIVE. Úsalo en los
+     * selectores que inician una transacción (recepción, procesamiento, pagos).
+     * El valor ya asignado a un registro existente se sigue mostrando, porque
+     * single-choice lo lee del form control y no de este listado.
+     */
+    private onlyAvailableForTransactions: boolean = false,
   ) {
     super();
   }
@@ -81,6 +88,9 @@ export class CompanyUserCustomersByRoleService extends GeneralSifrantService<Api
       searchBy: 'BY_NAME_AND_SURNAME',
       companyId: this.companyId,
       type: this.role,
+      ...(this.onlyAvailableForTransactions
+        ? { onlyAvailableForTransactions: true }
+        : {}),
       ...this.requestParams,
     };
 
