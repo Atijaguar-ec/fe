@@ -15,6 +15,8 @@ import { Feature, Polygon } from '@turf/turf';
 import { ApiPlotValidationScheme } from '../plots-form/validation';
 import { faCopy } from '@fortawesome/free-solid-svg-icons';
 import { EnumSifrant } from '../../../shared-services/enum-sifrant';
+import { ActiveCertificationTypesService } from '../../../shared-services/active-certification-types.service';
+import { CertificationTypeControllerService } from '../../../../api/api/certificationTypeController.service';
 
 @Component({
   selector: 'app-plots-item',
@@ -59,16 +61,11 @@ export class PlotsItemComponent
   plotType: 'boundaries' | 'single_point' = 'boundaries';
   selectPlotType = true;
 
-  // Catálogo cerrado de certificaciones, definido por la organización. Las etiquetas
-  // son nombres comerciales, así que no se traducen.
-  certificationTypeCodebook = EnumSifrant.fromObject({
-    ORGANICO_UE_NOP_BIOSUISSE_NATURLAND_FAIRTRADE_SPP:
-      'Organico UE/NOP/Biosuisse/Naturland/Fairtrade/SPP',
-    ORGANICO_UE_NOP_BIOSUISSE_FAIRTRADE_SPP:
-      'Organico UE/NOP/Biosuisse/Fairtrade/SPP',
-    ORGANICO_UE_NOP_FAIRTRADE_SPP: 'Organico UE/NOP/Fairtrade/SPP',
-    CONVENCIONAL_FAIRTRADE: 'Convencional Fairtrade',
-  });
+  // Mismo catálogo administrable que usa el campo "Tipo de certificación" de
+  // Recepción (Ajustes → Tipos de certificación). Ver ActiveCertificationTypesService.
+  // Se instancia en el constructor y no como inicializador de campo: ahí el
+  // parámetro del constructor todavía no está asignado.
+  certificationTypeCodebook: ActiveCertificationTypesService;
 
   cocoaVarietyCodebook = EnumSifrant.fromObject({
     ORGANICO: 'Orgánico',
@@ -78,8 +75,12 @@ export class PlotsItemComponent
   constructor(
     protected globalEventsManager: GlobalEventManagerService,
     protected router: Router,
+    private certificationTypeControllerService: CertificationTypeControllerService,
   ) {
     super(globalEventsManager);
+    this.certificationTypeCodebook = new ActiveCertificationTypesService(
+      this.certificationTypeControllerService,
+    );
   }
 
   ngOnInit() {

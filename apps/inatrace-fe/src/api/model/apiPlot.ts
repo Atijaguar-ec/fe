@@ -18,6 +18,7 @@
  */
 
 
+import { ApiCertificationType } from './apiCertificationType';
 import { ApiPlotCoordinate } from './apiPlotCoordinate';
 import { ApiProductType } from './apiProductType';
 
@@ -59,7 +60,7 @@ export interface ApiPlot {
     /**
      * Certification scheme of the plot
      */
-    certificationType?: ApiPlot.CertificationTypeEnum;
+    certificationType?: ApiCertificationType;
     /**
      * Cocoa variety grown on the plot (ORGANICO = 1, CCN51 = 2)
      */
@@ -143,16 +144,6 @@ export namespace ApiPlot {
          * Date of last update
          */
         farmerId = 'farmerId'
-    }
-
-    /**
-     * All possible values of certificationType.
-     */
-    export enum CertificationTypeEnum {
-        ORGANICOUENOPBIOSUISSENATURLANDFAIRTRADESPP = 'ORGANICO_UE_NOP_BIOSUISSE_NATURLAND_FAIRTRADE_SPP',
-        ORGANICOUENOPBIOSUISSEFAIRTRADESPP = 'ORGANICO_UE_NOP_BIOSUISSE_FAIRTRADE_SPP',
-        ORGANICOUENOPFAIRTRADESPP = 'ORGANICO_UE_NOP_FAIRTRADE_SPP',
-        CONVENCIONALFAIRTRADE = 'CONVENCIONAL_FAIRTRADE'
     }
 
     /**
@@ -259,16 +250,16 @@ export namespace ApiPlot {
                     complexType: ''
                 },
                 {
+                    metadata: ApiCertificationType.formMetadata,
                     isReadOnly: false,
-                    isEnum: true,
-                    datatypeWithEnum: 'ApiPlot.CertificationTypeEnum',
+                    isEnum: false,
                     required: false,
                     name: 'certificationType',
                     classname: 'ApiPlot',
-                    dataType: 'string',
-                    isPrimitiveType: true,
+                    dataType: 'ApiCertificationType',
+                    isPrimitiveType: false,
                     isListContainer: false,
-                    complexType: ''
+                    complexType: 'ApiCertificationType'
                 },
                 {
                     isReadOnly: false,
