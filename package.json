@@ -4,6 +4,12 @@
   "scripts": {
     "ng": "ng",
     "start": "nx serve inatrace-fe",
+    "start:fortaleza": "node scripts/set-tenant.js fortaleza && nx serve inatrace-fe",
+    "start:unocace": "node scripts/set-tenant.js unocace && nx serve inatrace-fe",
+    "start:dufer": "node scripts/set-tenant.js dufer && nx serve inatrace-fe --devRemotes=shrimpMfe",
+    "tenant:fortaleza": "node scripts/set-tenant.js fortaleza",
+    "tenant:unocace": "node scripts/set-tenant.js unocace",
+    "tenant:dufer": "node scripts/set-tenant.js dufer",
     "build": "nx build inatrace-fe",
     "build:prod": "nx build shrimpMfe --configuration=production && nx build inatrace-fe --configuration=production",
     "build:standalone": "nx build inatrace-fe --configuration=standalone",

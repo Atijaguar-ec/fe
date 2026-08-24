@@ -2,8 +2,9 @@
   window['env'] = window['env'] || {};
 
   // Environment variables
-  window['env']['environmentName'] = '';
-  window['env']['appBaseUrl'] = '';
+  window['env']['environmentName'] = 'fortaleza';
+  window['env']['appBaseUrl'] = 'http://localhost:4200';
+  window['env']['apiBaseUrl'] = 'http://localhost:8082/api';
   window['env']['qrCodeBasePath'] = '';
   window['env']['relativeFileUploadUrl'] = '';
   window['env']['relativeFileUploadUrlManualType'] = '';
@@ -13,13 +14,11 @@
   window['env']['tokenForPublicLogRoute'] = '';
   window['env']['mapboxAccessToken'] = '';
 
-  // Environment variables for Beyco integration
-  window['env']['beycoAuthURL'] = '';
-  window['env']['beycoClientId'] = '';
-
   // Feature flags
   window['env']['enableShrimpModule'] = 'false';
 
   // Keycloak authentication
+  window['env']['keycloakUrl'] = 'http://localhost:8080/';
   window['env']['keycloakRealm'] = 'fortaleza';
+  window['env']['keycloakClientId'] = 'inatrace-frontend';
 })(this);
