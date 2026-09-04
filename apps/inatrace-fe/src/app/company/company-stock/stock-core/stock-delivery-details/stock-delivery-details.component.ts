@@ -864,6 +864,11 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         'parcelLot',
         new FormControl(this.parcelLotAsFreeText ? '1' : null),
       );
+    } else if (this.parcelLotAsFreeText) {
+      // parcelLot ya viene en el metadata de ApiStockOrder, asi que el control existe
+      // desde que se genera el formulario y la rama de arriba no corre nunca: el valor
+      // por defecto hay que ponerlo aca. Mismo caso que variety, mas abajo.
+      this.stockOrderForm.get('parcelLot').setValue('1');
     }
     // El esquema trae un patron de solo digitos que no aplica al combo, donde el valor
     // es el nombre de la parcela. Se ajusta aca porque updateValidators() corre antes
