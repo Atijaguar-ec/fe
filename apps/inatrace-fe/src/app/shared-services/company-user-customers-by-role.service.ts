@@ -43,9 +43,9 @@ export class CompanyUserCustomersByRoleService extends GeneralSifrantService<Api
         ? el.location.address.village.substring(0, 2).toLocaleUpperCase()
         : '--';
       return (
-        el.name +
-        ' ' +
         el.surname +
+        ' ' +
+        el.name +
         ' (' +
         el.id +
         ', ' +
@@ -62,9 +62,9 @@ export class CompanyUserCustomersByRoleService extends GeneralSifrantService<Api
         ? el.location.address.hondurasVillage
         : '--';
       return (
-        el.name +
-        ' ' +
         el.surname +
+        ' ' +
+        el.name +
         ' (' +
         el.id +
         ', ' +
@@ -75,7 +75,9 @@ export class CompanyUserCustomersByRoleService extends GeneralSifrantService<Api
       );
     }
 
-    return `${el.name} ${el.surname} (${el.id})`;
+    // Formato APELLIDOS NOMBRES pedido por FV para el selector de Agricultor
+    // (Entrega, Entrega masiva, Pagos, Dashboard comparten este servicio).
+    return `${el.surname} ${el.name} (${el.id})`;
   }
 
   makeQuery(
