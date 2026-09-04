@@ -32,6 +32,11 @@ import { ApiValueChain } from '../../../api/model/apiValueChain';
 import { ActiveValueChainService } from '../../shared-services/active-value-chain.service';
 import { ValueChainControllerService } from '../../../api/api/valueChainController.service';
 import { ListNotEmptyValidator } from '../../../shared/validation';
+import { SemiProductControllerService } from '../../../api/api/semiProductController.service';
+import {
+  WEEK_COLOR_CODES_KEY,
+  WEEK_NUMBERING_SCHEME_KEY,
+} from '../../shared-services/week-number.util';
 
 @Component({
   selector: 'app-company-detail',
@@ -87,6 +92,26 @@ export class CompanyDetailComponent
   onlyNacionalVarietyControl = new UntypedFormControl(false);
   enableParcelLotControl = new UntypedFormControl(false);
   numericVarietyOptionsControl = new UntypedFormControl(false);
+  firstMondayWeekNumberingControl = new UntypedFormControl(false);
+  weekColorCodesControl = new UntypedFormControl(false);
+  parcelLotFreeTextControl = new UntypedFormControl(false);
+  fixedPricePerUnitControl = new UntypedFormControl(false);
+
+  /**
+   * Precio fijo por semiproducto. Recepcion no conoce el precio y se actualiza
+   * semanalmente, asi que lo carga aca un administrador y en Entregas sale solo
+   * lectura. Se guarda en configuration.fixedPricesBySemiProduct como
+   * { idSemiProducto: precio }; el precio ya guardado en cada entrega no cambia.
+   */
+  semiProductPrices: Array<{ id: number; label: string; control: UntypedFormControl }> = [];
+
+  /**
+   * Lo que traia la empresa, para devolverlo tal cual si la lista de semiproductos no
+   * llego a cargarse: sin esto, guardar la empresa con la lista vacia borraria todos
+   * los precios configurados.
+   */
+  private loadedFixedPrices: { [key: string]: any } = {};
+  private semiProductPricesLoaded = false;
 
   valueChains: Array<ApiValueChain> = [];
   selectedCompanyValueChainsControl = new UntypedFormControl(null, [
@@ -129,6 +154,7 @@ export class CompanyDetailComponent
     public currencyCodes: CurrenciesService,
     protected router: Router,
     protected authService: AuthService,
+    private semiProductController: SemiProductControllerService,
   ) {
     super(router, route, authService, companyController);
   }
@@ -292,6 +318,12 @@ export class CompanyDetailComponent
         this.onlyNacionalVarietyControl.setValue(!!config.onlyNacionalVariety);
         this.enableParcelLotControl.setValue(!!config.enableParcelLot);
         this.numericVarietyOptionsControl.setValue(!!config.numericVarietyOptions);
+        this.firstMondayWeekNumberingControl.setValue(
+          config[WEEK_NUMBERING_SCHEME_KEY] === 'FIRST_MONDAY');
+        this.weekColorCodesControl.setValue(!!config[WEEK_COLOR_CODES_KEY]);
+        this.parcelLotFreeTextControl.setValue(!!config.parcelLotFreeText);
+        this.fixedPricePerUnitControl.setValue(!!config.fixedPricePerUnit);
+        this.loadSemiProductPrices(config.fixedPricesBySemiProduct).then();
 
         // If user is not enrolled in company enrolled, disable the form
         if (!this.isCompanyAdmin) {
@@ -301,6 +333,10 @@ export class CompanyDetailComponent
           this.onlyNacionalVarietyControl.disable();
           this.enableParcelLotControl.disable();
           this.numericVarietyOptionsControl.disable();
+          this.firstMondayWeekNumberingControl.disable();
+          this.weekColorCodesControl.disable();
+          this.parcelLotFreeTextControl.disable();
+          this.fixedPricePerUnitControl.disable();
         }
 
         this.globalEventsManager.showLoading(false);
@@ -325,6 +361,7 @@ export class CompanyDetailComponent
   }
 
   newCompany() {
+    this.loadSemiProductPrices().then();
     this.companyDetailForm = generateFormFromMetadata(
       ApiCompanyGet.formMetadata(),
       this.emptyObject(),
@@ -411,6 +448,12 @@ export class CompanyDetailComponent
       formValue.configuration.onlyNacionalVariety = !!this.onlyNacionalVarietyControl.value;
       formValue.configuration.enableParcelLot = !!this.enableParcelLotControl.value;
       formValue.configuration.numericVarietyOptions = !!this.numericVarietyOptionsControl.value;
+      formValue.configuration[WEEK_NUMBERING_SCHEME_KEY] =
+        this.firstMondayWeekNumberingControl.value ? 'FIRST_MONDAY' : 'ISO';
+      formValue.configuration[WEEK_COLOR_CODES_KEY] = !!this.weekColorCodesControl.value;
+      formValue.configuration.parcelLotFreeText = !!this.parcelLotFreeTextControl.value;
+      formValue.configuration.fixedPricePerUnit = !!this.fixedPricePerUnitControl.value;
+      formValue.configuration.fixedPricesBySemiProduct = this.collectSemiProductPrices();
 
       const res: ApiResponseApiBaseEntity = await this.companyController
         .updateCompany({ ...formValue, id: companyId })
@@ -423,6 +466,64 @@ export class CompanyDetailComponent
     } finally {
       this.globalEventsManager.showLoading(false);
     }
+  }
+
+  /**
+   * Arma la fila de precio de cada semiproducto y le pone el valor ya configurado.
+   * La etiqueta lleva la unidad de medida porque el precio es por unidad y no
+   * significa lo mismo en libras que en kilos.
+   */
+  private async loadSemiProductPrices(configuredPrices?: { [key: string]: any }) {
+    this.loadedFixedPrices = configuredPrices ?? {};
+    this.semiProductPricesLoaded = false;
+
+    // Al crear una empresa isCompanyAdmin todavia es false (no hay empresa donde estar
+    // inscripto): ahi los precios deben poder escribirse igual que el resto del alta.
+    const readOnly = this.mode === 'update' && !this.isCompanyAdmin;
+
+    try {
+      const response = await this.semiProductController
+        .getSemiProductListByMap({ limit: 1000, offset: 0 })
+        .pipe(take(1))
+        .toPromise();
+
+      this.semiProductPrices = (response?.data?.items ?? []).map((semiProduct) => {
+        const price = configuredPrices?.[String(semiProduct.id)];
+        const control = new UntypedFormControl(price ?? null);
+        if (readOnly) {
+          control.disable();
+        }
+        return {
+          id: semiProduct.id,
+          label: `${semiProduct.name}${
+            semiProduct.measurementUnitType?.label
+              ? ' (' + semiProduct.measurementUnitType.label + ')'
+              : ''
+          }`,
+          control,
+        };
+      });
+      this.semiProductPricesLoaded = true;
+    } catch (_) {
+      this.semiProductPrices = [];
+      this.semiProductPricesLoaded = false;
+    }
+  }
+
+  /** Solo se guardan los semiproductos con precio cargado. */
+  private collectSemiProductPrices(): { [key: string]: number } {
+    if (!this.semiProductPricesLoaded) {
+      return this.loadedFixedPrices as { [key: string]: number };
+    }
+
+    const prices = {};
+    for (const row of this.semiProductPrices) {
+      const value = row.control.value;
+      if (value !== null && value !== undefined && value !== '' && !isNaN(Number(value))) {
+        prices[String(row.id)] = Number(value);
+      }
+    }
+    return prices;
   }
 
   async create() {
@@ -447,6 +548,12 @@ export class CompanyDetailComponent
       formValue.configuration.onlyNacionalVariety = !!this.onlyNacionalVarietyControl.value;
       formValue.configuration.enableParcelLot = !!this.enableParcelLotControl.value;
       formValue.configuration.numericVarietyOptions = !!this.numericVarietyOptionsControl.value;
+      formValue.configuration[WEEK_NUMBERING_SCHEME_KEY] =
+        this.firstMondayWeekNumberingControl.value ? 'FIRST_MONDAY' : 'ISO';
+      formValue.configuration[WEEK_COLOR_CODES_KEY] = !!this.weekColorCodesControl.value;
+      formValue.configuration.parcelLotFreeText = !!this.parcelLotFreeTextControl.value;
+      formValue.configuration.fixedPricePerUnit = !!this.fixedPricePerUnitControl.value;
+      formValue.configuration.fixedPricesBySemiProduct = this.collectSemiProductPrices();
 
       const res: ApiResponseApiBaseEntity = await this.companyController
         .createCompany(formValue)

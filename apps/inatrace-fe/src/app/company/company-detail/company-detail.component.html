@@ -581,12 +581,77 @@
           </div>
           <div class="af-form-element pt-0">
             <checkbox-input
+              [form]="parcelLotFreeTextControl"
+            >
+              <checkbox-input-rich-label
+                i18n="@@companyDetail.configuration.parcelLotFreeText"
+              >
+                N° Parcela como caja de texto (inicia en 1) en vez del combo de parcelas del agricultor. Para empresas que no llevan las parcelas registradas en el sistema.
+              </checkbox-input-rich-label>
+            </checkbox-input>
+          </div>
+          <div class="af-form-element pt-0">
+            <checkbox-input
+              [form]="fixedPricePerUnitControl"
+            >
+              <checkbox-input-rich-label
+                i18n="@@companyDetail.configuration.fixedPricePerUnit"
+              >
+                Precio por unidad fijo: en Entregas sale el precio configurado abajo y no se puede editar. Para que recepción no tenga que conocer el precio.
+              </checkbox-input-rich-label>
+            </checkbox-input>
+          </div>
+
+          <!-- Precio fijo por producto. El precio ya guardado en cada entrega no cambia -->
+          <ng-container *ngIf="fixedPricePerUnitControl.value">
+            <div class="af-form-element" *ngIf="semiProductPrices.length === 0">
+              <span i18n="@@companyDetail.configuration.fixedPrices.empty">
+                No hay productos disponibles para configurar el precio.
+              </span>
+            </div>
+            <div class="af-form-row" *ngFor="let row of semiProductPrices">
+              <div class="af-form-block--c6">
+                <textinput
+                  [form]="row.control"
+                  [label]="row.label"
+                  style="width: 100%"
+                  placeholder="Precio por unidad"
+                  i18n-placeholder="@@companyDetail.configuration.fixedPrices.placeholder"
+                >
+                </textinput>
+              </div>
+            </div>
+          </ng-container>
+          <div class="af-form-element pt-0">
+            <checkbox-input
               [form]="numericVarietyOptionsControl"
             >
               <checkbox-input-rich-label
                 i18n="@@companyDetail.configuration.numericVarietyOptions"
               >
                 Variedad como combo numérico (1 = Orgánico, 2 = CCN51) en Entregas.
+              </checkbox-input-rich-label>
+            </checkbox-input>
+          </div>
+          <div class="af-form-element pt-0">
+            <checkbox-input
+              [form]="firstMondayWeekNumberingControl"
+            >
+              <checkbox-input-rich-label
+                i18n="@@companyDetail.configuration.firstMondayWeekNumbering"
+              >
+                Semana 1 empieza el primer lunes del año (en vez de la norma ISO). Sábado y domingo quedan sin número de semana y se escribe a mano.
+              </checkbox-input-rich-label>
+            </checkbox-input>
+          </div>
+          <div class="af-form-element pt-0">
+            <checkbox-input
+              [form]="weekColorCodesControl"
+            >
+              <checkbox-input-rich-label
+                i18n="@@companyDetail.configuration.weekColorCodes"
+              >
+                Mostrar el color de la semana (ROJO, AZUL, BLANCO, VERDE, AMARILLO) junto al N° de Semana en Entregas.
               </checkbox-input-rich-label>
             </checkbox-input>
           </div>
