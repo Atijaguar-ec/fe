@@ -339,3 +339,77 @@ agricultores no tenían ninguna parcela**, pero solo **1 de 636 recepciones**
 existentes carecía de `parcelLot` — por eso volver el campo obligatorio no
 rompe la edición del histórico. Si vas a tocar esta regla, **volvé a medir**
 esas dos cifras antes.
+
+---
+
+## 13. Mapa de parcelas: Geo-ID de AgStack y modal de Whisp
+
+> Extraído el **2026-08-31** tras dejar la cadena funcionando en staging de UNOCACE.
+> El detalle del lado servidor está en `backend/agent-context.md` §14. Guía operativa:
+> `ina-docs/operacion/analisis-deforestacion-whisp.md`.
+
+### 13.1 Dónde vive cada cosa
+
+| Archivo | Rol |
+|---|---|
+| `shared/map/map.component.ts` | Dibuja polígonos y marcadores; arma el globo con Geo-ID y botones |
+| `company/company-common/plots-form/plots-form.component.ts` | Abre el modal (`openGeoIdWhisp`) |
+| `company/company-farmers/open-plot-details-externally-modal/` | El modal: un `<iframe>` a `whisp.earthmap.org` |
+
+### 13.2 El botón está en el marcador del centro, NO en el polígono
+
+No hay ningún manejador de clic sobre el relleno del polígono: pulsarlo no hace nada, y
+es intencional. El globo cuelga de un marcador que `setPlotCenterMarker()` coloca en el
+**centroide** de la parcela. Los pines numerados que se ven al editar coordenadas se crean
+con `placeMarkerOnMap(lat, lng)` **sin** el objeto `plot`, y por eso no tienen globo.
+
+Si alguien reporta "hago clic en la parcela y no pasa nada", casi siempre está pulsando el
+área o un vértice en vez del marcador central.
+
+### 13.3 El globo se arma UNA sola vez — la trampa
+
+`placeMarkerOnMap()` decide en tiempo de construcción, mirando `plot.geoId`:
+
+- **Sin `geoId`** → botón *Actualizar*, y el listener llama a `refreshGeoId()`.
+- **Con `geoId`** → texto del identificador + botón *Open in Whisp*, con su listener.
+
+Las dos ramas son excluyentes y se resuelven al crear el marcador. **El botón de Whisp no
+existe en el DOM** cuando la parcela llegó sin `geoId`.
+
+Por eso, tras registrar un Geo-ID nuevo no basta con pintar el texto: hay que crear también
+el botón de Whisp y engancharle el listener. Eso hace `showGeoIdInPopup()`. Antes de ese
+arreglo (2026-08-31) el usuario veía el Geo-ID recién creado **sin nada que pulsar** hasta
+recargar la página.
+
+> **Regla:** cualquier cambio de estado que altere qué botones muestra el globo tiene que
+> reconstruir el DOM del globo, no solo reemplazar un texto.
+
+### 13.4 El modal no necesita credenciales
+
+`OpenPlotDetailsExternallyModalComponent` arma una URL a
+`https://whisp.earthmap.org/?aoi=WHISP&boundary&geoId=...` con tres capas preactivadas
+(JRC forest mask, Cocoa ETH, Oil palm FDAP), vista satelital y el panel de estadísticas
+abierto. **No usa la API de Whisp ni ninguna API key**: es verificación visual embebida.
+Verificado que Whisp permite el iframe (no manda `X-Frame-Options` ni `frame-ancestors`).
+
+Lo que sí necesita es el `geoId`, y ese lo produce AgStack desde el backend.
+
+### 13.5 El fallo silencioso que hay que conocer
+
+`refreshGeoId()` hace `if (data.geoId) { ... }` **sin rama `else`**. Si el backend
+responde `200` con `geoId` nulo —lo que ocurre siempre que AgStack no está configurado o
+el login falla— no hay error, ni mensaje, ni cambio visual. El motivo existe solo en el
+log del backend.
+
+Ante "el botón no hace nada", el primer paso NO es leer código del frontend:
+
+```bash
+docker exec <contenedor-be> env | grep AGSTACK
+docker logs <contenedor-be> --since 30m 2>&1 | grep -iE "agstack|geoid"
+```
+
+### 13.6 No hay registro masivo
+
+Cada parcela se registra a mano, abriendo su globo y pulsando *Actualizar*. No existe una
+acción en lote. Para cientos de productores esto no escala; está anotado como pendiente.
+

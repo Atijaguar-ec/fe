@@ -538,15 +538,52 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe((res) => {
         const data = res.data;
 
-        const dataGeoId = data.geoId;
-
         if (data.geoId) {
-          document.getElementById(buttonId).outerHTML =
-            `<div style="text-align: end;"><b>${dataGeoId}</b></div>`;
+          plot.geoId = data.geoId;
+          this.showGeoIdInPopup(buttonId, data.geoId);
         }
 
         this.emitRefreshedData(data);
       });
+  }
+
+  /**
+   * Deja el globo en el mismo estado en que se habria armado si la parcela ya hubiera
+   * llegado con geoId: el identificador como texto y, debajo, el boton para abrir Whisp.
+   *
+   * Hace falta porque el HTML del globo se construye una sola vez, al crear el marcador.
+   * Si en ese momento la parcela no tenia geoId, el boton "Open in Whisp" no se genera ni
+   * se le registra el listener. Antes esto solo reemplazaba el boton por el texto, y el
+   * usuario se quedaba viendo el Geo-ID sin nada que pulsar hasta recargar la pagina.
+   */
+  private showGeoIdInPopup(buttonId: string, geoId: string) {
+    const refreshButton = document.getElementById(buttonId);
+    if (!refreshButton) {
+      return;
+    }
+
+    const value = document.createElement('span');
+    value.classList.add('geoid-content');
+    value.textContent = geoId;
+
+    const openWhispButton = document.createElement('button');
+    openWhispButton.classList.add('btn', 'btn-sm', 'popup-button');
+    openWhispButton.textContent = $localize`:@@map.modal.openInWhisp.title:Open in Whisp`;
+    openWhispButton.addEventListener('click', () =>
+      this.emitGeoIdOpenInWhispClick(geoId),
+    );
+
+    const openWhispRow = document.createElement('div');
+    openWhispRow.classList.add('pt-2');
+    openWhispRow.appendChild(openWhispButton);
+
+    // El boton vive dentro del <b> de la fila del Geo-ID; el boton de Whisp es hermano
+    // suyo dentro de .row-right, igual que en el globo que se arma con geoId.
+    const row = refreshButton.closest('.row-right');
+    refreshButton.replaceWith(value);
+    if (row) {
+      row.appendChild(openWhispRow);
+    }
   }
 
   emitRefreshedData(plot: ApiPlot) {
