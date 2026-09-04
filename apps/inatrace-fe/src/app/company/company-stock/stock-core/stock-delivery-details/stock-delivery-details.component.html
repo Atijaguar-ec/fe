@@ -204,6 +204,17 @@
                   </ng-container>
                 </textinput>
               </div>
+              <!-- Color de la semana: en bodega cada saco lleva el hilo de este color -->
+              <div class="af-c6" *ngIf="weekColor as color">
+                <div class="week-color">
+                  <span
+                    class="week-color__dot"
+                    [class.week-color__dot--bordered]="color.needsBorder"
+                    [style.background-color]="color.hex"
+                  ></span>
+                  <span class="week-color__name">{{ color.name }}</span>
+                </div>
+              </div>
             </div>
 
             <!-- Parcel Lot and Variety (Dynamic) -->
@@ -211,7 +222,53 @@
               class="af-row"
               *ngIf="shouldShowParcelLot || shouldShowVariety"
             >
-              <div [class]="shouldShowVariety ? 'af-c6' : 'af-c12'" *ngIf="shouldShowParcelLot">
+              <!-- Empresas sin parcelas registradas (config parcelLotFreeText): caja de texto -->
+              <div
+                [class]="shouldShowVariety ? 'af-c6' : 'af-c12'"
+                *ngIf="shouldShowParcelLot && parcelLotAsFreeText"
+              >
+                <textinput
+                  [form]="stockOrderForm.get('parcelLot')"
+                  label="N° Parcela"
+                  i18n-label="
+                    @@productLabelStockPurchaseOrdersModal.textinput.parcelLot.label"
+                  style="width: 100%"
+                  placeholder="Ingrese el lote de la parcela"
+                  i18n-placeholder="
+                    @@productLabelStockPurchaseOrdersModal.textinput.parcelLot.placeholder"
+                  [isInvalid]="
+                    submitted && stockOrderForm.get('parcelLot').invalid
+                  "
+                  type="number"
+                >
+                  <ng-container *ngIf="submitted">
+                    <div
+                      *ngIf="stockOrderForm.get('parcelLot').errors as errors"
+                      class="sc-invalid-feedback"
+                    >
+                      <div
+                        *ngIf="errors.required"
+                        i18n="
+                          @@productLabelStockPurchaseOrdersModal.textinput.parcelLot.error.required"
+                      >
+                        El N° Parcela es obligatorio
+                      </div>
+                      <div
+                        *ngIf="errors.pattern"
+                        i18n="
+                          @@productLabelStockPurchaseOrdersModal.textinput.parcelLot.error.pattern"
+                      >
+                        Solo números permitidos
+                      </div>
+                    </div>
+                  </ng-container>
+                </textinput>
+              </div>
+
+              <div
+                [class]="shouldShowVariety ? 'af-c6' : 'af-c12'"
+                *ngIf="shouldShowParcelLot && !parcelLotAsFreeText"
+              >
                 <single-choice
                   [formControlInput]="$any(stockOrderForm.get('parcelLot'))"
                   [codebookService]="parcelLotOptions"
@@ -388,7 +445,10 @@
                   [isInvalid]="
                     submitted && stockOrderForm.get('pricePerUnit').invalid
                   "
-                  [readOnly]="stockOrderForm.get('priceDeterminedLater').value"
+                  [readOnly]="
+                    stockOrderForm.get('priceDeterminedLater').value ||
+                    fixedPricePerUnit
+                  "
                 >
                   <ng-container *ngIf="submitted">
                     <div
@@ -851,18 +911,18 @@
             >
               <span>Cancel</span>
             </button>
+            <!-- Guardar deja el formulario limpio para la siguiente entrega; para
+                 volver al listado está el botón de al lado -->
             <button
               class="btn mr-2"
               type="button"
               (click)="
-                !this.updatePOInProgress &&
-                  createOrUpdatePurchaseOrder(!this.update)
+                !this.updatePOInProgress && createOrUpdatePurchaseOrder(false)
               "
             >
               <span>Save</span>
             </button>
             <button
-              *ngIf="this.update"
               class="btn"
               type="button"
               (click)="

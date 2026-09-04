@@ -5,6 +5,13 @@ import { ActivatedRoute } from '@angular/router';
 import { EnumSifrant } from '../../../../shared-services/enum-sifrant';
 import { GlobalEventManagerService } from '../../../../core/global-event-manager.service';
 import { CompanyUserCustomersByRoleService } from '../../../../shared-services/company-user-customers-by-role.service';
+import {
+  calculateWeekNumber,
+  WeekColor,
+  weekColor,
+  weekColorCodesEnabled,
+  weekNumberingSchemeOf,
+} from '../../../../shared-services/week-number.util';
 import { FacilityControllerService } from '../../../../../api/api/facilityController.service';
 import { switchMap, take } from 'rxjs/operators';
 import { ApiFacility } from '../../../../../api/model/apiFacility';
@@ -356,7 +363,20 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
    * Sin existingValue (agricultor recién elegido en el selector), el número de
    * parcela del agricultor anterior no aplica y el control se limpia.
    */
-  private async refreshParcelLotOptions(farmerId?: number, existingValue?: string | number) {
+  private async refreshParcelLotOptions(
+    farmerId?: number,
+    existingValue?: string | number,
+    preselectFirstPlot = false,
+  ) {
+    if (this.parcelLotAsFreeText) {
+      // Sin combo no hay opciones que cargar ni parcelas que consultar. Al elegir
+      // agricultor se deja el 1 puesto, que es el caso común (pedido de FV).
+      if (preselectFirstPlot) {
+        this.stockOrderForm?.get('parcelLot')?.setValue('1');
+      }
+      return;
+    }
+
     if (!farmerId) {
       this.parcelLotCount = 0;
       this.buildParcelLotOptions();
@@ -388,7 +408,12 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       }
     } else {
       // Cambió el agricultor: el número de parcela del agricultor anterior no aplica.
-      this.stockOrderForm?.get('parcelLot')?.setValue(null);
+      // Al elegir agricultor se deja la parcela 1 puesta (pedido de FV): casi todos
+      // entregan de su primera parcela, así el caso común no exige tocar el combo.
+      // Solo en ese caso; editando una entrega vieja sin parcela el campo queda
+      // vacío, para no atribuirle una parcela que nadie eligió.
+      const preselect = preselectFirstPlot && this.parcelLotCount > 0;
+      this.stockOrderForm?.get('parcelLot')?.setValue(preselect ? '1' : null);
     }
   }
 
@@ -421,9 +446,24 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     control.updateValueAndValidity({ emitEvent: false });
   }
 
-  /** true cuando hay un agricultor elegido y no tiene ninguna parcela registrada. */
+  /**
+   * N° Parcela como caja de texto en vez de combo de parcelas del agricultor.
+   *
+   * Es para las empresas que no llevan las parcelas registradas en el sistema
+   * (Fortaleza): ahí el combo sale vacío y, al ser obligatorio, deja la entrega sin
+   * poder guardarse. En modo texto el número se escribe a mano y no se valida contra
+   * las parcelas del agricultor.
+   */
+  get parcelLotAsFreeText(): boolean {
+    return !!this.companyProfile?.configuration?.parcelLotFreeText;
+  }
+
+  /**
+   * true cuando hay un agricultor elegido y no tiene ninguna parcela registrada.
+   * En modo texto libre no aplica: no hay parcelas contra las cuales validar.
+   */
   get selectedFarmerHasNoPlots(): boolean {
-    return !!this.searchFarmers?.value && this.parcelLotCount === 0;
+    return !this.parcelLotAsFreeText && !!this.searchFarmers?.value && this.parcelLotCount === 0;
   }
 
   private buildParcelLotOptions(resetMap = true) {
@@ -452,6 +492,42 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   get finalPriceLabel() {
     const currency = this.selectedCurrency ? this.selectedCurrency : '-';
     return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.finalPrice.label:Final price` + ` (${currency})`;
+  }
+
+  /**
+   * Precio por unidad fijo por empresa (config fixedPricePerUnit): el campo sale
+   * precargado con el precio del producto y en solo lectura. Recepcion no conoce el
+   * precio y este se actualiza semanalmente desde Configuracion de la empresa.
+   *
+   * Solo lectura, no deshabilitado: un control deshabilitado no viaja en el payload
+   * del formulario y la entrega se guardaria sin precio.
+   */
+  get fixedPricePerUnit(): boolean {
+    return !!this.companyProfile?.configuration?.fixedPricePerUnit;
+  }
+
+  private configuredPriceFor(semiProductId: number | string): number | null {
+    const prices = this.companyProfile?.configuration?.fixedPricesBySemiProduct;
+    const price = prices?.[String(semiProductId)];
+    if (price === null || price === undefined || price === '' || isNaN(Number(price))) {
+      return null;
+    }
+    return Number(price);
+  }
+
+  /**
+   * Se aplica al elegir producto en una entrega nueva. Al editar una entrega ya
+   * guardada no se toca: ese precio es el que se pago ese dia, no el de hoy.
+   */
+  private applyFixedPricePerUnit(semiProductId: number | string): void {
+    if (!this.fixedPricePerUnit || this.update) {
+      return;
+    }
+
+    const price = this.configuredPriceFor(semiProductId);
+    if (price !== null) {
+      this.stockOrderForm?.get('pricePerUnit')?.setValue(price);
+    }
   }
 
   get pricePerUnitLabel() {
@@ -574,6 +650,11 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Se vuelve a entrar acá después de cada guardado sin cerrar, y las opciones se
+    // agregan con push: sin limpiar antes, el combo de Semiproducto acumularía una
+    // copia de cada producto por cada entrega registrada.
+    this.options = [];
+
     if (action === 'new') {
 
       this.update = false;
@@ -661,15 +742,20 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.modelChoice = this.options[0].id;
       this.stockOrderForm.get('semiProduct').setValue({ id: this.options[0].id });
       this.setMeasureUnit(this.modelChoice).then();
+      this.applyFixedPricePerUnit(this.modelChoice);
     }
 
     // Add Week Number control (for cacao). Required only when cacao selected.
     if (!this.stockOrderForm.get('weekNumber')) {
       this.stockOrderForm.addControl('weekNumber', new FormControl(null));
     }
-    // Add Parcel Lot control (for cacao)
+    // Add Parcel Lot control (for cacao). En modo texto libre arranca en 1 para no
+    // tener que escribirlo en cada entrega (pedido de FV).
     if (!this.stockOrderForm.get('parcelLot')) {
-      this.stockOrderForm.addControl('parcelLot', new FormControl(null));
+      this.stockOrderForm.addControl(
+        'parcelLot',
+        new FormControl(this.parcelLotAsFreeText ? '1' : null),
+      );
     }
     // Add Variety control (for cacao)
     if (!this.stockOrderForm.get('variety')) {
@@ -853,50 +939,49 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if (productionDateControl) {
       productionDateControl.valueChanges.subscribe((val) => {
         if (val) {
-          const week = this.calculateISOWeek(val);
-          if (week && week >= 1 && week <= 53) {
-            this.stockOrderForm.get('weekNumber')?.setValue(week);
-          }
+          this.applyWeekNumberFor(val);
         }
       });
     }
   }
 
-  calculateISOWeek(dateInput: any): number {
-    if (!dateInput) return null;
+  calculateWeekNumber(dateInput: any): number | null {
+    return calculateWeekNumber(dateInput, weekNumberingSchemeOf(this.companyProfile?.configuration));
+  }
 
-    // 'new Date(dateInput)' on a date-only string ('YYYY-MM-DD') parses it as
-    // UTC midnight, but setHours() below operates in local time. In negative
-    // UTC offsets (e.g. Ecuador, UTC-5) that shifts the date back one day,
-    // which can flip the computed ISO week near a week boundary. Parse the
-    // Y-M-D components directly into a local Date to avoid the UTC/local mix.
-    let d: Date;
-    if (typeof dateInput === 'string') {
-      const match = dateInput.match(/^(\d{4})-(\d{2})-(\d{2})/);
-      d = match
-        ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
-        : new Date(dateInput);
-    } else {
-      d = new Date(dateInput);
+  /**
+   * Escribe el numero de semana que corresponde a la fecha. Con el calendario de
+   * Fortaleza el sabado y el domingo no tienen semana (no se trabaja): el campo se
+   * deja vacio para que se escriba a mano, en vez de dejar el numero de otra fecha.
+   */
+  private applyWeekNumberFor(dateInput: any): void {
+    const control = this.stockOrderForm.get('weekNumber');
+    if (!control) {
+      return;
     }
-    if (isNaN(d.getTime())) return null;
 
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-
-    const yearStart = new Date(d.getFullYear(), 0, 1);
-    const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-    return weekNo;
+    const week = this.calculateWeekNumber(dateInput);
+    if (week && week >= 1 && week <= 53) {
+      control.setValue(week);
+    } else {
+      control.setValue(null);
+    }
   }
 
   private updateWeekNumberFromDate(): void {
     const pd = this.stockOrderForm.get('productionDate')?.value;
     if (pd) {
-      const week = this.calculateISOWeek(pd);
-      if (week && week >= 1 && week <= 53) {
-        this.stockOrderForm.get('weekNumber')?.setValue(week);
-      }
+      this.applyWeekNumberFor(pd);
     }
+  }
+
+  /** El color se muestra solo si la empresa lo tiene activado (hilo por saco). */
+  get showWeekColor(): boolean {
+    return weekColorCodesEnabled(this.companyProfile?.configuration);
+  }
+
+  get weekColor(): WeekColor | null {
+    return this.showWeekColor ? weekColor(Number(this.stockOrderForm?.get('weekNumber')?.value)) : null;
   }
 
   private cannotUpdatePO() {
@@ -930,7 +1015,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.stockOrderForm.get('producerUserCustomer').markAsDirty();
     this.stockOrderForm.get('producerUserCustomer').updateValueAndValidity();
     this.codebookPreferredWayOfPayment = EnumSifrant.fromObject(this.preferredWayOfPaymentList);
-    this.refreshParcelLotOptions(event?.id);
+    this.refreshParcelLotOptions(event?.id, undefined, true);
   }
 
   setCollector(event: ApiUserCustomer) {
@@ -957,6 +1042,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if (id) {
       this.stockOrderForm.get('semiProduct').setValue({ id });
       this.setMeasureUnit(Number(id)).then();
+      this.applyFixedPricePerUnit(id);
     } else {
       this.stockOrderForm.get('semiProduct').setValue(null);
     }
@@ -1447,6 +1533,16 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         if (close) {
           this.dismiss();
         } else {
+          // Al quedarse en la pantalla no hay cambio de vista que confirme nada: sin
+          // este aviso el formulario se vacía y parece que el registro se perdió.
+          this.globalEventsManager.push({
+            action: 'success',
+            notificationType: 'success',
+            title: $localize`:@@productLabelStockPurchaseOrdersModal.save.success.title:Guardado`,
+            message: this.update
+              ? $localize`:@@productLabelStockPurchaseOrdersModal.save.success.update:Los cambios se guardaron correctamente.`
+              : $localize`:@@productLabelStockPurchaseOrdersModal.save.success.new:La entrega se registró correctamente. El formulario quedó listo para la siguiente.`,
+          });
           this.stockOrderForm.markAsPristine();
           this.employeeForm.markAsPristine();
           this.reloadOrder();
