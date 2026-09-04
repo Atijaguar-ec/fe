@@ -56,6 +56,10 @@ import { SelectedUserCompanyService } from '../../../../core/selected-user-compa
 import { ProcessingOrderInputComponent } from './processing-order-input/processing-order-input.component';
 import { ProcessingOrderOutputComponent } from './processing-order-output/processing-order-output.component';
 import { ApiStockOrderSelectable } from './stock-processing-order-details.model';
+import {
+  calculateWeekNumber,
+  weekNumberingSchemeOf,
+} from '../../../../shared-services/week-number.util';
 
 type PageMode = 'create' | 'edit';
 
@@ -430,7 +434,7 @@ export class StockProcessingOrderDetailsComponent
 
     const procDate = this.procOrderGroup?.get('date')?.value || ref.productionDate || new Date();
     const sameWeek = selected.every((s) => s.weekNumber === ref.weekNumber);
-    const weekNo = (sameWeek && ref.weekNumber != null) ? ref.weekNumber : (this.calculateISOWeekNumber(procDate) || 1);
+    const weekNo = (sameWeek && ref.weekNumber != null) ? ref.weekNumber : (this.calculateWeekNumber(procDate) || 1);
 
     const sameProducer = selected.every(
       (s) => s.producerUserCustomer?.id === ref.producerUserCustomer?.id,
@@ -580,16 +584,13 @@ export class StockProcessingOrderDetailsComponent
     });
   }
 
-  private calculateISOWeekNumber(dateInput: Date | string): number {
-    if (!dateInput) return null;
-    const d = new Date(dateInput);
-    if (isNaN(d.getTime())) return null;
-
-    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-
-    const yearStart = new Date(d.getFullYear(), 0, 1);
-    const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-    return weekNo;
+  /**
+   * Usa el calendario de semanas configurado en la empresa, el mismo que Entrega: si
+   * ahi una fecha cae en la semana 35, aca no puede salir 36. Devuelve null cuando el
+   * esquema no asigna semana a esa fecha (fin de semana en el calendario de Fortaleza).
+   */
+  private calculateWeekNumber(dateInput: Date | string): number | null {
+    return calculateWeekNumber(dateInput, weekNumberingSchemeOf(this.companyProfile?.configuration));
   }
 
   private generateStandardLotCode(dateInput: Date | string, weekNumberInput?: number, seqIndex: number = 1): string {
@@ -598,7 +599,7 @@ export class StockProcessingOrderDetailsComponent
 
     let week = weekNumberInput;
     if (!week || week < 1 || week > 53) {
-      week = this.calculateISOWeekNumber(d) || 1;
+      week = this.calculateWeekNumber(d) || 1;
     }
 
     const weekStr = String(week).padStart(2, '0');
