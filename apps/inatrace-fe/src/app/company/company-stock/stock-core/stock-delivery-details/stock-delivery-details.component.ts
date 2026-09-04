@@ -19,6 +19,7 @@ import { ApiSemiProduct } from '../../../../../api/model/apiSemiProduct';
 import { CodebookTranslations } from '../../../../shared-services/codebook-translations';
 import { CompanyControllerService } from '../../../../../api/api/companyController.service';
 import { ApiUserCustomer } from '../../../../../api/model/apiUserCustomer';
+import { ApiPlot } from '../../../../../api/model/apiPlot';
 import { ApiStockOrder } from '../../../../../api/model/apiStockOrder';
 import { CertificationTypeControllerService } from '../../../../../api/api/certificationTypeController.service';
 import {dateISOString, defaultEmptyObject, generateFormFromMetadata} from '../../../../../shared/utils';
@@ -94,6 +95,10 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   companyProfile: ApiCompanyGet | null = null;
   private currentLoggedInUser: ApiUserGet | null = null;
   certificationTypeMap: Record<string, string> = {};
+
+  /** Las certificaciones que el combo ofrece ahora mismo (el mapa de arriba, ya
+   *  filtrado segun si la entrega es organica). */
+  private certificationTypeFilteredMap: Record<string, string> = {};
   certificationTypeOptions: EnumSifrant = EnumSifrant.fromObject({});
 
   varietyOptionsMap: Record<string, string> = {};
@@ -104,6 +109,13 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   // cambia el agricultor seleccionado (ver refreshParcelLotOptions()).
   parcelLotOptions: EnumSifrant = EnumSifrant.fromObject({});
   private parcelLotCount = 0;
+
+  /**
+   * Parcelas del agricultor elegido. Se guardan enteras, no solo la cantidad, porque
+   * de ellas salen tanto las opciones del combo (el nombre con que el agricultor las
+   * registro) como la variedad y la certificacion que hereda la entrega.
+   */
+  private farmerPlots: ApiPlot[] = [];
 
   private facility: ApiFacility;
 
@@ -307,6 +319,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       }
     });
 
+    this.certificationTypeFilteredMap = filteredMap;
     this.certificationTypeOptions = EnumSifrant.fromObject(filteredMap);
     this.certificationTypeOptions.setPlaceholder(
       $localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.organicsCertificationType.placeholder:Seleccionar opción ...`
@@ -378,6 +391,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
 
     if (!farmerId) {
+      this.farmerPlots = [];
       this.parcelLotCount = 0;
       this.buildParcelLotOptions();
       if (existingValue == null) {
@@ -392,8 +406,10 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         .pipe(take(1))
         .toPromise();
 
-      this.parcelLotCount = farmerResponse?.data?.plots?.length ?? 0;
+      this.farmerPlots = farmerResponse?.data?.plots ?? [];
+      this.parcelLotCount = this.farmerPlots.length;
     } catch (_) {
+      this.farmerPlots = [];
       this.parcelLotCount = 0;
     }
 
@@ -407,13 +423,16 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         this.buildParcelLotOptions(false);
       }
     } else {
-      // Cambió el agricultor: el número de parcela del agricultor anterior no aplica.
-      // Al elegir agricultor se deja la parcela 1 puesta (pedido de FV): casi todos
-      // entregan de su primera parcela, así el caso común no exige tocar el combo.
-      // Solo en ese caso; editando una entrega vieja sin parcela el campo queda
-      // vacío, para no atribuirle una parcela que nadie eligió.
-      const preselect = preselectFirstPlot && this.parcelLotCount > 0;
-      this.stockOrderForm?.get('parcelLot')?.setValue(preselect ? '1' : null);
+      // Cambió el agricultor: la parcela del agricultor anterior no aplica.
+      //
+      // Se preselecciona solo si tiene UNA sola parcela, porque ahí no hay nada más
+      // que elegir y ademas se hereda su variedad y certificación. Con dos o más el
+      // campo queda vacío a propósito: elegir por él sería atribuir a la entrega una
+      // parcela concreta, con sus datos, que nadie eligió.
+      const preselect = preselectFirstPlot && this.parcelLotCount === 1;
+      this.stockOrderForm
+        ?.get('parcelLot')
+        ?.setValue(preselect ? this.parcelLotValueFor(this.farmerPlots[0], 1) : null);
     }
   }
 
@@ -438,12 +457,68 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    control.setValidators(
-      this.orderType === 'PURCHASE_ORDER' && this.shouldShowParcelLot
-        ? [Validators.required, Validators.pattern(/^[0-9]+$/)]
-        : [Validators.pattern(/^[0-9]+$/)],
-    );
+    // El patron de solo digitos aplica a la caja de texto, donde se escribe un numero
+    // a mano. En el combo el valor es el nombre de la parcela, que es texto libre.
+    const validators = [];
+    if (this.orderType === 'PURCHASE_ORDER' && this.shouldShowParcelLot) {
+      validators.push(Validators.required);
+    }
+    if (this.parcelLotAsFreeText) {
+      validators.push(Validators.pattern(/^[0-9]+$/));
+    }
+    control.setValidators(validators);
     control.updateValueAndValidity({ emitEvent: false });
+  }
+
+  /**
+   * Copia a la entrega la variedad y la certificacion que ya estan registradas en la
+   * parcela elegida, en vez de pedir que se vuelvan a cargar a mano.
+   *
+   * Quedan editables a proposito: la certificacion de la parcela puede haber cambiado
+   * desde que se registro, y la entrega documenta lo que efectivamente llego.
+   *
+   * El orden importa. Fijar la variedad dispara la regla existente que, con CCN51,
+   * autocompleta la certificacion de transicion; poniendo la certificacion despues,
+   * la de la parcela es la que queda.
+   */
+  private applyPlotDefaults(parcelLotValue: string | number): void {
+    const plot = this.plotForParcelLot(parcelLotValue);
+    if (!plot) {
+      return;
+    }
+
+    const variety = this.varietyValueFromPlot(plot);
+    // Con onlyNacionalVariety la variedad es fija y el campo ni se muestra.
+    if (variety && !this.companyProfile?.configuration?.onlyNacionalVariety) {
+      this.stockOrderForm?.get('variety')?.setValue(variety);
+    }
+
+    // Solo si la certificacion de la parcela esta entre las que el combo ofrece ahora:
+    // las opciones se filtran segun si la entrega es organica, y poner una que quedo
+    // fuera del filtro dejaria el combo mostrando un valor que no se puede elegir.
+    const certification = plot.certificationType?.name;
+    if (certification && this.certificationTypeFilteredMap[certification] !== undefined) {
+      this.stockOrderForm?.get('organicCertification')?.setValue(certification);
+    }
+  }
+
+  /**
+   * La parcela y la entrega no usan el mismo vocabulario para la variedad: la parcela
+   * guarda ORGANICO/CCN51 y la entrega NACIONAL/CCN51, o "1"/"2" cuando la empresa usa
+   * el combo numerico (ver initializeVarietyOptions). ORGANICO y NACIONAL son la misma
+   * casilla con distinto nombre: confirmar con el cliente antes de darlo por hecho.
+   */
+  private varietyValueFromPlot(plot: ApiPlot): string | null {
+    const numeric = !!this.companyProfile?.configuration?.numericVarietyOptions;
+
+    switch (plot.cocoaVariety) {
+      case 'CCN51':
+        return numeric ? '2' : 'CCN51';
+      case 'ORGANICO':
+        return numeric ? '1' : 'NACIONAL';
+      default:
+        return null;
+    }
   }
 
   /**
@@ -466,12 +541,45 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     return !this.parcelLotAsFreeText && !!this.searchFarmers?.value && this.parcelLotCount === 0;
   }
 
+  /**
+   * Lo que se guarda en la entrega: el nombre con el que el agricultor registro la
+   * parcela ("Lote 7"). Las parcelas sin nombre caen en su posicion de la lista, que
+   * es lo que se guardaba antes de este cambio, para no alterar lo ya registrado ni
+   * el Excel de exportacion, que vuelca este campo tal cual.
+   */
+  private parcelLotValueFor(plot: ApiPlot, position: number): string {
+    return (plot?.plotName ?? '').trim() || String(position);
+  }
+
+  private parcelLotLabelFor(plot: ApiPlot, position: number): string {
+    return (plot?.plotName ?? '').trim() || this.parcelLotLabel(position);
+  }
+
+  /** La parcela detras del valor elegido, para heredar sus datos. */
+  private plotForParcelLot(value: string | number): ApiPlot | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    const target = String(value);
+    return (
+      this.farmerPlots.find(
+        (plot, index) => this.parcelLotValueFor(plot, index + 1) === target,
+      ) ?? null
+    );
+  }
+
   private buildParcelLotOptions(resetMap = true) {
     if (resetMap) {
       this.parcelLotOptionsMap = {};
-      for (let i = 1; i <= this.parcelLotCount; i++) {
-        this.parcelLotOptionsMap[String(i)] = this.parcelLotLabel(i);
-      }
+      this.farmerPlots.forEach((plot, index) => {
+        const value = this.parcelLotValueFor(plot, index + 1);
+        // Dos parcelas con el mismo nombre son indistinguibles para quien registra:
+        // se ofrece una sola opcion y hereda los datos de la primera.
+        if (this.parcelLotOptionsMap[value] === undefined) {
+          this.parcelLotOptionsMap[value] = this.parcelLotLabelFor(plot, index + 1);
+        }
+      });
     }
     this.parcelLotOptions = EnumSifrant.fromObject(this.parcelLotOptionsMap);
     this.parcelLotOptions.setPlaceholder(
@@ -757,6 +865,10 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         new FormControl(this.parcelLotAsFreeText ? '1' : null),
       );
     }
+    // El esquema trae un patron de solo digitos que no aplica al combo, donde el valor
+    // es el nombre de la parcela. Se ajusta aca porque updateValidators() corre antes
+    // de que exista este control.
+    this.updateParcelLotValidator();
     // Add Variety control (for cacao)
     if (!this.stockOrderForm.get('variety')) {
       const defaultVariety = this.companyProfile?.configuration?.onlyNacionalVariety ? 'NACIONAL' : null;
@@ -837,6 +949,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if (!this.stockOrderForm.get('parcelLot')) {
       this.stockOrderForm.addControl('parcelLot', new FormControl(null));
     }
+    this.updateParcelLotValidator();
     if ((this.order as any)?.parcelLot != null) {
       this.stockOrderForm.get('parcelLot').setValue((this.order as any).parcelLot);
     }
@@ -899,6 +1012,14 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
           this.stockOrderForm.get('organicCertification')?.setValue(tKey);
         }
       });
+    }
+
+    const parcelLotControl = this.stockOrderForm.get('parcelLot');
+    if (parcelLotControl) {
+      // Al cargar una entrega ya guardada este listener todavia no existe (se registra
+      // despues de volcar los datos), asi que abrir una entrega vieja no le pisa la
+      // variedad ni la certificacion con los datos de hoy de la parcela.
+      parcelLotControl.valueChanges.subscribe((val) => this.applyPlotDefaults(val));
     }
 
     const organicControl = this.stockOrderForm.get('organic');
