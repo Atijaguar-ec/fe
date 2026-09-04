@@ -185,6 +185,17 @@
           </ng-container>
         </textinput>
       </div>
+      <!-- Color de la semana: en bodega cada saco lleva el hilo de este color -->
+      <div class="af-c6" *ngIf="weekColorFor(tsoGroup) as color">
+        <div class="week-color">
+          <span
+            class="week-color__dot"
+            [class.week-color__dot--bordered]="color.needsBorder"
+            [style.background-color]="color.hex"
+          ></span>
+          <span class="week-color__name">{{ color.name }}</span>
+        </div>
+      </div>
     </div>
 
     <!-- CACAO FIELDS: Parcel Lot and Variety -->

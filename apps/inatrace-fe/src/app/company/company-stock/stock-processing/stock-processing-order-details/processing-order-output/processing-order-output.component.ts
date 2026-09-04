@@ -16,6 +16,11 @@ import {
 } from '@angular/forms';
 import { ApiProcessingAction } from '../../../../../../api/model/apiProcessingAction';
 import { ApiCompanyGet } from '../../../../../../api/model/apiCompanyGet';
+import {
+  WeekColor,
+  weekColor,
+  weekColorCodesEnabled,
+} from '../../../../../shared-services/week-number.util';
 import { ProcessingActionType } from '../../../../../../shared/types';
 import { ApiFinalProduct } from '../../../../../../api/model/apiFinalProduct';
 import { ApiProcessingActionOutputSemiProduct } from '../../../../../../api/model/apiProcessingActionOutputSemiProduct';
@@ -114,6 +119,18 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
 
   get shouldShowParcelLot(): boolean {
     return !!this.companyProfile?.configuration?.enableParcelLot;
+  }
+
+  /**
+   * Color de la semana del lote de salida, para la empresa que marca cada saco con el
+   * hilo de ese color. Se calcula por grupo porque cada salida tiene su propia semana.
+   */
+  weekColorFor(tsoGroup: AbstractControl): WeekColor | null {
+    if (!weekColorCodesEnabled(this.companyProfile?.configuration)) {
+      return null;
+    }
+
+    return weekColor(Number(tsoGroup?.get('weekNumber')?.value));
   }
 
   @Output()
