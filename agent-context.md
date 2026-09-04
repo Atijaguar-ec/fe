@@ -295,17 +295,56 @@ Resultado: variedad en blanco en Procesamiento para UNOCACE.
 
 ---
 
-## 12. `parcelLot` en Entregas es un combo derivado del agricultor
+## 12. `parcelLot` en Entregas: combo de las parcelas del agricultor
 
-> Agregado el 2026-08-14. Complementa la §7 (asimetría Recepción/Procesamiento),
-> que **sigue vigente**.
+> Agregado el 2026-08-14. **Reescrito el 2026-09-04**: hasta esa fecha el combo
+> ofrecía `Parcela 1..N` posicionales y guardaba la posición. Si leés código o
+> datos de antes, esa era la semántica. Complementa la §7 (asimetría
+> Recepción/Procesamiento), que **sigue vigente**.
 
-En **Recepción** ya no es texto libre: es un `single-choice` poblado con
-`Parcela 1..N`, donde N = cantidad de parcelas registradas del agricultor
-seleccionado (`getUserCustomer(farmerId).plots.length`). Se recalcula en
-`setFarmer()` y en `editStockOrder()`.
+En **Recepción** no es texto libre: es un `single-choice` poblado con las
+parcelas del agricultor seleccionado (`getUserCustomer(farmerId).plots`). Se
+recalcula en `setFarmer()` y en `editStockOrder()`.
 
-Dos cosas que hay que preservar al tocarlo:
+**Qué se guarda**: el `plotName` con el que la parcela está registrada en la
+ficha del agricultor ("Lote 7"). Las parcelas **sin nombre** caen en su posición
+(`"1"`, `"2"`…), que es lo que se guardaba antes del 2026-09-04 — así el dato
+histórico y el Excel de exportación, que vuelca este campo tal cual, no cambian
+de forma. `parcel_lot` es una columna `String` **sin clave foránea**: nadie la
+resuelve nunca a una parcela del lado servidor.
+
+**La entrega hereda de la parcela** la variedad y el tipo de certificación
+(`applyPlotDefaults()`), que ya estaban cargados en su ficha. Tres cosas que hay
+que preservar si tocás eso:
+
+- La herencia corre **solo al elegir parcela**, vía el listener de `valueChanges`
+  que se registra en `setupFormListeners()`. Al cargar una entrega ya guardada
+  ese listener todavía no existe (los datos se vuelcan antes), y esa es la única
+  razón por la que abrir una entrega vieja **no le pisa** la variedad y la
+  certificación con los datos de hoy de la parcela. Si movés el registro del
+  listener antes del volcado, rompés el histórico en silencio.
+- **La variedad se fija antes que la certificación.** Fijarla dispara la regla
+  existente que con CCN51 autocompleta la certificación de transición; el orden
+  es lo que hace que gane la certificación de la parcela.
+- La certificación se hereda **solo si está entre las opciones vigentes** del
+  combo, que se filtran según si la entrega es orgánica
+  (`certificationTypeFilteredMap`). Poner una que quedó fuera del filtro dejaría
+  el combo mostrando un valor no elegible (§10).
+
+**Vocabularios distintos, y esto está sin confirmar con el cliente**: la parcela
+guarda `cocoaVariety` como `ORGANICO | CCN51`; la entrega guarda `NACIONAL |
+CCN51`, o `"1" | "2"` con `numericVarietyOptions`. `varietyValueFromPlot()` asume
+que **ORGANICO y NACIONAL son la misma casilla con distinto nombre**. La mitad
+numérica sí está respaldada por el código (`initializeVarietyOptions` documenta
+1 = Orgánico); la equivalencia con "Nacional" es inferencia. Si resulta falsa, es
+una línea.
+
+**Preselección**: al elegir agricultor se preselecciona la parcela **solo si
+tiene una sola**. Con dos o más el campo queda vacío a propósito — elegir por el
+usuario no sería solo poner un número, arrastraría variedad y certificación de
+una parcela que nadie eligió.
+
+Dos cosas más que hay que preservar al tocarlo:
 
 1. **Al editar una entrega vieja, el valor guardado se conserva como opción
    aunque exceda las parcelas actuales** del agricultor (parcela borrada
@@ -326,6 +365,12 @@ puede vender cacao.** Se implementa así, y no de otra forma:
   orden es `PURCHASE_ORDER` (ver `updateParcelLotValidator()`). Si el agricultor
   no tiene parcelas, el combo queda vacío → no hay nada que elegir → la entrega
   no se puede guardar.
+- **Excepción desde 2026-09-04**: con `parcelLotFreeText` (§14) el campo vuelve a
+  ser una caja de texto y esta regla **no aplica**, porque no hay parcelas contra
+  las cuales validar. Es para las empresas que no las llevan registradas en el
+  sistema; sin esa salida, el combo vacío les impide registrar cualquier entrega.
+  Ahí el patrón de solo dígitos sí se aplica; en el combo no, porque el valor es
+  el nombre de la parcela.
 - El agricultor **sigue visible** en el selector, a propósito. Se evaluó
   ocultarlo y se descartó: el operador tiene que poder encontrarlo y entender
   por qué no puede venderle. El mensaje de error se lo dice y lo manda a
@@ -413,3 +458,108 @@ docker logs <contenedor-be> --since 30m 2>&1 | grep -iE "agstack|geoid"
 Cada parcela se registra a mano, abriendo su globo y pulsando *Actualizar*. No existe una
 acción en lote. Para cientos de productores esto no escala; está anotado como pendiente.
 
+
+---
+
+## 14. Configuración por empresa, semanas y trampas de este formulario
+
+> Escrito el **2026-09-04**, al implementar los pedidos de Fortaleza. Lo marcado
+> como *verificado* se comprobó con build o con datos reales ese día; lo marcado
+> como *supuesto* no, y hay que tratarlo como pendiente.
+
+### 14.1 Cómo se agrega una opción por empresa
+
+`company.configuration` es una columna **jsonb libre** (`Map<String,Object>` en la
+entidad, `{ [key: string]: any }` en `ApiCompany`). Agregar una opción **no
+requiere migración ni tocar el modelo de la API**: se lee con
+`companyProfile?.configuration?.<clave>` y se escribe en `company-detail`
+(control + carga en `getCompany()` + `disable()` si no es admin + las **dos**
+ramas de guardado, `update()` y `create()`; olvidarse de una es el error típico).
+
+Claves vigentes:
+
+| Clave | Qué hace |
+|---|---|
+| `onlyOrganicProduction` | Automatiza y oculta la certificación orgánica |
+| `onlyNacionalVariety` | Fija la variedad y oculta el campo |
+| `enableParcelLot` | Muestra Lote (Parcela) en registro y procesamiento |
+| `numericVarietyOptions` | Variedad como `"1"`/`"2"` (ver §12) |
+| `weekNumberingScheme` | `ISO` (ausente = este) o `FIRST_MONDAY` |
+| `weekColorCodes` | Muestra el color de la semana |
+| `parcelLotFreeText` | N° Parcela como caja de texto, iniciada en 1 |
+| `fixedPricePerUnit` + `fixedPricesBySemiProduct` | Precio fijo por producto, solo lectura en Entregas |
+
+**Todas apagadas por defecto**, y esa es la regla al agregar la próxima: si el
+valor ausente no reproduce exactamente el comportamiento anterior, cambiaste el
+sistema para todas las empresas sin querer.
+
+### 14.2 Semanas: `week-number.util.ts` es espejo de `WeekNumberTools.java`
+
+Fortaleza no usa ISO-8601: su semana 1 empieza el **primer lunes de enero** y
+corre de lunes a viernes. **Verificado 2026-09-04** contra su tabla completa, y
+las dos implementaciones comparadas entre sí sobre las 1.827 fechas de 2024 a
+2028 en ambos esquemas: cero diferencias.
+
+- **El backend recalcula y descarta lo que manda el frontend**
+  (`StockOrderService.createOrUpdateStockOrder`). Un arreglo solo en el cliente
+  **no se guarda**. Si cambiás la regla acá, cambiala allá.
+- **Sábado y domingo no tienen semana** bajo ese esquema: el cálculo devuelve
+  `null` y el campo queda vacío para escribirlo a mano. No lo "arregles"
+  devolviendo un número.
+- El **color** sale de `(semana − 1) mod 5` sobre ROJO, AZUL, BLANCO, VERDE,
+  AMARILLO. Depende solo del número, por eso cada año vuelve a empezar en ROJO
+  (la 52 es AZUL y la 1 siguiente ROJO): **es correcto, confirmado con el
+  cliente**, no es un bug de continuidad.
+- Procesamiento usa el **mismo** calendario. Si Entrega dice 35, el código de
+  lote no puede decir 36 el mismo día.
+
+### 14.3 Trampa: `generateFormFromMetadata` ya creó el control
+
+Costó un reporte del cliente el 2026-09-04. Este patrón, que está repetido en
+todo el formulario de Entrega, **no hace nada**:
+
+```ts
+if (!this.stockOrderForm.get('parcelLot')) {
+  this.stockOrderForm.addControl('parcelLot', new FormControl('1'));  // nunca corre
+}
+```
+
+`parcelLot`, `weekNumber`, `variety`, `organicCertification`,
+`moisturePercentage` y compañía **ya vienen en `ApiStockOrder.formMetadata()`**,
+así que el control existe desde que se genera el formulario y la rama nunca se
+ejecuta. Da igual mientras el valor por defecto sea `null`; en cuanto querés otro
+hay que ponerlo en la rama `else`, como hace `variety`. **No falla, no avisa: el
+campo sale vacío.**
+
+### 14.4 Trampa: la profundidad de los imports, y por qué el error es invisible
+
+`api/` vive en `src/`, pero `shared-services/`, `shared/` y `core/` viven en
+`src/app/`. Copiar la profundidad de un import de `api/` para uno de
+`shared-services/` da **un nivel de más**.
+
+Lo grave no es el error, es cómo se presenta: el build termina en `exit 1` con la
+salida **cortada a mitad de una palabra**, sin ninguna línea de error, sepultado
+bajo cientos de warnings de deprecación de Sass. Hubo que aislarlo por bisección
+(guardar y restaurar cambios por partes). Si te pasa un build que falla sin decir
+por qué, **empezá por los imports que agregaste**; y arreglar los `@import`
+deprecados de Sass haría visibles los errores reales.
+
+### 14.5 Guardar deja el formulario limpio, y el combo se duplicaba
+
+"Guardar" en Entregas **no vuelve al listado**: guarda, limpia y deja el
+formulario listo para la siguiente, con un aviso de confirmación —sin él, el
+formulario se vacía y no se distingue de haber perdido el registro—. Para volver
+está "Guardar y cerrar". Antes era al revés: cerraba justo en el caso de entrega
+nueva, que es cuando se cargan varias seguidas.
+
+Al recargar el formulario, `initializeData()` llena el combo de Semiproducto con
+`push`. **Sin vaciar `this.options` antes, la lista se duplica en cada guardado.**
+Ya pasaba al editar; con este cambio afectaría a todos.
+
+### 14.6 Estado del repo que conviene saber
+
+- **`nx lint inatrace-fe` está roto** a nivel de configuración: falla al cargar
+  el plugin `@angular-eslint` antes de mirar ningún archivo. No es tu cambio.
+- **`generateFarmerPdf` / `generateFarmerPdfFromData` no los llama nadie.** El
+  PDF real de la entrega es `generatePdfFromElement`, que renderiza el propio
+  formulario — por eso lo que agregues a la pantalla sale solo en el PDF.
