@@ -6,7 +6,14 @@ COPY package*.json ./
 RUN npm install --legacy-peer-deps
 COPY . .
 # For Nx monorepo, we just use build:prod
-ENV NODE_OPTIONS="--max_old_space_size=8192"
+# 4 GB de heap, no 8: el agente de Jenkins de Fortaleza tiene 7,8 GB en total y
+# ademas hospeda el propio Jenkins y el stack de staging. Con el techo en 8192
+# este build agotaba la maquina y el kernel mataba a Jenkins por OOM a mitad de
+# la compilacion — ocurrio el 2026-09-08 en el despliegue a produccion, que
+# quedo registrado como SUCCESS pese a fallar. 4096 sobra para este build y deja
+# margen al resto. Si alguna vez falla con "JavaScript heap out of memory", el
+# problema es el tamano del bundle, no este techo.
+ENV NODE_OPTIONS="--max_old_space_size=4096"
 RUN npm run build:prod
 
 FROM nginx:stable-alpine as production-stage
