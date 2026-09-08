@@ -322,7 +322,15 @@ git fetch --tags --prune origin
               traefikEntrypoints: 'websecure',
               traefikResolver: 'letsencrypt',
               healthLocal: 'http://localhost:8081/health',
-              healthExternal: params.PROD_HEALTHCHECK_URL
+              healthExternal: params.PROD_HEALTHCHECK_URL,
+              // Configuración de runtime que envsubst inyecta en assets/env.js.
+              // Debe ir por entorno: cuando estos valores estaban escritos
+              // literales más abajo, el frontend de preproducción se desplegaba
+              // apuntando al API y al Keycloak de PRODUCCIÓN.
+              appBaseUrl: 'https://inatrace.espam.edu.ec',
+              apiBaseUrl: 'https://inatrace.espam.edu.ec/api',
+              keycloakUrl: 'https://inatrace.espam.edu.ec/auth/',
+              keycloakRealm: 'inatrace_fortaleza'
             ]
           } else {
             deploy = [
@@ -336,7 +344,15 @@ git fetch --tags --prune origin
               traefikEntrypoints: 'websecure',
               traefikResolver: 'letsencrypt',
               healthLocal: 'http://localhost:8081/health',
-              healthExternal: params.STAGING_HEALTHCHECK_URL
+              healthExternal: params.STAGING_HEALTHCHECK_URL,
+              // El realm de preproducción es `fortaleza`, no `inatrace_fortaleza`:
+              // los realms difieren por servidor (verificado el 2026-08-06 contra
+              // la tabla `realm` de cada uno; ver la nota en
+              // backend/ci/fortaleza/docker-compose.yml). No unificar sin migrar.
+              appBaseUrl: 'https://testinatrace.espam.edu.ec',
+              apiBaseUrl: 'https://testinatrace.espam.edu.ec/api',
+              keycloakUrl: 'https://testinatrace.espam.edu.ec/auth/',
+              keycloakRealm: 'fortaleza'
             ]
           }
 
@@ -353,6 +369,10 @@ git fetch --tags --prune origin
           def traefikRule = deploy.traefikRule
           def traefikEntrypoints = deploy.traefikEntrypoints
           def traefikResolver = deploy.traefikResolver
+          def appBaseUrl = deploy.appBaseUrl
+          def apiBaseUrl = deploy.apiBaseUrl
+          def keycloakUrl = deploy.keycloakUrl
+          def keycloakRealm = deploy.keycloakRealm
 
           env.CURRENT_DEPLOY_NAME = deploy.name
           env.CURRENT_DEPLOY_DIR = targetDir
@@ -382,11 +402,11 @@ NGINX_CONF_PATH=./nginx.conf
 ENABLE_SHRIMP_MODULE=false
 COMPOSE_PROJECT_NAME=inatrace-frontend-fortaleza
 
-# Keycloak and API variables for Production
-APP_BASE_URL=https://inatrace.espam.edu.ec
-API_BASE_URL=https://inatrace.espam.edu.ec/api
-KEYCLOAK_URL=https://inatrace.espam.edu.ec/auth/
-KEYCLOAK_REALM=inatrace_fortaleza
+# Keycloak y API — valores propios del entorno que se está desplegando
+APP_BASE_URL=${appBaseUrl}
+API_BASE_URL=${apiBaseUrl}
+KEYCLOAK_URL=${keycloakUrl}
+KEYCLOAK_REALM=${keycloakRealm}
 KEYCLOAK_CLIENT_ID=inatrace-frontend
 """.stripIndent().trim() + '\n'
           writeFile file: "${env.WORKSPACE}/ci/.env.deploy", text: envContent
