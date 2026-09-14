@@ -313,23 +313,38 @@ histórico y el Excel de exportación, que vuelca este campo tal cual, no cambia
 de forma. `parcel_lot` es una columna `String` **sin clave foránea**: nadie la
 resuelve nunca a una parcela del lado servidor.
 
-**La entrega hereda de la parcela** la variedad y el tipo de certificación
-(`applyPlotDefaults()`), que ya estaban cargados en su ficha. Tres cosas que hay
-que preservar si tocás eso:
+**La entrega hereda de la parcela** la variedad, si es orgánica y el tipo de
+certificación (`applyPlotDefaults()`), y desde el **2026-09-14** (pedido UNOCACE)
+esos campos **se muestran como texto de solo lectura**, no como combo. Reglas que
+hay que preservar si tocás eso:
 
-- La herencia corre **solo al elegir parcela**, vía el listener de `valueChanges`
-  que se registra en `setupFormListeners()`. Al cargar una entrega ya guardada
-  ese listener todavía no existe (los datos se vuelcan antes), y esa es la única
-  razón por la que abrir una entrega vieja **no le pisa** la variedad y la
-  certificación con los datos de hoy de la parcela. Si movés el registro del
-  listener antes del volcado, rompés el histórico en silencio.
-- **La variedad se fija antes que la certificación.** Fijarla dispara la regla
-  existente que con CCN51 autocompleta la certificación de transición; el orden
-  es lo que hace que gane la certificación de la parcela.
-- La certificación se hereda **solo si está entre las opciones vigentes** del
-  combo, que se filtran según si la entrega es orgánica
-  (`certificationTypeFilteredMap`). Poner una que quedó fuera del filtro dejaría
-  el combo mostrando un valor no elegible (§10).
+- **Se bloquea solo lo que la parcela trae.** `lockedFromPlot` guarda qué campo
+  vino de la parcela; el HTML alterna `textinput` de solo lectura / `single-choice`
+  según eso. Si la parcela no tiene variedad o certificación, ese campo queda
+  **vacío y editable** (decisión del 2026-09-14): la entrega no se frena mientras la
+  organización termina de cargar sus parcelas. Los `FormControl` nunca se
+  deshabilitan — un control `disabled` no sale en `form.value` y no se guardaría.
+- **"¿Tiene certificado orgánico?" no existe en la parcela: se deriva.** Transición
+  → "No"; cualquier otra certificación → "Sí". Es la misma regla que ya usaba el
+  filtro del combo de certificaciones (`isTransitionCertification()`), así que lo
+  heredado siempre cae dentro de las opciones vigentes.
+- **La certificación se busca por `code`, no por nombre.** El catálogo se pide con
+  `listActive('ES')` y la parcela llega en el idioma de la petición; comparar
+  nombres fallaba en silencio con otro idioma o si alguien renombra desde el admin.
+- **Siempre limpia antes de heredar.** Al cambiar de agricultor `parcelLot` pasa a
+  `null`, el listener corre y `clearPlotDerivedFields()` vacía variedad, orgánico y
+  certificación. Antes quedaba la variedad del agricultor anterior (reporte UNOCACE).
+- **Mientras hereda, las reglas automáticas callan** (`applyingPlotDefaults`): la de
+  CCN51 → transición y la de orgánico "No" → transición pisaban lo de la parcela.
+  Por lo mismo `prepareData()`, que corre **también al guardar**, no toca la
+  certificación si está bloqueada.
+- **En texto libre (`parcelLotFreeText`) no hace nada.** No hay parcelas, y el
+  listener corre con cada tecla: sin esa salida borraría la variedad mientras se
+  escribe el número.
+- **Editar una entrega guardada** bloquea lo que ya tenía guardado y lo muestra tal
+  cual (`lockSavedPlotFields()`), sin recalcular con la parcela de hoy. Eso sigue
+  dependiendo de que el listener se registre **después** del volcado de datos: si
+  lo movés antes, rompés el histórico en silencio.
 
 **Vocabularios distintos, y esto está sin confirmar con el cliente**: la parcela
 guarda `cocoaVariety` como `ORGANICO | CCN51`; la entrega guarda `NACIONAL |

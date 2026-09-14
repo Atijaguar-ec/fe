@@ -313,7 +313,20 @@
                 </single-choice>
               </div>
               <div class="af-c6" *ngIf="shouldShowVariety">
+                <!-- Heredada de la parcela: solo lectura. Si la parcela no la trae, combo. -->
+                <textinput
+                  *ngIf="lockedFromPlot.variety"
+                  [valueTextInput]="true"
+                  [value]="varietyDisplayValue"
+                  [readOnly]="true"
+                  label="Variedad"
+                  i18n-label="
+                    @@productLabelStockPurchaseOrdersModal.singleChoice.variety.label"
+                  style="width: 100%"
+                >
+                </textinput>
                 <single-choice
+                  *ngIf="!lockedFromPlot.variety"
                   [formControlInput]="$any(stockOrderForm.get('variety'))"
                   [codebookService]="varietyOptions"
                   label="Variedad"
@@ -793,7 +806,20 @@
 
             <div class="af-row" *ngIf="showOrganic">
               <div class="af-c12">
+                <!-- Derivado de la certificación de la parcela: solo lectura. -->
+                <textinput
+                  *ngIf="lockedFromPlot.organic"
+                  [valueTextInput]="true"
+                  [value]="organicDisplayValue"
+                  [readOnly]="true"
+                  label="¿Tiene certificado Orgánico?"
+                  i18n-label="
+                    @@productLabelStockPurchaseOrdersModal.singleChoice.organic.label"
+                  style="width: 100%"
+                >
+                </textinput>
                 <single-choice
+                  *ngIf="!lockedFromPlot.organic"
                   label="¿Tiene certificado Orgánico?"
                   i18n-label="
                     @@productLabelStockPurchaseOrdersModal.singleChoice.organic.label"
@@ -832,7 +858,19 @@
               "
             >
               <div class="af-c12">
+                <textinput
+                  *ngIf="lockedFromPlot.certification"
+                  [valueTextInput]="true"
+                  [value]="organicCertificationDisplayValue"
+                  [readOnly]="true"
+                  label="Tipo de certificación"
+                  i18n-label="
+                    @@productLabelStockPurchaseOrdersModal.singleChoice.organicsCertificationType.label"
+                  style="width: 100%"
+                >
+                </textinput>
                 <single-choice
+                  *ngIf="!lockedFromPlot.certification"
                   [formControlInput]="
                     $any(stockOrderForm.get('organicCertification'))
                   "

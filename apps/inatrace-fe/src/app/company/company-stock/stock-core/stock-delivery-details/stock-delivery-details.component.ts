@@ -117,6 +117,23 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
    */
   private farmerPlots: ApiPlot[] = [];
 
+  /**
+   * Campos que la entrega toma de la parcela y que por eso se muestran como texto de
+   * solo lectura (pedido UNOCACE 2026-09). Un campo se bloquea solo si la parcela trae
+   * el dato: si falta, queda vacío y editable para cargarlo a mano en la entrega.
+   * Al editar una entrega guardada se bloquea lo que ya tenía guardado (ver
+   * lockSavedPlotFields()).
+   */
+  lockedFromPlot = { variety: false, organic: false, certification: false };
+
+  /** Mientras se vuelcan los datos de la parcela, las reglas automáticas de los
+   *  listeners (CCN51 → transición, orgánico "No" → transición) no deben pisarlos. */
+  private applyingPlotDefaults = false;
+
+  /** Código de catálogo → nombre (el que se guarda en la entrega). La parcela se
+   *  compara por código: el nombre depende del idioma y es editable desde el admin. */
+  private certificationNameByCode: Record<string, string> = {};
+
   private facility: ApiFacility;
 
   private purchaseOrderId = this.route.snapshot.params.purchaseOrderId;
@@ -294,6 +311,11 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     );
   }
 
+  private isTransitionCertification(value: string): boolean {
+    const normalized = this.stripAccents((value ?? '').toLowerCase());
+    return normalized.includes('transicion') || normalized.includes('transition');
+  }
+
   private refreshCertificationTypeOptions() {
     const organicVal = this.stockOrderForm?.get('organic')?.value;
     const isOrganic = organicVal === 'true' || organicVal === true;
@@ -302,9 +324,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     const filteredMap: { [key: string]: string } = {};
 
     Object.keys(this.certificationTypeMap).forEach((key) => {
-      const lowerKey = this.stripAccents(key.toLowerCase());
-      const isOrganicCert = lowerKey.includes('biosuisse') || lowerKey.includes('naturland');
-      const isTransitionCert = lowerKey.includes('transicion') || lowerKey.includes('transition');
+      const isTransitionCert = this.isTransitionCertification(key);
 
       if (isOrganic) {
         if (!isTransitionCert) {
@@ -342,11 +362,15 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         .pipe(take(1))
         .toPromise();
       this.certificationTypeMap = {};
+      this.certificationNameByCode = {};
       (items || [])
         .filter((it: any) => it?.status === 'ACTIVE')
         .forEach((it: any) => {
           const key = it.name;
           this.certificationTypeMap[key] = it.name;
+          if (it.code) {
+            this.certificationNameByCode[it.code] = it.name;
+          }
         });
       this.refreshCertificationTypeOptions();
     } catch (_) {
@@ -471,35 +495,116 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Copia a la entrega la variedad y la certificacion que ya estan registradas en la
-   * parcela elegida, en vez de pedir que se vuelvan a cargar a mano.
+   * Copia a la entrega la variedad, si es orgánica y la certificación que ya están
+   * registradas en la parcela elegida, y bloquea esos campos (pedido UNOCACE 2026-09:
+   * la entrega depende de los datos que la organización carga en la parcela).
    *
-   * Quedan editables a proposito: la certificacion de la parcela puede haber cambiado
-   * desde que se registro, y la entrega documenta lo que efectivamente llego.
+   * Siempre empieza limpiando: sin parcela (cambio de agricultor, agricultor con dos o
+   * más parcelas todavía sin elegir) no puede quedar la variedad de la anterior.
    *
-   * El orden importa. Fijar la variedad dispara la regla existente que, con CCN51,
-   * autocompleta la certificacion de transicion; poniendo la certificacion despues,
-   * la de la parcela es la que queda.
+   * "¿Tiene certificado orgánico?" no existe en la parcela y se deriva de su
+   * certificación con la misma regla que ya usa el filtro del combo: la de transición
+   * es "No", cualquier otra es "Sí".
+   *
+   * En modo texto libre (parcelLotFreeText) no hay parcelas: no se hace nada, y
+   * además este listener corre con cada tecla del N° Parcela.
    */
   private applyPlotDefaults(parcelLotValue: string | number): void {
-    const plot = this.plotForParcelLot(parcelLotValue);
-    if (!plot) {
+    if (this.parcelLotAsFreeText || !this.stockOrderForm) {
       return;
     }
 
-    const variety = this.varietyValueFromPlot(plot);
-    // Con onlyNacionalVariety la variedad es fija y el campo ni se muestra.
-    if (variety && !this.companyProfile?.configuration?.onlyNacionalVariety) {
-      this.stockOrderForm?.get('variety')?.setValue(variety);
-    }
+    const plot = this.plotForParcelLot(parcelLotValue);
+    const onlyOrganic = this.companyProfile?.configuration?.onlyOrganicProduction === true;
 
-    // Solo si la certificacion de la parcela esta entre las que el combo ofrece ahora:
-    // las opciones se filtran segun si la entrega es organica, y poner una que quedo
-    // fuera del filtro dejaria el combo mostrando un valor que no se puede elegir.
-    const certification = plot.certificationType?.name;
-    if (certification && this.certificationTypeFilteredMap[certification] !== undefined) {
-      this.stockOrderForm?.get('organicCertification')?.setValue(certification);
+    this.applyingPlotDefaults = true;
+    try {
+      this.clearPlotDerivedFields();
+      if (!plot) {
+        return;
+      }
+
+      // Con onlyNacionalVariety la variedad es fija y el campo ni se muestra.
+      const variety = this.varietyValueFromPlot(plot);
+      if (variety && !this.companyProfile?.configuration?.onlyNacionalVariety) {
+        this.stockOrderForm.get('variety')?.setValue(variety);
+        this.lockedFromPlot.variety = true;
+      }
+
+      // Con onlyOrganicProduction orgánico y certificación salen del perfil de la empresa.
+      const certification = this.certificationNameFromPlot(plot);
+      if (certification && !onlyOrganic) {
+        const organic = this.isTransitionCertification(certification) ? 'false' : 'true';
+        // Fijar orgánico refiltra las opciones del combo; la certificación va después.
+        this.stockOrderForm.get('organic')?.setValue(organic);
+        this.stockOrderForm.get('organicCertification')?.setValue(certification);
+        this.lockedFromPlot.organic = true;
+        this.lockedFromPlot.certification = true;
+      } else if (!onlyOrganic && this.isCcn51VarietyValue(this.stockOrderForm.get('variety')?.value)) {
+        // Parcela sin certificación: queda editable, con el mismo default que ya
+        // aplicaba el listener de variedad.
+        this.stockOrderForm.get('organicCertification')?.setValue(this.getTransitionCertificationKey());
+      }
+    } finally {
+      this.applyingPlotDefaults = false;
     }
+  }
+
+  /** Vacía y desbloquea lo que la entrega hereda de la parcela, respetando los valores
+   *  fijos por configuración de empresa. */
+  private clearPlotDerivedFields(): void {
+    this.lockedFromPlot = { variety: false, organic: false, certification: false };
+    const config = this.companyProfile?.configuration;
+
+    this.stockOrderForm.get('variety')?.setValue(config?.onlyNacionalVariety ? 'NACIONAL' : null);
+    if (config?.onlyOrganicProduction !== true) {
+      // Orden: orgánico refiltra y autoselecciona una certificación; se vacía después.
+      this.stockOrderForm.get('organic')?.setValue(null);
+      this.stockOrderForm.get('organicCertification')?.setValue(null);
+    }
+  }
+
+  /**
+   * Nombre de catálogo de la certificación de la parcela, que es lo que guarda la
+   * entrega. Se busca por código; si el catálogo no cargó, cae en el nombre que trae
+   * la parcela.
+   */
+  private certificationNameFromPlot(plot: ApiPlot): string | null {
+    const cert = plot?.certificationType;
+    if (!cert) {
+      return null;
+    }
+    return (cert.code && this.certificationNameByCode[cert.code]) || cert.name || null;
+  }
+
+  /**
+   * Al editar una entrega guardada se bloquea lo que ya tiene guardado y se muestra tal
+   * cual, sin recalcularlo con los datos de hoy de la parcela. Lo que está vacío queda
+   * editable. Si el usuario cambia de agricultor o de parcela, applyPlotDefaults()
+   * vuelve a derivar todo.
+   */
+  private lockSavedPlotFields(order: ApiStockOrder): void {
+    const hasValue = (v: any) => v !== null && v !== undefined && v !== '';
+    this.lockedFromPlot = {
+      variety: !this.parcelLotAsFreeText && hasValue((order as any)?.variety),
+      organic: !this.parcelLotAsFreeText && hasValue(order?.organic),
+      certification: !this.parcelLotAsFreeText && hasValue((order as any)?.organicCertification),
+    };
+  }
+
+  /** Texto a mostrar cuando los campos heredados están bloqueados. */
+  get varietyDisplayValue(): string {
+    const val = this.stockOrderForm?.get('variety')?.value;
+    return val == null ? '' : (this.varietyOptionsMap[val] ?? String(val));
+  }
+
+  get organicDisplayValue(): string {
+    const val = this.stockOrderForm?.get('organic')?.value;
+    return val == null ? '' : (this.yesNo[String(val)] ?? String(val));
+  }
+
+  get organicCertificationDisplayValue(): string {
+    return this.stockOrderForm?.get('organicCertification')?.value ?? '';
   }
 
   /**
@@ -896,6 +1001,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.stockOrderForm.addControl('moistureWeightDeduction', new FormControl(null));
     }
     this.updateWeekNumberVisibilityAndValidation();
+    this.lockedFromPlot = { variety: false, organic: false, certification: false };
 
     this.prepareData();
     this.setupFormListeners();
@@ -987,6 +1093,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         this.stockOrderForm.get('organicCertification').setValue(keys[0]);
       }
     }
+    this.lockSavedPlotFields(this.order);
     // Si la empresa solo tiene producción orgánica, forzar organic a 'true' y cargar certificaciones por defecto
     if (this.companyProfile?.configuration?.onlyOrganicProduction === true) {
       this.stockOrderForm.get('organic').setValue('true');
@@ -1012,6 +1119,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     const varietyControl = this.stockOrderForm.get('variety');
     if (varietyControl) {
       varietyControl.valueChanges.subscribe((val) => {
+        if (this.applyingPlotDefaults) {
+          return;
+        }
         if (this.isCcn51VarietyValue(val)) {
           const tKey = this.getTransitionCertificationKey();
           this.stockOrderForm.get('organicCertification')?.setValue(tKey);
@@ -1023,7 +1133,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if (parcelLotControl) {
       // Al cargar una entrega ya guardada este listener todavia no existe (se registra
       // despues de volcar los datos), asi que abrir una entrega vieja no le pisa la
-      // variedad ni la certificacion con los datos de hoy de la parcela.
+      // variedad ni la certificacion con los datos de hoy de la parcela. Tambien es el
+      // que limpia esos campos cuando cambia el agricultor (parcelLot pasa a null).
       parcelLotControl.valueChanges.subscribe((val) => this.applyPlotDefaults(val));
     }
 
@@ -1031,6 +1142,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if (organicControl) {
       organicControl.valueChanges.subscribe((val) => {
         this.refreshCertificationTypeOptions();
+        if (this.applyingPlotDefaults) {
+          return;
+        }
         const certControl = this.stockOrderForm.get('organicCertification');
         if (certControl && (!certControl.value || val === 'false' || val === false)) {
           const tKey = this.getTransitionCertificationKey();
@@ -1517,6 +1631,10 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     } else {
       // Resto de empresas (ej. UNOCACE): CCN51 o "No" orgánico defaultea a
       // certificación de transición.
+      // Si la certificación viene de la parcela, manda la parcela.
+      if (this.lockedFromPlot.certification) {
+        return;
+      }
       const tKey = this.getTransitionCertificationKey();
       const isCCN51 = this.isCcn51VarietyValue(this.stockOrderForm.get('variety')?.value);
       if (isCCN51) {
