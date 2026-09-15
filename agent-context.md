@@ -17,7 +17,9 @@ El Frontend no redacta manualmente sus modelos que mapean al backend. Utiliza **
 ### Reglas "Cacao Premium" Vigentes
 Todo elemento del antiguo flujo lógico de "Shrimp" (Camarones) ha sido completamente mitigado de la aplicación base. El enfoque actual está regido por los procesos de acopio de **Cacao para Fortaleza del Valle**:
 1. **Modelos Predictivos (UI-Calc Mode)**: En componentes clave de formularios (como `stock-delivery-details`), la UI está obligada a proveer feedback predictivo instantáneo al agricultor. 
-   - **Fórmula UI Válida**: `Weight (Net) = (Gross - Tare) * (Moisture% / 100)`.  
+   - **Fórmula válida (es la del backend, que es el que persiste):**
+     `Base = Bruto − Tara − Merma` · `Descuento humedad = Base × Humedad% / 100` (2 decimales, HALF_UP) · `Neto = Base − Descuento humedad`.
+     ⚠️ Hasta 2026-09-15 este archivo decía `Neto = (Bruto − Tara) × Humedad% / 100`: eso es el **descuento**, no el neto. No "corrijas" el código hacia esa fórmula. Ver `backend/agent-context.md` §5.
    - Se procesa localmente en los hooks como `setToBePaid()`.
 2. **Validaciones Numéricas**: Se emplean FormArrays explícitos de Angular (`validation.ts`) controlando fronteras lógicas (`[Validators.min(0), Validators.max(100)]` para variables como la humedad del grano).
 3. Todo campo vital de Cacao (Variedad, Semana, Humedad, Parcela) opera mediante `ReactiveForms`.
@@ -578,3 +580,92 @@ Ya pasaba al editar; con este cambio afectaría a todos.
 - **`generateFarmerPdf` / `generateFarmerPdfFromData` no los llama nadie.** El
   PDF real de la entrega es `generatePdfFromElement`, que renderiza el propio
   formulario — por eso lo que agregues a la pantalla sale solo en el PDF.
+
+---
+
+## 15. Decimales con coma, pruebas y defectos conocidos de Entregas
+
+> Escrito el **2026-09-15** en una revisión de QA. Lo marcado como *verificado* se
+> comprobó ese día con pruebas, con `tsc` o con la base de staging de Fortaleza.
+
+### 15.1 Por qué hay dos capas para los decimales
+
+En Ecuador los usuarios escriben `109,1`. Jackson rechaza ese texto en un campo
+`BigDecimal` y la petición falla con 400. Hay dos capas, y las dos hacen falta:
+
+1. **`parseDecimal()`** (`src/shared/utils.ts`) en los formularios de Entregas y
+   Procesamiento, antes de enviar y en las validaciones de pantalla.
+2. **`DecimalFormatInterceptor`** (`src/app/core/`, registrado en `app.module.ts`):
+   red de seguridad para los formularios que no pasan por `parseDecimal`.
+
+### 15.2 Reglas del interceptor — no deshacer
+
+Afecta a **todas** las peticiones de la aplicación. Dos límites deliberados, cada
+uno con su prueba de regresión en `decimal-format.interceptor.spec.ts`:
+
+- **Solo recorre objetos planos y arreglos.** La primera versión copiaba con
+  `{ ...data }` todo lo que fuera `typeof 'object'`: un `Date` se volvía `{}` y la
+  fecha llegaba vacía al backend. El datepicker escribe `Date` en los formularios
+  (`shared/datepicker/datepicker.component.ts`, método `change`). *Verificado*: con
+  esa versión `{validity: Date}` se enviaba como `{"validity":{}}`.
+- **Solo convierte campos de nombre numérico** (`NUMERIC_KEY`). Un texto libre que
+  sea `12,5` (comentario, nombre de parcela, lote) no debe volverse número: Jackson
+  convierte el número de vuelta a `"12.5"` en un campo `String` y cambia lo que
+  escribió el usuario, sin error.
+
+Consecuencias prácticas:
+
+- **Campo numérico nuevo con otro nombre** (ni cantidad, precio, tara, descuento,
+  porcentaje, peso, costo, monto, pago, saldo, estimación, coordenada, tasa ni
+  factor): agrégalo a `NUMERIC_KEY` **y** al spec. Si no, vuelve el 400.
+- `"1,234"` se lee como **1,234 decimal**, no como mil doscientos. Es la
+  convención local; no la cambies sin hablar con el cliente.
+- `parseDecimal` devuelve `null` (nunca `NaN`) para vacío o texto. Usa `?? 0` solo
+  donde cero es el valor correcto.
+- **En validaciones usa `parseDecimal`, nunca `Number()`**: `Number("0,05")` es
+  `NaN`, y la validación se apaga sin avisar. Así estaba
+  `damagedPriceDeductionInvalidCheck` hasta esta revisión.
+- `generateRepackedOutputStockOrders` **vacía los sacos antes de validar** la
+  cantidad. Si retorna antes de vaciar, al borrar la cantidad quedan en pantalla
+  los sacos calculados para el valor anterior.
+
+### 15.3 Cómo correr pruebas y verificar tipos
+
+- **Karma no compilaba** ningún spec: `tsconfig.spec.json` heredaba `target: ES2022`
+  de la base y aparecían errores `TS2729` ("used before its initialization") en
+  componentes ajenos. Se fijó `target: ES2020`, igual que `tsconfig.app.json`.
+  **No lo quites.**
+- Un solo spec, en Chrome headless (en macOS no existe `timeout`, no lo antepongas):
+  ```bash
+  CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+    npx nx test inatrace-fe --watch=false --browsers=ChromeHeadless \
+    --include='apps/inatrace-fe/src/app/core/decimal-format.interceptor.spec.ts'
+  ```
+- Tipos en ~5 s: `npx tsc -p apps/inatrace-fe/tsconfig.app.json --noEmit`. **No
+  revisa plantillas HTML**; si tocaste `.html`, hace falta `nx build`.
+- **La suite completa no se verificó** en esta revisión: los 43 specs existentes
+  son en su mayoría los generados por defecto y no se sabe cuántos pasan.
+
+### 15.4 Defectos conocidos del registro de compras (no corregidos)
+
+Documentados en la especificación de integración contable de Fortaleza
+(`docs/fv/especificacion_interoperabilidad_contable_inatrace_fortaleza.md` del
+workspace `giz`, hallazgos H-19 a H-22 y H-28). Si trabajas en Entregas, tenlos presentes:
+
+- **El secuencial del código de lote siempre es `-1`.** `setIdentifier()` cuenta las
+  compras del día con `getStockOrdersInFacilityForCustomerByMap({ companyCustomerId: farmerId })`,
+  y el backend filtra ese parámetro por `consumerCompanyCustomer`, que las compras
+  nunca tienen. *Verificado* en staging: `PT-ZAMBRANO NARANJO (130094947-4)-2026-08-07-1`
+  está repetido. El arreglo es contar con `list/company/{id}?farmerId=&productionDateStart=&productionDateEnd=&isPurchaseOrderOnly=true`.
+- **`setQuantities()` envía `totalQuantity = bruto − tara`, sin la merma**, y lo
+  mismo en `fulfilledQuantity`/`availableQuantity`. El backend fija la cantidad
+  disponible con ese valor y después recalcula el total restando la merma, así que
+  en compras con merma `availableQuantity > totalQuantity`.
+- **Con `onlyOrganicProduction` y una empresa sin certificaciones registradas**,
+  `refreshCertificationTypeOptions()` preselecciona `keys[0]` en un campo oculto.
+  Todas las compras quedan con `Biosuisse / Fairtrade /Organico `, aunque no sea
+  cierto. *Verificado* en Fortaleza (empresa 5).
+- **`parcelLot` tiene tres significados** según la configuración: nombre de la
+  parcela (combo), su posición (combo, parcela sin nombre) o un número libre
+  (`parcelLotFreeText`, el caso de Fortaleza). Ninguno identifica la parcela de
+  forma estable. Un sistema externo que envíe `plot.id` se verá como "Parcela 145".
