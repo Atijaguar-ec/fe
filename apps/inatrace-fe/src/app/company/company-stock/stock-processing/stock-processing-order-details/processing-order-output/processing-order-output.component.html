@@ -289,6 +289,16 @@
                 >Entered output quantity is not used completely</span
               >
             </div>
+            <div
+              *ngIf="repackedQuantityExceedsOutput(tsoGroup)"
+              class="sc-invalid-feedback"
+            >
+              <span
+                i18n="
+                  @@productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.repackedQuantityExceedsOutput"
+                >The sum of the sacs is greater than the entered output quantity</span
+              >
+            </div>
           </ng-container>
         </textinput>
       </div>

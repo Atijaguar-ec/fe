@@ -839,6 +839,7 @@
     "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.required": "Se requiere cantidad",
     "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.requiredOnQuote": "Introduzca cantidad de salida requerida",
     "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.notAllOutputQuantityIsUsed": "Entered output quantity is not used completely",
+    "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.repackedQuantityExceedsOutput": "La suma de los sacos es mayor que la cantidad de salida ingresada",
     "productLabelStockProcessingOrderDetail.textinput.pricePerUnit.label": "Precio por unidad",
     "productLabelStockProcessingOrderDetail.textinput.pricePerUnit.placeholder": "Introduzca el precio por unidad (RWF)",
     "productLabelStockProcessingOrderDetail.pricePerUnit.textinput.error": "Se requiere el precio por unidad",

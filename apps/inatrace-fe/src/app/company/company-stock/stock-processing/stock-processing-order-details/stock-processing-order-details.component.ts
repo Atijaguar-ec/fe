@@ -678,7 +678,8 @@ export class StockProcessingOrderDetailsComponent
     let notAllOutputQuantityIsUsed = false;
     for (const tsoGroup of this.targetStockOrdersArray.controls) {
       notAllOutputQuantityIsUsed =
-        this.output.notAllOutputQuantityIsUsed(tsoGroup);
+        this.output.notAllOutputQuantityIsUsed(tsoGroup) ||
+        this.output.repackedQuantityExceedsOutput(tsoGroup);
       if (notAllOutputQuantityIsUsed) {
         break;
       }

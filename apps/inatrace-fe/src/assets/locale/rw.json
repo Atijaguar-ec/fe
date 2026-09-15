@@ -1317,6 +1317,7 @@
     "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.required": "Ingano irakenewe",
     "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.requiredOnQuote": "Shyiramo ingano ikenewe yifuzwa y'ibiboneka nyuma y'igikorwa",
     "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.notAllOutputQuantityIsUsed": "Entered output quantity is not used completely",
+    "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.repackedQuantityExceedsOutput": "The sum of the sacs is greater than the entered output quantity",
     "productLabelStockProcessingOrderDetail.outputStockOrders.outputs.label": "Ibisohoka",
     "productLabelStockProcessingOrderDetail.outputStockOrders.add": "{$START_TAG_SPAN}+{$CLOSE_TAG_SPAN}",
     "productLabelStockProcessingOrderDetail.outputStockOrders.prefill": "{$START_TAG_SPAN}Ibyinjizwa mbere{$CLOSE_TAG_SPAN}",

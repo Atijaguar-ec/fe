@@ -1551,6 +1551,7 @@
     "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.required": "Quantity is required",
     "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.requiredOnQuote": "Enter the desired output quantity",
     "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.notAllOutputQuantityIsUsed": "Entered output quantity is not used completely",
+    "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.repackedQuantityExceedsOutput": "The sum of the sacs is greater than the entered output quantity",
     "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.notInExpectedRange": "Output quantity not in expected range",
     "productLabelStockProcessingOrderDetail.outputQuantityDesiredFirst.textinput.error": "Enter the desired output quantity first",
     "productLabelStockProcessingOrderDetail.totalOutputQuantity.textinput.error.quantityTooLarge": "Output quantity exceeds input quantity. Would you like to proceed?",

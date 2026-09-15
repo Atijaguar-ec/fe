@@ -299,6 +299,30 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
     return parsedEnteredOutput > repackedSOQuantity;
   }
 
+  // Al editar, los sacos no se regeneran al cambiar la cantidad: si el usuario baja el total
+  // y los sacos siguen sumando más, el lote quedaría con más peso del ingresado.
+  repackedQuantityExceedsOutput(tsoGroup: AbstractControl) {
+    const repackedOutputsArray = this.getTSOGroupRepackedOutputsArray(tsoGroup);
+    if (!repackedOutputsArray?.length) {
+      return false;
+    }
+
+    const parsedEnteredOutput = parseDecimal(
+      tsoGroup.get('totalQuantity').value,
+    );
+    if (parsedEnteredOutput == null || isNaN(parsedEnteredOutput)) {
+      return false;
+    }
+
+    let repackedSOQuantity = 0;
+    repackedOutputsArray.controls.forEach((soGroup: UntypedFormGroup) => {
+      const q = parseDecimal(soGroup.get('totalQuantity').value);
+      repackedSOQuantity += q != null && !isNaN(q) ? q : 0;
+    });
+
+    return repackedSOQuantity - parsedEnteredOutput > 0.005;
+  }
+
   private generateRepackedOutputStockOrders(
     totalOutputQuantity: any,
     tsoGroup: AbstractControl,

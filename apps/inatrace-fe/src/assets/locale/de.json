@@ -1316,6 +1316,7 @@
     "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.required": "Menge ist erforderlich",
     "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.requiredOnQuote": "Geben Sie die gewünschte Output-Menge ein",
     "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.notAllOutputQuantityIsUsed": "Entered output quantity is not used completely",
+    "productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.repackedQuantityExceedsOutput": "The sum of the sacs is greater than the entered output quantity",
     "productLabelStockProcessingOrderDetail.outputStockOrders.outputs.label": "Outputs",
     "productLabelStockProcessingOrderDetail.outputStockOrders.add": "{$START_TAG_SPAN}+{$CLOSE_TAG_SPAN}",
     "productLabelStockProcessingOrderDetail.outputStockOrders.prefill": "{$START_TAG_SPAN}Vorausfüllen{$CLOSE_TAG_SPAN}",
