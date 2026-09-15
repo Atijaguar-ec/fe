@@ -27,6 +27,7 @@ import {
   dateISOString,
   deleteNullFields,
   generateFormFromMetadata,
+  parseDecimal,
 } from '../../../../../shared/utils';
 import { CompanyFacilitiesForStockUnitProductService } from '../../../../shared-services/company-facilities-for-stock-unit-product.service';
 import { AvailableSellingFacilitiesForCompany } from '../../../../shared-services/available-selling-facilities-for.company';
@@ -746,6 +747,42 @@ export class StockProcessingOrderDetailsComponent
         this.enrichTargetStockOrders(processingOrder.targetStockOrders);
       }
 
+      // Normalize all numeric fields so decimals with comma (e.g. "109,1") are converted to numbers
+      processingOrder.targetStockOrders?.forEach((tso) => {
+        if (tso.totalQuantity != null) {
+          tso.totalQuantity = parseDecimal(tso.totalQuantity);
+        }
+        if (tso.tare != null) {
+          tso.tare = parseDecimal(tso.tare);
+        }
+        if (tso.totalGrossQuantity != null) {
+          tso.totalGrossQuantity = parseDecimal(tso.totalGrossQuantity);
+        }
+        if (tso.pricePerUnit != null) {
+          tso.pricePerUnit = parseDecimal(tso.pricePerUnit);
+        }
+        if (tso.damagedWeightDeduction != null) {
+          tso.damagedWeightDeduction = parseDecimal(tso.damagedWeightDeduction);
+        }
+        if (tso.damagedPriceDeduction != null) {
+          tso.damagedPriceDeduction = parseDecimal(tso.damagedPriceDeduction);
+        }
+        if (tso.sacNumber != null) {
+          tso.sacNumber = parseDecimal(tso.sacNumber);
+        }
+      });
+      processingOrder.inputTransactions?.forEach((tx) => {
+        if (tx.inputQuantity != null) {
+          tx.inputQuantity = parseDecimal(tx.inputQuantity);
+        }
+        if (tx.outputQuantity != null) {
+          tx.outputQuantity = parseDecimal(tx.outputQuantity);
+        }
+        if (tx.pricePerUnit != null) {
+          tx.pricePerUnit = parseDecimal(tx.pricePerUnit);
+        }
+      });
+
       const res = await this.processingOrderController
         .createOrUpdateProcessingOrder(processingOrder)
         .pipe(take(1))
@@ -1222,7 +1259,7 @@ export class StockProcessingOrderDetailsComponent
         (
           targetStockOrderGroup.get('repackedOutputsArray') as UntypedFormArray
         ).push(repackedStockOrderGroup);
-        totalOutputQuantity += tso.totalQuantity ?? 0;
+        totalOutputQuantity += parseDecimal(tso.totalQuantity) ?? 0;
       });
 
       // Set the total output quantity (calculated above) to the target Stock order
@@ -1252,8 +1289,8 @@ export class StockProcessingOrderDetailsComponent
   }
 
   calcRemainingQuantity() {
-    const inputQuantity = this.totalInputQuantityControl.value
-      ? parseFloat(this.totalInputQuantityControl.value)
+    const inputQuantity = this.totalInputQuantityControl.value != null
+      ? parseDecimal(this.totalInputQuantityControl.value)
       : null;
     const outputQuantity = this.totalOutputQuantity;
 
@@ -1283,7 +1320,7 @@ export class StockProcessingOrderDetailsComponent
       (tso) => {
         const measuringUnit = tso.measureUnitType;
         const quantityInMeasureUnit =
-          tso.totalQuantity != null ? tso.totalQuantity : null;
+          tso.totalQuantity != null ? parseDecimal(tso.totalQuantity) : null;
 
         if (measuringUnit != null && quantityInMeasureUnit != null) {
           // Calculate the quantity in KGs
@@ -1363,6 +1400,10 @@ export class StockProcessingOrderDetailsComponent
 
     return sourceStockOrder.repackedOutputsArray.map((repackedSacUnit) => {
       const newStockOrder = { ...repackedSacUnit };
+      newStockOrder.totalQuantity = parseDecimal(newStockOrder.totalQuantity);
+      if (newStockOrder.sacNumber != null) {
+        newStockOrder.sacNumber = parseDecimal(newStockOrder.sacNumber);
+      }
       newStockOrder.creatorId = sourceStockOrder.creatorId;
       newStockOrder.internalLotNumber = sourceStockOrder.internalLotNumber;
       newStockOrder.facility = sourceStockOrder.facility;

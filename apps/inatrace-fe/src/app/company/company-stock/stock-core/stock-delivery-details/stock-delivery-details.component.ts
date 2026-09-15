@@ -22,7 +22,7 @@ import { ApiUserCustomer } from '../../../../../api/model/apiUserCustomer';
 import { ApiPlot } from '../../../../../api/model/apiPlot';
 import { ApiStockOrder } from '../../../../../api/model/apiStockOrder';
 import { CertificationTypeControllerService } from '../../../../../api/api/certificationTypeController.service';
-import {dateISOString, defaultEmptyObject, generateFormFromMetadata} from '../../../../../shared/utils';
+import {dateISOString, defaultEmptyObject, generateFormFromMetadata, parseDecimal} from '../../../../../shared/utils';
 import { ApiStockOrderValidationScheme } from './validation';
 import { Location } from '@angular/common';
 import { AuthService } from '../../../../core/auth.service';
@@ -1545,14 +1545,14 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   get damagedPriceDeductionInvalidCheck() {
-    const damagedPriceDeduction: number = Number(this.stockOrderForm.get('damagedPriceDeduction').value).valueOf();
-    const pricePerUnit: number = Number(this.stockOrderForm.get('pricePerUnit').value).valueOf();
+    const damagedPriceDeduction: number = parseDecimal(this.stockOrderForm.get('damagedPriceDeduction').value) ?? 0;
+    const pricePerUnit: number = parseDecimal(this.stockOrderForm.get('pricePerUnit').value) ?? 0;
     return damagedPriceDeduction && pricePerUnit && (damagedPriceDeduction > pricePerUnit);
   }
 
   get damagedWeightDeductionInvalidCheck() {
-    const damagedWeightDeduction = Number(this.stockOrderForm.get('damagedWeightDeduction').value).valueOf();
-    const totalQuantity = Number(this.stockOrderForm.get('totalQuantity').value).valueOf();
+    const damagedWeightDeduction = parseDecimal(this.stockOrderForm.get('damagedWeightDeduction').value) ?? 0;
+    const totalQuantity = parseDecimal(this.stockOrderForm.get('totalQuantity').value) ?? 0;
     return damagedWeightDeduction && totalQuantity && (damagedWeightDeduction > totalQuantity);
   }
 
@@ -1765,6 +1765,14 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.setBalance();
 
       const data: ApiStockOrder = _.cloneDeep(this.stockOrderForm.value);
+      if (data.totalQuantity != null) data.totalQuantity = parseDecimal(data.totalQuantity);
+      if (data.totalGrossQuantity != null) data.totalGrossQuantity = parseDecimal(data.totalGrossQuantity);
+      if (data.tare != null) data.tare = parseDecimal(data.tare);
+      if (data.pricePerUnit != null) data.pricePerUnit = parseDecimal(data.pricePerUnit);
+      if (data.damagedWeightDeduction != null) data.damagedWeightDeduction = parseDecimal(data.damagedWeightDeduction);
+      if (data.damagedPriceDeduction != null) data.damagedPriceDeduction = parseDecimal(data.damagedPriceDeduction);
+      if (data.sacNumber != null) data.sacNumber = parseDecimal(data.sacNumber);
+
       // Remove null/undefined keys
       Object.keys(data as any).forEach((key) => ((data as any)[key] == null) && delete (data as any)[key]);
 

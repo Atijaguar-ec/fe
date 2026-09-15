@@ -80,6 +80,7 @@ import { CompanyProcessingActionsComponent } from './company/company-detail/comp
 import { CompanyDetailProcessingActionsListComponent } from './company/company-detail/company-processing-actions/company-detail-processing-actions-list/company-detail-processing-actions-list.component';
 import { CurrencyListComponent } from './currency-list/currency-list.component';
 import { LanguageInterceptor } from './core/language.interceptor';
+import { DecimalFormatInterceptor } from './core/decimal-format.interceptor';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { CompanyDashboardComponent } from './company/company-dashboard/company-dashboard.component';
 import { CompanyCommonModule } from './company/company-common/company-common.module';
@@ -207,6 +208,11 @@ export function getConfiguration(): Configuration {
     {
       provide: HTTP_INTERCEPTORS,
       useClass: LanguageInterceptor,
+      multi: true,
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: DecimalFormatInterceptor,
       multi: true,
     },
     {

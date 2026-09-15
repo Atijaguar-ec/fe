@@ -656,3 +656,53 @@ export function deleteNullFields(object: any) {
     (key) => object[key] == null && delete object[key],
   );
 }
+
+/**
+ * Safely parses a number from number or string, accepting both dot (.) and comma (,) as decimal separator.
+ * Also handles thousands separators (e.g. 1.234,56 or 1,234.56).
+ */
+export function parseDecimal(value: any): number | null {
+  if (value == null || value === '') {
+    return null;
+  }
+  if (typeof value === 'number') {
+    return isNaN(value) ? null : value;
+  }
+  if (typeof value !== 'string') {
+    const num = Number(value);
+    return isNaN(num) ? null : num;
+  }
+
+  const trimmed = value.trim();
+  if (trimmed === '') {
+    return null;
+  }
+
+  const hasComma = trimmed.indexOf(',') !== -1;
+  const hasDot = trimmed.indexOf('.') !== -1;
+
+  if (hasComma && hasDot) {
+    const lastComma = trimmed.lastIndexOf(',');
+    const lastDot = trimmed.lastIndexOf('.');
+    if (lastComma > lastDot) {
+      // e.g. 1.234,56 -> dot is thousand separator, comma is decimal
+      const normalized = trimmed.replace(/\./g, '').replace(',', '.');
+      const num = Number(normalized);
+      return isNaN(num) ? null : num;
+    } else {
+      // e.g. 1,234.56 -> comma is thousand separator, dot is decimal
+      const normalized = trimmed.replace(/,/g, '');
+      const num = Number(normalized);
+      return isNaN(num) ? null : num;
+    }
+  } else if (hasComma) {
+    // Only comma present, e.g. 109,1 -> comma is decimal
+    const normalized = trimmed.replace(',', '.');
+    const num = Number(normalized);
+    return isNaN(num) ? null : num;
+  } else {
+    // Only dot or no separator, e.g. 109.1 or 109
+    const num = Number(trimmed);
+    return isNaN(num) ? null : num;
+  }
+}

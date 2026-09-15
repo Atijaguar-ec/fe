@@ -30,6 +30,7 @@ import { ApiStockOrder } from '../../../../../../api/model/apiStockOrder';
 import {
   dateISOString,
   generateFormFromMetadata,
+  parseDecimal,
 } from '../../../../../../shared/utils';
 import { ApiStockOrderValidationScheme } from '../validation';
 import OrderTypeEnum = ApiStockOrder.OrderTypeEnum;
@@ -282,23 +283,24 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    const enteredOutputQuantity = tsoGroup.get('totalQuantity').value;
-    if (!enteredOutputQuantity) {
+    const parsedEnteredOutput = parseDecimal(
+      tsoGroup.get('totalQuantity').value,
+    );
+    if (parsedEnteredOutput == null || isNaN(parsedEnteredOutput)) {
       return false;
     }
 
     let repackedSOQuantity = 0;
     repackedOutputsArray.controls.forEach((soGroup: UntypedFormGroup) => {
-      repackedSOQuantity += soGroup.get('totalQuantity').value
-        ? Number(soGroup.get('totalQuantity').value)
-        : 0;
+      const q = parseDecimal(soGroup.get('totalQuantity').value);
+      repackedSOQuantity += q != null && !isNaN(q) ? q : 0;
     });
 
-    return Number(enteredOutputQuantity) > repackedSOQuantity;
+    return parsedEnteredOutput > repackedSOQuantity;
   }
 
   private generateRepackedOutputStockOrders(
-    totalOutputQuantity: number,
+    totalOutputQuantity: any,
     tsoGroup: AbstractControl,
   ): void {
     const repackedOutputsArray = this.getTSOGroupRepackedOutputsArray(tsoGroup);
@@ -308,10 +310,17 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Se vacía antes de validar: si la cantidad se borra o queda en 0, los sacos
+    // calculados para el valor anterior no deben quedar en pantalla.
     repackedOutputsArray.clear();
 
+    const numQuantity = parseDecimal(totalOutputQuantity);
+    if (numQuantity == null || isNaN(numQuantity) || numQuantity <= 0) {
+      return;
+    }
+
     const outputStockOrdersSize = Math.ceil(
-      totalOutputQuantity / this.getTSOGroupRepackedMaxWeight(tsoGroup),
+      numQuantity / this.getTSOGroupRepackedMaxWeight(tsoGroup),
     );
     for (let i = 0; i < outputStockOrdersSize; i++) {
       repackedOutputsArray.push(
