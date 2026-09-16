@@ -287,7 +287,6 @@
     "companyLeftPanel.farmers": "Landwirt*innen",
     "companyLeftPanel.collectors": "Sammler*innen",
     "companyLeftPanel.customers": "Kunden",
-    "companyLeftPanel.reports": "Berichte & BI",
     "productLabelStakeholders.title.buyers": "Käufer",
     "productLabelStakeholders.button.newBuyer": "{$START_TAG_SPAN}+ Käufer hinzufügen{$CLOSE_TAG_SPAN}",
     "productLabelStakeholders.title.producers": "Produzent*innen",

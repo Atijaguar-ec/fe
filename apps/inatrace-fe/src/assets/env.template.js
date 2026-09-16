@@ -27,8 +27,4 @@
 
   // Feature flags
   window['env']['enableShrimpModule'] = '${ENABLE_SHRIMP_MODULE}';
-
-  // BI / Superset integration
-  window['env']['supersetBaseUrl'] = '${SUPERSET_BASE_URL}';
-  window['env']['biEnvironment'] = '${BI_ENVIRONMENT}';
 })(this);
