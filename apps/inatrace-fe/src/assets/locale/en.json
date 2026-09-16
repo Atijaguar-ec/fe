@@ -1221,7 +1221,7 @@
     "companyLeftPanel.customers": "Customers",
     "companyLeftPanel.reports": "Reports & BI",
     "companyReports.title": "Reports & BI",
-    "companyReports.button.openSuperset": "↗ Open in Superset",
+    "companyReports.button.openSuperset": "↗ Open in full tab",
     "companyReports.noDashboard": "Configure Superset URL to display reports.",
     "companyReports.tab.agrocalidad": "Agrocalidad (GUIA System)",
     "companyReports.tab.agrocalidad.desc": "Official 26-variable report — MAG Ministerial Agreement No. 023",

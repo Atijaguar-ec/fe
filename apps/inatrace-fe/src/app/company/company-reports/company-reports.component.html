@@ -18,10 +18,10 @@
             type="button"
             class="btn btn-outline-secondary btn-sm focus-toggle-btn"
             (click)="toggleFocusMode()"
-            [title]="focusMode ? 'Mostrar panel lateral' : 'Expandir a pantalla completa'"
+            [title]="focusMode ? 'Restaurar menú lateral' : 'Expandir a pantalla completa'"
           >
-            <span *ngIf="!focusMode">⛶ Modo Enfoque</span>
-            <span *ngIf="focusMode">⮌ Salir de Enfoque</span>
+            <span *ngIf="!focusMode">⛶ Pantalla completa</span>
+            <span *ngIf="focusMode">⮌ Restaurar vista</span>
           </button>
           <button
             *ngIf="supersetBaseUrl"
@@ -36,12 +36,12 @@
         </div>
       </div>
 
-      <!-- Quick Productivity Tip (Dismissible) -->
+      <!-- Direct Help Message (Dismissible) -->
       <div class="auth-notice-bar" *ngIf="showAuthTip">
         <div class="auth-notice-content">
           <span class="auth-notice-icon">💡</span>
           <span class="auth-notice-text">
-            <strong>Consejo para el operador:</strong> Para visualizar la tabla de 26 variables a pantalla completa o si el sistema le solicita credenciales por primera vez, use el botón <strong>«↗ Abrir en pestaña completa»</strong>.
+            Para ver la tabla completa de 26 variables o si el sistema le solicita usuario por primera vez, use <strong>«↗ Abrir en pestaña completa»</strong>.
           </span>
         </div>
         <button type="button" class="btn-close-tip" (click)="dismissAuthTip()" aria-label="Cerrar">×</button>
