@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import * as turf from '@turf/turf';
 import { generateFormFromMetadata } from 'src/shared/utils';
@@ -17,6 +17,9 @@ import { faCopy } from '@fortawesome/free-solid-svg-icons';
 import { EnumSifrant } from '../../../shared-services/enum-sifrant';
 import { ActiveCertificationTypesService } from '../../../shared-services/active-certification-types.service';
 import { CertificationTypeControllerService } from '../../../../api/api/certificationTypeController.service';
+import { SelectedUserCompanyService } from '../../../core/selected-user-company.service';
+import { ApiCompanyGet } from '../../../../api/model/apiCompanyGet';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-plots-item',
@@ -26,7 +29,7 @@ import { CertificationTypeControllerService } from '../../../../api/api/certific
 })
 export class PlotsItemComponent
   extends GenericEditableItemComponent<ApiPlot>
-  implements OnInit
+  implements OnInit, OnDestroy
 {
   @Input()
   disableDelete = false;
@@ -67,15 +70,30 @@ export class PlotsItemComponent
   // parámetro del constructor todavía no está asignado.
   certificationTypeCodebook: ActiveCertificationTypesService;
 
-  cocoaVarietyCodebook = EnumSifrant.fromObject({
-    ORGANICO: 'Orgánico',
-    CCN51: 'CCN51',
-  });
+  // Las etiquetas dependen de la empresa (ver cocoaVarietyLabels); el valor guardado
+  // es siempre ORGANICO/CCN51.
+  cocoaVarietyCodebook = EnumSifrant.fromObject(
+    PlotsItemComponent.cocoaVarietyLabels(null),
+  );
+
+  private companySubscription: Subscription;
+
+  /**
+   * Con numericVarietyOptions (UNOCACE) la variedad se muestra como "1" y "2", igual que
+   * en Entregas y Procesamiento. Solo cambia la etiqueta: la parcela sigue guardando el
+   * enum, y varietyValueFromPlot() de Entregas lo convierte al "1"/"2" de la entrega.
+   */
+  static cocoaVarietyLabels(company: ApiCompanyGet | null): Record<string, string> {
+    return company?.configuration?.numericVarietyOptions
+      ? { ORGANICO: '1', CCN51: '2' }
+      : { ORGANICO: 'Orgánico', CCN51: 'CCN51' };
+  }
 
   constructor(
     protected globalEventsManager: GlobalEventManagerService,
     protected router: Router,
     private certificationTypeControllerService: CertificationTypeControllerService,
+    private selUserCompanyService: SelectedUserCompanyService,
   ) {
     super(globalEventsManager);
     this.certificationTypeCodebook = new ActiveCertificationTypesService(
@@ -84,6 +102,14 @@ export class PlotsItemComponent
   }
 
   ngOnInit() {
+    this.companySubscription = this.selUserCompanyService.selectedCompanyProfile$.subscribe(
+      (company) => {
+        this.cocoaVarietyCodebook = EnumSifrant.fromObject(
+          PlotsItemComponent.cocoaVarietyLabels(company),
+        );
+      },
+    );
+
     if (this.form.get('id').value) {
       this.mapEditable = false;
       this.selectPlotType = false;
@@ -107,6 +133,10 @@ export class PlotsItemComponent
     setTimeout(() => {
       this.tagOpened = true;
     }, 500);
+  }
+
+  ngOnDestroy() {
+    this.companySubscription?.unsubscribe();
   }
 
   get name() {

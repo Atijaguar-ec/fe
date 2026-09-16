@@ -127,7 +127,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   lockedFromPlot = { variety: false, organic: false, certification: false };
 
   /** Mientras se vuelcan los datos de la parcela, las reglas automáticas de los
-   *  listeners (CCN51 → transición, orgánico "No" → transición) no deben pisarlos. */
+   *  listeners (CCN51 → no orgánica, orgánico "No" → certificación no orgánica) no deben pisarlos. */
   private applyingPlotDefaults = false;
 
   /** Código de catálogo → nombre (el que se guarda en la entrega). La parcela se
@@ -276,7 +276,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   /**
    * "CCN51" se guarda como "2" cuando numericVarietyOptions está activo (ver
    * initializeVarietyOptions). Los efectos que dependen de la variedad CCN51
-   * (autocompletar certificación de transición) deben reconocerla en ambas
+   * (autocompletar certificación no orgánica) deben reconocerla en ambas
    * representaciones en vez de comparar contra el literal 'CCN51'.
    */
   private isCcn51VarietyValue(val: string): boolean {
@@ -301,19 +301,25 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       .replace(/ñ/g, 'n');
   }
 
-  private getTransitionCertificationKey(): string {
-    const keys = Object.keys(this.certificationTypeMap);
-    return (
-      keys.find((k) => {
-        const normalized = this.stripAccents(k.toLowerCase());
-        return normalized.includes('transition') || normalized.includes('transicion');
-      }) || 'Transición / Fairtrade / SPP'
-    );
+  /**
+   * Certificación que se asigna por defecto a una entrega no orgánica (o CCN51): la
+   * primera no orgánica del catálogo. Sin texto fijo de respaldo: si el catálogo no
+   * tiene ninguna, no se asigna nada y el usuario la elige.
+   */
+  private getNonOrganicCertificationKey(): string | null {
+    return Object.keys(this.certificationTypeMap).find((k) => this.isNonOrganicCertification(k)) ?? null;
   }
 
-  private isTransitionCertification(value: string): boolean {
+  /**
+   * Una certificación es "no orgánica" si su nombre dice transición o convencional
+   * (catálogo UNOCACE 2026-09: "Convencional Fairtrade"; antes "Transición / Fairtrade /
+   * SPP"). Va por nombre porque es lo que guarda la entrega y lo que el admin puede
+   * crear desde Ajustes: una certificación nueva no orgánica tiene que llevar una de
+   * esas palabras.
+   */
+  private isNonOrganicCertification(value: string): boolean {
     const normalized = this.stripAccents((value ?? '').toLowerCase());
-    return normalized.includes('transicion') || normalized.includes('transition');
+    return ['transicion', 'transition', 'convencional', 'conventional'].some((w) => normalized.includes(w));
   }
 
   private refreshCertificationTypeOptions() {
@@ -324,14 +330,14 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     const filteredMap: { [key: string]: string } = {};
 
     Object.keys(this.certificationTypeMap).forEach((key) => {
-      const isTransitionCert = this.isTransitionCertification(key);
+      const isNonOrganicCert = this.isNonOrganicCertification(key);
 
       if (isOrganic) {
-        if (!isTransitionCert) {
+        if (!isNonOrganicCert) {
           filteredMap[key] = this.certificationTypeMap[key];
         }
       } else if (isNonOrganic) {
-        if (isTransitionCert) {
+        if (isNonOrganicCert) {
           filteredMap[key] = this.certificationTypeMap[key];
         }
       } else {
@@ -503,7 +509,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
    * más parcelas todavía sin elegir) no puede quedar la variedad de la anterior.
    *
    * "¿Tiene certificado orgánico?" no existe en la parcela y se deriva de su
-   * certificación con la misma regla que ya usa el filtro del combo: la de transición
+   * certificación con la misma regla que ya usa el filtro del combo: la no orgánica
    * es "No", cualquier otra es "Sí".
    *
    * En modo texto libre (parcelLotFreeText) no hay parcelas: no se hace nada, y
@@ -534,7 +540,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       // Con onlyOrganicProduction orgánico y certificación salen del perfil de la empresa.
       const certification = this.certificationNameFromPlot(plot);
       if (certification && !onlyOrganic) {
-        const organic = this.isTransitionCertification(certification) ? 'false' : 'true';
+        const organic = this.isNonOrganicCertification(certification) ? 'false' : 'true';
         // Fijar orgánico refiltra las opciones del combo; la certificación va después.
         this.stockOrderForm.get('organic')?.setValue(organic);
         this.stockOrderForm.get('organicCertification')?.setValue(certification);
@@ -543,7 +549,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       } else if (!onlyOrganic && this.isCcn51VarietyValue(this.stockOrderForm.get('variety')?.value)) {
         // Parcela sin certificación: queda editable, con el mismo default que ya
         // aplicaba el listener de variedad.
-        this.stockOrderForm.get('organicCertification')?.setValue(this.getTransitionCertificationKey());
+        this.stockOrderForm.get('organicCertification')?.setValue(this.getNonOrganicCertificationKey());
       }
     } finally {
       this.applyingPlotDefaults = false;
@@ -1123,8 +1129,10 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
           return;
         }
         if (this.isCcn51VarietyValue(val)) {
-          const tKey = this.getTransitionCertificationKey();
-          this.stockOrderForm.get('organicCertification')?.setValue(tKey);
+          // CCN51 es la variedad no orgánica (UNOCACE: 1 = Orgánico, 2 = CCN51). Se
+          // marca "No" primero: eso refiltra el combo y deja entrar la certificación.
+          this.stockOrderForm.get('organic')?.setValue('false');
+          this.stockOrderForm.get('organicCertification')?.setValue(this.getNonOrganicCertificationKey());
         }
       });
     }
@@ -1147,7 +1155,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
         }
         const certControl = this.stockOrderForm.get('organicCertification');
         if (certControl && (!certControl.value || val === 'false' || val === false)) {
-          const tKey = this.getTransitionCertificationKey();
+          const tKey = this.getNonOrganicCertificationKey();
           certControl.setValue(tKey);
         }
       });
@@ -1630,23 +1638,18 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       }
     } else {
       // Resto de empresas (ej. UNOCACE): CCN51 o "No" orgánico defaultea a
-      // certificación de transición.
+      // certificación no orgánica.
       // Si la certificación viene de la parcela, manda la parcela.
       if (this.lockedFromPlot.certification) {
         return;
       }
-      const tKey = this.getTransitionCertificationKey();
-      const isCCN51 = this.isCcn51VarietyValue(this.stockOrderForm.get('variety')?.value);
-      if (isCCN51) {
-        this.stockOrderForm.get('organicCertification')?.setValue(tKey);
-      } else {
-        const organicVal = this.stockOrderForm.get('organic')?.value;
-        if (organicVal === 'false' || organicVal === false) {
-          const certControl = this.stockOrderForm.get('organicCertification');
-          if (certControl && !certControl.value) {
-            certControl.setValue(tKey);
-          }
-        }
+      const organicVal = this.stockOrderForm.get('organic')?.value;
+      const nonOrganic = organicVal === 'false' || organicVal === false
+        || this.isCcn51VarietyValue(this.stockOrderForm.get('variety')?.value);
+      const certControl = this.stockOrderForm.get('organicCertification');
+      // Solo completa lo que falta: lo que eligió el usuario se respeta.
+      if (nonOrganic && certControl && !certControl.value) {
+        certControl.setValue(this.getNonOrganicCertificationKey());
       }
     }
   }
