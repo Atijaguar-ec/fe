@@ -1,38 +1,38 @@
 @import '../../../variables';
 
 .reports-container {
-  padding-bottom: 16px;
+  padding-bottom: 8px;
   transition: all 0.25s ease-in-out;
 
   &.focus-mode {
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
-    padding: 12px 20px !important;
+    padding: 8px 16px !important;
   }
 }
 
-// Executive Header Bar
+// Executive Header Bar (Ultra-Compact)
 .reports-header-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px;
-  padding: 4px 0 10px 0;
+  gap: 8px;
+  padding: 2px 0 6px 0;
   border-bottom: 1px solid #e9ecef;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 .reports-header-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .reports-title {
-  font-size: 1.35rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: $theme-primary;
   margin: 0;
@@ -42,12 +42,12 @@
 .reports-company-badge {
   background: #f1f3f5;
   color: #495057;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
   border: 1px solid #dee2e6;
-  max-width: 380px;
+  max-width: 350px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -56,16 +56,20 @@
 .reports-header-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+
+  .btn-compact {
+    font-size: 0.76rem !important;
+    font-weight: 600 !important;
+    padding: 4px 9px !important;
+    border-radius: 4px !important;
+    line-height: 1.2 !important;
+  }
 
   .focus-toggle-btn {
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 6px 14px;
-    border-radius: 6px;
+    gap: 4px;
     border: 1px solid #ced4da;
     color: #495057;
     background: #fff;
@@ -81,84 +85,39 @@
   .open-fullscreen-btn {
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 6px 14px;
-    border-radius: 6px;
+    gap: 4px;
     background-color: $theme-primary;
     border-color: $theme-primary;
     color: #fff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
     transition: all 0.15s ease;
 
     &:hover {
       filter: brightness(0.92);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    }
-  }
-}
-
-// Quick Productivity Tip
-.auth-notice-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #fff9db;
-  border: 1px solid #ffe066;
-  border-left: 4px solid #f59f00;
-  padding: 8px 14px;
-  border-radius: 6px;
-  margin-bottom: 10px;
-  font-size: 0.85rem;
-  color: #664d03;
-
-  .auth-notice-content {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .auth-notice-icon {
-    font-size: 1.1rem;
-    line-height: 1;
-  }
-
-  .btn-close-tip {
-    background: none;
-    border: none;
-    font-size: 1.25rem;
-    line-height: 1;
-    color: #856404;
-    cursor: pointer;
-    padding: 0 4px;
-    opacity: 0.7;
-
-    &:hover {
-      opacity: 1;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
     }
   }
 }
 
 // Compact Tabs Toolbar
 .tabs-toolbar {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .report-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 6px;
+  gap: 4px;
+  margin-bottom: 4px;
 
   .nav-link {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.82rem;
+    gap: 5px;
+    font-size: 0.76rem;
     font-weight: 500;
-    padding: 5px 12px;
-    border-radius: 18px;
+    padding: 3px 9px;
+    border-radius: 14px;
     color: #495057;
     background: #f8f9fa;
     border: 1px solid #e9ecef;
@@ -174,13 +133,13 @@
       border-color: $theme-primary;
       color: #fff;
       font-weight: 600;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
     }
   }
 }
 
 .tab-icon {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   line-height: 1;
 }
 
@@ -189,30 +148,30 @@
 }
 
 .active-tab-desc {
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   color: #6c757d;
-  padding: 3px 6px;
-  margin-bottom: 6px;
+  padding: 2px 4px;
+  margin-bottom: 4px;
 }
 
-// High-Visibility Iframe Container
+// High-Visibility Iframe Container (Maximized Real Estate)
 .dashboard-frame-container {
   width: 100%;
 }
 
 .dashboard-frame-wrapper {
   width: 100%;
-  height: calc(100vh - 210px);
-  min-height: 650px;
+  height: calc(100vh - 165px);
+  min-height: 680px;
   border: 1px solid #dee2e6;
   border-radius: 6px;
   overflow: hidden;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 
   .focus-mode & {
-    height: calc(100vh - 145px);
-    min-height: 800px;
+    height: calc(100vh - 110px);
+    min-height: 820px;
   }
 }
 

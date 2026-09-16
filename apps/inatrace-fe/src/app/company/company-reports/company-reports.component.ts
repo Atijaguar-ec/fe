@@ -29,7 +29,6 @@ export class CompanyReportsComponent implements OnInit {
   supersetBaseUrl = '';
   biEnvironment = '';
   focusMode = false;
-  showAuthTip = true;
   currentTabDescription = '';
 
   iframeSrc: SafeResourceUrl | null = null;
@@ -128,10 +127,6 @@ export class CompanyReportsComponent implements OnInit {
 
   toggleFocusMode(): void {
     this.focusMode = !this.focusMode;
-  }
-
-  dismissAuthTip(): void {
-    this.showAuthTip = false;
   }
 
   openInSuperset(): void {

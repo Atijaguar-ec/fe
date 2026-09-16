@@ -4,10 +4,10 @@
   <div class="main reports-container" [ngClass]="{ 'focus-mode': focusMode }">
     <div class="af-form-wrapper">
 
-      <!-- Executive Header Bar -->
+      <!-- Executive Header Bar (Compact) -->
       <div class="reports-header-bar">
         <div class="reports-header-left">
-          <h2 class="reports-title" i18n="@@companyReports.title">Reportes &amp; BI</h2>
+          <h3 class="reports-title" i18n="@@companyReports.title">Reportes &amp; BI</h3>
           <span class="reports-company-badge" *ngIf="companyName">
             {{ companyName }}
           </span>
@@ -16,7 +16,7 @@
         <div class="reports-header-actions">
           <button
             type="button"
-            class="btn btn-outline-secondary btn-sm focus-toggle-btn"
+            class="btn btn-outline-secondary btn-compact focus-toggle-btn"
             (click)="toggleFocusMode()"
             [title]="focusMode ? 'Restaurar menú lateral' : 'Expandir a pantalla completa'"
           >
@@ -26,7 +26,7 @@
           <button
             *ngIf="supersetBaseUrl"
             type="button"
-            class="btn btn-primary btn-sm open-fullscreen-btn"
+            class="btn btn-primary btn-compact open-fullscreen-btn"
             (click)="openInSuperset()"
             title="Abrir el reporte en una pestaña independiente sin marcos"
             i18n="@@companyReports.button.openSuperset"
@@ -34,17 +34,6 @@
             ↗ Abrir en pestaña completa
           </button>
         </div>
-      </div>
-
-      <!-- Direct Help Message (Dismissible) -->
-      <div class="auth-notice-bar" *ngIf="showAuthTip">
-        <div class="auth-notice-content">
-          <span class="auth-notice-icon">💡</span>
-          <span class="auth-notice-text">
-            Para ver la tabla completa de 26 variables o si el sistema le solicita usuario por primera vez, use <strong>«↗ Abrir en pestaña completa»</strong>.
-          </span>
-        </div>
-        <button type="button" class="btn-close-tip" (click)="dismissAuthTip()" aria-label="Cerrar">×</button>
       </div>
 
       <!-- Compact Tabs Toolbar -->
