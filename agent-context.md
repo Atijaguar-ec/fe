@@ -241,7 +241,7 @@ guardar), pero **el usuario no lo ve**, que es igual de grave.
 
 ### 10.2 Caso concreto que ocurrió
 
-La config de empresa `numericVarietyOptions` (solo UNOCACE) hace que Entregas
+La config de empresa `numericVarietyOptions` (UNOCACE; desde el 2026-09-16, en todas sus empresas) hace que Entregas
 guarde la variedad como `"1"`/`"2"` en vez de `NACIONAL`/`CCN51`. Procesamiento
 **propaga** ese valor desde las entregas de entrada
 (`stock-processing-order-details.component.ts` → `variety.setValue(ref.variety)`),
@@ -326,10 +326,11 @@ hay que preservar si tocás eso:
   **vacío y editable** (decisión del 2026-09-14): la entrega no se frena mientras la
   organización termina de cargar sus parcelas. Los `FormControl` nunca se
   deshabilitan — un control `disabled` no sale en `form.value` y no se guardaría.
-- **"¿Tiene certificado orgánico?" no existe en la parcela: se deriva.** Transición
-  → "No"; cualquier otra certificación → "Sí". Es la misma regla que ya usaba el
-  filtro del combo de certificaciones (`isTransitionCertification()`), así que lo
-  heredado siempre cae dentro de las opciones vigentes.
+- **"¿Tiene certificado orgánico?" no existe en la parcela: se deriva.** Una
+  certificación no orgánica (nombre con convencional o transición, ver §17) da "No";
+  cualquier otra, "Sí". Es la misma regla del filtro del combo
+  (`isNonOrganicCertification()`), así que lo heredado siempre cae dentro de las
+  opciones vigentes.
 - **La certificación se busca por `code`, no por nombre.** El catálogo se pide con
   `listActive('ES')` y la parcela llega en el idioma de la petición; comparar
   nombres fallaba en silencio con otro idioma o si alguien renombra desde el admin.
@@ -337,7 +338,8 @@ hay que preservar si tocás eso:
   `null`, el listener corre y `clearPlotDerivedFields()` vacía variedad, orgánico y
   certificación. Antes quedaba la variedad del agricultor anterior (reporte UNOCACE).
 - **Mientras hereda, las reglas automáticas callan** (`applyingPlotDefaults`): la de
-  CCN51 → transición y la de orgánico "No" → transición pisaban lo de la parcela.
+  CCN51 → no orgánica y la de orgánico "No" → certificación no orgánica pisaban lo
+  de la parcela.
   Por lo mismo `prepareData()`, que corre **también al guardar**, no toca la
   certificación si está bloqueada.
 - **En texto libre (`parcelLotFreeText`) no hace nada.** No hay parcelas, y el
@@ -352,9 +354,9 @@ hay que preservar si tocás eso:
 guarda `cocoaVariety` como `ORGANICO | CCN51`; la entrega guarda `NACIONAL |
 CCN51`, o `"1" | "2"` con `numericVarietyOptions`. `varietyValueFromPlot()` asume
 que **ORGANICO y NACIONAL son la misma casilla con distinto nombre**. La mitad
-numérica sí está respaldada por el código (`initializeVarietyOptions` documenta
-1 = Orgánico); la equivalencia con "Nacional" es inferencia. Si resulta falsa, es
-una línea.
+numérica está confirmada por UNOCACE (2026-09: 1 = Orgánico, 2 = CCN51, y la parcela
+también muestra 1/2, ver §17); la equivalencia con "Nacional" es inferencia. Si
+resulta falsa, es una línea.
 
 **Preselección**: al elegir agricultor se preselecciona la parcela **solo si
 tiene una sola**. Con dos o más el campo queda vacío a propósito — elegir por el
@@ -500,7 +502,7 @@ Claves vigentes:
 | `onlyOrganicProduction` | Automatiza y oculta la certificación orgánica |
 | `onlyNacionalVariety` | Fija la variedad y oculta el campo |
 | `enableParcelLot` | Muestra Lote (Parcela) en registro y procesamiento |
-| `numericVarietyOptions` | Variedad como `"1"`/`"2"` (ver §12) |
+| `numericVarietyOptions` | Variedad como `"1"`/`"2"` en Entregas, Procesamiento y Parcela (ver §10, §17) |
 | `weekNumberingScheme` | `ISO` (ausente = este) o `FIRST_MONDAY` |
 | `weekColorCodes` | Muestra el color de la semana |
 | `parcelLotFreeText` | N° Parcela como caja de texto, iniciada en 1 |
@@ -720,3 +722,84 @@ cargan **en tiempo de ejecución** (`bootstrap.ts` hace `fetch` de
 `/assets/locale/<locale>.json` y `loadTranslations`): tras desplegar, el navegador
 puede seguir usando el JSON viejo y mostrar el texto en inglés. Es caché, no un
 error de traducción; se resuelve recargando sin caché.
+
+---
+
+## 17. Variedad 1/2 y certificación no orgánica "Convencional" (UNOCACE)
+
+> Escrito el **2026-09-16** (commit `bc1fee1e`, junto con el backend `1bd38c1e`). Lo
+> marcado como *verificado* se comprobó con pruebas o en la base de pruebas de UNOCACE
+> ese día. Plan y conteos: `docs/cambios/2026-09-16-unocace-variedad-y-certificaciones-plan.md`.
+> Espejo del backend: `backend/agent-context.md` §18.
+
+### 17.1 Qué pidió UNOCACE y qué quedó
+
+- **Variedad en la parcela:** se muestra `1` (Orgánico) y `2` (CCN51) cuando la empresa
+  tiene `numericVarietyOptions`. Las etiquetas salen de
+  `PlotsItemComponent.cocoaVarietyLabels(company)`, que usa la empresa seleccionada
+  (`SelectedUserCompanyService.selectedCompanyProfile$`).
+- **Catálogo de certificaciones** (datos, no código): quedan activos 4 valores:
+  `Organico UE/NOP/Biosuisse/Naturland/Fairtrade/SPP`,
+  `Organico UE/NOP/Biosuisse/Fairtrade/SPP`, `Organico UE/NOP/Fairtrade/SPP` y
+  `Convencional Fairtrade`. "Comercio Justo" quedó `INACTIVE`.
+
+### 17.2 Reglas que no hay que romper
+
+1. **La parcela guarda `ORGANICO`/`CCN51`, aunque muestre 1/2.** Solo cambia la
+   etiqueta. No cambies el valor del enum a `"1"`/`"2"`: el backend lo tipa como
+   `CocoaVariety`, y `varietyValueFromPlot()` ya lo convierte al `"1"`/`"2"` que
+   guarda la entrega.
+2. **La entrega guarda la certificación como TEXTO** (el nombre en ES), no como id.
+   Renombrar el catálogo no actualiza las entregas viejas: hace falta SQL (ver el
+   script en `backend/agent-context.md` §18.4).
+3. **"No orgánica" se decide por nombre:** `isNonOrganicCertification()` reconoce
+   `convencional | conventional | transicion | transition`, sin tildes y sin
+   distinguir mayúsculas. **Si agregás una palabra, agregala también en
+   `StockOrderService.isNonOrganicCertificationName()` del backend**: las dos reglas
+   tienen que coincidir. Un admin que cree desde Ajustes una certificación no
+   orgánica tiene que usar una de esas palabras en el nombre.
+4. **No hay texto fijo de respaldo.** `getNonOrganicCertificationKey()` devuelve la
+   primera no orgánica del catálogo, o `null` si no hay ninguna. Antes se usaba el
+   literal `'Transición / Fairtrade / SPP'`; con el catálogo nuevo eso guardaba un
+   valor inexistente, y `single-choice` lo mostraba vacío (§10). No lo vuelvas a
+   poner.
+5. **CCN51 = no orgánica.** Al elegir variedad CCN51 (`'CCN51'` o `'2'`, ver
+   `isCcn51VarietyValue()`), el listener pone primero `organic = 'false'`, que
+   refiltra el combo, y **después** la certificación. Si invertís el orden, la
+   certificación queda fuera de las opciones filtradas y
+   `refreshCertificationTypeOptions()` la reemplaza por la primera orgánica.
+6. **`prepareData()` (que corre al guardar) solo completa lo que falta.** Si el
+   usuario eligió una certificación, se respeta, aunque la variedad sea CCN51.
+   Antes la pisaba siempre.
+7. **La rama de `onlyOrganicProduction` (Fortaleza) no se toca.** Todo lo anterior
+   vive en la rama `else`. La única parte compartida es el filtro del combo: una
+   certificación con "convencional" en el nombre desaparecería del combo de una
+   empresa siempre orgánica, lo cual es correcto.
+
+### 17.3 Pruebas
+
+Karma, verificado 5/5 el 2026-09-16:
+
+```bash
+npx nx test inatrace-fe --watch=false --browsers=ChromeHeadless \
+  --include='**/plots-item/*.spec.ts' --include='**/stock-delivery-details/*.spec.ts'
+```
+
+- Las specs prueban los métodos privados sobre
+  `Object.create(StockDeliveryDetailsComponent.prototype)`, sin inyección: el
+  componente tiene demasiadas dependencias para montarlo en un test chico.
+- Los tipos de Jasmine instalados son viejos: **no existen `toBeTrue()` ni
+  `toBeFalse()`** (usá `toBe(true)`), y el `lib` del spec **no tiene
+  `Object.fromEntries`**.
+- `tsc -p tsconfig.app.json` **no revisa estos componentes**: `main.ts` los carga por
+  module federation. Para revisar tipos, usá un tsconfig temporal con los archivos en
+  `files` y `src/polyfills.ts` (sin él, todo `$localize` da error).
+
+### 17.4 Pendiente conocido
+
+- La vista de BI `bi.fact_cacao_purchase.delivery_variety_label` traduce
+  `NACIONAL`/`CCN51`, pero no `1`/`2`, que ahora se ven sin etiqueta. La fuente de
+  esas vistas no está en este workspace.
+- La producción de UNOCACE sigue en el MySQL antiguo. Al migrarla, hay que repetir
+  el script de datos.
+
