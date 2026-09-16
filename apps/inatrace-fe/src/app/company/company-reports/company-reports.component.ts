@@ -90,16 +90,24 @@ export class CompanyReportsComponent implements OnInit {
 
   ngOnInit(): void {
     this.companyId = Number(localStorage.getItem('selectedUserCompany'));
-    this.supersetBaseUrl = (environment as any).supersetBaseUrl || '';
-    this.biEnvironment = (environment as any).biEnvironment || 'staging';
+    this.supersetBaseUrl = this.resolveSupersetBaseUrl();
+    this.biEnvironment = this.resolveBiEnvironment();
+    this.orgSlug = this.resolveOrgSlug();
 
-    this.companyController.getCompany(this.companyId).subscribe((res) => {
-      if (res?.data) {
-        this.companyName = res.data.name || '';
-        this.orgSlug = this.buildOrgSlug(this.companyName);
-        this.selectTab(this.activeTab);
-      }
-    });
+    if (this.companyId) {
+      this.companyController.getCompany(this.companyId).subscribe({
+        next: (res) => {
+          if (res?.data?.name) {
+            this.companyName = res.data.name;
+          }
+        },
+        error: () => {
+          // Gracefully continue with resolved org slug
+        },
+      });
+    }
+
+    this.selectTab(this.activeTab);
   }
 
   selectTab(tabId: string): void {
@@ -122,23 +130,64 @@ export class CompanyReportsComponent implements OnInit {
   }
 
   /**
-   * Derives the Superset organization slug from the company name.
-   * Matches the convention used in `setup_cacao_superset.py`:
-   * e.g. "UNOCACE" -> "unocace", "Fortaleza del Valle" -> "fortaleza"
+   * Resolves the Superset base URL.
+   * Priority:
+   * 1. Explicitly configured supersetBaseUrl in environment/env.js
+   * 2. Default reverse-proxy path `/bi` under the current origin (standard in UNOCACE & FV)
    */
-  private buildOrgSlug(name: string): string {
-    const normalized = name.toLowerCase().trim();
-    if (normalized.includes('unocace')) {
+  private resolveSupersetBaseUrl(): string {
+    const configured = (environment as any).supersetBaseUrl;
+    if (configured && typeof configured === 'string' && configured.trim().length > 0) {
+      return configured.trim().replace(/\/+$/, '');
+    }
+    if (typeof window !== 'undefined' && window.location) {
+      return `${window.location.origin}/bi`;
+    }
+    return '/bi';
+  }
+
+  /**
+   * Resolves the target BI environment ('staging' or 'production').
+   */
+  private resolveBiEnvironment(): string {
+    const configured = (environment as any).biEnvironment;
+    if (configured && typeof configured === 'string' && configured.trim().length > 0) {
+      return configured.trim().toLowerCase();
+    }
+    const host = typeof window !== 'undefined' && window.location ? window.location.hostname.toLowerCase() : '';
+    if (host.includes('test') || host.includes('staging') || host.includes('localhost')) {
+      return 'staging';
+    }
+    return environment.production ? 'production' : 'staging';
+  }
+
+  /**
+   * Resolves the tenant organization slug ('unocace' or 'fortaleza').
+   * In multi-tier organizations like UNOCACE, the logged-in company may be an affiliated
+   * cooperative (e.g. "Cooperativa Muisne Es Vida"), so the authoritative tenant slug
+   * is derived from the Keycloak realm or current hostname.
+   */
+  private resolveOrgSlug(): string {
+    const realm =
+      ((window as any)['env'] || {})['keycloakRealm'] ||
+      environment.keycloakRealm ||
+      '';
+    const normalizedRealm = realm.toLowerCase().trim();
+    if (normalizedRealm.includes('unocace')) {
       return 'unocace';
     }
-    if (normalized.includes('fortaleza')) {
+    if (normalizedRealm.includes('fortaleza')) {
       return 'fortaleza';
     }
-    // Fallback: use the first word, lowercase, ASCII-safe
-    return normalized
-      .split(/\s+/)[0]
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9-]/g, '');
+
+    const host = typeof window !== 'undefined' && window.location ? window.location.hostname.toLowerCase() : '';
+    if (host.includes('unocace')) {
+      return 'unocace';
+    }
+    if (host.includes('fortaleza') || host.includes('espam')) {
+      return 'fortaleza';
+    }
+
+    return 'unocace';
   }
 }
