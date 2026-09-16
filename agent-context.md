@@ -806,7 +806,7 @@ npx nx test inatrace-fe --watch=false --browsers=ChromeHeadless \
 
 ---
 
-## 17. Reportes & BI (Superset) está fuera de `main`
+## 17. Reportes & BI (Superset): está en `staging` pero NO en `main`
 
 > **2026-09-16.** Los commits `30a82f32`…`28fa62a0` (pantalla `company-reports`,
 > menú "Reportes & BI", `SUPERSET_BASE_URL` / `BI_ENVIRONMENT`) se revirtieron en
@@ -821,3 +821,16 @@ npx nx test inatrace-fe --watch=false --browsers=ChromeHeadless \
   alcanza: mirar el cuerpo), y ocultar el menú cuando no haya BI. En test el tablero
   redirigía al login de Superset (`/bi/login/`), no entraba directo como dice el
   comentario del componente.
+
+**Estado desde el 2026-09-16 (tarde):** se repuso **solo en `staging`**
+(revert del revert) para revisarlo con UNOCACE. `main` sigue sin Reportes.
+
+- **Trampa para el próximo pase a producción:** `staging` ya no es igual a `main`
+  más cambios aprobados. Un `git push origin staging:main` (avance directo, como se
+  hizo el 16-sep) **vuelve a meter Reportes en la producción de Fortaleza**. Antes de
+  pasar, o Superset ya existe en `/bi` de producción, o hay que volver a sacar
+  Reportes en una rama de release (`git revert` del commit que lo repuso) y pasar esa
+  rama.
+- Mejor solución de fondo: que el menú y la ruta se oculten cuando el entorno no
+  tiene BI, en vez de depender de revertir commits.
+
