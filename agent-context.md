@@ -669,3 +669,54 @@ workspace `giz`, hallazgos H-19 a H-22 y H-28). Si trabajas en Entregas, tenlos 
   parcela (combo), su posición (combo, parcela sin nombre) o un número libre
   (`parcelLotFreeText`, el caso de Fortaleza). Ninguno identifica la parcela de
   forma estable. Un sistema externo que envíe `plot.id` se verá como "Parcela 145".
+
+---
+
+## 16. Editar un procesamiento con sacos (`repackedOutputs`)
+
+> Escrito el **2026-09-15**, junto con el arreglo del backend (ver
+> `backend/agent-context.md` §17). Aplica a **cualquier empresa** cuya acción de
+> procesamiento tenga un semiproducto de salida con `repackedOutputs` y
+> `maxOutputWeight`: la salida se parte en varios `StockOrder` ("sacos") y esta
+> pantalla los edita en `repackedOutputsArray`.
+
+### 16.1 Crear y editar se comportan distinto — a propósito
+
+En `processing-order-output.component.ts`, la suscripción a `totalQuantity` decide:
+
+- **Creando** (`editing === false`): `generateRepackedOutputStockOrders` **vacía** el
+  array y crea `ceil(total / maxOutputWeight)` sacos nuevos, sin `id`.
+- **Editando** (`editing === true`): nunca se puede vaciar el array, porque los sacos
+  existentes tienen `id` y vaciarlos equivale a borrarlos y crear otros.
+  `adjustRepackedOutputStockOrders` quita los sacos que sobran **desde el final**,
+  agrega los que falten y reparte el peso con `prefillRepackedOutputSOQuantities`.
+
+### 16.2 Trampas de esta pantalla
+
+1. **El ajuste solo corre si el control está `dirty`.** Al cargar la edición, el
+   componente padre hace `setValue` del total (calculado como suma de los sacos) y
+   eso dispara el mismo `valueChanges`. Sin el chequeo de `dirty`, abrir un lote le
+   reescribiría los pesos al usuario sin que tocara nada. `setValue` no marca
+   `dirty`; escribir en el input, sí.
+2. **Los sacos ya usados no se quitan.** `isRepackedOutputUsed` compara
+   `totalQuantity` contra `availableQuantity` (los sacos nuevos no traen esas
+   cantidades, así que cuentan como no usados). El servidor tampoco los deja borrar:
+   devuelve `VALIDATION_ERROR`. Si queda un saco usado de más, la validación de 16.3
+   avisa y el usuario decide.
+3. **`prefillRepackedOutputSOQuantities` usa `.some()` y corta al llegar al total**:
+   las filas que quedan después **no se tocan**. Por eso hay que ajustar la cantidad
+   de filas ANTES de llamarlo; si no, quedan sacos con el peso viejo.
+4. **Hay dos validaciones, una por cada lado:** `notAllOutputQuantityIsUsed` (los
+   sacos suman menos que el total) y `repackedQuantityExceedsOutput` (suman más).
+   Las dos bloquean el guardado en `save()`. Antes solo existía la primera, y por eso
+   se podía guardar un lote con total 1.000 y sacos que sumaban 3.864.
+
+### 16.3 El mensaje nuevo y las traducciones
+
+La clave i18n es
+`productLabelStockProcessingOrderDetail.outputQuantity.textinput.error.repackedQuantityExceedsOutput`,
+y está en los cuatro `src/assets/locale/*.json`. Recordá que las traducciones se
+cargan **en tiempo de ejecución** (`bootstrap.ts` hace `fetch` de
+`/assets/locale/<locale>.json` y `loadTranslations`): tras desplegar, el navegador
+puede seguir usando el JSON viejo y mostrar el texto en inglés. Es caché, no un
+error de traducción; se resuelve recargando sin caché.
