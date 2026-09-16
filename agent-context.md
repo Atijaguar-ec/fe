@@ -803,3 +803,21 @@ npx nx test inatrace-fe --watch=false --browsers=ChromeHeadless \
 - La producción de UNOCACE sigue en el MySQL antiguo. Al migrarla, hay que repetir
   el script de datos.
 
+
+---
+
+## 17. Reportes & BI (Superset) está fuera de `main`
+
+> **2026-09-16.** Los commits `30a82f32`…`28fa62a0` (pantalla `company-reports`,
+> menú "Reportes & BI", `SUPERSET_BASE_URL` / `BI_ENVIRONMENT`) se revirtieron en
+> `315ac7db` para poder pasar `staging` a producción.
+
+- **Por qué:** en la producción de Fortaleza no hay Superset. `/bi/...` cae en el
+  comodín de nginx y devuelve el `index.html` de INATrace, así que el iframe mostraba
+  INATrace dentro de INATrace. El componente además calcula `${origin}/bi` cuando
+  `SUPERSET_BASE_URL` está vacío, así que "sin configurar" no significa "oculto".
+- **Antes de reponerlo** (`git revert 315ac7db`): verificar que
+  `https://<host>/bi/health` responda `OK` en **ese** entorno (una respuesta 200 no
+  alcanza: mirar el cuerpo), y ocultar el menú cuando no haya BI. En test el tablero
+  redirigía al login de Superset (`/bi/login/`), no entraba directo como dice el
+  comentario del componente.
