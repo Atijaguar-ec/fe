@@ -323,6 +323,63 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
     return repackedSOQuantity - parsedEnteredOutput > 0.005;
   }
 
+  // Al editar no se regeneran los sacos (perderíamos los que ya existen), pero sí se ajustan a la nueva
+  // cantidad: se quitan los sacos que sobran (solo los que no se han usado) y se reparte el peso.
+  private adjustRepackedOutputStockOrders(
+    totalOutputQuantity: any,
+    tsoGroup: AbstractControl,
+  ): void {
+    const repackedOutputsArray = this.getTSOGroupRepackedOutputsArray(tsoGroup);
+    if (!repackedOutputsArray?.length) {
+      return;
+    }
+
+    const numQuantity = parseDecimal(totalOutputQuantity);
+    const maxAllowedWeight = this.getTSOGroupRepackedMaxWeight(tsoGroup);
+    if (
+      numQuantity == null ||
+      isNaN(numQuantity) ||
+      numQuantity <= 0 ||
+      !maxAllowedWeight
+    ) {
+      return;
+    }
+
+    const neededOutputs = Math.ceil(numQuantity / maxAllowedWeight);
+
+    // Quitar los sacos sobrantes, empezando por el final. Los que ya se usaron no se pueden borrar:
+    // se dejan y la validación avisa si el total no cuadra.
+    for (
+      let i = repackedOutputsArray.length - 1;
+      i >= 0 && repackedOutputsArray.length > neededOutputs;
+      i--
+    ) {
+      if (!this.isRepackedOutputUsed(repackedOutputsArray.at(i))) {
+        repackedOutputsArray.removeAt(i);
+      }
+    }
+
+    while (repackedOutputsArray.length < neededOutputs) {
+      this.addRepackedOutputStockOrder(tsoGroup);
+    }
+
+    this.prefillRepackedOutputSOQuantities(tsoGroup);
+  }
+
+  // Un saco está usado si ya se consumió parte de él (lo dice el servidor); los sacos nuevos no tienen cantidades
+  private isRepackedOutputUsed(repackedGroup: AbstractControl): boolean {
+    const total = parseDecimal(repackedGroup.get('totalQuantity')?.value);
+    const available = parseDecimal(
+      repackedGroup.get('availableQuantity')?.value,
+    );
+
+    if (total == null || isNaN(total) || available == null || isNaN(available)) {
+      return false;
+    }
+
+    return total - available > 0.005;
+  }
+
   private generateRepackedOutputStockOrders(
     totalOutputQuantity: any,
     tsoGroup: AbstractControl,
@@ -565,7 +622,15 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
           // When the total output quantity changes we need to re/generate the output stock orders that are
           // being repacked as part of this processing; This is only applicable when we have selected output semi-product
           // with the option 'repackedOutputs' and set 'maxOutputWeight'
-          this.generateRepackedOutputStockOrders(totalQuantity, tsoGroup);
+          if (this.editing) {
+            // Solo cuando lo cambia el usuario: al cargar la edición el valor se calcula desde los sacos
+            // y no hay que tocarlos
+            if (tsoGroup.get('totalQuantity').dirty) {
+              this.adjustRepackedOutputStockOrders(totalQuantity, tsoGroup);
+            }
+          } else {
+            this.generateRepackedOutputStockOrders(totalQuantity, tsoGroup);
+          }
         }),
     );
 
