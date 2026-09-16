@@ -35,7 +35,9 @@ export const environment = {
   keycloakUrl: (window['env'] || {})['keycloakUrl'] || 'http://localhost:8080/',
   keycloakRealm: (window['env'] || {})['keycloakRealm'] || 'inatrace',
   keycloakClientId: (window['env'] || {})['keycloakClientId'] || 'inatrace-frontend',
-  enableShrimpModule: (window['env'] || {})['enableShrimpModule'] === 'true'
+  enableShrimpModule: (window['env'] || {})['enableShrimpModule'] === 'true',
+  supersetBaseUrl: (window['env'] || {})['supersetBaseUrl'] || '',
+  biEnvironment: (window['env'] || {})['biEnvironment'] || 'staging',
 };
 
 /*

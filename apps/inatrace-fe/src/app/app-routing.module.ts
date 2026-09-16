@@ -332,6 +332,14 @@ const routes: Routes = [
       drobtinice: null
     }
   },
+  {
+    path: 'company-reports',
+    canActivate: [ActivatedUserGuardService],
+    loadChildren: () => import('./company/company-reports/company-reports.module').then(m => m.CompanyReportsModule),
+    data: {
+      drobtinice: null
+    }
+  },
   ///////////////////////
   ///////////////////////
   ///////////////////////

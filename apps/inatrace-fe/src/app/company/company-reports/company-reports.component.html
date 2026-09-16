@@ -1,0 +1,77 @@
+<app-authorised-layout>
+  <app-company-left-panel></app-company-left-panel>
+
+  <div class="main reports-container">
+    <div class="af-form-wrapper">
+
+      <!-- Page Header -->
+      <div class="af-form-row">
+        <div class="af-form-block--c12 d-flex justify-content-between align-items-center">
+          <div class="title-page content-element--title"
+               i18n="@@companyReports.title">
+            Reportes &amp; BI
+          </div>
+          <button
+            *ngIf="supersetBaseUrl"
+            class="btn btn-outline-primary btn-sm"
+            (click)="openInSuperset()"
+            i18n="@@companyReports.button.openSuperset"
+          >
+            ↗ Abrir en Superset
+          </button>
+        </div>
+      </div>
+
+      <!-- Organization Banner -->
+      <div class="af-form-row" *ngIf="companyName">
+        <div class="af-form-block--c12">
+          <div class="org-banner">
+            <span class="org-banner__name">{{ companyName }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="af-form-row">
+        <div class="af-form-block--c12">
+          <ul ngbNav #nav="ngbNav" [(activeId)]="activeTab" class="nav-pills report-tabs" (activeIdChange)="selectTab($event)">
+            <li *ngFor="let tab of tabs" [ngbNavItem]="tab.id">
+              <a ngbNavLink>
+                <span class="tab-icon">{{ tab.icon }}</span>
+                <span class="tab-label">{{ tab.label }}</span>
+              </a>
+              <ng-template ngbNavContent>
+                <div class="tab-description" *ngIf="tab.description">
+                  {{ tab.description }}
+                </div>
+              </ng-template>
+            </li>
+          </ul>
+          <div [ngbNavOutlet]="nav"></div>
+        </div>
+      </div>
+
+      <!-- Embedded Dashboard -->
+      <div class="af-form-row">
+        <div class="af-form-block--c12">
+          <div class="dashboard-frame-wrapper" *ngIf="iframeSrc; else noDashboard">
+            <iframe
+              class="dashboard-frame"
+              [src]="iframeSrc"
+              frameborder="0"
+              allowfullscreen
+            ></iframe>
+          </div>
+          <ng-template #noDashboard>
+            <div class="no-dashboard-placeholder">
+              <p i18n="@@companyReports.noDashboard">
+                Configure la URL de Superset para visualizar los reportes.
+              </p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</app-authorised-layout>
