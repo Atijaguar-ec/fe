@@ -1,75 +1,23 @@
 <app-authorised-layout>
-  <app-company-left-panel *ngIf="!focusMode"></app-company-left-panel>
+  <app-company-left-panel></app-company-left-panel>
 
-  <div class="main reports-container" [ngClass]="{ 'focus-mode': focusMode }">
-    <div class="af-form-wrapper">
-
-      <!-- Executive Header Bar (Compact) -->
-      <div class="reports-header-bar">
-        <div class="reports-header-left">
-          <h3 class="reports-title" i18n="@@companyReports.title">Reportes &amp; BI</h3>
-          <span class="reports-company-badge" *ngIf="companyName">
-            {{ companyName }}
-          </span>
-        </div>
-
-        <div class="reports-header-actions">
-          <button
-            type="button"
-            class="btn btn-outline-secondary btn-compact focus-toggle-btn"
-            (click)="toggleFocusMode()"
-            [title]="focusMode ? 'Restaurar menú lateral' : 'Expandir a pantalla completa'"
-          >
-            <span *ngIf="!focusMode">⛶ Pantalla completa</span>
-            <span *ngIf="focusMode">⮌ Restaurar vista</span>
-          </button>
-          <button
-            *ngIf="supersetBaseUrl"
-            type="button"
-            class="btn btn-primary btn-compact open-fullscreen-btn"
-            (click)="openInSuperset()"
-            title="Abrir el reporte en una pestaña independiente sin marcos"
-            i18n="@@companyReports.button.openSuperset"
-          >
-            ↗ Abrir en pestaña completa
-          </button>
-        </div>
+  <div class="main reports-container">
+    <div class="dashboard-frame-container">
+      <div class="dashboard-frame-wrapper" *ngIf="iframeSrc; else noDashboard">
+        <iframe
+          class="dashboard-frame"
+          [src]="iframeSrc"
+          frameborder="0"
+          allowfullscreen
+        ></iframe>
       </div>
-
-      <!-- Compact Tabs Toolbar -->
-      <div class="tabs-toolbar">
-        <ul ngbNav #nav="ngbNav" [(activeId)]="activeTab" class="nav-pills report-tabs" (activeIdChange)="selectTab($event)">
-          <li *ngFor="let tab of tabs" [ngbNavItem]="tab.id">
-            <a ngbNavLink class="report-tab-link">
-              <span class="tab-icon">{{ tab.icon }}</span>
-              <span class="tab-label">{{ tab.label }}</span>
-            </a>
-          </li>
-        </ul>
-        <div class="active-tab-desc" *ngIf="currentTabDescription">
-          ℹ️ {{ currentTabDescription }}
+      <ng-template #noDashboard>
+        <div class="no-dashboard-placeholder">
+          <p i18n="@@companyReports.noDashboard">
+            Configure la URL de Superset para visualizar los reportes.
+          </p>
         </div>
-      </div>
-
-      <!-- High-Visibility Dashboard Iframe -->
-      <div class="dashboard-frame-container">
-        <div class="dashboard-frame-wrapper" *ngIf="iframeSrc; else noDashboard">
-          <iframe
-            class="dashboard-frame"
-            [src]="iframeSrc"
-            frameborder="0"
-            allowfullscreen
-          ></iframe>
-        </div>
-        <ng-template #noDashboard>
-          <div class="no-dashboard-placeholder">
-            <p i18n="@@companyReports.noDashboard">
-              Configure la URL de Superset para visualizar los reportes.
-            </p>
-          </div>
-        </ng-template>
-      </div>
-
+      </ng-template>
     </div>
   </div>
 </app-authorised-layout>
