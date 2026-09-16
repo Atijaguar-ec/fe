@@ -1,75 +1,84 @@
 <app-authorised-layout>
-  <app-company-left-panel></app-company-left-panel>
+  <app-company-left-panel *ngIf="!focusMode"></app-company-left-panel>
 
-  <div class="main reports-container">
+  <div class="main reports-container" [ngClass]="{ 'focus-mode': focusMode }">
     <div class="af-form-wrapper">
 
-      <!-- Page Header -->
-      <div class="af-form-row">
-        <div class="af-form-block--c12 d-flex justify-content-between align-items-center">
-          <div class="title-page content-element--title"
-               i18n="@@companyReports.title">
-            Reportes &amp; BI
-          </div>
+      <!-- Executive Header Bar -->
+      <div class="reports-header-bar">
+        <div class="reports-header-left">
+          <h2 class="reports-title" i18n="@@companyReports.title">Reportes &amp; BI</h2>
+          <span class="reports-company-badge" *ngIf="companyName">
+            {{ companyName }}
+          </span>
+        </div>
+
+        <div class="reports-header-actions">
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm focus-toggle-btn"
+            (click)="toggleFocusMode()"
+            [title]="focusMode ? 'Mostrar panel lateral' : 'Expandir a pantalla completa'"
+          >
+            <span *ngIf="!focusMode">⛶ Modo Enfoque</span>
+            <span *ngIf="focusMode">⮌ Salir de Enfoque</span>
+          </button>
           <button
             *ngIf="supersetBaseUrl"
-            class="btn btn-outline-primary btn-sm"
+            type="button"
+            class="btn btn-primary btn-sm open-fullscreen-btn"
             (click)="openInSuperset()"
+            title="Abrir el reporte en una pestaña independiente sin marcos"
             i18n="@@companyReports.button.openSuperset"
           >
-            ↗ Abrir en Superset
+            ↗ Abrir en pestaña completa
           </button>
         </div>
       </div>
 
-      <!-- Organization Banner -->
-      <div class="af-form-row" *ngIf="companyName">
-        <div class="af-form-block--c12">
-          <div class="org-banner">
-            <span class="org-banner__name">{{ companyName }}</span>
-          </div>
+      <!-- Quick Productivity Tip (Dismissible) -->
+      <div class="auth-notice-bar" *ngIf="showAuthTip">
+        <div class="auth-notice-content">
+          <span class="auth-notice-icon">💡</span>
+          <span class="auth-notice-text">
+            <strong>Consejo para el operador:</strong> Para visualizar la tabla de 26 variables a pantalla completa o si el sistema le solicita credenciales por primera vez, use el botón <strong>«↗ Abrir en pestaña completa»</strong>.
+          </span>
+        </div>
+        <button type="button" class="btn-close-tip" (click)="dismissAuthTip()" aria-label="Cerrar">×</button>
+      </div>
+
+      <!-- Compact Tabs Toolbar -->
+      <div class="tabs-toolbar">
+        <ul ngbNav #nav="ngbNav" [(activeId)]="activeTab" class="nav-pills report-tabs" (activeIdChange)="selectTab($event)">
+          <li *ngFor="let tab of tabs" [ngbNavItem]="tab.id">
+            <a ngbNavLink class="report-tab-link">
+              <span class="tab-icon">{{ tab.icon }}</span>
+              <span class="tab-label">{{ tab.label }}</span>
+            </a>
+          </li>
+        </ul>
+        <div class="active-tab-desc" *ngIf="currentTabDescription">
+          ℹ️ {{ currentTabDescription }}
         </div>
       </div>
 
-      <!-- Tab Navigation -->
-      <div class="af-form-row">
-        <div class="af-form-block--c12">
-          <ul ngbNav #nav="ngbNav" [(activeId)]="activeTab" class="nav-pills report-tabs" (activeIdChange)="selectTab($event)">
-            <li *ngFor="let tab of tabs" [ngbNavItem]="tab.id">
-              <a ngbNavLink>
-                <span class="tab-icon">{{ tab.icon }}</span>
-                <span class="tab-label">{{ tab.label }}</span>
-              </a>
-              <ng-template ngbNavContent>
-                <div class="tab-description" *ngIf="tab.description">
-                  {{ tab.description }}
-                </div>
-              </ng-template>
-            </li>
-          </ul>
-          <div [ngbNavOutlet]="nav"></div>
+      <!-- High-Visibility Dashboard Iframe -->
+      <div class="dashboard-frame-container">
+        <div class="dashboard-frame-wrapper" *ngIf="iframeSrc; else noDashboard">
+          <iframe
+            class="dashboard-frame"
+            [src]="iframeSrc"
+            frameborder="0"
+            allowfullscreen
+          ></iframe>
         </div>
-      </div>
-
-      <!-- Embedded Dashboard -->
-      <div class="af-form-row">
-        <div class="af-form-block--c12">
-          <div class="dashboard-frame-wrapper" *ngIf="iframeSrc; else noDashboard">
-            <iframe
-              class="dashboard-frame"
-              [src]="iframeSrc"
-              frameborder="0"
-              allowfullscreen
-            ></iframe>
+        <ng-template #noDashboard>
+          <div class="no-dashboard-placeholder">
+            <p i18n="@@companyReports.noDashboard">
+              Configure la URL de Superset para visualizar los reportes.
+            </p>
           </div>
-          <ng-template #noDashboard>
-            <div class="no-dashboard-placeholder">
-              <p i18n="@@companyReports.noDashboard">
-                Configure la URL de Superset para visualizar los reportes.
-              </p>
-            </div>
-          </ng-template>
-        </div>
+        </ng-template>
       </div>
 
     </div>

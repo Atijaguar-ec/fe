@@ -28,6 +28,9 @@ export class CompanyReportsComponent implements OnInit {
   orgSlug = '';
   supersetBaseUrl = '';
   biEnvironment = '';
+  focusMode = false;
+  showAuthTip = true;
+  currentTabDescription = '';
 
   iframeSrc: SafeResourceUrl | null = null;
 
@@ -113,11 +116,22 @@ export class CompanyReportsComponent implements OnInit {
   selectTab(tabId: string): void {
     this.activeTab = tabId;
     const tab = this.tabs.find((t) => t.id === tabId);
-    if (tab && this.supersetBaseUrl && this.orgSlug) {
-      const slug = `${this.orgSlug}-${tab.slugSuffix}-${this.biEnvironment}`;
-      const url = `${this.supersetBaseUrl}/superset/dashboard/${slug}/?standalone=true`;
-      this.iframeSrc = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    if (tab) {
+      this.currentTabDescription = tab.description || '';
+      if (this.supersetBaseUrl && this.orgSlug) {
+        const slug = `${this.orgSlug}-${tab.slugSuffix}-${this.biEnvironment}`;
+        const url = `${this.supersetBaseUrl}/superset/dashboard/${slug}/?standalone=true`;
+        this.iframeSrc = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+      }
     }
+  }
+
+  toggleFocusMode(): void {
+    this.focusMode = !this.focusMode;
+  }
+
+  dismissAuthTip(): void {
+    this.showAuthTip = false;
   }
 
   openInSuperset(): void {
