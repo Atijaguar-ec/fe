@@ -46,6 +46,7 @@ import { ApiResponseApiCompanyGet } from '../model/apiResponseApiCompanyGet';
 import { ApiResponseApiCompanyName } from '../model/apiResponseApiCompanyName';
 import { ApiResponseApiCompanyOnboardingState } from '../model/apiResponseApiCompanyOnboardingState';
 import { ApiResponseApiPlot } from '../model/apiResponseApiPlot';
+import { ApiResponseApiPlotGeoJsonImportResponse } from '../model/apiResponseApiPlotGeoJsonImportResponse';
 import { ApiResponseApiUserCustomer } from '../model/apiResponseApiUserCustomer';
 import { ApiResponseListApiCompanyUser } from '../model/apiResponseListApiCompanyUser';
 import { ApiResponseListApiPlot } from '../model/apiResponseListApiPlot';
@@ -1265,6 +1266,97 @@ export namespace ImportFarmersSpreadsheet {
               ['required', Validators.required],
       ],
       language: [
+      ],
+    };
+}
+
+/**
+ * Namespace for importPlotsGeoJson.
+ */
+export namespace ImportPlotsGeoJson {
+    /**
+     * Parameter map for importPlotsGeoJson.
+     */
+    export interface PartialParamMap {
+      /**
+       * Company ID
+       */
+      id: number;
+      /**
+       * Which existing plots are replaced
+       */
+      scope: 'COMPANY_AND_CONNECTED' | 'MATCHED_COMPANIES';
+      file: Blob;
+      /**
+       * Save the changes; false only previews them
+       */
+      apply?: boolean;
+      /**
+       * Import the valid features even if others cannot be imported
+       */
+      skipInvalidFeatures?: boolean;
+      /**
+       * plotsToDelete of the preview (required when applying)
+       */
+      expectedPlotsToDelete?: number;
+      /**
+       * plotsToCreate of the preview (required when applying)
+       */
+      expectedPlotsToCreate?: number;
+    }
+
+    /**
+     * Enumeration of all parameters for importPlotsGeoJson.
+     */
+    export enum Parameters {
+      /**
+       * Company ID
+       */
+      id = 'id',
+      /**
+       * Which existing plots are replaced
+       */
+      scope = 'scope',
+      file = 'file',
+      /**
+       * Save the changes; false only previews them
+       */
+      apply = 'apply',
+      /**
+       * Import the valid features even if others cannot be imported
+       */
+      skipInvalidFeatures = 'skipInvalidFeatures',
+      /**
+       * plotsToDelete of the preview (required when applying)
+       */
+      expectedPlotsToDelete = 'expectedPlotsToDelete',
+      /**
+       * plotsToCreate of the preview (required when applying)
+       */
+      expectedPlotsToCreate = 'expectedPlotsToCreate'
+    }
+
+    /**
+     * A map of tuples with error name and `ValidatorFn` for each parameter of importPlotsGeoJson
+     * that does not have an own model.
+     */
+    export const ParamValidators: {[K in keyof ImportPlotsGeoJson.PartialParamMap]?: [string, ValidatorFn][]} = {
+      id: [
+              ['required', Validators.required],
+      ],
+      scope: [
+              ['required', Validators.required],
+      ],
+      file: [
+              ['required', Validators.required],
+      ],
+      apply: [
+      ],
+      skipInvalidFeatures: [
+      ],
+      expectedPlotsToDelete: [
+      ],
+      expectedPlotsToCreate: [
       ],
     };
 }
@@ -3870,6 +3962,144 @@ export class CompanyControllerService {
         );
         if(typeof this.configuration.errorHandler === 'function') {
           return handle.pipe(catchError(err => this.configuration.errorHandler(err, 'importFarmersSpreadsheet')));
+        }
+        return handle;
+    }
+
+
+  /**
+   * Preview or apply the replacement of farmer plots with the polygons of a GeoJSON file by map.
+   * Farmers are matched by internal ID in the company and its connected companies. Without apply&#x3D;true nothing is saved. Applying needs the plotsToDelete and plotsToCreate of the preview, and saves everything or nothing.
+   * @param map parameters map to set partial amount of parameters easily
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   */
+  public importPlotsGeoJsonByMap(
+    map: ImportPlotsGeoJson.PartialParamMap,
+    observe?: 'body',
+    reportProgress?: boolean): Observable<ApiResponseApiPlotGeoJsonImportResponse>;
+  public importPlotsGeoJsonByMap(
+    map: ImportPlotsGeoJson.PartialParamMap,
+    observe?: 'response',
+    reportProgress?: boolean): Observable<HttpResponse<ApiResponseApiPlotGeoJsonImportResponse>>;
+  public importPlotsGeoJsonByMap(
+    map: ImportPlotsGeoJson.PartialParamMap,
+    observe?: 'events',
+    reportProgress?: boolean): Observable<HttpEvent<ApiResponseApiPlotGeoJsonImportResponse>>;
+  public importPlotsGeoJsonByMap(
+    map: ImportPlotsGeoJson.PartialParamMap,
+    observe: any = 'body',
+    reportProgress: boolean = false): Observable<any> {
+    return this.importPlotsGeoJson(
+      map.id,
+      map.scope,
+      map.file,
+      map.apply,
+      map.skipInvalidFeatures,
+      map.expectedPlotsToDelete,
+      map.expectedPlotsToCreate,
+      observe,
+      reportProgress
+    );
+  }
+
+
+    /**
+     * Preview or apply the replacement of farmer plots with the polygons of a GeoJSON file
+     * Farmers are matched by internal ID in the company and its connected companies. Without apply&#x3D;true nothing is saved. Applying needs the plotsToDelete and plotsToCreate of the preview, and saves everything or nothing.
+     * @param id Company ID
+     * @param scope Which existing plots are replaced
+     * @param file 
+     * @param apply Save the changes; false only previews them
+     * @param skipInvalidFeatures Import the valid features even if others cannot be imported
+     * @param expectedPlotsToDelete plotsToDelete of the preview (required when applying)
+     * @param expectedPlotsToCreate plotsToCreate of the preview (required when applying)
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public importPlotsGeoJson(id: number, scope: 'COMPANY_AND_CONNECTED' | 'MATCHED_COMPANIES', file: Blob, apply?: boolean, skipInvalidFeatures?: boolean, expectedPlotsToDelete?: number, expectedPlotsToCreate?: number, observe?: 'body', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<ApiResponseApiPlotGeoJsonImportResponse>;
+    public importPlotsGeoJson(id: number, scope: 'COMPANY_AND_CONNECTED' | 'MATCHED_COMPANIES', file: Blob, apply?: boolean, skipInvalidFeatures?: boolean, expectedPlotsToDelete?: number, expectedPlotsToCreate?: number, observe?: 'response', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpResponse<ApiResponseApiPlotGeoJsonImportResponse>>;
+    public importPlotsGeoJson(id: number, scope: 'COMPANY_AND_CONNECTED' | 'MATCHED_COMPANIES', file: Blob, apply?: boolean, skipInvalidFeatures?: boolean, expectedPlotsToDelete?: number, expectedPlotsToCreate?: number, observe?: 'events', reportProgress?: boolean, additionalHeaders?: Array<Array<string>>): Observable<HttpEvent<ApiResponseApiPlotGeoJsonImportResponse>>;
+    public importPlotsGeoJson(id: number, scope: 'COMPANY_AND_CONNECTED' | 'MATCHED_COMPANIES', file: Blob, apply?: boolean, skipInvalidFeatures?: boolean, expectedPlotsToDelete?: number, expectedPlotsToCreate?: number, observe: any = 'body', reportProgress: boolean = false, additionalHeaders?: Array<Array<string>>): Observable<any> {
+        if (id === null || id === undefined) {
+            throw new Error('Required parameter id was null or undefined when calling importPlotsGeoJson.');
+        }
+        if (scope === null || scope === undefined) {
+            throw new Error('Required parameter scope was null or undefined when calling importPlotsGeoJson.');
+        }
+        if (file === null || file === undefined) {
+            throw new Error('Required parameter file was null or undefined when calling importPlotsGeoJson.');
+        }
+
+        let queryParameters = new HttpParams({encoder: new CustomHttpUrlEncodingCodec()});
+        if (scope !== undefined && scope !== null) {
+            queryParameters = queryParameters.set('scope', <any>scope);
+        }
+        if (apply !== undefined && apply !== null) {
+            queryParameters = queryParameters.set('apply', <any>apply);
+        }
+        if (skipInvalidFeatures !== undefined && skipInvalidFeatures !== null) {
+            queryParameters = queryParameters.set('skipInvalidFeatures', <any>skipInvalidFeatures);
+        }
+        if (expectedPlotsToDelete !== undefined && expectedPlotsToDelete !== null) {
+            queryParameters = queryParameters.set('expectedPlotsToDelete', <any>expectedPlotsToDelete);
+        }
+        if (expectedPlotsToCreate !== undefined && expectedPlotsToCreate !== null) {
+            queryParameters = queryParameters.set('expectedPlotsToCreate', <any>expectedPlotsToCreate);
+        }
+
+        let headers = this.defaultHeaders;
+
+        // to determine the Accept header
+        let httpHeaderAccepts: string[] = [
+            'application/json'
+        ];
+        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'multipart/form-data'
+        ];
+
+        const canConsumeForm = this.canConsumeForm(consumes);
+
+        let formParams: { append(param: string, value: any): any; };
+        let useForm = false;
+        let convertFormParamsToString = false;
+        // use FormData to transmit files using content-type "multipart/form-data"
+        // see https://stackoverflow.com/questions/4007969/application-x-www-form-urlencoded-or-multipart-form-data
+        useForm = canConsumeForm;
+        if (useForm) {
+            formParams = new FormData();
+        } else {
+            formParams = new HttpParams({encoder: new CustomHttpUrlEncodingCodec()});
+        }
+
+        if (file !== undefined) {
+            formParams = formParams.append('file', <any>file) || formParams;
+        }
+
+            if (additionalHeaders) {
+                for(let pair of additionalHeaders) {
+                    headers = headers.set(pair[0], pair[1]);
+                }
+            }
+
+        const handle = this.httpClient.post<ApiResponseApiPlotGeoJsonImportResponse>(`${this.configuration.basePath}/api/company/${encodeURIComponent(String(id))}/plots/import-geojson`,
+            convertFormParamsToString ? formParams.toString() : formParams,
+            {
+                params: queryParameters,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+        if(typeof this.configuration.errorHandler === 'function') {
+          return handle.pipe(catchError(err => this.configuration.errorHandler(err, 'importPlotsGeoJson')));
         }
         return handle;
     }

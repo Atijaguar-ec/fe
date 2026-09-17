@@ -472,10 +472,12 @@ docker exec <contenedor-be> env | grep AGSTACK
 docker logs <contenedor-be> --since 30m 2>&1 | grep -iE "agstack|geoid"
 ```
 
-### 13.6 No hay registro masivo
+### 13.6 No hay registro masivo (salvo al importar)
 
 Cada parcela se registra a mano, abriendo su globo y pulsando *Actualizar*. No existe una
-acción en lote. Para cientos de productores esto no escala; está anotado como pendiente.
+acción en lote para las parcelas ya cargadas. La excepción, desde el 2026-09-16: la
+importación masiva de polígonos (§19) genera en segundo plano el Geo-ID de los lotes
+que crea.
 
 
 ---
@@ -806,7 +808,10 @@ npx nx test inatrace-fe --watch=false --browsers=ChromeHeadless \
 
 ---
 
-## 17. Reportes & BI (Superset): está en `staging` pero NO en `main`
+## 18. Reportes & BI (Superset): está en `staging` pero NO en `main`
+
+> Numerada §17 hasta el 2026-09-16 (quedaba repetida con la de Variedad); las
+> referencias a §17 en este archivo y en `backend/` son a Variedad.
 
 > **2026-09-16.** Los commits `30a82f32`…`28fa62a0` (pantalla `company-reports`,
 > menú "Reportes & BI", `SUPERSET_BASE_URL` / `BI_ENVIRONMENT`) se revirtieron en
@@ -834,3 +839,67 @@ npx nx test inatrace-fe --watch=false --browsers=ChromeHeadless \
 - Mejor solución de fondo: que el menú y la ruta se oculten cuando el entorno no
   tiene BI, en vez de depender de revertir commits.
 
+---
+
+## 19. Importar polígonos (GeoJSON): `my-farmers/import-plots`
+
+> Escrito el **2026-09-16**. Espejo del backend: `backend/agent-context.md` §19 (reglas
+> del archivo, alcance, borrado y Geo-ID). *Verificado* con
+> `company-farmers-plots-import.component.spec.ts` (6/6), `nx build` standalone y los 42
+> textos comparados contra el build. **No** se probó la pantalla con sesión real: no hay
+> usuario de prueba de Keycloak en este entorno.
+
+Pedido de UNOCACE: borrar los polígonos cargados y dejar solo los validados en campo.
+La pantalla es la forma prevista de hacerlo; no se toca la BD a mano.
+
+### 19.1 Flujo
+
+1. *Agricultores → Importar polígonos (GeoJSON)*. El botón solo lo ve `SYSTEM_ADMIN`
+   (`isSystemAdmin`), igual que la restricción del backend: borra datos de todas las
+   empresas conectadas.
+2. Elegir archivo y alcance. Por defecto **solo las asociaciones que aparecen en el
+   archivo** (`MATCHED_COMPANIES`); "todos los lotes" es la opción que se usó para el
+   pilotaje de 2 de Mayo.
+3. *Previsualizar*: nada se guarda. Muestra totales, empresas afectadas, incidencias
+   por elemento y agricultores que quedarán sin lotes.
+4. *Reemplazar lotes*: confirmación con los números y envío de esos mismos números.
+
+### 19.2 Reglas que no hay que romper
+
+- **Cambiar archivo o alcance descarta la vista previa** (`optionsChanged()`). Si no,
+  se podría aplicar con otro alcance lo que se previsualizó con uno. Marcar "omitir
+  incidencias" no la descarta: no cambia los números.
+- **Tras intentar aplicar, la vista previa se descarta siempre**, haya salido bien o
+  mal. Si el backend rechaza porque los datos cambiaron, hay que previsualizar de nuevo.
+- `send()` compara `status === OK`: el `TokenInterceptor` convierte los errores HTTP en
+  **valores** (`of(err)`) después de mostrar el toast con el `errorMessage` del backend.
+  No uses `.catch` esperando que el error llegue ahí.
+- El cliente usa el método generado `importPlotsGeoJson` (multipart con `FormData`).
+  El resto de `api/` **no** se regeneró: `generate-api` contra el backend actual trae
+  cambios ajenos (renumera `InlineObject`, cambia `configuration` y el largo del
+  teléfono, agrega el servicio de Whisp). Solo se tomaron los bloques de este endpoint
+  y sus 5 modelos. Si regenerás todo, revisá ese diff aparte.
+- `FormsModule` se importa en `CompanyFarmersModule`: `SharedModule` lo importa pero
+  **no** lo exporta, y sin él `ngModel` no compila (el error solo aparece en `nx build`,
+  no en `tsc`).
+- Textos: 42 claves `companyDetail.farmers.importPlots.*` en los cuatro
+  `assets/locale/*.json` (de y rw en inglés, como el resto). Las de plantilla usan
+  `{$INTERPOLATION}`, `{$INTERPOLATION_1}`…, y la confirmación, los nombres propios
+  `{$deleted}` y `{$created}`.
+
+### 19.3 Después de importar
+
+- Los lotes nuevos traen variedad, pero **no** certificación ni estimado: en Entregas la
+  certificación queda vacía y editable (§12) hasta que UNOCACE la cargue.
+- Los agricultores sin lotes no pueden vender (§12.1).
+
+### 19.4 Pruebas
+
+```bash
+CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  npx nx test inatrace-fe --watch=false --browsers=ChromeHeadless \
+  --include='apps/inatrace-fe/src/app/company/company-farmers/company-farmers-plots-import/company-farmers-plots-import.component.spec.ts'
+```
+
+En los specs usá `toBe(true)`, no `toBeTrue()`: los tipos de Jest tapan los de Jasmine
+y el spec no compila.

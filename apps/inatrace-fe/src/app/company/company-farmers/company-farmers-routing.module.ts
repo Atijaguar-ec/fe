@@ -3,6 +3,7 @@ import { CompanyFarmersListComponent } from './company-farmers-list/company-farm
 import { NgModule } from '@angular/core';
 import { CompanyFarmersDetailsComponent } from './company-farmers-details/company-farmers-details.component';
 import { CompanyFarmersImportComponent } from './company-farmers-import/company-farmers-import.component';
+import { CompanyFarmersPlotsImportComponent } from './company-farmers-plots-import/company-farmers-plots-import.component';
 
 const routes: Routes = [
   {
@@ -41,6 +42,17 @@ const routes: Routes = [
     data: {
       drobtinice: {
         title: 'Import farmers',
+        route: 'my-farmers',
+      },
+    },
+  },
+  {
+    path: 'import-plots',
+    component: CompanyFarmersPlotsImportComponent,
+    pathMatch: 'full',
+    data: {
+      drobtinice: {
+        title: 'Import plots',
         route: 'my-farmers',
       },
     },

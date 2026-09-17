@@ -1,0 +1,252 @@
+<app-authorised-layout>
+  <div class="af-layout--authorised">
+    <div class="af-form-wrapper">
+      <div class="af-form-row">
+        <div class="af-form-block--c12">
+          <div
+            class="title-page content-element--title"
+            i18n="@@companyDetail.farmers.importPlots.title"
+          >
+            Import plots (GeoJSON)
+          </div>
+
+          <p i18n="@@companyDetail.farmers.importPlots.description">
+            Replaces the farmers' plots with the polygons of a validated GIS
+            survey. Each feature needs the properties ID_INTERNO (farmer internal
+            ID) and COD_LOTE (plot code); HECTAREA and CULTIVOPRI are optional.
+            Farmers are searched in {{ companyName }} and its connected
+            companies.
+          </p>
+
+          <h6 i18n="@@companyDetail.farmers.importPlots.file.label">File</h6>
+          <label class="btn btn-solid round btn-table-new content-element--btn">
+            <fa-icon [icon]="faFileImport"></fa-icon>&nbsp;
+            <span i18n="@@companyDetail.farmers.importPlots.file.button"
+              >Choose GeoJSON file</span
+            >
+            <input
+              type="file"
+              accept=".geojson,.json,application/geo+json,application/json"
+              hidden
+              [disabled]="inProgress"
+              (change)="fileSelected($event)"
+            />
+          </label>
+          <span class="ml-3">{{ file?.name }}</span>
+
+          <div class="spacer-title-section"></div>
+
+          <h6 i18n="@@companyDetail.farmers.importPlots.scope.label">
+            Plots to replace
+          </h6>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="plotsImportScope"
+              id="plotsImportScopeMatched"
+              [value]="scopes.MATCHEDCOMPANIES"
+              [(ngModel)]="scope"
+              (ngModelChange)="optionsChanged()"
+              [disabled]="inProgress"
+            />
+            <label
+              class="form-check-label"
+              for="plotsImportScopeMatched"
+              i18n="@@companyDetail.farmers.importPlots.scope.matched"
+            >
+              Only those of the associations that appear in the file
+            </label>
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="plotsImportScope"
+              id="plotsImportScopeAll"
+              [value]="scopes.COMPANYANDCONNECTED"
+              [(ngModel)]="scope"
+              (ngModelChange)="optionsChanged()"
+              [disabled]="inProgress"
+            />
+            <label
+              class="form-check-label"
+              for="plotsImportScopeAll"
+              i18n="@@companyDetail.farmers.importPlots.scope.all"
+            >
+              All plots of {{ companyName }} and its connected companies
+            </label>
+          </div>
+
+          <button
+            class="btn btn-solid round btn-table-new content-element--btn mt-3"
+            [disabled]="inProgress || !file"
+            (click)="previewImport()"
+            i18n="@@companyDetail.farmers.importPlots.preview.button"
+          >
+            <span>Preview</span>
+          </button>
+
+          <ng-container *ngIf="preview">
+            <div class="spacer-title-section"></div>
+            <h4 i18n="@@companyDetail.farmers.importPlots.preview.title">
+              Preview (nothing has been saved yet)
+            </h4>
+            <ul>
+              <li i18n="@@companyDetail.farmers.importPlots.summary.features">
+                Features in the file: {{ preview.featuresRead }}
+              </li>
+              <li
+                class="plots-import--delete"
+                i18n="@@companyDetail.farmers.importPlots.summary.delete"
+              >
+                Existing plots to delete: {{ preview.plotsToDelete }}
+              </li>
+              <li i18n="@@companyDetail.farmers.importPlots.summary.create">
+                Plots to create: {{ preview.plotsToCreate }} (for
+                {{ preview.farmersWithNewPlots }} farmers)
+              </li>
+              <li i18n="@@companyDetail.farmers.importPlots.summary.issues">
+                Features that cannot be imported: {{ preview.issues.length }}
+              </li>
+            </ul>
+
+            <table class="af-table plots-import--table">
+              <thead>
+                <tr>
+                  <th i18n="@@companyDetail.farmers.importPlots.companies.name">
+                    Company
+                  </th>
+                  <th
+                    i18n="@@companyDetail.farmers.importPlots.companies.existing"
+                  >
+                    Current plots
+                  </th>
+                  <th
+                    i18n="@@companyDetail.farmers.importPlots.companies.deleted"
+                  >
+                    Deleted
+                  </th>
+                  <th i18n="@@companyDetail.farmers.importPlots.companies.new">
+                    New plots
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let company of replacedCompanies">
+                  <td>{{ company.name }}</td>
+                  <td>{{ company.existingPlots }}</td>
+                  <td>{{ company.replaced ? company.existingPlots : 0 }}</td>
+                  <td>{{ company.newPlots }}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <ng-container *ngIf="preview.issues.length > 0">
+              <h4 i18n="@@companyDetail.farmers.importPlots.issues.title">
+                Features that cannot be imported
+              </h4>
+              <table class="af-table plots-import--table">
+                <thead>
+                  <tr>
+                    <th
+                      i18n="@@companyDetail.farmers.importPlots.issues.feature"
+                    >
+                      Feature #
+                    </th>
+                    <th
+                      i18n="@@companyDetail.farmers.importPlots.issues.farmerId"
+                    >
+                      Farmer ID
+                    </th>
+                    <th i18n="@@companyDetail.farmers.importPlots.issues.plot">
+                      Plot code
+                    </th>
+                    <th
+                      i18n="@@companyDetail.farmers.importPlots.issues.reason"
+                    >
+                      Reason
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let issue of preview.issues">
+                    <td>{{ issue.featureNumber }}</td>
+                    <td>{{ issue.farmerInternalId }}</td>
+                    <td>{{ issue.plotName }}</td>
+                    <td>{{ issueLabel(issue.type) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="plotsImportSkipInvalid"
+                  [(ngModel)]="skipInvalidFeatures"
+                  [disabled]="inProgress"
+                />
+                <label
+                  class="form-check-label"
+                  for="plotsImportSkipInvalid"
+                  i18n="@@companyDetail.farmers.importPlots.skipInvalid"
+                >
+                  Import the other features and leave these out
+                </label>
+              </div>
+            </ng-container>
+
+            <ng-container *ngIf="preview.farmersWithoutPlots.length > 0">
+              <h4 i18n="@@companyDetail.farmers.importPlots.withoutPlots.title">
+                Farmers that will have no plots
+              </h4>
+              <ul>
+                <li *ngFor="let farmer of preview.farmersWithoutPlots">
+                  {{ farmer.name }} ({{ farmer.internalId }}) —
+                  {{ farmer.companyName }}
+                </li>
+              </ul>
+            </ng-container>
+
+            <button
+              class="btn btn-solid round btn-table-new content-element--btn mt-3"
+              [disabled]="inProgress || !canApply"
+              (click)="applyImport()"
+              i18n="@@companyDetail.farmers.importPlots.apply.button"
+            >
+              <span>Replace plots</span>
+            </button>
+          </ng-container>
+
+          <ng-container *ngIf="result">
+            <div class="spacer-title-section"></div>
+            <h4 i18n="@@companyDetail.farmers.importPlots.result.title">
+              Import completed
+            </h4>
+            <ul>
+              <li i18n="@@companyDetail.farmers.importPlots.result.summary">
+                Deleted {{ result.plotsToDelete }} plots and created
+                {{ result.plotsToCreate }} for
+                {{ result.farmersWithNewPlots }} farmers.
+              </li>
+              <li
+                *ngIf="result.issues.length > 0"
+                i18n="@@companyDetail.farmers.importPlots.result.skipped"
+              >
+                Features left out: {{ result.issues.length }}
+              </li>
+              <li
+                *ngIf="result.geoIdsPending > 0"
+                i18n="@@companyDetail.farmers.importPlots.result.geoIds"
+              >
+                The Geo-ID of {{ result.geoIdsPending }} plots is being
+                generated in the background; it can take several minutes.
+              </li>
+            </ul>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</app-authorised-layout>

@@ -15,7 +15,8 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { ProductStakeholdersModule } from '../../m-product/product-stakeholders/product-stakeholders.module';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CompanyFarmersImportComponent } from './company-farmers-import/company-farmers-import.component';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { CompanyFarmersPlotsImportComponent } from './company-farmers-plots-import/company-farmers-plots-import.component';
 import { OpenPlotDetailsExternallyModalComponent } from './open-plot-details-externally-modal/open-plot-details-externally-modal.component';
 
 @NgModule({
@@ -23,6 +24,7 @@ import { OpenPlotDetailsExternallyModalComponent } from './open-plot-details-ext
     CompanyFarmersListComponent,
     CompanyFarmersDetailsComponent,
     CompanyFarmersImportComponent,
+    CompanyFarmersPlotsImportComponent,
     OpenPlotDetailsExternallyModalComponent,
   ],
   imports: [
@@ -36,6 +38,7 @@ import { OpenPlotDetailsExternallyModalComponent } from './open-plot-details-ext
     DragDropModule,
     ProductStakeholdersModule,
     FontAwesomeModule,
+    FormsModule,
     ReactiveFormsModule,
     NgbTooltipModule,
   ],

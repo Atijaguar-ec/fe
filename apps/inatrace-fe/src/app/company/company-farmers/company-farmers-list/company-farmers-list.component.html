@@ -27,6 +27,14 @@
             <span>+ Import farmers</span>
           </button>
           <button
+            *ngIf="isSystemAdmin"
+            class="btn btn-solid round btn-table-new content-element--btn mr-4"
+            (click)="importPlots()"
+            i18n="@@companyDetail.farmers.importPlots.button"
+          >
+            <span>Import plots (GeoJSON)</span>
+          </button>
+          <button
             class="btn btn-solid round btn-table-new content-element--btn"
             [ngbTooltip]="addFarmerButtonTooltipTemplate"
             [autoClose]="false"

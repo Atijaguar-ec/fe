@@ -238,6 +238,7 @@ export class CompanyFarmersListComponent
   ];
 
   isSystemOrRegionalAdmin = false;
+  isSystemAdmin = false;
 
   subs!: Subscription;
   private statusFilterSub!: Subscription;
@@ -262,6 +263,8 @@ export class CompanyFarmersListComponent
         up &&
         (up.role === RoleEnum.SYSTEMADMIN ||
           up.role === RoleEnum.REGIONALADMIN);
+      // Replacing plots in bulk deletes data of every connected company.
+      this.isSystemAdmin = up?.role === RoleEnum.SYSTEMADMIN;
     });
 
     this.selUserCompanyService.selectedCompanyProfile$
@@ -415,6 +418,10 @@ export class CompanyFarmersListComponent
 
   importFarmers() {
     this.router.navigate(['my-farmers', 'import']).then();
+  }
+
+  importPlots() {
+    this.router.navigate(['my-farmers', 'import-plots']).then();
   }
 
   changeSort(event) {
