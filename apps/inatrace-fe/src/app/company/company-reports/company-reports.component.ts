@@ -2,11 +2,19 @@ import { Component, OnInit } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { environment } from '../../../environments/environment';
 
+export interface ReportTab {
+  id: string;
+  label: string;
+  slugSuffix: string;
+  description: string;
+}
+
 /**
- * Reports & BI — Directly embeds the Superset dashboard for the active organization.
+ * Reports & BI — Directly embeds Superset dashboards for the active organization.
  *
- * All redundant headers and tabs are removed so the operator immediately accesses
- * the official cacao dashboard and can navigate Superset natively without login prompts.
+ * Provides responsive multi-dashboard navigation tabs so the operator can seamlessly
+ * switch between Agrocalidad, Certified Purchases, Weekly Collection, Processing Yields,
+ * Plot Georeferencing, and Payment Settlement dashboards.
  */
 @Component({
   selector: 'app-company-reports',
@@ -19,6 +27,46 @@ export class CompanyReportsComponent implements OnInit {
   supersetBaseUrl = '';
   biEnvironment = '';
   iframeSrc: SafeResourceUrl | null = null;
+  activeTabId = 'agrocalidad';
+
+  reportTabs: ReportTab[] = [
+    {
+      id: 'agrocalidad',
+      label: 'Agrocalidad (Sistema GUIA)',
+      slugSuffix: 'cacao-agrocalidad-guia',
+      description: 'Reporte regulatorio oficial de 20 variables para exportación al Sistema GUIA.',
+    },
+    {
+      id: 'compras',
+      label: 'Compras Certificadas',
+      slugSuffix: 'cacao-compras-certificadas',
+      description: 'Desglose por certificación (Orgánico, Transición, Convencional Fairtrade).',
+    },
+    {
+      id: 'acopio',
+      label: 'Acopio Semanal & Calidad',
+      slugSuffix: 'cacao-acopio-calidad',
+      description: 'Evolución semanal de compras por variedad (Nacional vs CCN-51).',
+    },
+    {
+      id: 'procesos',
+      label: 'Rendimientos & Procesamiento',
+      slugSuffix: 'cacao-procesos-rendimientos',
+      description: 'Rendimientos de transformación y trazabilidad de lotes procesados.',
+    },
+    {
+      id: 'parcelas',
+      label: 'Productores & Parcelas',
+      slugSuffix: 'cacao-productores-parcelas',
+      description: 'Georreferenciación y distribución de parcelas de productores.',
+    },
+    {
+      id: 'pagos',
+      label: 'Liquidación & Pagos',
+      slugSuffix: 'cacao-pagos-conciliacion',
+      description: 'Conciliación de pagos frente a costos de compra registrados.',
+    },
+  ];
 
   constructor(private sanitizer: DomSanitizer) {}
 
@@ -27,8 +75,16 @@ export class CompanyReportsComponent implements OnInit {
     this.biEnvironment = this.resolveBiEnvironment();
     this.orgSlug = this.resolveOrgSlug();
 
-    // Directly load the official Agrocalidad dashboard (standard for Cacao cooperatives)
-    const slug = `${this.orgSlug}-cacao-agrocalidad-guia-${this.biEnvironment}`;
+    this.selectTab(this.activeTabId);
+  }
+
+  selectTab(tabId: string): void {
+    this.activeTabId = tabId;
+    const tab = this.reportTabs.find((t) => t.id === tabId);
+    if (!tab) {
+      return;
+    }
+    const slug = `${this.orgSlug}-${tab.slugSuffix}-${this.biEnvironment}`;
     const url = `${this.supersetBaseUrl}/superset/dashboard/${slug}/`;
     this.iframeSrc = this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
