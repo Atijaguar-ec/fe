@@ -5,12 +5,5 @@
     "logLevel": "debug",
     "pathRewrite": {},
     "changeOrigin": true
-  },
-  "/chain-api": {
-    "target": "http://localhost:5000",
-    "secure": false,
-    "logLevel": "debug",
-    "pathRewrite": {},
-    "changeOrigin": true
   }
 }
