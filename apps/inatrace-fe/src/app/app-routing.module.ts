@@ -39,6 +39,7 @@ import {
 import { AdminOrCompanyAdminGuardService } from './core/guards/admin-or-company-admin-guard.service';
 import { ActivatedUserGuardService } from './core/guards/activated-user-guard.service';
 import { CompanyAdminGuardService } from './core/guards/company-admin-guard.service';
+import { ShrimpModuleGuard } from './core/guards/shrimp-module.guard';
 import { CompanyDashboardComponent } from './company/company-dashboard/company-dashboard.component';
 
 export function loginMatcher(url) {
@@ -352,6 +353,7 @@ const routes: Routes = [
   },
   {
     path: 'shrimp',
+    canMatch: [ShrimpModuleGuard],
     loadChildren: () => import('shrimpMfe/Module').then((m) => m.RemoteEntryModule),
   },
   {
