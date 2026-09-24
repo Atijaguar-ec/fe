@@ -17,7 +17,6 @@
     "lint": "nx lint inatrace-fe",
     "e2e": "nx e2e inatrace-fe-e2e",
     "generate-api": "node generate-api.js",
-    "generate-chain-api": "node generate-chain-api.js",
     "update-version": "node update-version.js",
     "extract-i18n-generate-translations": "node generate-translations.js",
     "dev": "nx serve inatrace-fe --devRemotes=shrimpMfe --host 0.0.0.0 --proxy-config proxy.INATrace-local.conf.json",
