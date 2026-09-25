@@ -14,8 +14,6 @@
   window['env']['tokenForPublicLogRoute'] = '';
   window['env']['mapboxAccessToken'] = '';
 
-  // Feature flags
-  window['env']['enableShrimpModule'] = 'false';
 
   // Keycloak authentication
   window['env']['keycloakUrl'] = 'http://localhost:8080/';
