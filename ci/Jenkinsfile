@@ -399,7 +399,6 @@ HEALTHCHECK_TIMEOUT=5s
 HEALTHCHECK_RETRIES=3
 HEALTHCHECK_START_PERIOD=10s
 NGINX_CONF_PATH=./nginx.conf
-ENABLE_SHRIMP_MODULE=false
 COMPOSE_PROJECT_NAME=inatrace-frontend-fortaleza
 
 # Keycloak y API — valores propios del entorno que se está desplegando
@@ -521,12 +520,6 @@ exit 1
                   sed -i "s|^FE_TAG=.*|FE_TAG=${env.DEPLOY_TAG}|g" ci/.env
                 else
                   echo "FE_TAG=${env.DEPLOY_TAG}" >> ci/.env
-                fi
-
-                if grep -q '^ENABLE_SHRIMP_MODULE=' ci/.env; then
-                  sed -i "s|^ENABLE_SHRIMP_MODULE=.*|ENABLE_SHRIMP_MODULE=false|g" ci/.env
-                else
-                  echo "ENABLE_SHRIMP_MODULE=false" >> ci/.env
                 fi
 
                 echo "🧾 Copiando nginx.conf para despliegue local..."

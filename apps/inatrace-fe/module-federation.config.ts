@@ -14,7 +14,7 @@ const config: ModuleFederationConfig = {
    * declare module 'my-external-remote';
    *
    */
-  remotes: ['shrimpMfe'],
+  remotes: [],
   shared: (libraryName, defaultConfig) => {
     if (libraryName === 'keycloak-angular') {
       return {

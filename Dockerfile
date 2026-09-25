@@ -14,28 +14,13 @@ COPY . .
 # problema es el tamano del bundle, no este techo.
 ENV NODE_OPTIONS="--max_old_space_size=4096"
 
-# Build target para cacao (standalone, sin remotes de camarón)
-FROM base-stage as build-cacao
-RUN npm run build:standalone
-
-# Build target para camarón (completo, integrando shrimpMfe)
-FROM base-stage as build-shrimp
+# Build target para INATrace Cacao
+FROM base-stage as build-stage
 RUN npm run build:prod
 
-# Variante 1: Cacao puro sin remotes (fe-inatrace:cacao)
-FROM nginx:stable-alpine as cacao
+# Servidor de producción Nginx
+FROM nginx:stable-alpine as production-stage
 RUN mkdir /app
-COPY --from=build-cacao /app/dist/apps/inatrace-fe /app
+COPY --from=build-stage /app/dist/apps/inatrace-fe /app
 COPY nginx.conf /etc/nginx/nginx.conf
 CMD ["/bin/sh",  "-c",  "envsubst < /app/assets/env.template.js > /app/assets/env.js && exec nginx -g 'daemon off;'"]
-
-# Variante 2: Camarón integrado (fe-inatrace:shrimp)
-FROM nginx:stable-alpine as shrimp
-RUN mkdir /app
-COPY --from=build-shrimp /app/dist/apps/inatrace-fe /app
-COPY --from=build-shrimp /app/dist/shrimpMfe /app/shrimpMfe
-COPY nginx.conf /etc/nginx/nginx.conf
-CMD ["/bin/sh",  "-c",  "envsubst < /app/assets/env.template.js > /app/assets/env.js && exec nginx -g 'daemon off;'"]
-
-# Default: producción completa con retrocompatibilidad
-FROM shrimp as production-stage

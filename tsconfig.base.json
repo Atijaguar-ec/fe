@@ -18,7 +18,6 @@
     "paths": {
       "@app/*": ["apps/inatrace-fe/src/app/*"],
       "src/*": ["apps/inatrace-fe/src/*"],
-      "shrimpMfe/Module": ["shrimpMfe/src/app/remote-entry/entry.module.ts"],
       "@inatrace/shared-ui": ["shared/ui/src/index.ts"],
       "@inatrace/shared-models": ["shared/models/src/index.ts"],
       "@inatrace/shared-auth": ["shared/auth/src/index.ts"]

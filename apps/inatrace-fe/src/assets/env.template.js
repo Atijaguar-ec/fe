@@ -25,8 +25,6 @@
   window['env']['beycoAuthURL'] = '${BEYCO_AUTH_URL}';
   window['env']['beycoClientId'] = '${BEYCO_CLIENT_ID}';
 
-  // Feature flags
-  window['env']['enableShrimpModule'] = '${ENABLE_SHRIMP_MODULE}';
 
   // BI / Superset integration
   window['env']['supersetBaseUrl'] = '${SUPERSET_BASE_URL}';

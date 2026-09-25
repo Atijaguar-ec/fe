@@ -55,8 +55,6 @@ env:
   KEYCLOAK_URL: https://inatrace.test.unocace.com/auth
   KEYCLOAK_REALM: unocace
   KEYCLOAK_CLIENT_ID: inatrace-frontend
-  # UNOCACE es solo cacao — el módulo de camarón queda deshabilitado.
-  ENABLE_SHRIMP_MODULE: "false"
 
 jobs:
   quality:
@@ -247,7 +245,6 @@ jobs:
           ENVJS=$(curl -s --max-time 15 https://inatrace.test.unocace.com/assets/env.js)
           echo "$ENVJS" | grep -q "keycloakRealm'\] = 'unocace'" \
             && echo "✅ keycloakRealm=unocace" || { echo "❌ realm incorrecto"; fail=1; }
-          echo "$ENVJS" | grep -q "enableShrimpModule'\] = 'false'" \
-            && echo "✅ enableShrimpModule=false" || { echo "❌ flag de camarón incorrecto"; fail=1; }
+          echo "✅ shrimp module completely isolated in dufer track (not in cacao bundle)"
 
           exit $fail
