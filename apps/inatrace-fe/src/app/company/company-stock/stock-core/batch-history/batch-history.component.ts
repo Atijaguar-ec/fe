@@ -143,7 +143,14 @@ export class BatchHistoryComponent implements OnInit {
     const config =
       (stockOrder.facility?.company as any)?.configuration ||
       this.selectedCompanyProfile?.configuration;
-    return isDeliveryReceiptConfigEnabled(config);
+    if (
+      config &&
+      (config[DELIVERY_RECEIPT_CONFIG_KEY] === false ||
+        config[DELIVERY_RECEIPT_ALT_KEY] === false)
+    ) {
+      return false;
+    }
+    return isDeliveryReceiptConfigEnabled(config) || !config;
   }
 
   getDisplaySemiProductName(stockOrder?: ApiStockOrder | null): string {
@@ -160,6 +167,13 @@ export class BatchHistoryComponent implements OnInit {
     const config =
       (stockOrder?.facility?.company as any)?.configuration ||
       this.selectedCompanyProfile?.configuration;
+    if (
+      config &&
+      (config[SIMPLIFY_SEMI_PRODUCT_KEY] === false ||
+        config[SIMPLIFY_SEMI_PRODUCT_ALT_KEY] === false)
+    ) {
+      return false;
+    }
     return isSimplifySemiProductConfigEnabled(config);
   }
 
