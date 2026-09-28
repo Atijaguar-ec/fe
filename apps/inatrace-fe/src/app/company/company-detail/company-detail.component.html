@@ -655,6 +655,28 @@
               </checkbox-input-rich-label>
             </checkbox-input>
           </div>
+          <div class="af-form-element pt-0">
+            <checkbox-input
+              [form]="enableDeliveryReceiptControl"
+            >
+              <checkbox-input-rich-label
+                i18n="@@companyDetail.configuration.enableDeliveryReceipt"
+              >
+                Generación automática de comprobante de entrega secuencial (0001, 0002, ...) en Historial de lotes y Reporte de compras.
+              </checkbox-input-rich-label>
+            </checkbox-input>
+          </div>
+          <div class="af-form-element pt-0">
+            <checkbox-input
+              [form]="simplifySemiProductToCacaoControl"
+            >
+              <checkbox-input-rich-label
+                i18n="@@companyDetail.configuration.simplifySemiProductToCacao"
+              >
+                Mostrar 'Cacao' en lugar del nombre técnico del semiproducto en el Historial de lotes.
+              </checkbox-input-rich-label>
+            </checkbox-input>
+          </div>
         </div>
       </div>
 

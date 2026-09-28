@@ -13,6 +13,12 @@ import { ApiStockOrderHistoryTimelineItem } from '../../../../../api/model/apiSt
 import { ApiFacility } from '../../../../../api/model/apiFacility';
 import { ApiMeasureUnitType } from '../../../../../api/model/apiMeasureUnitType';
 import { ApiUserCustomer } from '../../../../../api/model/apiUserCustomer';
+import { SelectedUserCompanyService } from '../../../../core/selected-user-company.service';
+import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
+import {
+  isDeliveryReceiptConfigEnabled,
+  isSimplifySemiProductConfigEnabled,
+} from '../../../../shared-services/delivery-receipt.util';
 
 interface GroupedStockOrders {
   processingDate: string;
@@ -116,12 +122,46 @@ export class BatchHistoryComponent implements OnInit {
     shareReplay(1),
   );
 
+  selectedCompanyProfile: ApiCompanyGet | null = null;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private stockOrderService: StockOrderControllerService,
     private globalEventsManager: GlobalEventManagerService,
-  ) {}
+    private selectedUserCompanyService: SelectedUserCompanyService,
+  ) {
+    this.selectedUserCompanyService.selectedCompanyProfile$.subscribe(
+      (profile) => (this.selectedCompanyProfile = profile),
+    );
+  }
+
+  isDeliveryReceiptVisible(stockOrder?: ApiStockOrder | null): boolean {
+    if (!stockOrder?.deliveryReceipt) {
+      return false;
+    }
+    const config =
+      (stockOrder.facility?.company as any)?.configuration ||
+      this.selectedCompanyProfile?.configuration;
+    return isDeliveryReceiptConfigEnabled(config);
+  }
+
+  getDisplaySemiProductName(stockOrder?: ApiStockOrder | null): string {
+    if (!stockOrder?.semiProduct) {
+      return '';
+    }
+    if (this.isSimplifySemiProductEnabled(stockOrder)) {
+      return 'Cacao';
+    }
+    return stockOrder.semiProduct.name || '';
+  }
+
+  isSimplifySemiProductEnabled(stockOrder?: ApiStockOrder | null): boolean {
+    const config =
+      (stockOrder?.facility?.company as any)?.configuration ||
+      this.selectedCompanyProfile?.configuration;
+    return isSimplifySemiProductConfigEnabled(config);
+  }
 
   getTargetStockOrders(timelineItem: ApiStockOrderHistoryTimelineItem) {
     return timelineItem.purchaseOrders?.length > 0

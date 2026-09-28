@@ -71,6 +71,10 @@ export interface ApiCompanyBase {
      * social media URL links (Facebook, Instagram, Twitter, YouTube, ...)
      */
     mediaLinks?: { [key: string]: string; };
+    /**
+     * company configuration settings
+     */
+    configuration?: { [key: string]: any; };
 }
 
 /**

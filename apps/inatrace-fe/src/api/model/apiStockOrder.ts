@@ -49,6 +49,10 @@ export interface ApiStockOrder {
      */
     identifier?: string;
     /**
+     * Delivery receipt number (comprobante)
+     */
+    deliveryReceipt?: string;
+    /**
      * Timestamp indicates when stock order have been created
      */
     creationTimestamp?: Date;

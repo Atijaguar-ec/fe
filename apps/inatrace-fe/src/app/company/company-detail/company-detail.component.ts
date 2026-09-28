@@ -37,6 +37,12 @@ import {
   WEEK_COLOR_CODES_KEY,
   WEEK_NUMBERING_SCHEME_KEY,
 } from '../../shared-services/week-number.util';
+import {
+  isDeliveryReceiptConfigEnabled,
+  isSimplifySemiProductConfigEnabled,
+  DELIVERY_RECEIPT_ALT_KEY,
+  SIMPLIFY_SEMI_PRODUCT_ALT_KEY,
+} from '../../shared-services/delivery-receipt.util';
 
 @Component({
   selector: 'app-company-detail',
@@ -96,6 +102,8 @@ export class CompanyDetailComponent
   weekColorCodesControl = new UntypedFormControl(false);
   parcelLotFreeTextControl = new UntypedFormControl(false);
   fixedPricePerUnitControl = new UntypedFormControl(false);
+  enableDeliveryReceiptControl = new UntypedFormControl(false);
+  simplifySemiProductToCacaoControl = new UntypedFormControl(false);
 
   /**
    * Precio fijo por semiproducto. Recepcion no conoce el precio y se actualiza
@@ -323,6 +331,12 @@ export class CompanyDetailComponent
         this.weekColorCodesControl.setValue(!!config[WEEK_COLOR_CODES_KEY]);
         this.parcelLotFreeTextControl.setValue(!!config.parcelLotFreeText);
         this.fixedPricePerUnitControl.setValue(!!config.fixedPricePerUnit);
+        this.enableDeliveryReceiptControl.setValue(
+          isDeliveryReceiptConfigEnabled(config),
+        );
+        this.simplifySemiProductToCacaoControl.setValue(
+          isSimplifySemiProductConfigEnabled(config),
+        );
         this.loadSemiProductPrices(config.fixedPricesBySemiProduct).then();
 
         // If user is not enrolled in company enrolled, disable the form
@@ -337,6 +351,8 @@ export class CompanyDetailComponent
           this.weekColorCodesControl.disable();
           this.parcelLotFreeTextControl.disable();
           this.fixedPricePerUnitControl.disable();
+          this.enableDeliveryReceiptControl.disable();
+          this.simplifySemiProductToCacaoControl.disable();
         }
 
         this.globalEventsManager.showLoading(false);
@@ -361,6 +377,17 @@ export class CompanyDetailComponent
   }
 
   newCompany() {
+    this.onlyOrganicProductionControl.setValue(false);
+    this.onlyNacionalVarietyControl.setValue(false);
+    this.enableParcelLotControl.setValue(false);
+    this.numericVarietyOptionsControl.setValue(false);
+    this.firstMondayWeekNumberingControl.setValue(false);
+    this.weekColorCodesControl.setValue(false);
+    this.parcelLotFreeTextControl.setValue(false);
+    this.fixedPricePerUnitControl.setValue(false);
+    this.enableDeliveryReceiptControl.setValue(false);
+    this.simplifySemiProductToCacaoControl.setValue(false);
+
     this.loadSemiProductPrices().then();
     this.companyDetailForm = generateFormFromMetadata(
       ApiCompanyGet.formMetadata(),
@@ -454,6 +481,14 @@ export class CompanyDetailComponent
       formValue.configuration.parcelLotFreeText = !!this.parcelLotFreeTextControl.value;
       formValue.configuration.fixedPricePerUnit = !!this.fixedPricePerUnitControl.value;
       formValue.configuration.fixedPricesBySemiProduct = this.collectSemiProductPrices();
+      formValue.configuration.enableDeliveryReceipt = !!this.enableDeliveryReceiptControl.value;
+      formValue.configuration.simplifySemiProductToCacao = !!this.simplifySemiProductToCacaoControl.value;
+      if (!this.enableDeliveryReceiptControl.value) {
+        delete formValue.configuration[DELIVERY_RECEIPT_ALT_KEY];
+      }
+      if (!this.simplifySemiProductToCacaoControl.value) {
+        delete formValue.configuration[SIMPLIFY_SEMI_PRODUCT_ALT_KEY];
+      }
 
       const res: ApiResponseApiBaseEntity = await this.companyController
         .updateCompany({ ...formValue, id: companyId })
@@ -554,6 +589,14 @@ export class CompanyDetailComponent
       formValue.configuration.parcelLotFreeText = !!this.parcelLotFreeTextControl.value;
       formValue.configuration.fixedPricePerUnit = !!this.fixedPricePerUnitControl.value;
       formValue.configuration.fixedPricesBySemiProduct = this.collectSemiProductPrices();
+      formValue.configuration.enableDeliveryReceipt = !!this.enableDeliveryReceiptControl.value;
+      formValue.configuration.simplifySemiProductToCacao = !!this.simplifySemiProductToCacaoControl.value;
+      if (!this.enableDeliveryReceiptControl.value) {
+        delete formValue.configuration[DELIVERY_RECEIPT_ALT_KEY];
+      }
+      if (!this.simplifySemiProductToCacaoControl.value) {
+        delete formValue.configuration[SIMPLIFY_SEMI_PRODUCT_ALT_KEY];
+      }
 
       const res: ApiResponseApiBaseEntity = await this.companyController
         .createCompany(formValue)

@@ -33,6 +33,10 @@
                   <th>Id</th>
                   <td>{{ stockOrder.id }}</td>
                 </tr>
+                <tr *ngIf="isDeliveryReceiptVisible(stockOrder)">
+                  <th i18n="@@orderHistoryView.tableCol.deliveryReceipt">Comprobante</th>
+                  <td>{{ stockOrder.deliveryReceipt }}</td>
+                </tr>
                 <tr *ngIf="!stockOrder.purchaseOrder">
                   <th i18n="@@orderHistoryView.tableCol.internalLotNumber">Internal lot name</th>
                   <td>{{ stockOrder.internalLotNumber }}</td>
@@ -64,7 +68,7 @@
                 <tr>
                   <ng-container *ngIf="stockOrder.semiProduct">
                     <th i18n="@@orderHistoryView.tableCol.semiProduct">Semi-product</th>
-                    <td>{{ stockOrder.semiProduct.name }}</td>
+                    <td>{{ getDisplaySemiProductName(stockOrder) }}</td>
                   </ng-container>
                   <ng-container *ngIf="stockOrder.finalProduct">
                     <th i18n="@@orderHistoryView.tableCol.finalProduct">Final product</th>

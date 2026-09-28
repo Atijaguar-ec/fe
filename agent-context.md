@@ -509,6 +509,8 @@ Claves vigentes:
 | `weekColorCodes` | Muestra el color de la semana |
 | `parcelLotFreeText` | N° Parcela como caja de texto, iniciada en 1 |
 | `fixedPricePerUnit` + `fixedPricesBySemiProduct` | Precio fijo por producto, solo lectura en Entregas |
+| `enableDeliveryReceipt` | Comprobante secuencial ("0001", "0002", ...) en entregas, Historial de lotes y Reporte de compras |
+| `simplifySemiProductToCacao` | Sustituye nombre técnico del semiproducto por "Cacao" en vista básica de Historial de lotes |
 
 **Todas apagadas por defecto**, y esa es la regla al agregar la próxima: si el
 valor ausente no reproduce exactamente el comportamiento anterior, cambiaste el
