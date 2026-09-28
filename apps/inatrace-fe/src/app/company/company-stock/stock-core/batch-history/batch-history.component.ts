@@ -16,6 +16,10 @@ import { ApiUserCustomer } from '../../../../../api/model/apiUserCustomer';
 import { SelectedUserCompanyService } from '../../../../core/selected-user-company.service';
 import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
 import {
+  DELIVERY_RECEIPT_CONFIG_KEY,
+  DELIVERY_RECEIPT_ALT_KEY,
+  SIMPLIFY_SEMI_PRODUCT_KEY,
+  SIMPLIFY_SEMI_PRODUCT_ALT_KEY,
   isDeliveryReceiptConfigEnabled,
   isSimplifySemiProductConfigEnabled,
 } from '../../../../shared-services/delivery-receipt.util';
