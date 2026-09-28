@@ -69,6 +69,10 @@ export interface ApiFacility {
      */
     displayTare?: boolean;
     /**
+     * Enable form control 'Quota balance'
+     */
+    displayQuotaBalance?: boolean;
+    /**
      * Enable form control 'Women only'
      */
     displayWomenOnly?: boolean;
@@ -154,6 +158,10 @@ export namespace ApiFacility {
          * Enable form control 'Tare'
          */
         displayTare = 'displayTare',
+        /**
+         * Enable form control 'Quota balance'
+         */
+        displayQuotaBalance = 'displayQuotaBalance',
         /**
          * Enable form control 'Women only'
          */
@@ -295,6 +303,17 @@ export namespace ApiFacility {
                     isEnum: false,
                     required: false,
                     name: 'displayTare',
+                    classname: 'ApiFacility',
+                    dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'displayQuotaBalance',
                     classname: 'ApiFacility',
                     dataType: 'boolean',
                     isPrimitiveType: true,

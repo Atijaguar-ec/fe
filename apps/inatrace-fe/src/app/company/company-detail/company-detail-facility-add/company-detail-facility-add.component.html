@@ -257,6 +257,13 @@
                 Display "Tare"
               </checkbox-input-rich-label>
             </checkbox-input>
+            <checkbox-input [form]="form.get('displayQuotaBalance')">
+              <checkbox-input-rich-label
+                i18n="@@productLabelStockFacilityModal.checkbox.quotaBalance.label"
+              >
+                Display "Quota balance"
+              </checkbox-input-rich-label>
+            </checkbox-input>
             <checkbox-input [form]="form.get('displayPriceDeductionDamage')">
               <checkbox-input-rich-label
                 i18n="

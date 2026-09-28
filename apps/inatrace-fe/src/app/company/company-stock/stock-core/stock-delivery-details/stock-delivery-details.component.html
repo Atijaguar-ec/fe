@@ -577,8 +577,11 @@
               </div>
             </div>
 
-            <div class="af-row">
-              <div class="af-c6">
+            <div
+              class="af-row"
+              *ngIf="showDamagedWeightDeduction || showQuotaBalance"
+            >
+              <div class="af-c6" *ngIf="showDamagedWeightDeduction">
                 <textinput
                   *ngIf="showDamagedWeightDeduction"
                   [form]="stockOrderForm.get('damagedWeightDeduction')"
@@ -620,6 +623,51 @@
                         @@productLabelStockPurchaseOrdersModal.textinput.deductionGreaterThanWeight.error"
                     >
                       Damaged weight deduction is larger than net weight
+                    </div>
+                  </div>
+                </textinput>
+              </div>
+              <div class="af-c6" *ngIf="showQuotaBalance">
+                <textinput
+                  [form]="quotaBalanceForm"
+                  [label]="quotaBalanceLabel"
+                  style="width: 100%"
+                  [placeholder]="quotaBalancePlaceholder"
+                  [isInvalid]="
+                    quotaExceededCheck || quotaExceededByCurrentDeliveryCheck
+                  "
+                  [readOnly]="true"
+                >
+                  <div *ngIf="quotaExceededCheck" class="sc-invalid-feedback">
+                    <div
+                      i18n="
+                        @@productLabelStockPurchaseOrdersModal.textinput.quotaExceeded.error"
+                    >
+                      El agricultor ha alcanzado o superado el cupo disponible
+                    </div>
+                  </div>
+                  <div
+                    *ngIf="
+                      quotaExceededByCurrentDeliveryCheck && !quotaExceededCheck
+                    "
+                    class="sc-invalid-feedback"
+                  >
+                    <div
+                      i18n="
+                        @@productLabelStockPurchaseOrdersModal.textinput.quotaDeliveryExceeds.error"
+                    >
+                      La cantidad a entregar supera el saldo de cupo disponible
+                    </div>
+                  </div>
+                  <div
+                    *ngIf="quotaNearLimitCheck"
+                    style="color: #e67e22; font-size: 12px; margin-top: 4px;"
+                  >
+                    <div
+                      i18n="
+                        @@productLabelStockPurchaseOrdersModal.textinput.quotaNearLimit.warning"
+                    >
+                      El saldo de cupo está próximo a agotarse
                     </div>
                   </div>
                 </textinput>
