@@ -52,7 +52,12 @@ export class ActiveCertificationTypesService extends GeneralSifrantService<ApiCe
       );
   }
 
+  private _cachedPlaceholder: string | null = null;
+
   public placeholder(): string {
-    return $localize`:@@plotDetail.singleChoice.certificationType.placeholder:Seleccionar tipo de certificación ...`;
+    if (!this._cachedPlaceholder) {
+      this._cachedPlaceholder = $localize`:@@plotDetail.singleChoice.certificationType.placeholder:Seleccionar tipo de certificación ...`;
+    }
+    return this._cachedPlaceholder;
   }
 }
