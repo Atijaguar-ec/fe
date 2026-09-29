@@ -869,13 +869,16 @@
             >
               <div class="af-row pl-3 pr-3 mb-1">
                 <div class="af-c5"></div>
-                <div>
+                <div class="af-c4">
                   <small
                     i18n="
                       @@companyDetailProcessingActions.hint.processingEvidenceFields.checkBox"
                   >
                     mandatory / required on quote
                   </small>
+                </div>
+                <div class="af-c2">
+                  <small>Orden</small>
                 </div>
               </div>
             </ng-container>
@@ -888,10 +891,10 @@
                 "
               >
                 <div class="af-row pl-3 pr-3 mb-1">
-                  <div class="af-c6 d-flex align-items-center">
+                  <div class="af-c5 d-flex align-items-center">
                     {{ field?.label }}
                   </div>
-                  <div class="af-c5 d-flex align-items-center">
+                  <div class="af-c4 d-flex align-items-center">
                     <checkbox-input
                       [noBottomMargin]="true"
                       [inTable]="true"
@@ -907,6 +910,17 @@
                       [checked]="field.requiredOnQuote"
                     >
                     </checkbox-input>
+                  </div>
+                  <div class="af-c2 d-flex align-items-center">
+                    <input
+                      type="number"
+                      class="form-control form-control-sm"
+                      [(ngModel)]="field.sortOrder"
+                      [ngModelOptions]="{ standalone: true }"
+                      (ngModelChange)="this.form.markAsDirty()"
+                      placeholder="Orden"
+                      min="0"
+                    />
                   </div>
                   <div
                     class="af-c1 d-flex align-items-center"

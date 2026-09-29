@@ -31,6 +31,21 @@ export interface InatraceAuthConfig {
 }
 
 /**
+ * Determines whether the initial browser URL path points to a public, unauthenticated route.
+ * Public routes include B2C traceability (q-cd, p-cd, q, p), landing page, blogs, cookie/terms, etc.,
+ * with optional language prefix (e.g. /es/q-cd/..., /q-cd/...).
+ */
+export function isInitialRoutePublic(): boolean {
+  if (typeof window === 'undefined' || !window.location) {
+    return false;
+  }
+  const pathname = window.location.pathname || '';
+  const publicPattern =
+    /^\/([a-z]{2}\/)?(q-cd|p-cd|q|p|landing|blog|s|register|reset-password|confirm-email|account-activation)($|\/)/i;
+  return publicPattern.test(pathname);
+}
+
+/**
  * Configure Keycloak Providers dynamically per environment.
  * Wires Keycloak init + Bearer token interceptor for API requests.
  *
@@ -84,7 +99,7 @@ export function provideInatraceAuth(config: InatraceAuthConfig) {
         clientId: config.keycloakClientId
       },
       initOptions: {
-        onLoad: 'login-required',
+        onLoad: isInitialRoutePublic() ? undefined : 'login-required',
         checkLoginIframe: false
       },
       features: [

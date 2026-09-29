@@ -22,13 +22,25 @@ export class AuthService {
     private userController: UserControllerService,
     private keycloak: Keycloak,
   ) {
-    let skipRefresh = false;
+    if (!this.keycloak.authenticated) {
+      this.userProfileSubject.next(null);
+      return;
+    }
+
+    const pathname = typeof window !== 'undefined' ? window.location.pathname || '' : '';
+    const isPublicUrl =
+      /^\/([a-z]{2}\/)?(q-cd|p-cd|q|p|landing|blog|s|register|reset-password|confirm-email|account-activation)($|\/)/i.test(
+        pathname,
+      );
+
+    let skipRefresh = isPublicUrl;
     this.route.snapshot.children.forEach((routeChild) => {
-      skipRefresh = routeChild.url
-        .map((urlSegment) => urlSegment.path)
-        .some((path) => this.pathsToIgnoreRefresh.includes(path));
-      if (skipRefresh) {
-        return;
+      if (
+        routeChild.url
+          .map((urlSegment) => urlSegment.path)
+          .some((path) => this.pathsToIgnoreRefresh.includes(path))
+      ) {
+        skipRefresh = true;
       }
     });
 

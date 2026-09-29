@@ -905,3 +905,45 @@ CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
 
 En los specs usá `toBe(true)`, no `toBeTrue()`: los tipos de Jest tapan los de Jasmine
 y el spec no compila.
+
+## 20. Trazabilidad Pública de Códigos QR (B2C) y Desacoplamiento de Keycloak (2026-09-29)
+
+> **Contexto:** Al escanear el QR o abrir la URL pública generada desde un lote de exportación
+> (`/es/q-cd/:uuid/:qrTag`), el sistema redirigía a la pantalla de bienvenida/login de Keycloak.
+> El módulo B2C (`B2cPageComponent`) fue diseñado para consumidores finales sin cuenta en Keycloak.
+
+### 20.1 Cadena Causal
+1. **Keycloak `onLoad: 'login-required'`:** En `fe/shared/auth/src/lib/auth.provider.ts`, Keycloak
+   se inicializaba en `APP_INITIALIZER` con `login-required` indiscriminadamente. Si el navegador
+   no tenía sesión SSO activa, Keycloak interceptaba antes de evaluar el enrutador de Angular y
+   forzaba redirect a la consola de login.
+2. **`qrCodeBasePath` vacío:** En `environment.prod.ts` y en `staging-frontend.env`, la variable
+   estaba vacía `''`, lo que ensamblaba URLs con doble barra (`/es//<uuid>/<tag>`). Al no coincidir
+   con ninguna ruta, caía en el fallback a `/home` (protegida por guardias de seguridad).
+3. **`AuthService` y `TokenInterceptor`:** Al arrancar la SPA, `AuthService` intentaba pedir
+   `/api/user/profile`. Para un consumidor anónimo, la API respondía `401 Unauthorized`.
+   `TokenInterceptor` no contemplaba rutas públicas en `pathsToIgnore()`, ejecutando `auth.logout()`
+   que llamaba a `keycloak.logout()`, gatillando otra redirección a Keycloak.
+
+### 20.2 Reglas Arquitectónicas que no hay que romper
+- **`isInitialRoutePublic()` en `auth.provider.ts`:** Si `window.location.pathname` coincide con
+  rutas públicas (`q-cd`, `p-cd`, `q`, `p`, `landing`, `blog`, `s/`, `register`, `reset-password`,
+  `confirm-email`, `account-activation`), `onLoad` DEBE ser `undefined` (inicialización silenciosa sin
+  redirección). Para rutas privadas, DEBE ser `'login-required'`.
+- **`AuthService` constructor:** Si `!this.keycloak.authenticated`, NUNCA consultar el perfil de
+  usuario (`refreshUserProfile()`). Emitir `null` y salir.
+- **`TokenInterceptor.pathsToIgnore()`:** Debe incluir todas las rutas públicas para que un 401
+  nunca dispare `auth.logout()`.
+- **`ActivatedUserGuardService`:** Si un usuario no autenticado intenta entrar a `/home` o cualquier
+  ruta protegida, invocar `this.keycloak.login({ redirectUri: window.location.origin + state.url })`.
+- **Fallback de `qrCodeBasePath`:** Siempre debe tener `'q-cd'` como valor por defecto en los
+  environments y en los modales de generación de QR.
+
+## 21. Orden Manual de Campos de Evidencia en Acciones de Proceso (`sortOrder`) (2026-09-29)
+
+- En `processingactionpef` se agregó la columna `sortorder INTEGER NULL` (migración Flyway `V7`).
+- En la configuración de la acción (`company-detail-processing-actions-detail`), el usuario puede asignar
+  un número de orden manual (`# Orden`) para cada campo de evidencia dinámico.
+- En la ejecución de un nuevo proceso (`processing-order-output`), los campos dinámicos se ordenan
+  numéricamente de menor a mayor según `sortOrder` (dejando nulos al final).
+

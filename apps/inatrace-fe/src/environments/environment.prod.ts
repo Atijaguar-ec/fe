@@ -7,7 +7,7 @@ export const environment = {
   environmentName: (window['env'] || {})['environmentName'] || '',
   basePath: '',
   appBaseUrl: (window['env'] || {})['appBaseUrl'] || '',
-  qrCodeBasePath: (window['env'] || {})['qrCodeBasePath'] || '',
+  qrCodeBasePath: (window['env'] || {})['qrCodeBasePath'] || 'q-cd',
   chainRelativeFileUploadUrl: '',
   chainRelativeFileDownloadUrl: '',
   relativeFileUploadUrl: (window['env'] || {})['relativeFileUploadUrl'] || '',

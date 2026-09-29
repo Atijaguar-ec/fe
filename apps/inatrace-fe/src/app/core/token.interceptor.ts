@@ -38,11 +38,8 @@ export class TokenInterceptor implements HttpInterceptor {
                 this.toasterService.error(message, title);
               } else if (err.url.endsWith('/logout')) {
                 // nothing to do
-              } else if (
-                err.url.endsWith('/user/profile') &&
-                this.pathsToIgnore()
-              ) {
-                // landing or get started page, ignore
+              } else if (this.pathsToIgnore()) {
+                // Public route or landing page, do not trigger session expired logout
               } else {
                 this.auth.logout().then();
                 const message = $localize`:@@tokenInterceptor.logout.message:Your session has expired`;
@@ -76,10 +73,16 @@ export class TokenInterceptor implements HttpInterceptor {
   }
 
   pathsToIgnore() {
+    const pathname = typeof window !== 'undefined' ? window.location.pathname || '' : '';
+    const isPublic =
+      /^\/([a-z]{2}\/)?(q-cd|p-cd|q|p|landing|blog|s|register|reset-password|confirm-email|account-activation)($|\/)/i.test(
+        pathname,
+      );
     const landingUrlTemplate = '/([a-z]{2})/';
     return (
-      Array.isArray(window.location.pathname.match(landingUrlTemplate)) &&
-      this.router.url === '/'
+      isPublic ||
+      (Array.isArray(pathname.match(landingUrlTemplate)) &&
+        this.router.url === '/')
     );
   }
 }

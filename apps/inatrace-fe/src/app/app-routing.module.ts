@@ -464,6 +464,11 @@ const routes: Routes = [
     pathMatch: 'full'
   },
   {
+    path: 'q-cd/:uuid',
+    component: QrCodeRedirectComponent,
+    pathMatch: 'full'
+  },
+  {
     path: 'q-cd/:uuid/:qrTag',
     component: QrCodeRedirectComponent,
     pathMatch: 'full'

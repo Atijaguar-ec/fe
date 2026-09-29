@@ -47,6 +47,10 @@ export interface ApiProcessingEvidenceField {
      */
     requiredOnQuote?: boolean;
     /**
+     * Processing evidence field sort order
+     */
+    sortOrder?: number;
+    /**
      * Processing evidence field type
      */
     type?: ApiProcessingEvidenceField.TypeEnum;
@@ -166,6 +170,17 @@ export namespace ApiProcessingEvidenceField {
                     name: 'requiredOnQuote',
                     classname: 'ApiProcessingEvidenceField',
                     dataType: 'boolean',
+                    isPrimitiveType: true,
+                    isListContainer: false,
+                    complexType: ''
+                },
+                {
+                    isReadOnly: false,
+                    isEnum: false,
+                    required: false,
+                    name: 'sortOrder',
+                    classname: 'ApiProcessingEvidenceField',
+                    dataType: 'number',
                     isPrimitiveType: true,
                     isListContainer: false,
                     complexType: ''
