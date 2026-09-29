@@ -42,6 +42,7 @@ import { Subscription } from 'rxjs';
 import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
 import { EnvironmentInfoService } from '../../../../core/environment-info.service';
 import { ProductFieldVisibilityService } from '../../../../shared-services/product-field-visibility.service';
+import { isQuotaBalanceConfigEnabled } from '../../../../shared-services/delivery-receipt.util';
 
 @Component({
   selector: 'app-stock-delivery-details',
@@ -90,7 +91,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   netWeightForm = new FormControl(null);
   finalPriceForm = new FormControl(null);
-  quotaBalanceForm = new FormControl(null);
+  quotaBalanceForm = new FormControl('0.00');
   currentQuotaBalance: ApiQuotaBalance | null = null;
   quotaBalanceLoading = false;
 
@@ -716,14 +717,18 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   get showQuotaBalance(): boolean {
-    return !!(this.facility?.displayQuotaBalance || this.companyProfile?.configuration?.enableQuotaBalance);
+    const isCompanyEnabled = isQuotaBalanceConfigEnabled(this.companyProfile?.configuration);
+    if (!isCompanyEnabled) {
+      return false;
+    }
+    return this.facility?.displayQuotaBalance !== false;
   }
 
   get quotaBalancePlaceholder(): string {
     if (this.quotaBalanceLoading) {
       return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.quotaBalance.loading:Calculando...`;
     }
-    return '-';
+    return '0.00';
   }
 
   get quotaExceededCheck(): boolean {
@@ -840,7 +845,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.stockOrderForm?.get('producerUserCustomer')?.value?.id;
     if (!farmerId) {
       this.currentQuotaBalance = null;
-      this.quotaBalanceForm.setValue(null);
+      this.quotaBalanceForm.setValue('0.00');
       return;
     }
     const companyId = this.companyProfile?.id;
@@ -876,17 +881,17 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
               });
               this.quotaBalanceForm.setValue(formatted);
             } else {
-              this.quotaBalanceForm.setValue('-');
+              this.quotaBalanceForm.setValue('0.00');
             }
           } else {
             this.currentQuotaBalance = null;
-            this.quotaBalanceForm.setValue('-');
+            this.quotaBalanceForm.setValue('0.00');
           }
         },
         error: () => {
           this.quotaBalanceLoading = false;
           this.currentQuotaBalance = null;
-          this.quotaBalanceForm.setValue('-');
+          this.quotaBalanceForm.setValue('0.00');
         },
       });
   }

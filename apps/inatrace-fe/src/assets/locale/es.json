@@ -3065,6 +3065,7 @@
     "companyDetail.configuration.onlyNacionalVariety": "Solo variedad Nacional (automatiza y oculta el campo de variedad de cacao)",
     "companyDetail.configuration.enableDeliveryReceipt": "Generación automática de comprobante de entrega secuencial (0001, 0002, ...) en Historial de lotes y Reporte de compras",
     "companyDetail.configuration.simplifySemiProductToCacao": "Mostrar 'Cacao' en lugar del nombre técnico del semiproducto en el Historial de lotes",
+    "companyDetail.configuration.enableQuotaBalance": "Control y visualización de saldo de cupo en Entregas",
     "orderHistoryView.tableCol.deliveryReceipt": "Comprobante",
     "productLabelStakeholders.dataSharingAgreements.listEditor.item.attachment-uploader.content": "Suba acuerdo de transferencia de datos",
     "stockOrderItem.textinput.currencyForEndCustomer.label": "Moneda nacional del consumidor",

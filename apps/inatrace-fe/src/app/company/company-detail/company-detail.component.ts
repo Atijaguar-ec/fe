@@ -40,8 +40,10 @@ import {
 import {
   isDeliveryReceiptConfigEnabled,
   isSimplifySemiProductConfigEnabled,
+  isQuotaBalanceConfigEnabled,
   DELIVERY_RECEIPT_ALT_KEY,
   SIMPLIFY_SEMI_PRODUCT_ALT_KEY,
+  QUOTA_BALANCE_CONFIG_KEY,
 } from '../../shared-services/delivery-receipt.util';
 
 @Component({
@@ -104,6 +106,7 @@ export class CompanyDetailComponent
   fixedPricePerUnitControl = new UntypedFormControl(false);
   enableDeliveryReceiptControl = new UntypedFormControl(false);
   simplifySemiProductToCacaoControl = new UntypedFormControl(false);
+  enableQuotaBalanceControl = new UntypedFormControl(false);
 
   /**
    * Precio fijo por semiproducto. Recepcion no conoce el precio y se actualiza
@@ -337,6 +340,9 @@ export class CompanyDetailComponent
         this.simplifySemiProductToCacaoControl.setValue(
           isSimplifySemiProductConfigEnabled(config),
         );
+        this.enableQuotaBalanceControl.setValue(
+          isQuotaBalanceConfigEnabled(config),
+        );
         this.loadSemiProductPrices(config.fixedPricesBySemiProduct).then();
 
         // If user is not enrolled in company enrolled, disable the form
@@ -353,6 +359,7 @@ export class CompanyDetailComponent
           this.fixedPricePerUnitControl.disable();
           this.enableDeliveryReceiptControl.disable();
           this.simplifySemiProductToCacaoControl.disable();
+          this.enableQuotaBalanceControl.disable();
         }
 
         this.globalEventsManager.showLoading(false);
@@ -387,6 +394,7 @@ export class CompanyDetailComponent
     this.fixedPricePerUnitControl.setValue(false);
     this.enableDeliveryReceiptControl.setValue(false);
     this.simplifySemiProductToCacaoControl.setValue(false);
+    this.enableQuotaBalanceControl.setValue(false);
 
     this.loadSemiProductPrices().then();
     this.companyDetailForm = generateFormFromMetadata(
@@ -483,11 +491,15 @@ export class CompanyDetailComponent
       formValue.configuration.fixedPricesBySemiProduct = this.collectSemiProductPrices();
       formValue.configuration.enableDeliveryReceipt = !!this.enableDeliveryReceiptControl.value;
       formValue.configuration.simplifySemiProductToCacao = !!this.simplifySemiProductToCacaoControl.value;
+      formValue.configuration[QUOTA_BALANCE_CONFIG_KEY] = !!this.enableQuotaBalanceControl.value;
       if (!this.enableDeliveryReceiptControl.value) {
         delete formValue.configuration[DELIVERY_RECEIPT_ALT_KEY];
       }
       if (!this.simplifySemiProductToCacaoControl.value) {
         delete formValue.configuration[SIMPLIFY_SEMI_PRODUCT_ALT_KEY];
+      }
+      if (!this.enableQuotaBalanceControl.value) {
+        delete formValue.configuration[QUOTA_BALANCE_CONFIG_KEY];
       }
 
       const res: ApiResponseApiBaseEntity = await this.companyController
@@ -591,11 +603,15 @@ export class CompanyDetailComponent
       formValue.configuration.fixedPricesBySemiProduct = this.collectSemiProductPrices();
       formValue.configuration.enableDeliveryReceipt = !!this.enableDeliveryReceiptControl.value;
       formValue.configuration.simplifySemiProductToCacao = !!this.simplifySemiProductToCacaoControl.value;
+      formValue.configuration[QUOTA_BALANCE_CONFIG_KEY] = !!this.enableQuotaBalanceControl.value;
       if (!this.enableDeliveryReceiptControl.value) {
         delete formValue.configuration[DELIVERY_RECEIPT_ALT_KEY];
       }
       if (!this.simplifySemiProductToCacaoControl.value) {
         delete formValue.configuration[SIMPLIFY_SEMI_PRODUCT_ALT_KEY];
+      }
+      if (!this.enableQuotaBalanceControl.value) {
+        delete formValue.configuration[QUOTA_BALANCE_CONFIG_KEY];
       }
 
       const res: ApiResponseApiBaseEntity = await this.companyController
