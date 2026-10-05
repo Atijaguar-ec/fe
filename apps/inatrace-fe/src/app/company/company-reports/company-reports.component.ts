@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { environment } from '../../../environments/environment';
+import { EnvironmentInfoService } from '../../core/environment-info.service';
 
 export interface ReportTab {
   id: string;
@@ -27,55 +28,105 @@ export class CompanyReportsComponent implements OnInit {
   supersetBaseUrl = '';
   biEnvironment = '';
   iframeSrc: SafeResourceUrl | null = null;
-  activeTabId = 'agrocalidad';
+  activeTabId = '';
+  reportTabs: ReportTab[] = [];
 
-  reportTabs: ReportTab[] = [
-    {
-      id: 'agrocalidad',
-      label: 'Agrocalidad (Sistema GUIA)',
-      slugSuffix: 'cacao-agrocalidad-guia',
-      description: 'Reporte regulatorio oficial de 20 variables para exportación al Sistema GUIA.',
-    },
-    {
-      id: 'compras',
-      label: 'Compras Certificadas',
-      slugSuffix: 'cacao-compras-certificadas',
-      description: 'Desglose por certificación (Orgánico, Transición, Convencional Fairtrade).',
-    },
-    {
-      id: 'acopio',
-      label: 'Acopio Semanal & Calidad',
-      slugSuffix: 'cacao-acopio-calidad',
-      description: 'Evolución semanal de compras por variedad (Nacional vs CCN-51).',
-    },
-    {
-      id: 'procesos',
-      label: 'Rendimientos & Procesamiento',
-      slugSuffix: 'cacao-procesos-rendimientos',
-      description: 'Rendimientos de transformación y trazabilidad de lotes procesados.',
-    },
-    {
-      id: 'parcelas',
-      label: 'Productores & Parcelas',
-      slugSuffix: 'cacao-productores-parcelas',
-      description: 'Georreferenciación y distribución de parcelas de productores.',
-    },
-    {
-      id: 'pagos',
-      label: 'Liquidación & Pagos',
-      slugSuffix: 'cacao-pagos-conciliacion',
-      description: 'Conciliación de pagos frente a costos de compra registrados.',
-    },
-  ];
-
-  constructor(private sanitizer: DomSanitizer) {}
+  constructor(
+    private sanitizer: DomSanitizer,
+    private envInfo: EnvironmentInfoService
+  ) {}
 
   ngOnInit(): void {
     this.supersetBaseUrl = this.resolveSupersetBaseUrl();
     this.biEnvironment = this.resolveBiEnvironment();
     this.orgSlug = this.resolveOrgSlug();
 
+    this.initReportTabs();
     this.selectTab(this.activeTabId);
+  }
+
+  private initReportTabs(): void {
+    if (this.orgSlug === 'fortaleza') {
+      this.reportTabs = [
+        {
+          id: 'beneficio',
+          label: 'Balance de Masas & Beneficio',
+          slugSuffix: 'cacao-beneficio-balance',
+          description: 'Control de beneficio post-cosecha, mermas escalonadas (15%, 10%, 45%, 5%), fermentación, secado y ensacado.',
+        },
+        {
+          id: 'agrocalidad',
+          label: 'Agrocalidad (Sistema GUIA)',
+          slugSuffix: 'cacao-agrocalidad-guia',
+          description: 'Reporte regulatorio oficial para exportación al Sistema GUIA.',
+        },
+        {
+          id: 'acopio',
+          label: 'Acopio Semanal & Calidad',
+          slugSuffix: 'cacao-acopio-calidad',
+          description: 'Evolución semanal de compras por variedad (Nacional vs CCN-51).',
+        },
+        {
+          id: 'procesos',
+          label: 'Rendimientos & Procesamiento',
+          slugSuffix: 'cacao-procesos-rendimientos',
+          description: 'Rendimientos de transformación y trazabilidad de lotes procesados.',
+        },
+        {
+          id: 'parcelas',
+          label: 'Productores & Parcelas',
+          slugSuffix: 'cacao-productores-parcelas',
+          description: 'Georreferenciación y distribución de parcelas de productores.',
+        },
+        {
+          id: 'pagos',
+          label: 'Liquidación & Pagos',
+          slugSuffix: 'cacao-pagos-conciliacion',
+          description: 'Conciliación de pagos frente a costos de compra registrados.',
+        },
+      ];
+      this.activeTabId = 'beneficio';
+    } else {
+      this.reportTabs = [
+        {
+          id: 'agrocalidad',
+          label: 'Agrocalidad (Sistema GUIA)',
+          slugSuffix: 'cacao-agrocalidad-guia',
+          description: 'Reporte regulatorio oficial de 20 variables para exportación al Sistema GUIA.',
+        },
+        {
+          id: 'compras',
+          label: 'Compras Certificadas',
+          slugSuffix: 'cacao-compras-certificadas',
+          description: 'Desglose por certificación (Orgánico, Transición, Convencional Fairtrade).',
+        },
+        {
+          id: 'acopio',
+          label: 'Acopio Semanal & Calidad',
+          slugSuffix: 'cacao-acopio-calidad',
+          description: 'Evolución semanal de compras por variedad (Nacional vs CCN-51).',
+        },
+        {
+          id: 'procesos',
+          label: 'Rendimientos & Procesamiento',
+          slugSuffix: 'cacao-procesos-rendimientos',
+          description: 'Rendimientos de transformación y trazabilidad de lotes procesados.',
+        },
+        {
+          id: 'parcelas',
+          label: 'Productores & Parcelas',
+          slugSuffix: 'cacao-productores-parcelas',
+          description: 'Georreferenciación y distribución de parcelas de productores.',
+        },
+        {
+          id: 'pagos',
+          label: 'Liquidación & Pagos',
+          slugSuffix: 'cacao-pagos-conciliacion',
+          description: 'Conciliación de pagos frente a costos de compra registrados.',
+        },
+      ];
+      this.activeTabId = 'agrocalidad';
+    }
   }
 
   selectTab(tabId: string): void {
@@ -128,26 +179,34 @@ export class CompanyReportsComponent implements OnInit {
    * Resolves the tenant organization slug ('unocace' or 'fortaleza').
    */
   private resolveOrgSlug(): string {
+    const company = (this.envInfo.companyName || '').toLowerCase().trim();
+    if (company.includes('fortaleza')) {
+      return 'fortaleza';
+    }
+    if (company.includes('unocace')) {
+      return 'unocace';
+    }
+
     const realm =
       ((window as any)['env'] || {})['keycloakRealm'] ||
       environment.keycloakRealm ||
       '';
     const normalizedRealm = realm.toLowerCase().trim();
-    if (normalizedRealm.includes('unocace')) {
-      return 'unocace';
-    }
     if (normalizedRealm.includes('fortaleza')) {
       return 'fortaleza';
     }
-
-    const host = typeof window !== 'undefined' && window.location ? window.location.hostname.toLowerCase() : '';
-    if (host.includes('unocace')) {
+    if (normalizedRealm.includes('unocace')) {
       return 'unocace';
     }
+
+    const host = typeof window !== 'undefined' && window.location ? window.location.hostname.toLowerCase() : '';
     if (host.includes('fortaleza') || host.includes('espam')) {
       return 'fortaleza';
     }
+    if (host.includes('unocace')) {
+      return 'unocace';
+    }
 
-    return 'unocace';
+    return 'fortaleza';
   }
 }
