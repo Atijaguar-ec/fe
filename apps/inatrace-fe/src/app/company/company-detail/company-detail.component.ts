@@ -107,6 +107,7 @@ export class CompanyDetailComponent
   enableDeliveryReceiptControl = new UntypedFormControl(false);
   simplifySemiProductToCacaoControl = new UntypedFormControl(false);
   enableQuotaBalanceControl = new UntypedFormControl(false);
+  quotaAlertThresholdControl = new UntypedFormControl(80);
 
   /**
    * Precio fijo por semiproducto. Recepcion no conoce el precio y se actualiza
@@ -343,6 +344,9 @@ export class CompanyDetailComponent
         this.enableQuotaBalanceControl.setValue(
           isQuotaBalanceConfigEnabled(config),
         );
+        this.quotaAlertThresholdControl.setValue(
+          config.quotaAlertThresholdPercent != null ? config.quotaAlertThresholdPercent : 80,
+        );
         this.loadSemiProductPrices(config.fixedPricesBySemiProduct).then();
 
         // If user is not enrolled in company enrolled, disable the form
@@ -360,6 +364,7 @@ export class CompanyDetailComponent
           this.enableDeliveryReceiptControl.disable();
           this.simplifySemiProductToCacaoControl.disable();
           this.enableQuotaBalanceControl.disable();
+          this.quotaAlertThresholdControl.disable();
         }
 
         this.globalEventsManager.showLoading(false);
@@ -395,6 +400,7 @@ export class CompanyDetailComponent
     this.enableDeliveryReceiptControl.setValue(false);
     this.simplifySemiProductToCacaoControl.setValue(false);
     this.enableQuotaBalanceControl.setValue(false);
+    this.quotaAlertThresholdControl.setValue(80);
 
     this.loadSemiProductPrices().then();
     this.companyDetailForm = generateFormFromMetadata(
@@ -492,6 +498,10 @@ export class CompanyDetailComponent
       formValue.configuration.enableDeliveryReceipt = !!this.enableDeliveryReceiptControl.value;
       formValue.configuration.simplifySemiProductToCacao = !!this.simplifySemiProductToCacaoControl.value;
       formValue.configuration[QUOTA_BALANCE_CONFIG_KEY] = !!this.enableQuotaBalanceControl.value;
+      if (this.enableQuotaBalanceControl.value) {
+        formValue.configuration.quotaAlertThresholdPercent =
+          Number(this.quotaAlertThresholdControl.value) || 80;
+      }
       if (!this.enableDeliveryReceiptControl.value) {
         delete formValue.configuration[DELIVERY_RECEIPT_ALT_KEY];
       }
@@ -500,6 +510,7 @@ export class CompanyDetailComponent
       }
       if (!this.enableQuotaBalanceControl.value) {
         delete formValue.configuration[QUOTA_BALANCE_CONFIG_KEY];
+        delete formValue.configuration.quotaAlertThresholdPercent;
       }
 
       const res: ApiResponseApiBaseEntity = await this.companyController
@@ -604,6 +615,10 @@ export class CompanyDetailComponent
       formValue.configuration.enableDeliveryReceipt = !!this.enableDeliveryReceiptControl.value;
       formValue.configuration.simplifySemiProductToCacao = !!this.simplifySemiProductToCacaoControl.value;
       formValue.configuration[QUOTA_BALANCE_CONFIG_KEY] = !!this.enableQuotaBalanceControl.value;
+      if (this.enableQuotaBalanceControl.value) {
+        formValue.configuration.quotaAlertThresholdPercent =
+          Number(this.quotaAlertThresholdControl.value) || 80;
+      }
       if (!this.enableDeliveryReceiptControl.value) {
         delete formValue.configuration[DELIVERY_RECEIPT_ALT_KEY];
       }
@@ -612,6 +627,7 @@ export class CompanyDetailComponent
       }
       if (!this.enableQuotaBalanceControl.value) {
         delete formValue.configuration[QUOTA_BALANCE_CONFIG_KEY];
+        delete formValue.configuration.quotaAlertThresholdPercent;
       }
 
       const res: ApiResponseApiBaseEntity = await this.companyController

@@ -43,6 +43,7 @@ export class BatchHistoryComponent implements OnInit {
   qrCodeSize = 150;
 
   @ViewChild('pdfContainer') pdfContainer?: ElementRef<any>;
+  @ViewChild('ticketContainer') ticketContainer?: ElementRef<any>;
 
   faTimes = faTimes;
 
@@ -276,11 +277,20 @@ export class BatchHistoryComponent implements OnInit {
     }
   }
 
-  qrCodeString(stockOrder: ApiStockOrder) {
-    if (!stockOrder) {
-      return;
+  qrCodeString(stockOrder: ApiStockOrder): string {
+    if (!stockOrder?.id) {
+      return '';
     }
-    return stockOrder.id.toString();
+    try {
+      const origin = window.location.origin;
+      const pathname = window.location.pathname;
+      if (pathname.includes('/stock-order/')) {
+        return `${origin}${pathname}`;
+      }
+      return `${origin}/company/my-stock/all-stock/stock-order/${stockOrder.id}/view`;
+    } catch {
+      return stockOrder.id.toString();
+    }
   }
 
   copyToClipboard() {
@@ -489,5 +499,55 @@ export class BatchHistoryComponent implements OnInit {
         }, 400);
       });
     });
+  }
+
+  async printTicket(stockOrder?: ApiStockOrder | null) {
+    if (!stockOrder) {
+      return;
+    }
+    const element = this.ticketContainer?.nativeElement;
+    if (!element) {
+      return;
+    }
+    this.globalEventsManager.showLoading(true);
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
+
+      const canvas = await html2canvas(element, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        windowWidth: element.scrollWidth,
+      });
+
+      const ticketWidthMm = 72;
+      const pxPerMm = canvas.width / ticketWidthMm;
+      const ticketHeightMm = canvas.height / pxPerMm;
+
+      const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: [ticketWidthMm, Math.max(140, ticketHeightMm + 8)],
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, 4, ticketWidthMm, ticketHeightMm);
+
+      const rawReceipt =
+        stockOrder.deliveryReceipt ||
+        stockOrder.identifier ||
+        (stockOrder.id != null ? stockOrder.id.toString() : 'ticket');
+      const safeReceipt = String(rawReceipt).replace(/[^a-zA-Z0-9\-_]+/g, '_');
+      pdf.save(`ticket-entrega-${safeReceipt}.pdf`);
+    } catch (err) {
+      this.globalEventsManager.openMessageModal({
+        type: 'error',
+        message: $localize`:@@orderHistoryView.ticketGeneration.error:Error al generar el Ticket. Por favor, intente nuevamente.`,
+        options: { centered: true },
+      });
+    } finally {
+      this.globalEventsManager.showLoading(false);
+    }
   }
 }

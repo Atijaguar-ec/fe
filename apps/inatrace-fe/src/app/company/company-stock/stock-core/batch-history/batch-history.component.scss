@@ -265,3 +265,132 @@ $casovnica-circle-radius: 22px;
     border-top: none;
   }
 }
+
+// Ticket térmico vertical (7 cm / 72mm) para impresoras POS
+.ticket-thermal-wrapper {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  width: 72mm;
+  padding: 10px 8px;
+  background: #ffffff;
+  color: #000000;
+  font-family: 'Courier New', Courier, monospace, sans-serif;
+  font-size: 11px;
+  line-height: 1.35;
+  box-sizing: border-box;
+
+  .ticket-header {
+    text-align: center;
+    margin-bottom: 6px;
+
+    .ticket-company-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .ticket-facility-subtitle {
+      font-size: 10px;
+      margin-top: 2px;
+      color: #333333;
+    }
+
+    .ticket-title {
+      font-size: 11px;
+      font-weight: 700;
+      margin: 3px 0;
+      letter-spacing: 0.5px;
+    }
+
+    .ticket-receipt-num {
+      font-size: 13px;
+      font-weight: 800;
+      margin: 2px 0;
+    }
+  }
+
+  .ticket-divider {
+    font-size: 9px;
+    letter-spacing: -1px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
+    color: #444444;
+    margin: 4px 0;
+  }
+
+  .ticket-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5px;
+    margin: 4px 0;
+
+    tr {
+      border-bottom: 1px dashed #dddddd;
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    th {
+      text-align: left;
+      vertical-align: top;
+      width: 44%;
+      padding: 3px 2px;
+      font-weight: 600;
+      color: #222222;
+    }
+
+    td {
+      text-align: right;
+      vertical-align: top;
+      padding: 3px 2px;
+      color: #000000;
+      word-break: break-word;
+    }
+  }
+
+  .ticket-footer {
+    text-align: center;
+    margin-top: 8px;
+
+    .ticket-qr {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 6px 0;
+
+      .ticket-qr-caption {
+        font-size: 8.5px;
+        margin-top: 4px;
+        color: #555555;
+      }
+    }
+
+    .ticket-copy-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #ticketPrintArea, #ticketPrintArea * {
+    visibility: visible;
+  }
+  #ticketPrintArea {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 72mm;
+  }
+}
+

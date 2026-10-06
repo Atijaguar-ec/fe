@@ -13,7 +13,11 @@
                 <span>Edit</span>
               </button>
 
-                <button class="btn btn-secondary" type="button" (click)="downloadPdf()" i18n="@@batchHistory.downloadPdfButton">Imprimir PDF</button>
+                <button class="btn btn-secondary mr-2" type="button" (click)="downloadPdf()" i18n="@@batchHistory.downloadPdfButton">Imprimir PDF</button>
+                <button class="btn btn-primary" type="button" (click)="printTicket(stockOrder)" i18n="@@batchHistory.printTicketButton">
+                  <i class="fa fa-print mr-1" aria-hidden="true"></i>
+                  <span>Imprimir Ticket (7 cm)</span>
+                </button>
               
               </div>
             </div>
@@ -429,6 +433,135 @@
 
         </div>
 
+      </div>
+
+      <!-- Contenedor para Impresión de Ticket Térmico (7 cm / 72mm) -->
+      <div class="ticket-thermal-wrapper" #ticketContainer id="ticketPrintArea">
+        <div class="ticket-header">
+          <div class="ticket-company-title">{{ stockOrder.facility?.company?.name || 'UNOCACE' }}</div>
+          <div class="ticket-facility-subtitle" *ngIf="stockOrder.facility?.name">{{ stockOrder.facility?.name }}</div>
+          <div class="ticket-divider">================================</div>
+          <div class="ticket-title">COMPROBANTE DE ENTREGA</div>
+          <div class="ticket-receipt-num" *ngIf="isDeliveryReceiptVisible(stockOrder)">
+            <strong>N°: {{ stockOrder.deliveryReceipt }}</strong>
+          </div>
+          <div class="ticket-divider">--------------------------------</div>
+        </div>
+
+        <table class="ticket-table">
+          <tbody>
+            <tr *ngIf="stockOrder.id">
+              <th>Id:</th>
+              <td>{{ stockOrder.id }}</td>
+            </tr>
+            <tr *ngIf="isDeliveryReceiptVisible(stockOrder)">
+              <th>Comprobante:</th>
+              <td><strong>{{ stockOrder.deliveryReceipt }}</strong></td>
+            </tr>
+            <tr *ngIf="stockOrder.identifier">
+              <th>Identificador:</th>
+              <td>{{ stockOrder.identifier }}</td>
+            </tr>
+            <tr *ngIf="stockOrder.weekNumber != null">
+              <th>N° de Semana:</th>
+              <td>{{ stockOrder.weekNumber }}</td>
+            </tr>
+            <tr *ngIf="stockOrder.parcelLot">
+              <th>Parcel lot:</th>
+              <td>{{ stockOrder.parcelLot }}</td>
+            </tr>
+            <tr *ngIf="stockOrder.variety">
+              <th>Variety:</th>
+              <td>{{ stockOrder.variety }}</td>
+            </tr>
+            <tr *ngIf="stockOrder.organicCertification">
+              <th>Organic certification:</th>
+              <td>{{ stockOrder.organicCertification }}</td>
+            </tr>
+            <tr>
+              <th>Área:</th>
+              <td>{{ stockOrder.facility?.name }} ({{ stockOrder.facility?.company?.name }})</td>
+            </tr>
+            <tr *ngIf="stockOrder.semiProduct">
+              <th>Semiproducto:</th>
+              <td>{{ getDisplaySemiProductName(stockOrder) }}</td>
+            </tr>
+            <tr *ngIf="stockOrder.totalGrossQuantity">
+              <th>Peso Bruto:</th>
+              <td>{{ stockOrder.totalGrossQuantity }} {{ getDisplayMeasureUnit(stockOrder) }}</td>
+            </tr>
+            <tr *ngIf="stockOrder.tare">
+              <th>Tara:</th>
+              <td>{{ stockOrder.tare }} {{ getDisplayMeasureUnit(stockOrder) }}</td>
+            </tr>
+            <tr *ngIf="stockOrder.damagedWeightDeduction">
+              <th>Descuento peso:</th>
+              <td>{{ stockOrder.damagedWeightDeduction }} {{ stockOrder.measureUnitType?.label }}</td>
+            </tr>
+            <tr *ngIf="stockOrder.netQuantity">
+              <th>Peso Neto:</th>
+              <td><strong>{{ stockOrder.netQuantity }} {{ getDisplayMeasureUnit(stockOrder) }}</strong></td>
+            </tr>
+            <tr>
+              <th>Total:</th>
+              <td><strong>{{ stockOrder.totalQuantity }} {{ getDisplayMeasureUnit(stockOrder) }}</strong></td>
+            </tr>
+            <tr>
+              <th>Cumplido:</th>
+              <td>{{ formatQuantity(stockOrder, stockOrder.fulfilledQuantity) }}</td>
+            </tr>
+            <tr>
+              <th>Disponible:</th>
+              <td>{{ formatQuantity(stockOrder, stockOrder.availableQuantity) }}</td>
+            </tr>
+            <tr>
+              <th>Creado:</th>
+              <td>{{ stockOrder.creationTimestamp | date: 'dd/MM/yyyy HH:mm' }}</td>
+            </tr>
+            <tr>
+              <th>Último cambio:</th>
+              <td>{{ stockOrder.updateTimestamp | date: 'dd/MM/yyyy HH:mm' }}</td>
+            </tr>
+            <tr>
+              <th>Fecha producción:</th>
+              <td>{{ stockOrder.productionDate | date: 'dd/MM/yyyy' }}</td>
+            </tr>
+            <tr>
+              <th>Tipo pedido:</th>
+              <td>{{ stockOrder.orderType | formatStockOrderType }}</td>
+            </tr>
+            <tr *ngIf="stockOrder.purchaseOrder">
+              <th>Agricultor:</th>
+              <td><strong>{{ getUserCustomerDisplayName(stockOrder.producerUserCustomer) }}</strong></td>
+            </tr>
+            <!-- Se omite Representante de los agricultores por requerimiento expreso -->
+            <tr *ngIf="stockOrder.purchaseOrder && stockOrder.finalPriceDiscount">
+              <th>Final price discount:</th>
+              <td>{{ stockOrder.finalPriceDiscount }} {{ stockOrder.currency }}</td>
+            </tr>
+            <tr *ngIf="stockOrder.purchaseOrder">
+              <th>Costo / Pagado / Saldo:</th>
+              <td>
+                <ng-container *ngIf="stockOrder.priceDeterminedLater; else priceAvailTicket">
+                  TBD
+                </ng-container>
+                <ng-template #priceAvailTicket>
+                  {{ stockOrder.cost }} / {{ stockOrder.paid || 0 }} / {{ stockOrder.balance }} {{ stockOrder.currency }}
+                </ng-template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="ticket-footer">
+          <div class="ticket-divider">--------------------------------</div>
+          <div class="ticket-qr" *ngIf="qrCodeString(stockOrder)">
+            <qr-code [value]="qrCodeString(stockOrder)" [size]="140"></qr-code>
+            <div class="ticket-qr-caption">Escanear para verificar trazabilidad</div>
+          </div>
+          <div class="ticket-divider">================================</div>
+          <div class="ticket-copy-label">*** ORIGINAL ***</div>
+        </div>
       </div>
     </ng-container>
   </ng-container>

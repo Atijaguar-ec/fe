@@ -1352,9 +1352,11 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   private cannotUpdatePO() {
     this.prepareData();
+    const quotaBlocked = this.showQuotaBalance &&
+      (this.quotaExceededCheck || this.quotaExceededByCurrentDeliveryCheck);
     return (this.stockOrderForm.invalid || this.searchFarmers.invalid ||
       this.employeeForm.invalid || !this.modelChoice ||
-      this.tareInvalidCheck || this.damagedPriceDeductionInvalidCheck);
+      this.tareInvalidCheck || this.damagedPriceDeductionInvalidCheck || quotaBlocked);
   }
 
   onSelectedType(type: StockOrderType) {

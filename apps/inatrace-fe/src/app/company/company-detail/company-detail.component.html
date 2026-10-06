@@ -688,6 +688,15 @@
               </checkbox-input-rich-label>
             </checkbox-input>
           </div>
+          <div class="af-form-element pt-0" *ngIf="enableQuotaBalanceControl.value">
+            <textinput
+              [form]="quotaAlertThresholdControl"
+              label="Umbral de alerta de cupo (%)"
+              i18n-label="@@companyDetail.configuration.quotaAlertThreshold"
+              placeholder="80"
+              style="max-width: 250px;"
+            ></textinput>
+          </div>
         </div>
       </div>
 
