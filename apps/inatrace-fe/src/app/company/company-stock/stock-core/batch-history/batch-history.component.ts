@@ -155,7 +155,14 @@ export class BatchHistoryComponent implements OnInit {
     ) {
       return false;
     }
-    return isDeliveryReceiptConfigEnabled(config) || !config;
+    return isDeliveryReceiptConfigEnabled(config);
+  }
+
+  isTicketPrintVisible(stockOrder?: ApiStockOrder | null): boolean {
+    const config =
+      (stockOrder?.facility?.company as any)?.configuration ||
+      this.selectedCompanyProfile?.configuration;
+    return isDeliveryReceiptConfigEnabled(config);
   }
 
   getDisplaySemiProductName(stockOrder?: ApiStockOrder | null): string {

@@ -14,7 +14,7 @@
               </button>
 
                 <button class="btn btn-secondary mr-2" type="button" (click)="downloadPdf()" i18n="@@batchHistory.downloadPdfButton">Imprimir PDF</button>
-                <button class="btn btn-primary" type="button" (click)="printTicket(stockOrder)" i18n="@@batchHistory.printTicketButton">
+                <button class="btn btn-primary" type="button" (click)="printTicket(stockOrder)" i18n="@@batchHistory.printTicketButton" *ngIf="isTicketPrintVisible(stockOrder)">
                   <i class="fa fa-print mr-1" aria-hidden="true"></i>
                   <span>Imprimir Ticket (7 cm)</span>
                 </button>
