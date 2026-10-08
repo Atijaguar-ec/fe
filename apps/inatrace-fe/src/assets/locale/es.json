@@ -3158,7 +3158,7 @@
     "certificationTypeDetail.translation.label": "Etiqueta",
     "certificationTypeDetail.translation.placeholder": "Ingresa la etiqueta",
     "certificationTypeDetail.translation.error": "La traducción al inglés es obligatoria",
-    "plotDetail.textinput.productionEstimate.label": "Estimación de producción",
+    "plotDetail.textinput.productionEstimate.label": "Estimación de producción (quintales)",
     "plotDetail.singleChoice.certificationType.label": "Tipo de certificación",
     "plotDetail.singleChoice.certificationType.placeholder": "Seleccionar tipo de certificación ...",
     "plotDetail.singleChoice.cocoaVariety.label": "Variedad del cacao",

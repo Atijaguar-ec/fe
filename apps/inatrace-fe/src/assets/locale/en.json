@@ -3203,7 +3203,7 @@
     "certificationTypeDetail.translation.label": "Label",
     "certificationTypeDetail.translation.placeholder": "Enter label",
     "certificationTypeDetail.translation.error": "English translation is required",
-    "plotDetail.textinput.productionEstimate.label": "Production estimate",
+    "plotDetail.textinput.productionEstimate.label": "Production estimate (quintals)",
     "plotDetail.singleChoice.certificationType.label": "Certification type",
     "plotDetail.singleChoice.certificationType.placeholder": "Select certification type ...",
     "plotDetail.singleChoice.cocoaVariety.label": "Cocoa variety",

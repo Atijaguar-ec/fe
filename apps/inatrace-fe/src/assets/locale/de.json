@@ -2388,7 +2388,7 @@
     "formatCompanyCerts.certificationTypes.rainforestAlliance": "Rainforest Alliance",
     "formatCompanyCerts.certificationTypes.carbonNeutral": "CO2-neutral",
     "formatCompanyCerts.certificationTypes.fairtrade": "Fairtrade",
-    "plotDetail.textinput.productionEstimate.label": "Produktionsschätzung",
+    "plotDetail.textinput.productionEstimate.label": "Produktionsschätzung (Quintal, qq)",
     "plotDetail.singleChoice.certificationType.label": "Zertifizierungsart",
     "plotDetail.singleChoice.certificationType.placeholder": "Zertifizierungsart auswählen ...",
     "plotDetail.singleChoice.cocoaVariety.label": "Kakaosorte",

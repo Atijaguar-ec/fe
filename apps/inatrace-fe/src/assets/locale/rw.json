@@ -2386,7 +2386,7 @@
     "formatCompanyCerts.certificationTypes.rainforestAlliance": "Rainforest Alliance",
     "formatCompanyCerts.certificationTypes.carbonNeutral": "Carbon Neutral",
     "formatCompanyCerts.certificationTypes.fairtrade": "Fairtrade",
-    "plotDetail.textinput.productionEstimate.label": "Ikigereranyo cy'umusaruro",
+    "plotDetail.textinput.productionEstimate.label": "Ikigereranyo cy'umusaruro (qq)",
     "plotDetail.singleChoice.certificationType.label": "Ubwoko bwa seritifike",
     "plotDetail.singleChoice.certificationType.placeholder": "Hitamo ubwoko bwa seritifike ...",
     "plotDetail.singleChoice.cocoaVariety.label": "Ubwoko bwa kawa/koko",
