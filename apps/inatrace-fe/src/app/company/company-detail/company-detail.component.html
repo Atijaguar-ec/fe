@@ -666,6 +666,17 @@
               </checkbox-input-rich-label>
             </checkbox-input>
           </div>
+          <div class="af-form-element pt-0" *ngIf="enableDeliveryReceiptControl.value">
+            <checkbox-input
+              [form]="enablePublicDeliveryReceiptControl"
+            >
+              <checkbox-input-rich-label
+                i18n="@@companyDetail.configuration.enablePublicDeliveryReceipt"
+              >
+                Permitir consulta pública por código QR del comprobante de entrega sin inicio de sesión (trazabilidad abierta).
+              </checkbox-input-rich-label>
+            </checkbox-input>
+          </div>
           <div class="af-form-element pt-0">
             <checkbox-input
               [form]="simplifySemiProductToCacaoControl"

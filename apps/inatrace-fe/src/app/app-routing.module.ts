@@ -472,6 +472,13 @@ const routes: Routes = [
     path: 'q-cd/:uuid/:qrTag',
     component: QrCodeRedirectComponent,
     pathMatch: 'full'
+  },
+  {
+    path: 'public/delivery-receipt/:id',
+    loadChildren: () =>
+      import(
+        './public-delivery-receipt/public-delivery-receipt.module'
+      ).then((m) => m.PublicDeliveryReceiptModule),
   }
 ];
 

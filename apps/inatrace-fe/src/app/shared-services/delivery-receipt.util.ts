@@ -16,6 +16,7 @@ export const DELIVERY_RECEIPT_ALT_KEY = 'deliveryReceiptSequence';
 export const SIMPLIFY_SEMI_PRODUCT_KEY = 'simplifySemiProductToCacao';
 export const SIMPLIFY_SEMI_PRODUCT_ALT_KEY = 'genericCacaoDisplay';
 export const QUOTA_BALANCE_CONFIG_KEY = 'enableQuotaBalance';
+export const PUBLIC_DELIVERY_RECEIPT_CONFIG_KEY = 'enablePublicDeliveryReceipt';
 
 function isTruthy(val: any): boolean {
   if (val === true || val === 1) {
@@ -59,4 +60,13 @@ export function isQuotaBalanceConfigEnabled(
     return false;
   }
   return isTruthy(configuration[QUOTA_BALANCE_CONFIG_KEY]);
+}
+
+export function isPublicDeliveryReceiptConfigEnabled(
+  configuration: { [key: string]: any } | null | undefined,
+): boolean {
+  if (!configuration) {
+    return false;
+  }
+  return isTruthy(configuration[PUBLIC_DELIVERY_RECEIPT_CONFIG_KEY]);
 }

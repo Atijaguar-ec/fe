@@ -1,10 +1,11 @@
-import {
   isDeliveryReceiptConfigEnabled,
   isSimplifySemiProductConfigEnabled,
+  isPublicDeliveryReceiptConfigEnabled,
   DELIVERY_RECEIPT_CONFIG_KEY,
   DELIVERY_RECEIPT_ALT_KEY,
   SIMPLIFY_SEMI_PRODUCT_KEY,
   SIMPLIFY_SEMI_PRODUCT_ALT_KEY,
+  PUBLIC_DELIVERY_RECEIPT_CONFIG_KEY,
 } from './delivery-receipt.util';
 
 describe('delivery-receipt.util', () => {
@@ -86,6 +87,35 @@ describe('delivery-receipt.util', () => {
       ).toBe(true);
       expect(
         isSimplifySemiProductConfigEnabled({ [SIMPLIFY_SEMI_PRODUCT_ALT_KEY]: 'true' }),
+      ).toBe(true);
+    });
+  });
+
+  describe('isPublicDeliveryReceiptConfigEnabled', () => {
+    it('should return false for null, undefined, empty, or false config', () => {
+      expect(isPublicDeliveryReceiptConfigEnabled(null)).toBe(false);
+      expect(isPublicDeliveryReceiptConfigEnabled(undefined)).toBe(false);
+      expect(isPublicDeliveryReceiptConfigEnabled({})).toBe(false);
+      expect(
+        isPublicDeliveryReceiptConfigEnabled({ [PUBLIC_DELIVERY_RECEIPT_CONFIG_KEY]: false }),
+      ).toBe(false);
+      expect(
+        isPublicDeliveryReceiptConfigEnabled({ [PUBLIC_DELIVERY_RECEIPT_CONFIG_KEY]: 'false' }),
+      ).toBe(false);
+      expect(
+        isPublicDeliveryReceiptConfigEnabled({ [PUBLIC_DELIVERY_RECEIPT_CONFIG_KEY]: 0 }),
+      ).toBe(false);
+    });
+
+    it('should return true when enablePublicDeliveryReceipt is true (boolean, string, or number)', () => {
+      expect(
+        isPublicDeliveryReceiptConfigEnabled({ [PUBLIC_DELIVERY_RECEIPT_CONFIG_KEY]: true }),
+      ).toBe(true);
+      expect(
+        isPublicDeliveryReceiptConfigEnabled({ [PUBLIC_DELIVERY_RECEIPT_CONFIG_KEY]: 'true' }),
+      ).toBe(true);
+      expect(
+        isPublicDeliveryReceiptConfigEnabled({ [PUBLIC_DELIVERY_RECEIPT_CONFIG_KEY]: 1 }),
       ).toBe(true);
     });
   });

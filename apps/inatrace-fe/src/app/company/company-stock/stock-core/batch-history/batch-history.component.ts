@@ -22,6 +22,7 @@ import {
   SIMPLIFY_SEMI_PRODUCT_ALT_KEY,
   isDeliveryReceiptConfigEnabled,
   isSimplifySemiProductConfigEnabled,
+  isPublicDeliveryReceiptConfigEnabled,
 } from '../../../../shared-services/delivery-receipt.util';
 
 interface GroupedStockOrders {
@@ -290,6 +291,14 @@ export class BatchHistoryComponent implements OnInit {
     }
     try {
       const origin = window.location.origin;
+      const config =
+        (stockOrder?.facility?.company as any)?.configuration ||
+        this.selectedCompanyProfile?.configuration;
+
+      if (isPublicDeliveryReceiptConfigEnabled(config)) {
+        return `${origin}/public/delivery-receipt/${stockOrder.id}`;
+      }
+
       const pathname = window.location.pathname;
       if (pathname.includes('/stock-order/')) {
         return `${origin}${pathname}`;

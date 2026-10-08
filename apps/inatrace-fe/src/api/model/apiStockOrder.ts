@@ -255,6 +255,9 @@ export interface ApiStockOrder {
     purchaseOrder?: boolean;
     available?: boolean;
     openOrder?: boolean;
+    status?: string;
+    cancellationReason?: string;
+    cancellationTimestamp?: string;
 }
 
 /**

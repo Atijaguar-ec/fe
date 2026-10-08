@@ -3343,7 +3343,9 @@
     "guidedTour.allStockSection.allStockSubmenu": "Muri sitoke yose urahasanga ibicuruzwa byose biboneka mu nganda zawe, ushobora no kubona amateka y'ibyakozwe byose, amakuru yaho umusaruro waturutse na code ziwuranga.",
     "guidedTour.allStockSection.selectFacility": "Hano uhitamo uruganda aho umusaruro uherereye.",
     "productLabelStock.button.exportExcel": "Kohereza muri Excel",
-    "collectorDetail.section.plots": " Imirima "
+    "collectorDetail.section.plots": " Imirima ",
+    "companyDetail.configuration.enablePublicDeliveryReceipt": "Kwemerera kureba inyemezabuguzi binyuze kuri kode ya QR nta kwinjira muri sisitemu",
+    "publicReceipt.generalError": "Ntabwo byashobotse gupakurura inyemezabuguzi."
   },
   "productLabel.b2c.tertiaryColor": "Tertiary color",
   "productLabel.b2c.quaternaryColor": "Quaternary color",

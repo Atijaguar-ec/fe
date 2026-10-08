@@ -1,0 +1,277 @@
+<div class="public-receipt-page">
+  <!-- Encabezado de Navegación Pública -->
+  <header class="public-navbar no-print">
+    <div class="public-navbar-container">
+      <div class="brand">
+        <span class="brand-name">INATrace</span>
+        <span class="brand-badge">Trazabilidad Pública</span>
+      </div>
+      <div class="nav-actions">
+        <button class="btn btn-sm btn-outline-light" (click)="printTicket()" *ngIf="stockOrder">
+          <fa-icon [icon]="faPrint" class="mr-1"></fa-icon>
+          <span i18n="@@publicReceipt.button.print">Imprimir</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="public-content">
+    <!-- Estado de Carga -->
+    <div class="loading-state" *ngIf="loading">
+      <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Cargando...</span>
+      </div>
+      <p class="mt-3 text-muted" i18n="@@publicReceipt.loading">Cargando comprobante de entrega...</p>
+    </div>
+
+    <!-- Estado: Privado / Sin Acceso Público -->
+    <div class="status-card private-card no-print" *ngIf="!loading && isPrivate">
+      <div class="card-icon lock-icon">
+        <fa-icon [icon]="faLock"></fa-icon>
+      </div>
+      <h2 i18n="@@publicReceipt.private.title">Comprobante de Acceso Restringido</h2>
+      <p class="description" i18n="@@publicReceipt.private.description">
+        La organización emisora de este comprobante mantiene la trazabilidad bajo acceso privado.
+        Para consultar los detalles de esta entrega, por favor inicie sesión con una cuenta autorizada en la plataforma.
+      </p>
+      <div class="actions">
+        <a routerLink="/login" class="btn btn-primary">
+          <span i18n="@@publicReceipt.private.loginButton">Iniciar Sesión en INATrace</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Estado: No Encontrado o Error -->
+    <div class="status-card not-found-card no-print" *ngIf="!loading && !isPrivate && (notFound || errorMessage)">
+      <div class="card-icon warning-icon">
+        <fa-icon [icon]="faExclamationTriangle"></fa-icon>
+      </div>
+      <h2 i18n="@@publicReceipt.notFound.title">Comprobante No Encontrado</h2>
+      <p class="description">
+        {{ errorMessage || 'El identificador de comprobante no existe o el enlace ingresado no es válido.' }}
+      </p>
+      <div class="actions">
+        <a routerLink="/landing" class="btn btn-outline-secondary" i18n="@@publicReceipt.notFound.homeButton">Ir al Inicio</a>
+      </div>
+    </div>
+
+    <!-- Estado: Comprobante Cargado -->
+    <div class="receipt-container" *ngIf="!loading && stockOrder">
+
+      <!-- Alerta de Anulación si aplica -->
+      <div class="canceled-banner" *ngIf="isCanceled">
+        <div class="banner-title">
+          <fa-icon [icon]="faTimesCircle" class="mr-2"></fa-icon>
+          <strong i18n="@@publicReceipt.canceled.title">COMPROBANTE ANULADO</strong>
+        </div>
+        <div class="banner-details" *ngIf="stockOrder.cancellationReason">
+          <span i18n="@@publicReceipt.canceled.reason">Motivo:</span> {{ stockOrder.cancellationReason }}
+        </div>
+        <div class="banner-details text-muted small" *ngIf="stockOrder.cancellationTimestamp">
+          <span i18n="@@publicReceipt.canceled.date">Fecha de anulación:</span>
+          {{ stockOrder.cancellationTimestamp | date: 'dd/MM/yyyy HH:mm' }}
+        </div>
+      </div>
+
+      <!-- Tarjeta del Comprobante (Diseño Ticket Térmico y Móvil) -->
+      <div class="receipt-card" id="publicTicketPrintArea">
+
+        <!-- Encabezado de la Organización -->
+        <div class="receipt-header">
+          <div class="verification-badge" *ngIf="!isCanceled">
+            <fa-icon [icon]="faCheckCircle" class="mr-1 text-success"></fa-icon>
+            <span i18n="@@publicReceipt.badge.verified">Trazabilidad Verificada</span>
+          </div>
+
+          <h1 class="company-name">
+            {{ stockOrder.facility?.company?.name || stockOrder.company?.name || 'UNOCACE' }}
+          </h1>
+
+          <div class="facility-name" *ngIf="stockOrder.facility?.name">
+            <fa-icon [icon]="faMapMarkerAlt" class="mr-1"></fa-icon>
+            {{ stockOrder.facility?.name }}
+          </div>
+
+          <div class="receipt-divider">================================</div>
+
+          <div class="receipt-title" i18n="@@publicReceipt.title">COMPROBANTE DE ENTREGA</div>
+
+          <div class="receipt-number" *ngIf="stockOrder.deliveryReceipt">
+            N°: <strong>{{ stockOrder.deliveryReceipt }}</strong>
+          </div>
+
+          <div class="receipt-divider">--------------------------------</div>
+        </div>
+
+        <!-- Tabla de Datos de la Entrega -->
+        <table class="receipt-table">
+          <tbody>
+            <tr *ngIf="stockOrder.id">
+              <th i18n="@@publicReceipt.field.id">Id:</th>
+              <td>{{ stockOrder.id }}</td>
+            </tr>
+
+            <tr *ngIf="stockOrder.deliveryReceipt">
+              <th i18n="@@publicReceipt.field.receipt">Comprobante:</th>
+              <td><strong>{{ stockOrder.deliveryReceipt }}</strong></td>
+            </tr>
+
+            <tr *ngIf="stockOrder.identifier">
+              <th i18n="@@publicReceipt.field.identifier">Identificador:</th>
+              <td class="text-break">{{ stockOrder.identifier }}</td>
+            </tr>
+
+            <tr *ngIf="stockOrder.weekNumber != null">
+              <th i18n="@@publicReceipt.field.week">N° de Semana:</th>
+              <td>
+                <span class="week-number">{{ stockOrder.weekNumber }}</span>
+                <span
+                  *ngIf="weekColorInfo"
+                  class="week-color-pill ml-1"
+                  [style.background-color]="weekColorInfo.hex"
+                  [class.border-dark]="weekColorInfo.needsBorder"
+                >
+                  {{ weekColorInfo.name }}
+                </span>
+              </td>
+            </tr>
+
+            <tr *ngIf="stockOrder.parcelLot">
+              <th i18n="@@publicReceipt.field.parcelLot">Parcel lot:</th>
+              <td>{{ stockOrder.parcelLot }}</td>
+            </tr>
+
+            <tr *ngIf="stockOrder.variety">
+              <th i18n="@@publicReceipt.field.variety">Variety:</th>
+              <td>{{ stockOrder.variety }}</td>
+            </tr>
+
+            <tr *ngIf="stockOrder.organicCertification">
+              <th i18n="@@publicReceipt.field.certification">Organic certification:</th>
+              <td>{{ stockOrder.organicCertification }}</td>
+            </tr>
+
+            <tr>
+              <th i18n="@@publicReceipt.field.area">Área:</th>
+              <td>
+                {{ stockOrder.facility?.name }}
+                <ng-container *ngIf="stockOrder.facility?.company?.name">
+                  ({{ stockOrder.facility?.company?.name }})
+                </ng-container>
+              </td>
+            </tr>
+
+            <tr *ngIf="stockOrder.semiProduct">
+              <th i18n="@@publicReceipt.field.semiProduct">Semiproducto:</th>
+              <td>{{ displaySemiProductName }}</td>
+            </tr>
+
+            <tr *ngIf="stockOrder.totalGrossQuantity">
+              <th i18n="@@publicReceipt.field.grossWeight">Peso Bruto:</th>
+              <td>{{ stockOrder.totalGrossQuantity }} {{ displayMeasureUnit }}</td>
+            </tr>
+
+            <tr *ngIf="stockOrder.tare">
+              <th i18n="@@publicReceipt.field.tare">Tara:</th>
+              <td>{{ stockOrder.tare }} {{ displayMeasureUnit }}</td>
+            </tr>
+
+            <tr *ngIf="stockOrder.damagedWeightDeduction">
+              <th i18n="@@publicReceipt.field.damagedDeduction">Descuento peso:</th>
+              <td>{{ stockOrder.damagedWeightDeduction }} {{ displayMeasureUnit }}</td>
+            </tr>
+
+            <tr *ngIf="stockOrder.netQuantity" class="row-highlight">
+              <th i18n="@@publicReceipt.field.netWeight">Peso Neto:</th>
+              <td><strong>{{ stockOrder.netQuantity }} {{ displayMeasureUnit }}</strong></td>
+            </tr>
+
+            <tr class="row-highlight">
+              <th i18n="@@publicReceipt.field.total">Total:</th>
+              <td><strong>{{ stockOrder.totalQuantity }} {{ displayMeasureUnit }}</strong></td>
+            </tr>
+
+            <tr *ngIf="stockOrder.fulfilledQuantity != null">
+              <th i18n="@@publicReceipt.field.fulfilled">Cumplido:</th>
+              <td>{{ stockOrder.fulfilledQuantity }} {{ displayMeasureUnit }}</td>
+            </tr>
+
+            <tr *ngIf="stockOrder.availableQuantity != null">
+              <th i18n="@@publicReceipt.field.available">Disponible:</th>
+              <td>{{ stockOrder.availableQuantity }} {{ displayMeasureUnit }}</td>
+            </tr>
+
+            <tr *ngIf="stockOrder.creationTimestamp">
+              <th i18n="@@publicReceipt.field.created">Creado:</th>
+              <td>{{ stockOrder.creationTimestamp | date: 'dd/MM/yyyy HH:mm' }}</td>
+            </tr>
+
+            <tr *ngIf="stockOrder.updateTimestamp">
+              <th i18n="@@publicReceipt.field.updated">Último cambio:</th>
+              <td>{{ stockOrder.updateTimestamp | date: 'dd/MM/yyyy HH:mm' }}</td>
+            </tr>
+
+            <tr *ngIf="stockOrder.productionDate">
+              <th i18n="@@publicReceipt.field.productionDate">Fecha producción:</th>
+              <td>{{ stockOrder.productionDate | date: 'dd/MM/yyyy' }}</td>
+            </tr>
+
+            <tr *ngIf="stockOrder.orderType">
+              <th i18n="@@publicReceipt.field.orderType">Tipo pedido:</th>
+              <td>{{ stockOrder.orderType }}</td>
+            </tr>
+
+            <tr *ngIf="farmerName">
+              <th i18n="@@publicReceipt.field.farmer">Agricultor:</th>
+              <td><strong>{{ farmerName }}</strong></td>
+            </tr>
+
+            <tr *ngIf="stockOrder.finalPriceDiscount">
+              <th i18n="@@publicReceipt.field.discount">Final price discount:</th>
+              <td>{{ stockOrder.finalPriceDiscount }} {{ stockOrder.currency || 'USD' }}</td>
+            </tr>
+
+            <tr *ngIf="stockOrder.cost != null || stockOrder.balance != null">
+              <th i18n="@@publicReceipt.field.costPaidBalance">Costo / Pagado / Saldo:</th>
+              <td>
+                <ng-container *ngIf="stockOrder.priceDeterminedLater; else priceAvail">
+                  TBD
+                </ng-container>
+                <ng-template #priceAvail>
+                  {{ stockOrder.cost || 0 }} / {{ stockOrder.paid || 0 }} / {{ stockOrder.balance || 0 }} {{ stockOrder.currency || 'USD' }}
+                </ng-template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Pie del Comprobante y Código QR de Consulta Digital -->
+        <div class="receipt-footer">
+          <div class="receipt-divider">--------------------------------</div>
+          <div class="receipt-qr" *ngIf="currentUrl">
+            <qr-code [value]="currentUrl" [size]="140"></qr-code>
+            <div class="receipt-qr-caption" i18n="@@publicReceipt.footer.qrCaption">
+              Escanear para verificar trazabilidad
+            </div>
+          </div>
+          <div class="receipt-divider">================================</div>
+          <div class="receipt-copy-label">*** INATRACE VERIFIED ***</div>
+        </div>
+
+      </div>
+
+      <!-- Barra de acciones inferiores para el usuario móvil -->
+      <div class="receipt-actions no-print mt-3 text-center">
+        <button class="btn btn-primary btn-block mb-2" (click)="printTicket()">
+          <fa-icon [icon]="faPrint" class="mr-2"></fa-icon>
+          <span i18n="@@publicReceipt.actions.print">Imprimir / Guardar en PDF</span>
+        </button>
+        <a routerLink="/login" class="btn btn-outline-secondary btn-block">
+          <fa-icon [icon]="faLock" class="mr-2"></fa-icon>
+          <span i18n="@@publicReceipt.actions.login">Ingreso a la plataforma INATrace</span>
+        </a>
+      </div>
+
+    </div>
+  </main>
+</div>

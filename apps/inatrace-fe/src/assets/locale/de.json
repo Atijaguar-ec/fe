@@ -3249,7 +3249,9 @@
     "productLabelPurchaseOrder.tableCol.exportGeoData": "Export Geo Data",
     "orderList.export.geojson.noDataAvailable": "Für diese Bestellung sind keine Geodaten verfügbar",
     "productLabelStock.button.exportExcel": "Nach Excel exportieren",
-    "collectorDetail.section.plots": " Parzellen "
+    "collectorDetail.section.plots": " Parzellen ",
+    "companyDetail.configuration.enablePublicDeliveryReceipt": "Öffentliche Rückverfolgbarkeit des Lieferbelegs per QR-Code ohne Anmeldung zulassen",
+    "publicReceipt.generalError": "Der Lieferbeleg konnte nicht geladen werden."
   },
   "productLabel.b2c.tertiaryColor": "Tertiary color",
   "productLabel.b2c.quaternaryColor": "Quaternary color",

@@ -41,9 +41,11 @@ import {
   isDeliveryReceiptConfigEnabled,
   isSimplifySemiProductConfigEnabled,
   isQuotaBalanceConfigEnabled,
+  isPublicDeliveryReceiptConfigEnabled,
   DELIVERY_RECEIPT_ALT_KEY,
   SIMPLIFY_SEMI_PRODUCT_ALT_KEY,
   QUOTA_BALANCE_CONFIG_KEY,
+  PUBLIC_DELIVERY_RECEIPT_CONFIG_KEY,
 } from '../../shared-services/delivery-receipt.util';
 
 @Component({
@@ -105,6 +107,7 @@ export class CompanyDetailComponent
   parcelLotFreeTextControl = new UntypedFormControl(false);
   fixedPricePerUnitControl = new UntypedFormControl(false);
   enableDeliveryReceiptControl = new UntypedFormControl(false);
+  enablePublicDeliveryReceiptControl = new UntypedFormControl(false);
   simplifySemiProductToCacaoControl = new UntypedFormControl(false);
   enableQuotaBalanceControl = new UntypedFormControl(false);
   quotaAlertThresholdControl = new UntypedFormControl(80);
@@ -338,6 +341,9 @@ export class CompanyDetailComponent
         this.enableDeliveryReceiptControl.setValue(
           isDeliveryReceiptConfigEnabled(config),
         );
+        this.enablePublicDeliveryReceiptControl.setValue(
+          isPublicDeliveryReceiptConfigEnabled(config),
+        );
         this.simplifySemiProductToCacaoControl.setValue(
           isSimplifySemiProductConfigEnabled(config),
         );
@@ -362,6 +368,7 @@ export class CompanyDetailComponent
           this.parcelLotFreeTextControl.disable();
           this.fixedPricePerUnitControl.disable();
           this.enableDeliveryReceiptControl.disable();
+          this.enablePublicDeliveryReceiptControl.disable();
           this.simplifySemiProductToCacaoControl.disable();
           this.enableQuotaBalanceControl.disable();
           this.quotaAlertThresholdControl.disable();
@@ -398,6 +405,7 @@ export class CompanyDetailComponent
     this.parcelLotFreeTextControl.setValue(false);
     this.fixedPricePerUnitControl.setValue(false);
     this.enableDeliveryReceiptControl.setValue(false);
+    this.enablePublicDeliveryReceiptControl.setValue(false);
     this.simplifySemiProductToCacaoControl.setValue(false);
     this.enableQuotaBalanceControl.setValue(false);
     this.quotaAlertThresholdControl.setValue(80);
@@ -496,6 +504,8 @@ export class CompanyDetailComponent
       formValue.configuration.fixedPricePerUnit = !!this.fixedPricePerUnitControl.value;
       formValue.configuration.fixedPricesBySemiProduct = this.collectSemiProductPrices();
       formValue.configuration.enableDeliveryReceipt = !!this.enableDeliveryReceiptControl.value;
+      formValue.configuration[PUBLIC_DELIVERY_RECEIPT_CONFIG_KEY] =
+        !!this.enableDeliveryReceiptControl.value && !!this.enablePublicDeliveryReceiptControl.value;
       formValue.configuration.simplifySemiProductToCacao = !!this.simplifySemiProductToCacaoControl.value;
       formValue.configuration[QUOTA_BALANCE_CONFIG_KEY] = !!this.enableQuotaBalanceControl.value;
       if (this.enableQuotaBalanceControl.value) {
@@ -504,6 +514,7 @@ export class CompanyDetailComponent
       }
       if (!this.enableDeliveryReceiptControl.value) {
         delete formValue.configuration[DELIVERY_RECEIPT_ALT_KEY];
+        delete formValue.configuration[PUBLIC_DELIVERY_RECEIPT_CONFIG_KEY];
       }
       if (!this.simplifySemiProductToCacaoControl.value) {
         delete formValue.configuration[SIMPLIFY_SEMI_PRODUCT_ALT_KEY];
@@ -613,6 +624,8 @@ export class CompanyDetailComponent
       formValue.configuration.fixedPricePerUnit = !!this.fixedPricePerUnitControl.value;
       formValue.configuration.fixedPricesBySemiProduct = this.collectSemiProductPrices();
       formValue.configuration.enableDeliveryReceipt = !!this.enableDeliveryReceiptControl.value;
+      formValue.configuration[PUBLIC_DELIVERY_RECEIPT_CONFIG_KEY] =
+        !!this.enableDeliveryReceiptControl.value && !!this.enablePublicDeliveryReceiptControl.value;
       formValue.configuration.simplifySemiProductToCacao = !!this.simplifySemiProductToCacaoControl.value;
       formValue.configuration[QUOTA_BALANCE_CONFIG_KEY] = !!this.enableQuotaBalanceControl.value;
       if (this.enableQuotaBalanceControl.value) {
@@ -621,6 +634,7 @@ export class CompanyDetailComponent
       }
       if (!this.enableDeliveryReceiptControl.value) {
         delete formValue.configuration[DELIVERY_RECEIPT_ALT_KEY];
+        delete formValue.configuration[PUBLIC_DELIVERY_RECEIPT_CONFIG_KEY];
       }
       if (!this.simplifySemiProductToCacaoControl.value) {
         delete formValue.configuration[SIMPLIFY_SEMI_PRODUCT_ALT_KEY];

@@ -3357,7 +3357,9 @@
     "productLabelStock.button.exportExcel": "Exportar a Excel",
     "collectorDetail.section.plots": " Parcelas ",
     "breadCrumb.orders.globalOrder": "Orden",
-    "orderList.sortOptions.orderId.name": "ID de Orden"
+    "orderList.sortOptions.orderId.name": "ID de Orden",
+    "companyDetail.configuration.enablePublicDeliveryReceipt": "Permitir consulta pública por código QR del comprobante de entrega sin inicio de sesión (trazabilidad abierta)",
+    "publicReceipt.generalError": "No fue posible cargar el comprobante de entrega."
   },
   "productLabel": {
     "b2c": {
