@@ -1009,6 +1009,15 @@ return `${origin}/company/my-stock/all-stock/stock-order/${stockOrder.id}/view`;
   2. `apps/inatrace-fe/src/app/core/auth.service.ts`: `pathsToIgnoreRefresh` y `isPublicUrl` deben incluir `'public'` y `'delivery-receipt'`.
   3. `apps/inatrace-fe/src/app/core/token.interceptor.ts`: `pathsToIgnore()` debe incluir `'public'`.
 
+### 23.5 Convención de Terminología: «Validar Recibo» vs. «Ver Trazabilidad»
+- **Mandato de UX y Lenguaje de Báscula (2026-10-09):**
+  - Para el socio productor que recibe el ticket físico en báscula, la acción concreta es validar que su comprobante de pesaje es oficial, que las libras y precios registrados en el sistema coinciden y consultar su cupo remanente.
+  - **Textos Obligatorios:**
+    - Al pie del QR en el ticket impreso (`batch-history.component.html`): **«Escanear para validar recibo»** (prohibido *"verificar trazabilidad"*).
+    - En la barra superior (`public-delivery-receipt.component.html`): **«Validación de Recibo»** (en vez de *"Trazabilidad Pública"*).
+    - En la insignia con check verde: **«Recibo Validado»** (clave i18n `publicReceipt.badge.verified`).
+    - Al pie del QR en la vista móvil: **«Escanear para validar recibo»** (clave i18n `publicReceipt.footer.qrCaption`).
+
 ## 24. Estimación de Producción en el Registro del Agricultor: Unidad en Quintales (qq) (2026-10-08)
 
 ### 24.1 Problema y Confusión Operativa
@@ -1035,5 +1044,29 @@ En el registro de parcelas del agricultor (`company-farmers-plots-detail`), el c
   - `apps/inatrace-fe/src/assets/locale/de.json` (Alemán)
   - `apps/inatrace-fe/src/assets/locale/rw.json` (Kinyarwanda)
 - **Regla Anti-Regresión:** No desplegar vistas nuevas con cadenas duras en inglés o español sin su correspondiente clave i18n en los cuatro diccionarios.
+
+---
+
+## 26. Trazabilidad EUDR: Grafo de Lotes vs. Parcelas, Automatización QR y Consultas Satelitales (2026-10-09)
+
+### 26.1 Distinción en Interfaz: Parcela (`Plot`) vs. Lote (`StockOrder`)
+- **Parcela (`Plot`):** Se gestiona en `company-farmers-plots-detail` y mapas GIS (`map.component.ts`). Representa la tierra agrícola, contiene georreferenciación WGS84, área en hectáreas y análisis de deforestación. **Jamás denominar "Lote" a la parcela en la UI ni en los modelos TypeScript.**
+- **Lote (`StockOrder`):** Se gestiona en `batch-history`, `stock-delivery-details` y órdenes de procesamiento. Representa el producto comercial ensacado/agregado.
+
+### 26.2 Automatización y Renderizado de Códigos QR (`qrCodeTag`)
+- El backend autogenera un UUID v4 en `stockOrder.qrCodeTag` al finalizar el procesamiento.
+- **Canal B2C y Tickets de Entrega:**
+  - El QR generado en `delivery-receipt` y vistas B2C debe construirse utilizando `@types/qrcode` o `<canvas>` apuntando a rutas públicas (`/public/delivery-receipt/:id` o `/b2c/:uuid`).
+  - **Regla de Autenticación:** Estas rutas deben estar exoneradas de Keycloak en `auth.provider.ts` (`publicPattern`) y `token.interceptor.ts`. No enviar cabecera `Authorization` para evitar redirecciones o fallos 401 en dispositivos de clientes externos o aduaneros.
+
+### 26.3 Integración Satelital Whisp / AgStack en la UI
+- **Estado Anterior:** Un simple enlace externo `whisp.earthmap.org` en `open-plot-details-externally-modal.component.ts` que abría una pestaña sin guardar evidencia auditable.
+- **Nuevo Estándar:** Consumir los endpoints `/api/whisp/...` para renderizar el veredicto de deforestación (fecha de corte 31.12.2020, cobertura forestal y perturbación) de forma nativa en la ficha de la parcela y asociarlo al lote para el expediente de debida diligencia (DDS).
+
+### 26.4 Reglas de Compilación por Cadena (ADR-016)
+- Para despliegues de Cacao puro (UNOCACE, Fortaleza del Valle):
+  - Compilar con `build:standalone` (`remotes: []`, excluyendo `shrimpMfe`).
+  - La ruta `/shrimp` debe permanecer bloqueada por guard de entorno (`canMatch`).
+
 
 

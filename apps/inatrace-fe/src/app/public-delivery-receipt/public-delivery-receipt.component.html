@@ -4,7 +4,7 @@
     <div class="public-navbar-container">
       <div class="brand">
         <span class="brand-name">INATrace</span>
-        <span class="brand-badge">Trazabilidad Pública</span>
+        <span class="brand-badge">Validación de Recibo</span>
       </div>
       <div class="nav-actions">
         <button class="btn btn-sm btn-outline-light" (click)="printTicket()" *ngIf="stockOrder">
@@ -80,7 +80,7 @@
         <div class="receipt-header">
           <div class="verification-badge" *ngIf="!isCanceled">
             <fa-icon [icon]="faCheckCircle" class="mr-1 text-success"></fa-icon>
-            <span i18n="@@publicReceipt.badge.verified">Trazabilidad Verificada</span>
+            <span i18n="@@publicReceipt.badge.verified">Recibo Validado</span>
           </div>
 
           <h1 class="company-name">
@@ -251,7 +251,7 @@
           <div class="receipt-qr" *ngIf="currentUrl">
             <qr-code [value]="currentUrl" [size]="140"></qr-code>
             <div class="receipt-qr-caption" i18n="@@publicReceipt.footer.qrCaption">
-              Escanear para verificar trazabilidad
+              Escanear para validar recibo
             </div>
           </div>
           <div class="receipt-divider">================================</div>
