@@ -3251,34 +3251,67 @@
     "productLabelStock.button.exportExcel": "Nach Excel exportieren",
     "collectorDetail.section.plots": " Parzellen ",
     "companyDetail.configuration.enablePublicDeliveryReceipt": "Öffentliche Rückverfolgbarkeit des Lieferbelegs per QR-Code ohne Anmeldung zulassen",
-    "publicReceipt.generalError": "Der Lieferbeleg konnte nicht geladen werden."
-  },
-  "productLabel.b2c.tertiaryColor": "Tertiary color",
-  "productLabel.b2c.quaternaryColor": "Quaternary color",
-  "productLabel.b2c.productTitleColor": "Product title color",
-  "productLabel.b2c.graphicQuality": "Enable 'Quality' graphic",
-  "productLabelPayments.tableCol.delete": "Löschen",
-  "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Total quantities",
-  "productLabelStockProcessingOrderDetail.orderID.label": "Order ID:",
-  "productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name": "Firmeninterne ID",
-  "collectorDetail.textinput.areaUnit.error": "Flächeneinheit ist erforderlich",
-  "productLabelPayments": {
-    "tableCol": {
-      "delete": "Löschen"
-    }
-  },
-  "collectorDetail": {
-    "textinput": {
-      "areaUnit": {
-        "error": "Flächeneinheit ist erforderlich"
-      }
-    }
-  },
-  "productLabelStakeholdersCollectors": {
-    "sortOptions": {
-      "farmerCompanyInternalId": {
-        "name": "Firmeninterne ID"
-      }
-    }
+    "publicReceipt.generalError": "Der Lieferbeleg konnte nicht geladen werden.",
+    "productLabel.b2c.tertiaryColor": "Tertiary color",
+    "productLabel.b2c.quaternaryColor": "Quaternary color",
+    "productLabel.b2c.productTitleColor": "Product title color",
+    "productLabel.b2c.graphicQuality": "Enable 'Quality' graphic",
+    "productLabelPayments.tableCol.delete": "Löschen",
+    "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Total quantities",
+    "productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name": "Firmeninterne ID",
+    "collectorDetail.textinput.areaUnit.error": "Flächeneinheit ist erforderlich",
+    "batchHistory.downloadPdfButton": "PDF drucken",
+    "batchHistory.printTicketButton": "Ticket drucken (7 cm)",
+    "batchHistory.tableCol.totalGross": "Gesamtbrutto",
+    "batchHistory.tableCol.damagedWeight": "Gewichtsabzug",
+    "batchHistory.tableCol.moisturePercentage": "% Feuchtigkeitsabzug",
+    "batchHistory.tableCol.netQuantity": "Nettogewicht",
+    "orderHistoryView.tableCol.deliveryReceipt": "Beleg",
+    "orderHistoryView.tableCol.weekNumber": "Wochennummer",
+    "orderHistoryView.tableCol.parcelLot": "Parzellenlos",
+    "orderHistoryView.tableCol.variety": "Sorte",
+    "orderHistoryView.tableCol.organicCertification": "Bio-Zertifizierung",
+    "orderHistoryView.tableCol.measurementUnitType": "Gesamt",
+    "orderHistoryView.tableCol.fulfilled": "Erfüllt",
+    "orderHistoryView.tableCol.available": "Verfügbar",
+    "orderHistoryView.tableCol.finalPriceDiscount": "Endpreisrabatt",
+    "publicReceipt.button.print": "Drucken",
+    "publicReceipt.loading": "Lieferbeleg wird geladen...",
+    "publicReceipt.private.title": "Zugriffsgeschützter Lieferbeleg",
+    "publicReceipt.private.description": "Die ausstellende Organisation hält die Rückverfolgbarkeit privat. Bitte melden Sie sich an, um Details zu sehen.",
+    "publicReceipt.private.loginButton": "Bei INATrace anmelden",
+    "publicReceipt.notFound.title": "Lieferbeleg nicht gefunden",
+    "publicReceipt.notFound.homeButton": "Zur Startseite",
+    "publicReceipt.canceled.title": "Stornierter Lieferbeleg",
+    "publicReceipt.canceled.reason": "Stornierungsgrund:",
+    "publicReceipt.canceled.date": "Stornierungsdatum:",
+    "publicReceipt.badge.verified": "Auf INATrace verifiziert",
+    "publicReceipt.title": "Lieferbeleg",
+    "publicReceipt.field.id": "Lieferungs-Nr. (ID)",
+    "publicReceipt.field.receipt": "Beleg",
+    "publicReceipt.field.identifier": "Kennung",
+    "publicReceipt.field.week": "Wochennummer",
+    "publicReceipt.field.parcelLot": "Parzellenlos",
+    "publicReceipt.field.variety": "Sorte",
+    "publicReceipt.field.certification": "Bio-Zertifizierung",
+    "publicReceipt.field.area": "Bereich / Sammelstelle",
+    "publicReceipt.field.semiProduct": "Kakaotyp",
+    "publicReceipt.field.grossWeight": "Bruttogewicht",
+    "publicReceipt.field.tare": "Tara",
+    "publicReceipt.field.damagedDeduction": "Schadensabzug",
+    "publicReceipt.field.netWeight": "Netto-Abrechnungsgewicht",
+    "publicReceipt.field.total": "Gesamt geliefert",
+    "publicReceipt.field.fulfilled": "Erfüllt",
+    "publicReceipt.field.available": "Verfügbar",
+    "publicReceipt.field.created": "Erfassungsdatum",
+    "publicReceipt.field.updated": "Letzte Aktualisierung",
+    "publicReceipt.field.productionDate": "Produktionsdatum",
+    "publicReceipt.field.orderType": "Auftragstyp",
+    "publicReceipt.field.farmer": "Erzeuger",
+    "publicReceipt.field.discount": "Preisrabatt",
+    "publicReceipt.field.costPaidBalance": "Kosten / Bezhalt / Rest",
+    "publicReceipt.footer.qrCaption": "Scannen Sie diesen QR-Code, um die Echtheit und Rückverfolgbarkeit dieses Belegs zu überprüfen.",
+    "publicReceipt.actions.print": "Beleg drucken",
+    "publicReceipt.actions.login": "Anmelden"
   }
 }

@@ -3392,52 +3392,66 @@
     "productLabelStock.button.exportExcel": "Export to Excel",
     "collectorDetail.section.plots": " Plots ",
     "companyDetail.configuration.enablePublicDeliveryReceipt": "Allow public delivery receipt traceability via QR code without requiring login",
-    "publicReceipt.generalError": "Could not load delivery receipt."
-  },
-  "productLabel": {
-    "b2c": {
-      "tertiaryColor": "Tertiary color",
-      "quaternaryColor": "Quaternary color",
-      "productTitleColor": "Product title color",
-      "graphicQuality": " Enable 'Quality' graphic "
-    }
-  },
-  "productLabelPayments": {
-    "tableCol": {
-      "delete": "Delete"
-    }
-  },
-  "productLabelStockProcessingOrderDetail": {
-    "section": {
-      "output": {
-        "totalQuantitiesSectionTitle": " Total quantities "
-      }
-    },
-    "orderID": {
-      "label": "Order ID:"
-    }
-  },
-  "productLabel.b2c.tertiaryColor": "Tertiary color",
-  "productLabel.b2c.quaternaryColor": "Quaternary color",
-  "productLabel.b2c.productTitleColor": "Product title color",
-  "productLabel.b2c.graphicQuality": "Enable 'Quality' graphic",
-  "productLabelPayments.tableCol.delete": "Delete",
-  "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Total quantities",
-  "productLabelStockProcessingOrderDetail.orderID.label": "Order ID:",
-  "productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name": "Company Internal ID",
-  "collectorDetail.textinput.areaUnit.error": "Area unit is required",
-  "collectorDetail": {
-    "textinput": {
-      "areaUnit": {
-        "error": "Area unit is required"
-      }
-    }
-  },
-  "productLabelStakeholdersCollectors": {
-    "sortOptions": {
-      "farmerCompanyInternalId": {
-        "name": "Company Internal ID"
-      }
-    }
+    "publicReceipt.generalError": "Could not load delivery receipt.",
+    "productLabel.b2c.tertiaryColor": "Tertiary color",
+    "productLabel.b2c.quaternaryColor": "Quaternary color",
+    "productLabel.b2c.productTitleColor": "Product title color",
+    "productLabel.b2c.graphicQuality": "Enable 'Quality' graphic",
+    "productLabelPayments.tableCol.delete": "Delete",
+    "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Total quantities",
+    "productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name": "Company Internal ID",
+    "collectorDetail.textinput.areaUnit.error": "Area unit is required",
+    "batchHistory.downloadPdfButton": "Print PDF",
+    "batchHistory.tableCol.totalGross": "Total gross",
+    "batchHistory.tableCol.damagedWeight": "Weight deduction",
+    "batchHistory.tableCol.moisturePercentage": "% Moisture deduction",
+    "batchHistory.tableCol.netQuantity": "Net Weight",
+    "orderHistoryView.tableCol.deliveryReceipt": "Receipt",
+    "orderHistoryView.tableCol.weekNumber": "Week Number",
+    "orderHistoryView.tableCol.parcelLot": "Parcel lot",
+    "orderHistoryView.tableCol.variety": "Variety",
+    "orderHistoryView.tableCol.organicCertification": "Organic certification",
+    "orderHistoryView.tableCol.measurementUnitType": "Total",
+    "orderHistoryView.tableCol.fulfilled": "Fulfilled",
+    "orderHistoryView.tableCol.available": "Available",
+    "orderHistoryView.tableCol.finalPriceDiscount": "Final price discount",
+    "publicReceipt.button.print": "Print",
+    "publicReceipt.loading": "Loading delivery receipt...",
+    "publicReceipt.private.title": "Restricted Access Receipt",
+    "publicReceipt.private.description": "The issuing organization maintains traceability under private access. To view details of this delivery, please log in with an authorized account.",
+    "publicReceipt.private.loginButton": "Log in to INATrace",
+    "publicReceipt.notFound.title": "Receipt Not Found",
+    "publicReceipt.notFound.homeButton": "Go to Home",
+    "publicReceipt.canceled.title": "Canceled Receipt",
+    "publicReceipt.canceled.reason": "Cancellation reason:",
+    "publicReceipt.canceled.date": "Cancellation date:",
+    "publicReceipt.badge.verified": "Verified on INATrace",
+    "publicReceipt.title": "Delivery Receipt",
+    "publicReceipt.field.id": "Delivery No. (ID)",
+    "publicReceipt.field.receipt": "Receipt",
+    "publicReceipt.field.identifier": "Identifier",
+    "publicReceipt.field.week": "Week Number",
+    "publicReceipt.field.parcelLot": "Parcel Lot",
+    "publicReceipt.field.variety": "Variety",
+    "publicReceipt.field.certification": "Organic Certification",
+    "publicReceipt.field.area": "Area / Facility",
+    "publicReceipt.field.semiProduct": "Cocoa Type",
+    "publicReceipt.field.grossWeight": "Gross Weight",
+    "publicReceipt.field.tare": "Tare",
+    "publicReceipt.field.damagedDeduction": "Damaged Deduction",
+    "publicReceipt.field.netWeight": "Net Settled Weight",
+    "publicReceipt.field.total": "Total Delivered",
+    "publicReceipt.field.fulfilled": "Fulfilled",
+    "publicReceipt.field.available": "Available",
+    "publicReceipt.field.created": "Registration Date",
+    "publicReceipt.field.updated": "Last Update",
+    "publicReceipt.field.productionDate": "Production Date",
+    "publicReceipt.field.orderType": "Order Type",
+    "publicReceipt.field.farmer": "Producer",
+    "publicReceipt.field.discount": "Price Discount",
+    "publicReceipt.field.costPaidBalance": "Cost / Paid / Balance",
+    "publicReceipt.footer.qrCaption": "Scan this QR code to verify the authenticity and traceability of this receipt on the official INATrace platform.",
+    "publicReceipt.actions.print": "Print Receipt",
+    "publicReceipt.actions.login": "Log in"
   }
 }

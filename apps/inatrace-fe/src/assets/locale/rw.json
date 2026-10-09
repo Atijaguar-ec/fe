@@ -3345,34 +3345,67 @@
     "productLabelStock.button.exportExcel": "Kohereza muri Excel",
     "collectorDetail.section.plots": " Imirima ",
     "companyDetail.configuration.enablePublicDeliveryReceipt": "Kwemerera kureba inyemezabuguzi binyuze kuri kode ya QR nta kwinjira muri sisitemu",
-    "publicReceipt.generalError": "Ntabwo byashobotse gupakurura inyemezabuguzi."
-  },
-  "productLabel.b2c.tertiaryColor": "Tertiary color",
-  "productLabel.b2c.quaternaryColor": "Quaternary color",
-  "productLabel.b2c.productTitleColor": "Product title color",
-  "productLabel.b2c.graphicQuality": "Enable 'Quality' graphic",
-  "productLabelPayments.tableCol.delete": "Gusiba",
-  "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Total quantities",
-  "productLabelStockProcessingOrderDetail.orderID.label": "Order ID:",
-  "productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name": "Nomero y'umuhinzi",
-  "collectorDetail.textinput.areaUnit.error": "Ingano y'umurima irasabwa",
-  "productLabelPayments": {
-    "tableCol": {
-      "delete": "Gusiba"
-    }
-  },
-  "collectorDetail": {
-    "textinput": {
-      "areaUnit": {
-        "error": "Ingano y'umurima irasabwa"
-      }
-    }
-  },
-  "productLabelStakeholdersCollectors": {
-    "sortOptions": {
-      "farmerCompanyInternalId": {
-        "name": "Nomero y'umuhinzi"
-      }
-    }
+    "publicReceipt.generalError": "Ntabwo byashobotse gupakurura inyemezabuguzi.",
+    "productLabel.b2c.tertiaryColor": "Tertiary color",
+    "productLabel.b2c.quaternaryColor": "Quaternary color",
+    "productLabel.b2c.productTitleColor": "Product title color",
+    "productLabel.b2c.graphicQuality": "Enable 'Quality' graphic",
+    "productLabelPayments.tableCol.delete": "Gusiba",
+    "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Total quantities",
+    "productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name": "Nomero y'umuhinzi",
+    "collectorDetail.textinput.areaUnit.error": "Ingano y'umurima irasabwa",
+    "batchHistory.downloadPdfButton": "Gucapa PDF",
+    "batchHistory.printTicketButton": "Gucapa itike (7 cm)",
+    "batchHistory.tableCol.totalGross": "Igiteranyo cyose",
+    "batchHistory.tableCol.damagedWeight": "Ibyagabanyijwe ku bupime",
+    "batchHistory.tableCol.moisturePercentage": "% Igabanywa ry'ububyimbane",
+    "batchHistory.tableCol.netQuantity": "Uburemere nyabwo",
+    "orderHistoryView.tableCol.deliveryReceipt": "Inyemezabuguzi",
+    "orderHistoryView.tableCol.weekNumber": "Inomero y'icyumweru",
+    "orderHistoryView.tableCol.parcelLot": "Icyiciro cy'umurima",
+    "orderHistoryView.tableCol.variety": "Ubwoko",
+    "orderHistoryView.tableCol.organicCertification": "Icyemezo cy'ibinyabuzima",
+    "orderHistoryView.tableCol.measurementUnitType": "Igiteranyo",
+    "orderHistoryView.tableCol.fulfilled": "Byuzuye",
+    "orderHistoryView.tableCol.available": "Bihari",
+    "orderHistoryView.tableCol.finalPriceDiscount": "Igabanywa ku giciro cya nyuma",
+    "publicReceipt.button.print": "Gucapa",
+    "publicReceipt.loading": "Inyemezabuguzi irimo gupakururwa...",
+    "publicReceipt.private.title": "Inyemezabuguzi ifunze",
+    "publicReceipt.private.description": "Kugira ngo ubone amakuru arambuye, nyamuneka injira muri sisitemu.",
+    "publicReceipt.private.loginButton": "Injira muri INATrace",
+    "publicReceipt.notFound.title": "Inyemezabuguzi ntiyabonetse",
+    "publicReceipt.notFound.homeButton": "Subira Ahabanza",
+    "publicReceipt.canceled.title": "Inyemezabuguzi yasibwe",
+    "publicReceipt.canceled.reason": "Impamvu yo gusiba:",
+    "publicReceipt.canceled.date": "Itariki yo gusiba:",
+    "publicReceipt.badge.verified": "Byemejwe kuri INATrace",
+    "publicReceipt.title": "Inyemezabuguzi y'itangwa",
+    "publicReceipt.field.id": "Nomero y'itangwa (ID)",
+    "publicReceipt.field.receipt": "Inyemezabuguzi",
+    "publicReceipt.field.identifier": "Ikibiraga",
+    "publicReceipt.field.week": "Inomero y'icyumweru",
+    "publicReceipt.field.parcelLot": "Icyiciro cy'umurima",
+    "publicReceipt.field.variety": "Ubwoko",
+    "publicReceipt.field.certification": "Icyemezo cy'ibinyabuzima",
+    "publicReceipt.field.area": "Ahabera igikorwa",
+    "publicReceipt.field.semiProduct": "Ubwoko bwa kakao",
+    "publicReceipt.field.grossWeight": "Uburemere bwose hamwe",
+    "publicReceipt.field.tare": "Uburemere bw'igifuniko",
+    "publicReceipt.field.damagedDeduction": "Ibyagabanyijwe byangiritse",
+    "publicReceipt.field.netWeight": "Uburemere nyabwo",
+    "publicReceipt.field.total": "Igiteranyo cyose",
+    "publicReceipt.field.fulfilled": "Byuzuye",
+    "publicReceipt.field.available": "Bihari",
+    "publicReceipt.field.created": "Itariki yo kwandika",
+    "publicReceipt.field.updated": "Impinduka ziheruka",
+    "publicReceipt.field.productionDate": "Itariki yo gutunganya",
+    "publicReceipt.field.orderType": "Ubwoko bw'igikorwa",
+    "publicReceipt.field.farmer": "Umuhinzi",
+    "publicReceipt.field.discount": "Igabanywa ku giciro",
+    "publicReceipt.field.costPaidBalance": "Igiciro / Ayishyuwe / Asigaye",
+    "publicReceipt.footer.qrCaption": "Sikana iyi kode ya QR kugira ngo urebe ukuri kw'iyi nyemezabuguzi.",
+    "publicReceipt.actions.print": "Gucapa inyemezabuguzi",
+    "publicReceipt.actions.login": "Injira"
   }
 }

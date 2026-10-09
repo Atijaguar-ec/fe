@@ -14,9 +14,9 @@
               </button>
 
                 <button class="btn btn-secondary mr-2" type="button" (click)="downloadPdf()" i18n="@@batchHistory.downloadPdfButton">Imprimir PDF</button>
-                <button class="btn btn-primary" type="button" (click)="printTicket(stockOrder)" i18n="@@batchHistory.printTicketButton" *ngIf="isTicketPrintVisible(stockOrder)">
+                <button class="btn btn-primary" type="button" (click)="printTicket(stockOrder)" *ngIf="isTicketPrintVisible(stockOrder)">
                   <i class="fa fa-print mr-1" aria-hidden="true"></i>
-                  <span>Imprimir Ticket (7 cm)</span>
+                  <span i18n="@@batchHistory.printTicketButton">Imprimir Ticket (7 cm)</span>
                 </button>
               
               </div>
@@ -115,7 +115,7 @@
                   <!-- Peso Neto (prominente para camarón) -->
                   <ng-container *ngIf="stockOrder.netQuantity">
                     <tr>
-                      <th i18n="@@batchHistory.tableCol.netQuantity"><strong>Peso Neto</strong></th>
+                      <th><strong i18n="@@batchHistory.tableCol.netQuantity">Peso Neto</strong></th>
                       <td><strong>{{ stockOrder.netQuantity }} {{ getDisplayMeasureUnit(stockOrder) }}</strong></td>
                     </tr>
                   </ng-container>

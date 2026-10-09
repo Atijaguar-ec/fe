@@ -3359,52 +3359,66 @@
     "breadCrumb.orders.globalOrder": "Orden",
     "orderList.sortOptions.orderId.name": "ID de Orden",
     "companyDetail.configuration.enablePublicDeliveryReceipt": "Permitir consulta pública por código QR del comprobante de entrega sin inicio de sesión (trazabilidad abierta)",
-    "publicReceipt.generalError": "No fue posible cargar el comprobante de entrega."
-  },
-  "productLabel": {
-    "b2c": {
-      "tertiaryColor": "Color terciario",
-      "quaternaryColor": "Color cuaternario",
-      "productTitleColor": "Color del título del producto",
-      "graphicQuality": " Habilitar gráfico de 'Calidad' "
-    }
-  },
-  "productLabelPayments": {
-    "tableCol": {
-      "delete": "Eliminar"
-    }
-  },
-  "productLabelStockProcessingOrderDetail": {
-    "section": {
-      "output": {
-        "totalQuantitiesSectionTitle": " Cantidades totales "
-      }
-    },
-    "orderID": {
-      "label": "ID de pedido:"
-    }
-  },
-  "productLabel.b2c.tertiaryColor": "Color terciario",
-  "productLabel.b2c.quaternaryColor": "Color cuaternario",
-  "productLabel.b2c.productTitleColor": "Color del título del producto",
-  "productLabel.b2c.graphicQuality": "Habilitar gráfico de 'Calidad'",
-  "productLabelPayments.tableCol.delete": "Eliminar",
-  "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Cantidades totales",
-  "productLabelStockProcessingOrderDetail.orderID.label": "ID de pedido:",
-  "productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name": "Cédula/ID",
-  "collectorDetail.textinput.areaUnit.error": "La unidad de área es requerida",
-  "collectorDetail": {
-    "textinput": {
-      "areaUnit": {
-        "error": "La unidad de área es requerida"
-      }
-    }
-  },
-  "productLabelStakeholdersCollectors": {
-    "sortOptions": {
-      "farmerCompanyInternalId": {
-        "name": "Cédula/ID"
-      }
-    }
+    "publicReceipt.generalError": "No fue posible cargar el comprobante de entrega.",
+    "productLabel.b2c.tertiaryColor": "Color terciario",
+    "productLabel.b2c.quaternaryColor": "Color cuaternario",
+    "productLabel.b2c.productTitleColor": "Color del título del producto",
+    "productLabel.b2c.graphicQuality": "Habilitar gráfico de 'Calidad'",
+    "productLabelPayments.tableCol.delete": "Eliminar",
+    "productLabelStockProcessingOrderDetail.section.output.totalQuantitiesSectionTitle": "Cantidades totales",
+    "productLabelStockProcessingOrderDetail.orderID.label": "ID de pedido:",
+    "productLabelStakeholdersCollectors.sortOptions.farmerCompanyInternalId.name": "Cédula/ID",
+    "collectorDetail.textinput.areaUnit.error": "La unidad de área es requerida",
+    "batchHistory.downloadPdfButton": "Imprimir PDF",
+    "batchHistory.tableCol.totalGross": "Total bruto",
+    "batchHistory.tableCol.damagedWeight": "Descuento de peso",
+    "batchHistory.tableCol.moisturePercentage": "% Descuento por humedad",
+    "batchHistory.tableCol.netQuantity": "Peso Neto",
+    "orderHistoryView.tableCol.weekNumber": "N° de Semana",
+    "orderHistoryView.tableCol.parcelLot": "Lote de parcela",
+    "orderHistoryView.tableCol.variety": "Variedad",
+    "orderHistoryView.tableCol.organicCertification": "Certificación orgánica",
+    "orderHistoryView.tableCol.measurementUnitType": "Total",
+    "orderHistoryView.tableCol.fulfilled": "Cumplido",
+    "orderHistoryView.tableCol.available": "Disponible",
+    "orderHistoryView.tableCol.finalPriceDiscount": "Descuento en precio final",
+    "publicReceipt.button.print": "Imprimir",
+    "publicReceipt.loading": "Cargando comprobante de entrega...",
+    "publicReceipt.private.title": "Comprobante de Acceso Restringido",
+    "publicReceipt.private.description": "La organización emisora de este comprobante mantiene la trazabilidad bajo acceso privado. Para consultar los detalles de esta entrega, por favor inicie sesión con una cuenta autorizada en la plataforma.",
+    "publicReceipt.private.loginButton": "Iniciar Sesión en INATrace",
+    "publicReceipt.notFound.title": "Comprobante No Encontrado",
+    "publicReceipt.notFound.homeButton": "Ir al Inicio",
+    "publicReceipt.canceled.title": "Comprobante Anulado",
+    "publicReceipt.canceled.reason": "Motivo de anulación:",
+    "publicReceipt.canceled.date": "Fecha de anulación:",
+    "publicReceipt.badge.verified": "Verificado en INATrace",
+    "publicReceipt.title": "Comprobante de Entrega",
+    "publicReceipt.field.id": "N° de Entrega (ID)",
+    "publicReceipt.field.receipt": "Comprobante",
+    "publicReceipt.field.identifier": "Identificador",
+    "publicReceipt.field.week": "N° de Semana",
+    "publicReceipt.field.parcelLot": "Lote de Parcela",
+    "publicReceipt.field.variety": "Variedad",
+    "publicReceipt.field.certification": "Certificación Orgánica",
+    "publicReceipt.field.area": "Área / Centro de Acopio",
+    "publicReceipt.field.semiProduct": "Tipo de Cacao",
+    "publicReceipt.field.grossWeight": "Peso Bruto",
+    "publicReceipt.field.tare": "Tara",
+    "publicReceipt.field.damagedDeduction": "Descuento por Dañado",
+    "publicReceipt.field.netWeight": "Peso Neto Liquidado",
+    "publicReceipt.field.total": "Total Entregado",
+    "publicReceipt.field.fulfilled": "Cumplido",
+    "publicReceipt.field.available": "Disponible",
+    "publicReceipt.field.created": "Fecha de Registro",
+    "publicReceipt.field.updated": "Última Actualización",
+    "publicReceipt.field.productionDate": "Fecha de Producción",
+    "publicReceipt.field.orderType": "Tipo de Pedido",
+    "publicReceipt.field.farmer": "Productor",
+    "publicReceipt.field.discount": "Descuento en Precio",
+    "publicReceipt.field.costPaidBalance": "Costo / Pagado / Saldo",
+    "publicReceipt.footer.qrCaption": "Escanee este código QR para verificar la autenticidad y trazabilidad de este comprobante en la plataforma oficial INATrace.",
+    "publicReceipt.actions.print": "Imprimir Comprobante",
+    "publicReceipt.actions.login": "Iniciar Sesión"
   }
 }
