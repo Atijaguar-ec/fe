@@ -947,3 +947,23 @@ y el spec no compila.
 - En la ejecución de un nuevo proceso (`processing-order-output`), los campos dinámicos se ordenan
   numéricamente de menor a mayor según `sortOrder` (dejando nulos al final).
 
+## 22. Dominio UNOCACE: Control de Cupo, Alertas Dinámicas e Impresión Dual de Ticket Térmico (7 cm)
+
+### 22.1 Salvaguarda Multi-Tenant en la Interfaz
+- Las capacidades de UNOCACE están gobernadas por `isDeliveryReceiptConfigEnabled` e `isQuotaBalanceConfigEnabled` sobre `companyProfile.configuration`.
+- **Fortaleza del Valle:** No tiene estas opciones activas. Los componentes deben garantizar que los botones y campos no se rendericen para FV.
+
+### 22.2 Impresión Dual en Historial de Lotes (`batch-history.component`)
+- **Dos botones:**
+  - `Imprimir PDF`: Documento estándar A4.
+  - `Imprimir Ticket (7 cm)`: Formato de rollo continuo para impresoras térmicas POS (72mm / Epson TM-T20).
+- **Guardia de Visibilidad:** El botón de ticket térmico tiene `*ngIf="isTicketPrintVisible(stockOrder)"`, el cual evalúa `isDeliveryReceiptConfigEnabled`. FV nunca ve este botón.
+- **Regla Estricta de Negocio:** **Omitir "Representante de los agricultores"** en el ticket térmico (mandato expreso de Trello).
+- **Código QR:** Genera un QR dinámico con la URL completa de trazabilidad web del lote.
+
+### 22.3 Formulario de Entrega (`stock-delivery-details.component`)
+- **Visualización:** El campo "Saldo de cupo" solo se renderiza si `showQuotaBalance` es verdadero (`isQuotaBalanceConfigEnabled` y `facility.displayQuotaBalance !== false`).
+- **Alerta Preventiva (Badge Amarillo):** Se activa con `quotaNearLimitCheck` cuando el acumulado entregado más la entrega actual alcanza o supera el umbral porcentual configurable (`quotaAlertThresholdPercent`, default 80%). No bloquea el guardado.
+- **Bloqueo Estricto al 100%:** Si la entrega supera el saldo de cupo disponible o el saldo es $\le 0$, `quotaBlocked` evalúa a verdadero y `cannotUpdatePO()` inhabilita el botón Guardar.
+
+

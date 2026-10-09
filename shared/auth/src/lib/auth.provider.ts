@@ -41,7 +41,7 @@ export function isInitialRoutePublic(): boolean {
   }
   const pathname = window.location.pathname || '';
   const publicPattern =
-    /^\/([a-z]{2}\/)?(q-cd|p-cd|q|p|landing|blog|s|register|reset-password|confirm-email|account-activation)($|\/)/i;
+    /^\/([a-z]{2}\/)?(public|q-cd|p-cd|q|p|landing|blog|s|register|reset-password|confirm-email|account-activation)($|\/)/i;
   return publicPattern.test(pathname);
 }
 

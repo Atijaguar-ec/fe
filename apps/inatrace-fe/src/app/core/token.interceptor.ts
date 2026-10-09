@@ -75,7 +75,7 @@ export class TokenInterceptor implements HttpInterceptor {
   pathsToIgnore() {
     const pathname = typeof window !== 'undefined' ? window.location.pathname || '' : '';
     const isPublic =
-      /^\/([a-z]{2}\/)?(q-cd|p-cd|q|p|landing|blog|s|register|reset-password|confirm-email|account-activation)($|\/)/i.test(
+      /^\/([a-z]{2}\/)?(public|q-cd|p-cd|q|p|landing|blog|s|register|reset-password|confirm-email|account-activation)($|\/)/i.test(
         pathname,
       );
     const landingUrlTemplate = '/([a-z]{2})/';

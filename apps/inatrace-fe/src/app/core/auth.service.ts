@@ -11,7 +11,13 @@ import Keycloak from 'keycloak-js';
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly pathsToIgnoreRefresh = ['login', 'p-cd', 'q-cd'];
+  private readonly pathsToIgnoreRefresh = [
+    'login',
+    'p-cd',
+    'q-cd',
+    'public',
+    'delivery-receipt',
+  ];
 
   private readonly userProfileSubject = new ReplaySubject<ApiUserGet | null>(1);
   userProfile$ = this.userProfileSubject.asObservable();
@@ -29,7 +35,7 @@ export class AuthService {
 
     const pathname = typeof window !== 'undefined' ? window.location.pathname || '' : '';
     const isPublicUrl =
-      /^\/([a-z]{2}\/)?(q-cd|p-cd|q|p|landing|blog|s|register|reset-password|confirm-email|account-activation)($|\/)/i.test(
+      /^\/([a-z]{2}\/)?(public|q-cd|p-cd|q|p|landing|blog|s|register|reset-password|confirm-email|account-activation)($|\/)/i.test(
         pathname,
       );
 
