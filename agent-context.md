@@ -966,4 +966,74 @@ y el spec no compila.
 - **Alerta Preventiva (Badge Amarillo):** Se activa con `quotaNearLimitCheck` cuando el acumulado entregado más la entrega actual alcanza o supera el umbral porcentual configurable (`quotaAlertThresholdPercent`, default 80%). No bloquea el guardado.
 - **Bloqueo Estricto al 100%:** Si la entrega supera el saldo de cupo disponible o el saldo es $\le 0$, `quotaBlocked` evalúa a verdadero y `cannotUpdatePO()` inhabilita el botón Guardar.
 
+## 23. Consulta Pública de Comprobante por Código QR y Desacoplamiento de Keycloak (`enablePublicDeliveryReceipt`) (2026-10-08)
+
+### 23.1 Problema
+Al escanear el código QR impreso en el comprobante de entrega físico desde un celular o dispositivo externo, la aplicación no debe exigir inicio de sesión (Keycloak) si la organización tiene activada la trazabilidad abierta. Si la organización es privada (ej. Fortaleza del Valle), el enlace debe dirigir a la ruta privada autenticada.
+
+### 23.2 Configuración en Pantalla de Empresa (`company-detail.component`)
+- En `company-detail.component.html`, el check `enablePublicDeliveryReceiptControl`:
+  ```html
+  <div class="af-form-element pt-0" *ngIf="enableDeliveryReceiptControl.value">
+    <checkbox-input [form]="enablePublicDeliveryReceiptControl">
+      <checkbox-input-rich-label i18n="@@companyDetail.configuration.enablePublicDeliveryReceipt">
+        Permitir consulta pública por código QR del comprobante de entrega sin inicio de sesión (trazabilidad abierta).
+      </checkbox-input-rich-label>
+    </checkbox-input>
+  </div>
+  ```
+- **Condición Jerárquica:** El control solo es visible si `enableDeliveryReceiptControl.value` es `true`.
+- **Persistencia:** Se guarda en `company.configuration['enablePublicDeliveryReceipt']`.
+
+### 23.3 Generación Dinámica del Código QR (`batch-history.component.ts`)
+En `qrCodeString(stockOrder)`:
+```typescript
+const isPublicEnabled = isPublicDeliveryReceiptConfigEnabled(this.companyProfile?.configuration);
+if (isPublicEnabled) {
+  return `${origin}/public/delivery-receipt/${stockOrder.id}`;
+}
+return `${origin}/company/my-stock/all-stock/stock-order/${stockOrder.id}/view`;
+```
+
+### 23.4 Módulo Público y Desacoplamiento de Autenticación
+- **Ruta Pública:** `/public/delivery-receipt/:id` en `app-routing.module.ts`, mapeada a `PublicDeliveryReceiptModule` y `PublicDeliveryReceiptComponent`.
+- **Estilo:** Diseño responsive optimizado para pantalla móvil tipo ticket térmico (monocromo, monospace, datos de pesaje, productor, lote, fecha y desglose de descuentos).
+- **Consumo API:** Llama a `GET /api/public/delivery-receipt/{id}` sin enviar token Bearer.
+- **REGLA CRÍTICA DE AUTENTICACIÓN (Bypass de Keycloak):**
+  Para que un usuario sin sesión activa no sea redirigido a la pantalla de login de Keycloak:
+  1. `fe/shared/auth/src/lib/auth.provider.ts`: `publicPattern` DEBE incluir `public`:
+     ```typescript
+     const publicPattern =
+       /^\/([a-z]{2}\/)?(public|q-cd|p-cd|q|p|landing|blog|s|register|reset-password|confirm-email|account-activation)($|\/)/i;
+     ```
+  2. `apps/inatrace-fe/src/app/core/auth.service.ts`: `pathsToIgnoreRefresh` y `isPublicUrl` deben incluir `'public'` y `'delivery-receipt'`.
+  3. `apps/inatrace-fe/src/app/core/token.interceptor.ts`: `pathsToIgnore()` debe incluir `'public'`.
+
+## 24. Estimación de Producción en el Registro del Agricultor: Unidad en Quintales (qq) (2026-10-08)
+
+### 24.1 Problema y Confusión Operativa
+En el registro de parcelas del agricultor (`company-farmers-plots-detail`), el campo "Estimación de producción" mostraba un valor numérico sin unidad explícita. Al registrar entregas de acopio en libras, los operarios no comprendían la relación de escala (ej. 100 quintales equivalen a 10 000 libras de cupo).
+
+### 24.2 Convención de Interfaz
+- **Etiqueta y Placeholder:** Se clarificó la etiqueta a:
+  `Estimación de producción (Quintales / qq)`
+  con placeholder explicativo `Ej: 100 (1 quintal = 100 libras)`.
+- **Cálculo de Cupo en Entregas:** Al validar el cupo disponible en `stock-delivery-details.component.ts`, la estimación de la parcela en quintales se multiplica por 100 para obtener las libras máximas autorizadas por período anual.
+
+## 25. Listado de Lotes, Micro-Frontends (FontAwesome) y Traducciones i18n (2026-10-08)
+
+### 25.1 Parámetro `requestType` y Ordenamiento en Lotes
+- En `batch-history.component.ts`, el listado de lotes requería enviar el parámetro `requestType` adecuado al backend para filtrar órdenes según el tipo de producto y aplicar el ordenamiento descendente por fecha (`createdDate,desc`).
+
+### 25.2 Alineación de Versión FontAwesome en Module Federation (Nx)
+- En arquitecturas de Micro-Frontends (MFE con Webpack Module Federation), las versiones de `@fortawesome/angular-fontawesome` compartidas (`shared`) entre el shell host y los módulos remotos deben coincidir exactamente. Cualquier divergencia de versión o resolución múltiple genera fallos de inyector (`NullInjectorError: No provider for FaIconLibrary`).
+
+### 25.3 Cobertura de Cadenas en Todos los Idiomas
+- Al incorporar nuevas vistas (`publicReceipt`, `batchHistory`, `orderHistoryView`), las claves i18n deben registrarse simultáneamente en los cuatro archivos de recursos de traducción:
+  - `apps/inatrace-fe/src/assets/locale/es.json` (Español)
+  - `apps/inatrace-fe/src/assets/locale/en.json` (Inglés)
+  - `apps/inatrace-fe/src/assets/locale/de.json` (Alemán)
+  - `apps/inatrace-fe/src/assets/locale/rw.json` (Kinyarwanda)
+- **Regla Anti-Regresión:** No desplegar vistas nuevas con cadenas duras en inglés o español sin su correspondiente clave i18n en los cuatro diccionarios.
+
 
