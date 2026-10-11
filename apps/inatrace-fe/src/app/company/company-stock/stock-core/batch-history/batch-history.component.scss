@@ -372,46 +372,22 @@ $casovnica-circle-radius: 22px;
 
   .ticket-footer {
     text-align: center;
-    margin-top: 6px;
+    margin-top: 8px;
 
-    .ticket-footer-grid {
+    .ticket-qr {
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       align-items: center;
-      justify-content: space-between;
-      margin: 8px 0 4px 0;
-      gap: 6px;
+      justify-content: center;
+      margin: 8px auto 4px auto;
 
-      .ticket-qr-col {
-        flex: 0 0 100px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-
-        .ticket-qr-caption {
-          font-size: 8px;
-          margin-top: 3px;
-          color: #333333;
-          text-align: center;
-          line-height: 1.15;
-          font-weight: 600;
-        }
-      }
-
-      .ticket-signature-col {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-around;
-        height: 100px;
-        padding-left: 6px;
-
-        .ticket-sig-line {
-          width: 100%;
-          border-bottom: 1px solid #333333;
-          margin: 6px 0;
-        }
+      .ticket-qr-caption {
+        font-size: 8.5px;
+        margin-top: 4px;
+        color: #333333;
+        text-align: center;
+        line-height: 1.2;
+        font-weight: 600;
       }
     }
 

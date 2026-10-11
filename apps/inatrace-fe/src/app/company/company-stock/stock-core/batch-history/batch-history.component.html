@@ -472,15 +472,15 @@
               <td>{{ stockOrder.weekNumber }}</td>
             </tr>
             <tr *ngIf="stockOrder.parcelLot">
-              <th>Parcel lot</th>
+              <th>Parcela</th>
               <td>{{ stockOrder.parcelLot }}</td>
             </tr>
             <tr *ngIf="stockOrder.variety">
-              <th>Variety</th>
+              <th>Variedad</th>
               <td>{{ stockOrder.variety }}</td>
             </tr>
             <tr *ngIf="stockOrder.organicCertification">
-              <th>Organic certification</th>
+              <th>Certificación orgánica</th>
               <td>{{ stockOrder.organicCertification }}</td>
             </tr>
             <tr>
@@ -508,20 +508,20 @@
               <td>{{ formatTicketWeight(stockOrder.damagedWeightDeduction) }}</td>
             </tr>
             <tr>
-              <th>Peso neto {{ getUnitLabel(stockOrder) }}</th>
+              <th>Peso neto en {{ getUnitLabel(stockOrder) }}</th>
               <td>{{ formatTicketWeight(stockOrder.netQuantity ?? stockOrder.totalQuantity) }}</td>
             </tr>
             <tr *ngIf="stockOrder.purchaseOrder">
-              <th>Precio {{ getUnitSingular(stockOrder) }} $</th>
-              <td>{{ formatTicketMoney(stockOrder.pricePerUnit) }}</td>
+              <th>Precio por {{ getUnitSingular(stockOrder) }} $</th>
+              <td>{{ formatTicketMoney(getTicketPricePerUnit(stockOrder)) }}</td>
             </tr>
             <tr *ngIf="stockOrder.purchaseOrder">
               <th>Subtotal $</th>
               <td>{{ formatTicketMoney(getTicketSubtotal(stockOrder)) }}</td>
             </tr>
-            <tr *ngIf="stockOrder.purchaseOrder && hasRetention(stockOrder)">
+            <tr *ngIf="stockOrder.purchaseOrder">
               <th>Retención $</th>
-              <td>{{ formatTicketMoney(stockOrder.finalPriceDiscount) }}</td>
+              <td>{{ formatTicketMoney(getTicketRetention(stockOrder)) }}</td>
             </tr>
             <tr *ngIf="stockOrder.purchaseOrder">
               <th>Pago final $</th>
@@ -539,17 +539,9 @@
         </table>
 
         <div class="ticket-footer">
-          <div class="ticket-footer-grid">
-            <div class="ticket-qr-col" *ngIf="qrCodeString(stockOrder)">
-              <qr-code [value]="qrCodeString(stockOrder)" [size]="95"></qr-code>
-              <div class="ticket-qr-caption">Escanear para validar recibo</div>
-            </div>
-            <div class="ticket-signature-col">
-              <div class="ticket-sig-line"></div>
-              <div class="ticket-sig-line"></div>
-              <div class="ticket-sig-line"></div>
-              <div class="ticket-sig-line"></div>
-            </div>
+          <div class="ticket-qr" *ngIf="qrCodeString(stockOrder)">
+            <qr-code [value]="qrCodeString(stockOrder)" [size]="120"></qr-code>
+            <div class="ticket-qr-caption">Escanear para validar recibo</div>
           </div>
           <div class="ticket-divider">================================</div>
           <div class="ticket-copy-label">*** ORIGINAL ***</div>

@@ -620,10 +620,34 @@ export class BatchHistoryComponent implements OnInit {
     return Number(order?.finalPriceDiscount ?? 0) > 0;
   }
 
+  getTicketRetention(order: ApiStockOrder): number {
+    return Number(order?.finalPriceDiscount ?? 0);
+  }
+
   getTicketSubtotal(order: ApiStockOrder): number {
     const net = Number(order?.netQuantity ?? order?.totalQuantity ?? 0);
     const price = Number(order?.pricePerUnit ?? 0);
-    return Math.round(net * price * 100) / 100;
+    if (price > 0 && net > 0) {
+      return Math.round(net * price * 100) / 100;
+    }
+    if (order?.cost != null && Number(order.cost) > 0) {
+      const retention = this.getTicketRetention(order);
+      return Math.round((Number(order.cost) + retention) * 100) / 100;
+    }
+    return 0;
+  }
+
+  getTicketPricePerUnit(order: ApiStockOrder): number {
+    const price = Number(order?.pricePerUnit ?? 0);
+    if (price > 0) {
+      return price;
+    }
+    const subtotal = this.getTicketSubtotal(order);
+    const net = Number(order?.netQuantity ?? order?.totalQuantity ?? 0);
+    if (subtotal > 0 && net > 0) {
+      return Math.round((subtotal / net) * 100) / 100;
+    }
+    return 0;
   }
 
   getTicketFinalPayment(order: ApiStockOrder): number {
@@ -631,7 +655,7 @@ export class BatchHistoryComponent implements OnInit {
       return Number(order.cost);
     }
     const subtotal = this.getTicketSubtotal(order);
-    const retention = Number(order?.finalPriceDiscount ?? 0);
+    const retention = this.getTicketRetention(order);
     return Math.max(0, Math.round((subtotal - retention) * 100) / 100);
   }
 }
