@@ -732,7 +732,14 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   }
 
   get quotaExceededCheck(): boolean {
-    return this.showQuotaBalance && !!this.currentQuotaBalance?.isExceeded;
+    if (!this.showQuotaBalance || !this.currentQuotaBalance) {
+      return false;
+    }
+    if (this.currentQuotaBalance.isExceeded) {
+      return true;
+    }
+    const balance = this.currentQuotaBalance.remainingBalance;
+    return balance != null && Number(balance) <= 0;
   }
 
   get quotaExceededByCurrentDeliveryCheck(): boolean {
@@ -754,6 +761,37 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       !this.quotaExceededByCurrentDeliveryCheck &&
       !!this.currentQuotaBalance?.isNearLimit
     );
+  }
+
+  get isQuotaNoEstimate(): boolean {
+    if (!this.showQuotaBalance || !this.currentQuotaBalance) {
+      return false;
+    }
+    const initial = this.currentQuotaBalance.initialQuota;
+    return initial == null || Number(initial) <= 0;
+  }
+
+  get quotaAlertMessage(): string {
+    if (!this.showQuotaBalance || !this.currentQuotaBalance) {
+      return '';
+    }
+    const unit = this.measureUnit && this.measureUnit !== '-' ? ` ${this.measureUnit}` : '';
+    if (this.isQuotaNoEstimate) {
+      return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.quotaNoEstimate.error:El agricultor o parcela no tiene cupo ni estimación de producción registrada (saldo: 0,00${unit}).`;
+    }
+    if (this.quotaExceededCheck) {
+      const balance = this.currentQuotaBalance.remainingBalance != null
+        ? this.currentQuotaBalance.remainingBalance.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        : '0,00';
+      return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.quotaExhausted.error:El agricultor ha alcanzado o superado el cupo disponible para este año (saldo: ${balance}${unit}).`;
+    }
+    if (this.quotaExceededByCurrentDeliveryCheck) {
+      const balance = this.currentQuotaBalance.remainingBalance != null
+        ? this.currentQuotaBalance.remainingBalance.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        : '0,00';
+      return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.quotaDeliveryExceeds.error:La cantidad a entregar supera el saldo de cupo disponible (${balance}${unit}).`;
+    }
+    return '';
   }
 
   get netLabel() {
@@ -1350,8 +1388,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     return this.showWeekColor ? weekColor(Number(this.stockOrderForm?.get('weekNumber')?.value)) : null;
   }
 
-  private cannotUpdatePO() {
-    this.prepareData();
+  cannotUpdatePO(): boolean {
     const quotaBlocked = this.showQuotaBalance &&
       (this.quotaExceededCheck || this.quotaExceededByCurrentDeliveryCheck);
     return (this.stockOrderForm.invalid || this.searchFarmers.invalid ||

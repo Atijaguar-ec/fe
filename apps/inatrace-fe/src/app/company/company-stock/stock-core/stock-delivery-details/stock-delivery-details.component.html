@@ -119,6 +119,26 @@
               </div>
             </div>
 
+            <!-- Alerta visual de saldo de cupo cero o excedido al seleccionar agricultor -->
+            <div
+              *ngIf="showQuotaBalance && (quotaExceededCheck || quotaExceededByCurrentDeliveryCheck)"
+              class="af-row"
+            >
+              <div class="af-c12">
+                <div
+                  class="alert alert-danger d-flex align-items-center mb-3 p-2"
+                  role="alert"
+                  style="border-radius: 4px; font-size: 13px;"
+                >
+                  <i class="fa fa-exclamation-triangle mr-2 text-danger" style="font-size: 18px;" aria-hidden="true"></i>
+                  <div>
+                    <strong>Bloqueo de cupo: </strong>
+                    <span>{{ quotaAlertMessage }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="af-row" *ngIf="showCollector">
               <div class="af-c12">
                 <single-choice
@@ -362,6 +382,19 @@
           >
             Purchase details
           </h2>
+
+          <div
+            *ngIf="showQuotaBalance && (quotaExceededCheck || quotaExceededByCurrentDeliveryCheck)"
+            class="alert alert-danger d-flex align-items-center mb-3 p-2"
+            role="alert"
+            style="border-radius: 4px; font-size: 13px;"
+          >
+            <i class="fa fa-ban mr-2 text-danger" style="font-size: 18px;" aria-hidden="true"></i>
+            <div>
+              <strong>No se puede registrar la entrega: </strong>
+              <span>{{ quotaAlertMessage }}</span>
+            </div>
+          </div>
 
           <div class="af-form-element">
             <div class="af-row">
@@ -638,25 +671,9 @@
                   "
                   [readOnly]="true"
                 >
-                  <div *ngIf="quotaExceededCheck" class="sc-invalid-feedback">
-                    <div
-                      i18n="
-                        @@productLabelStockPurchaseOrdersModal.textinput.quotaExceeded.error"
-                    >
-                      El agricultor ha alcanzado o superado el cupo disponible
-                    </div>
-                  </div>
-                  <div
-                    *ngIf="
-                      quotaExceededByCurrentDeliveryCheck && !quotaExceededCheck
-                    "
-                    class="sc-invalid-feedback"
-                  >
-                    <div
-                      i18n="
-                        @@productLabelStockPurchaseOrdersModal.textinput.quotaDeliveryExceeds.error"
-                    >
-                      La cantidad a entregar supera el saldo de cupo disponible
+                  <div *ngIf="quotaExceededCheck || quotaExceededByCurrentDeliveryCheck" class="sc-invalid-feedback">
+                    <div>
+                      {{ quotaAlertMessage }}
                     </div>
                   </div>
                   <div
@@ -1002,8 +1019,9 @@
             <button
               class="btn mr-2"
               type="button"
+              [disabled]="cannotUpdatePO() || updatePOInProgress || quotaBalanceLoading"
               (click)="
-                !this.updatePOInProgress && createOrUpdatePurchaseOrder(false)
+                !updatePOInProgress && !cannotUpdatePO() && createOrUpdatePurchaseOrder(false)
               "
             >
               <span>Save</span>
@@ -1011,8 +1029,9 @@
             <button
               class="btn"
               type="button"
+              [disabled]="cannotUpdatePO() || updatePOInProgress || quotaBalanceLoading"
               (click)="
-                !this.updatePOInProgress && createOrUpdatePurchaseOrder()
+                !updatePOInProgress && !cannotUpdatePO() && createOrUpdatePurchaseOrder()
               "
             >
               <span>Save & Close</span>
