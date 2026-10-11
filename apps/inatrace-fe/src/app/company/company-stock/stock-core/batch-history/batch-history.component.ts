@@ -566,4 +566,72 @@ export class BatchHistoryComponent implements OnInit {
       this.globalEventsManager.showLoading(false);
     }
   }
+
+  getUnitLabel(order: ApiStockOrder): string {
+    const unit = order?.measureUnitType?.label?.toLowerCase() || '';
+    if (unit.includes('kilo') || unit.includes('kg')) {
+      return 'kilos';
+    }
+    return 'libras';
+  }
+
+  getUnitSingular(order: ApiStockOrder): string {
+    const unit = order?.measureUnitType?.label?.toLowerCase() || '';
+    if (unit.includes('kilo') || unit.includes('kg')) {
+      return 'kilo';
+    }
+    return 'libra';
+  }
+
+  formatTicketWeight(value: any): string {
+    if (value == null || value === '') return '-';
+    const num = Number(value);
+    if (isNaN(num)) return String(value);
+    if (Number.isInteger(num)) {
+      return num.toString();
+    }
+    return num.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  formatTicketMoney(value: any): string {
+    if (value == null || value === '') return '0,00';
+    const num = Number(value);
+    if (isNaN(num)) return String(value);
+    return num.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  hasMoistureDeduction(order: ApiStockOrder): boolean {
+    return this.getMoistureDeduction(order) > 0;
+  }
+
+  getMoistureDeduction(order: ApiStockOrder): number {
+    return this.getMoistureWeightDeduction(order);
+  }
+
+  hasTareDeduction(order: ApiStockOrder): boolean {
+    return Number(order?.tare ?? 0) > 0;
+  }
+
+  hasDamagedWeightDeduction(order: ApiStockOrder): boolean {
+    return Number(order?.damagedWeightDeduction ?? 0) > 0;
+  }
+
+  hasRetention(order: ApiStockOrder): boolean {
+    return Number(order?.finalPriceDiscount ?? 0) > 0;
+  }
+
+  getTicketSubtotal(order: ApiStockOrder): number {
+    const net = Number(order?.netQuantity ?? order?.totalQuantity ?? 0);
+    const price = Number(order?.pricePerUnit ?? 0);
+    return Math.round(net * price * 100) / 100;
+  }
+
+  getTicketFinalPayment(order: ApiStockOrder): number {
+    if (order?.cost != null && Number(order.cost) > 0) {
+      return Number(order.cost);
+    }
+    const subtotal = this.getTicketSubtotal(order);
+    const retention = Number(order?.finalPriceDiscount ?? 0);
+    return Math.max(0, Math.round((subtotal - retention) * 100) / 100);
+  }
 }

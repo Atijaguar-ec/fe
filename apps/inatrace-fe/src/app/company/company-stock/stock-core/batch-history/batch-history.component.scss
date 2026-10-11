@@ -275,9 +275,9 @@ $casovnica-circle-radius: 22px;
   padding: 10px 8px;
   background: #ffffff;
   color: #000000;
-  font-family: 'Courier New', Courier, monospace, sans-serif;
-  font-size: 11px;
-  line-height: 1.35;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 10px;
+  line-height: 1.3;
   box-sizing: border-box;
 
   .ticket-header {
@@ -323,50 +323,95 @@ $casovnica-circle-radius: 22px;
   .ticket-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 10.5px;
+    font-size: 9.5px;
     margin: 4px 0;
+    border: 1px solid #444444;
 
-    tr {
-      border-bottom: 1px dashed #dddddd;
-
-      &:last-child {
-        border-bottom: none;
+    thead {
+      .ticket-section-header {
+        text-align: center;
+        font-size: 11px;
+        font-weight: 800;
+        padding: 5px 3px;
+        background-color: #f2f2f2;
+        border-bottom: 1px solid #444444;
+        color: #000000;
+        letter-spacing: 0.3px;
       }
     }
 
-    th {
-      text-align: left;
-      vertical-align: top;
-      width: 44%;
-      padding: 3px 2px;
-      font-weight: 600;
-      color: #222222;
-    }
+    tbody {
+      tr {
+        border-bottom: 1px solid #cccccc;
 
-    td {
-      text-align: right;
-      vertical-align: top;
-      padding: 3px 2px;
-      color: #000000;
-      word-break: break-word;
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+
+      th {
+        text-align: left;
+        vertical-align: middle;
+        width: 48%;
+        padding: 3px 4px;
+        font-weight: 700;
+        color: #111111;
+        border-right: 1px solid #cccccc;
+      }
+
+      td {
+        text-align: left;
+        vertical-align: middle;
+        width: 52%;
+        padding: 3px 4px;
+        color: #000000;
+        word-break: break-word;
+      }
     }
   }
 
   .ticket-footer {
     text-align: center;
-    margin-top: 8px;
+    margin-top: 6px;
 
-    .ticket-qr {
+    .ticket-footer-grid {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
-      justify-content: center;
-      margin: 6px 0;
+      justify-content: space-between;
+      margin: 8px 0 4px 0;
+      gap: 6px;
 
-      .ticket-qr-caption {
-        font-size: 8.5px;
-        margin-top: 4px;
-        color: #555555;
+      .ticket-qr-col {
+        flex: 0 0 100px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        .ticket-qr-caption {
+          font-size: 8px;
+          margin-top: 3px;
+          color: #333333;
+          text-align: center;
+          line-height: 1.15;
+          font-weight: 600;
+        }
+      }
+
+      .ticket-signature-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        height: 100px;
+        padding-left: 6px;
+
+        .ticket-sig-line {
+          width: 100%;
+          border-bottom: 1px solid #333333;
+          margin: 6px 0;
+        }
       }
     }
 

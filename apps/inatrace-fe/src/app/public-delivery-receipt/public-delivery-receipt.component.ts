@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ApiStockOrder } from 'src/api/model/apiStockOrder';
 import { ApiResponseApiStockOrder } from 'src/api/model/apiResponseApiStockOrder';
-import { weekColor, WeekColor } from '../shared-services/week-number.util';
+import { weekColor, WeekColor, weekColorCodesEnabled } from '../shared-services/week-number.util';
 import {
   faCheck,
   faCheckCircle,
@@ -119,6 +119,10 @@ export class PublicDeliveryReceiptComponent implements OnInit {
 
   get weekColorInfo(): WeekColor | null {
     if (!this.stockOrder?.weekNumber) {
+      return null;
+    }
+    const config = this.stockOrder?.company?.configuration;
+    if (!weekColorCodesEnabled(config)) {
       return null;
     }
     return weekColor(this.stockOrder.weekNumber);
