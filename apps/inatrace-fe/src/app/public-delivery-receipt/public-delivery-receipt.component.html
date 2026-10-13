@@ -206,11 +206,6 @@
               <td>{{ stockOrder.creationTimestamp | date: 'dd/MM/yyyy HH:mm' }}</td>
             </tr>
 
-            <tr *ngIf="stockOrder.updateTimestamp">
-              <th i18n="@@publicReceipt.field.updated">Último cambio:</th>
-              <td>{{ stockOrder.updateTimestamp | date: 'dd/MM/yyyy HH:mm' }}</td>
-            </tr>
-
             <tr *ngIf="stockOrder.productionDate">
               <th i18n="@@publicReceipt.field.productionDate">Fecha producción:</th>
               <td>{{ stockOrder.productionDate | date: 'dd/MM/yyyy' }}</td>
