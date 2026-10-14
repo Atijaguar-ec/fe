@@ -1019,9 +1019,9 @@
             <button
               class="btn mr-2"
               type="button"
-              [disabled]="cannotUpdatePO() || updatePOInProgress || quotaBalanceLoading"
+              [disabled]="isQuotaBlocked || updatePOInProgress || quotaBalanceLoading"
               (click)="
-                !updatePOInProgress && !cannotUpdatePO() && createOrUpdatePurchaseOrder(false)
+                !updatePOInProgress && !isQuotaBlocked && createOrUpdatePurchaseOrder(false)
               "
             >
               <span>Save</span>
@@ -1029,9 +1029,9 @@
             <button
               class="btn"
               type="button"
-              [disabled]="cannotUpdatePO() || updatePOInProgress || quotaBalanceLoading"
+              [disabled]="isQuotaBlocked || updatePOInProgress || quotaBalanceLoading"
               (click)="
-                !updatePOInProgress && !cannotUpdatePO() && createOrUpdatePurchaseOrder()
+                !updatePOInProgress && !isQuotaBlocked && createOrUpdatePurchaseOrder()
               "
             >
               <span>Save & Close</span>

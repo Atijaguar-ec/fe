@@ -1104,7 +1104,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.setDate();
 
     // Set current logged-in user as employee
-    this.employeeForm.setValue(this.currentLoggedInUser?.id.toString());
+    const creatorIdVal = this.currentLoggedInUser?.id != null ? this.currentLoggedInUser.id.toString() : null;
+    this.employeeForm.setValue(creatorIdVal);
+    this.stockOrderForm.get('creatorId')?.setValue(creatorIdVal);
 
     // If only one semi-product select it as a default
     if (this.options && this.options.length === 1) {
@@ -1184,7 +1186,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.setMeasureUnit(this.modelChoice).then();
     }
 
-    this.employeeForm.setValue(this.order.creatorId.toString());
+    const creatorIdEditVal = this.order.creatorId != null ? this.order.creatorId.toString() : null;
+    this.employeeForm.setValue(creatorIdEditVal);
+    this.stockOrderForm.get('creatorId')?.setValue(creatorIdEditVal);
     // TODO: set documents and payments if purchase order
 
     if (this.order.updatedBy && this.order.updatedBy.id) {
@@ -1346,6 +1350,13 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       });
     }
 
+    this.employeeForm.valueChanges.subscribe((val) => {
+      if (this.stockOrderForm?.get('creatorId')) {
+        this.stockOrderForm.get('creatorId').setValue(val);
+        this.stockOrderForm.get('creatorId').updateValueAndValidity();
+      }
+    });
+
     this.fetchQuotaBalance();
   }
 
@@ -1388,12 +1399,18 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     return this.showWeekColor ? weekColor(Number(this.stockOrderForm?.get('weekNumber')?.value)) : null;
   }
 
-  cannotUpdatePO(): boolean {
-    const quotaBlocked = this.showQuotaBalance &&
+  get isQuotaBlocked(): boolean {
+    return this.showQuotaBalance &&
       (this.quotaExceededCheck || this.quotaExceededByCurrentDeliveryCheck);
+  }
+
+  cannotUpdatePO(): boolean {
+    if (this.stockOrderForm?.get('creatorId') && !this.stockOrderForm.get('creatorId').value && this.employeeForm?.value) {
+      this.stockOrderForm.get('creatorId').setValue(this.employeeForm.value);
+    }
     return (this.stockOrderForm.invalid || this.searchFarmers.invalid ||
       this.employeeForm.invalid || !this.modelChoice ||
-      this.tareInvalidCheck || this.damagedPriceDeductionInvalidCheck || quotaBlocked);
+      this.tareInvalidCheck || this.damagedPriceDeductionInvalidCheck || this.isQuotaBlocked);
   }
 
   onSelectedType(type: StockOrderType) {
