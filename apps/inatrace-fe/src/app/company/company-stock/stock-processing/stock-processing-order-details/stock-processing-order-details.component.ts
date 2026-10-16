@@ -34,6 +34,7 @@ import { AvailableSellingFacilitiesForCompany } from '../../../../shared-service
 import { StockOrderControllerService } from '../../../../../api/api/stockOrderController.service';
 import { FacilityControllerService } from '../../../../../api/api/facilityController.service';
 import { Subscription } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
 import { ApiStockOrder } from '../../../../../api/model/apiStockOrder';
 import { take } from 'rxjs/operators';
 import { faTimes, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
@@ -67,6 +68,9 @@ type PageMode = 'create' | 'edit';
 interface RepackedTargetStockOrder extends ApiStockOrder {
   repackedOutputsArray: ApiStockOrder[];
 }
+
+// Error de guardado que puede llevar el mensaje que devolvió el backend, listo para mostrar.
+type SaveError = Error & { userMessage?: string };
 
 @Component({
   selector: 'app-stock-processing-order-details',
@@ -182,6 +186,7 @@ export class StockProcessingOrderDetailsComponent
     private facilityController: FacilityControllerService,
     private authService: AuthService,
     private selUserCompanyService: SelectedUserCompanyService,
+    private toasterService: ToastrService,
   ) {}
 
   get selectedProcAction(): ApiProcessingAction {
@@ -671,6 +676,12 @@ export class StockProcessingOrderDetailsComponent
     this.submitted = true;
 
     if (this.procOrderGroup.invalid || this.input.oneInputStockOrderRequired) {
+      // Los errores en línea quedan fuera de pantalla con facilidad: sin este aviso el usuario
+      // solo ve que el botón no hace nada.
+      this.toasterService.error(
+        $localize`:@@productLabelStockProcessingOrderDetail.save.invalidForm.message:Please review the fields marked in red before saving.`,
+        $localize`:@@productLabelStockProcessingOrderDetail.save.invalidForm.title:The processing order was not saved`,
+      );
       return;
     }
 
@@ -686,6 +697,10 @@ export class StockProcessingOrderDetailsComponent
     }
 
     if (notAllOutputQuantityIsUsed) {
+      this.toasterService.error(
+        $localize`:@@productLabelStockProcessingOrderDetail.save.outputQuantityNotUsed.message:The entered output quantity is not used completely. Please correct the output quantities.`,
+        $localize`:@@productLabelStockProcessingOrderDetail.save.outputQuantityNotUsed.title:The processing order was not saved`,
+      );
       return;
     }
 
@@ -709,9 +724,7 @@ export class StockProcessingOrderDetailsComponent
           throw Error('Target stock orders are required for TRANSFER action');
         }
         processingOrder.targetStockOrders =
-          this.input.prepareTransferTargetStockOrders(
-            processingOrder.targetStockOrders[0],
-          );
+          this.prepareTransferTargetStockOrders(processingOrder);
       } else if (this.selectedProcAction.repackedOutputFinalProducts) {
         // If we have processing with repacking, the target Stock order present is just temporary (holds entered info)
         // We have to create the actual target Stock orders from the generated repacked output stock orders (repackedOutputsArray)
@@ -790,17 +803,95 @@ export class StockProcessingOrderDetailsComponent
         .toPromise();
 
       if (!res || res.status !== 'OK') {
-        throw Error(
+        // El backend puede responder HTTP 200 con status 'ERROR': el interceptor no lo ve,
+        // así que el aviso tiene que salir de aquí.
+        const error: SaveError = Error(
           'Error while creating processing order for order type: ' +
             this.actionType,
         );
+        error.userMessage = res?.errorMessage;
+        throw error;
       } else {
         this.dismiss();
       }
+    } catch (error) {
+      this.onSaveError(error);
     } finally {
       this.saveInProgress = false;
       this.globalEventsManager.showLoading(false);
     }
+  }
+
+  /**
+   * Las salidas de una transferencia se generan a partir de las entradas marcadas en la
+   * busqueda. Al editar una orden ya guardada, esas entradas viven en 'inputTransactions'
+   * y 'selectedInputStockOrders' esta vacio, asi que regenerarlas siempre dejaba la lista
+   * vacia y el backend rechazaba la edicion con 400 "At least one target StockOrder has to
+   * be provided!": no se podia corregir ningun campo de una transferencia, el area incluida.
+   *
+   * Las salidas ya guardadas se conservan tal cual (llevan su id y los cambios hechos en el
+   * formulario) y solo se generan salidas nuevas para las entradas que se anadan.
+   */
+  private prepareTransferTargetStockOrders(
+    processingOrder: ApiProcessingOrder,
+  ): ApiStockOrder[] {
+    const formTargetStockOrders = processingOrder.targetStockOrders ?? [];
+
+    const existingTargetStockOrders = this.editing
+      ? formTargetStockOrders.filter((tso) => tso.id != null)
+      : [];
+
+    // La primera salida hace de plantilla: de ella salen el area, el lote y los campos de
+    // evidencia que heredan las salidas nuevas.
+    const template: ApiStockOrder = {
+      ...formTargetStockOrders[0],
+      internalLotNumber: this.transferBaseInternalLotNumber(
+        formTargetStockOrders[0]?.internalLotNumber,
+        existingTargetStockOrders.length > 0,
+      ),
+    };
+
+    const newTargetStockOrders = this.input.prepareTransferTargetStockOrders(
+      template,
+      existingTargetStockOrders.length,
+    );
+
+    const targetStockOrders = [
+      ...existingTargetStockOrders,
+      ...newTargetStockOrders,
+    ];
+
+    if (!targetStockOrders.length) {
+      throw Error('Target stock orders are required for TRANSFER action');
+    }
+
+    return targetStockOrders;
+  }
+
+  /**
+   * Al editar, el lote de una salida guardada ya trae el sufijo "/n". Las salidas nuevas se
+   * numeran a partir del nombre base, para no acabar con "2026-41-02/1/2".
+   */
+  private transferBaseInternalLotNumber(
+    internalLotNumber: string | undefined,
+    hasExisting: boolean,
+  ): string {
+    if (!hasExisting || !internalLotNumber) {
+      return internalLotNumber ?? '';
+    }
+    return internalLotNumber.replace(/\/\d+$/, '');
+  }
+
+  private onSaveError(error: unknown) {
+    console.error(
+      'StockProcessingOrderDetails: no se pudo guardar la orden de procesamiento',
+      error,
+    );
+    const message =
+      (error as SaveError)?.userMessage ||
+      $localize`:@@tokenInterceptor.other.message:Please reload the page.`;
+    const title = $localize`:@@tokenInterceptor.other.title:Communication error!`;
+    this.toasterService.error(message, title);
   }
 
   dismiss() {
