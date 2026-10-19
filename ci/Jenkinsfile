@@ -199,7 +199,12 @@ git fetch --tags --prune origin
           env.GIT_AUTHOR = sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()
 
           env.IMAGE_REPOSITORY = (env.REGISTRY + '/' + (env.REPO_FULL_NAME + '-inatrace')).toLowerCase()
-          env.DEPLOY_TAG = params.BRANCH == 'main' ? 'latest' : "test-${env.GIT_SHORT_SHA}"
+          // Producción despliega por tag INMUTABLE (`prod-<sha>`), no por `latest`.
+          // `latest` se sigue publicando como alias móvil (ver `latestTag` en el
+          // stage de build), pero el .env del servidor apunta al tag fijo: con
+          // `latest` no queda ninguna referencia a la versión anterior y el
+          // rollback se vuelve imposible.
+          env.DEPLOY_TAG = params.BRANCH == 'main' ? "prod-${env.GIT_SHORT_SHA}" : "test-${env.GIT_SHORT_SHA}"
           env.FORTALEZA_ENV = params.BRANCH == 'main' ? 'prod' : 'test'
           env.HEALTHCHECK_URL = params.BRANCH == 'main' ? params.PROD_HEALTHCHECK_URL : params.STAGING_HEALTHCHECK_URL
 
@@ -433,6 +438,19 @@ cd "\$REMOTE_DIR"
 
 docker network inspect "\$FRONTEND_NETWORK" >/dev/null 2>&1 || docker network create "\$FRONTEND_NETWORK"
 docker network inspect "\$BACKEND_NETWORK" >/dev/null 2>&1 || docker network create "\$BACKEND_NETWORK"
+
+# Punto de retorno: fijamos un nombre a la imagen que corre AHORA antes de
+# traer la nueva. Tras el `pull`, la anterior queda colgante y sin tag.
+echo "🔖 Marcando la versión en curso como punto de retorno..."
+CURRENT_IMAGE="\$(docker inspect ${containerName} --format '{{.Config.Image}}' 2>/dev/null || true)"
+if [ -n "\$CURRENT_IMAGE" ]; then
+  ROLLBACK_REF="\${CURRENT_IMAGE%:*}:rollback"
+  docker tag "\$CURRENT_IMAGE" "\$ROLLBACK_REF"
+  echo "   \$CURRENT_IMAGE → \$ROLLBACK_REF"
+  echo "   Para volver atrás: FE_TAG=rollback en .env + \$COMPOSE_CMD up -d --force-recreate"
+else
+  echo "   ⚠️ No hay contenedor ${containerName} en ejecución: sin punto de retorno previo"
+fi
 
 \$COMPOSE_CMD pull
 \$COMPOSE_CMD up -d --force-recreate
