@@ -438,7 +438,7 @@
       <!-- Contenedor para Impresión de Ticket Térmico (7 cm / 72mm) -->
       <div class="ticket-thermal-wrapper" #ticketContainer id="ticketPrintArea">
         <div class="ticket-header">
-          <div class="ticket-company-title">{{ stockOrder.facility?.company?.name || 'UNOCACE' }}</div>
+          <div class="ticket-company-title">{{ stockOrder.facility?.company?.name || stockOrder.company?.name || '' }}</div>
           <div class="ticket-facility-subtitle" *ngIf="stockOrder.facility?.name">{{ stockOrder.facility?.name }}</div>
           <div class="ticket-divider">================================</div>
           <div class="ticket-title">COMPROBANTE DE ENTREGA</div>

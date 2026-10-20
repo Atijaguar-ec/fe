@@ -84,7 +84,7 @@
           </div>
 
           <h1 class="company-name">
-            {{ stockOrder.facility?.company?.name || stockOrder.company?.name || 'UNOCACE' }}
+            {{ stockOrder.facility?.company?.name || stockOrder.company?.name || '' }}
           </h1>
 
           <div class="facility-name" *ngIf="stockOrder.facility?.name">
