@@ -135,6 +135,10 @@ export class CompanyReportsComponent implements OnInit {
     if (!tab) {
       return;
     }
+    if (!this.supersetBaseUrl) {
+      this.iframeSrc = null;
+      return;
+    }
     const slug = `${this.orgSlug}-${tab.slugSuffix}-${this.biEnvironment}`;
     const url = `${this.supersetBaseUrl}/superset/dashboard/${slug}/`;
     this.iframeSrc = this.sanitizer.bypassSecurityTrustResourceUrl(url);
@@ -144,7 +148,7 @@ export class CompanyReportsComponent implements OnInit {
    * Resolves the Superset base URL.
    * Priority:
    * 1. Explicitly configured supersetBaseUrl in environment/env.js
-   * 2. Default reverse-proxy path `/bi` under current origin (standard in UNOCACE & FV)
+   * 2. Default reverse-proxy path `/bi` under current origin
    */
   private resolveSupersetBaseUrl(): string {
     const configured = (environment as any).supersetBaseUrl;

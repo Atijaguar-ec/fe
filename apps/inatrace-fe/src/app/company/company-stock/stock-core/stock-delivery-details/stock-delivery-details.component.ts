@@ -39,6 +39,7 @@ import { SelectedUserCompanyService } from '../../../../core/selected-user-compa
 import { PdfGeneratorService } from '../../../../shared-services/pdf-generator.service';
 import { ApiUserGet } from '../../../../../api/model/apiUserGet';
 import { Subscription } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
 import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
 import { EnvironmentInfoService } from '../../../../core/environment-info.service';
 import { ProductFieldVisibilityService } from '../../../../shared-services/product-field-visibility.service';
@@ -146,6 +147,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   additionalProofsListManager = null;
 
   private userProfileSubs: Subscription;
+  private employeeFormSubs: Subscription;
+  private reloadSequence = 0;
   
 
   constructor(
@@ -163,6 +166,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     private pdfGeneratorService: PdfGeneratorService,
     private envInfo: EnvironmentInfoService,
     public productFieldVisibilityService: ProductFieldVisibilityService,
+    private toasterService: ToastrService,
   ) { }
 
   // Additional proof item factory methods (used when creating ListEditorManger)
@@ -960,6 +964,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if (this.userProfileSubs) {
       this.userProfileSubs.unsubscribe();
     }
+    this.employeeFormSubs?.unsubscribe();
   }
 
   private newTitle(pageMode: StockOrderType) {
@@ -988,12 +993,24 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private reloadOrder() {
+  private async reloadOrder() {
 
+    // Cada recarga lleva un número: si llega otra mientras ésta espera al servidor, la más
+    // reciente es la única que apaga el indicador de carga y avisa de errores.
+    const sequence = ++this.reloadSequence;
     this.globalEventsManager.showLoading(true);
     this.submitted = false;
 
-    this.initializeData().then(() => {
+    try {
+      await this.initializeData();
+      if (sequence !== this.reloadSequence) {
+        return;
+      }
+      if (this.update && !this.order) {
+        // El interceptor devuelve los errores HTTP como valores normales: sin entrega no se puede armar el formulario.
+        throw new Error('La entrega no se pudo cargar.');
+      }
+
       // Recalcula con companyProfile ya disponible (ngOnInit la llamó antes, sin
       // configuración todavía, solo para no mostrar el combo vacío un instante).
       this.initializeVarietyOptions();
@@ -1002,14 +1019,32 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.collectorsCodebook = new CompanyUserCustomersByRoleService(this.companyControllerService, this.companyProfile?.id, 'COLLECTOR', true);
 
       if (this.update) {
-        this.editStockOrder().then();
+        this.editStockOrder().catch((error) => {
+          if (sequence === this.reloadSequence) {
+            this.onReloadError(error);
+          }
+        });
       } else {
         this.newStockOrder();
       }
       this.updateValidators();
       this.initializeListManager();
-      this.globalEventsManager.showLoading(false);
-    });
+    } catch (error) {
+      if (sequence === this.reloadSequence) {
+        this.onReloadError(error);
+      }
+    } finally {
+      if (sequence === this.reloadSequence) {
+        this.globalEventsManager.showLoading(false);
+      }
+    }
+  }
+
+  private onReloadError(error: unknown) {
+    console.error('StockDeliveryDetails: no se pudo cargar la entrega', error);
+    const message = $localize`:@@tokenInterceptor.other.message:Please reload the page.`;
+    const title = $localize`:@@tokenInterceptor.other.title:Communication error!`;
+    this.toasterService.error(message, title);
   }
 
   private async initializeData() {
@@ -1350,7 +1385,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       });
     }
 
-    this.employeeForm.valueChanges.subscribe((val) => {
+    // employeeForm vive tanto como el componente: sin cancelar la anterior, cada recarga sumaría otra suscripción.
+    this.employeeFormSubs?.unsubscribe();
+    this.employeeFormSubs = this.employeeForm.valueChanges.subscribe((val) => {
       if (this.stockOrderForm?.get('creatorId')) {
         this.stockOrderForm.get('creatorId').setValue(val);
         this.stockOrderForm.get('creatorId').updateValueAndValidity();
