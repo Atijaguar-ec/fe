@@ -111,6 +111,7 @@ export class CompanyDetailComponent
   simplifySemiProductToCacaoControl = new UntypedFormControl(false);
   enableQuotaBalanceControl = new UntypedFormControl(false);
   quotaAlertThresholdControl = new UntypedFormControl(80);
+  private configWatchersSub?: Subscription;
 
   /**
    * Precio fijo por semiproducto. Recepcion no conoce el precio y se actualiza
@@ -233,10 +234,13 @@ export class CompanyDetailComponent
     if (this.sub) {
       this.sub.unsubscribe();
     }
+    if (this.configWatchersSub) {
+      this.configWatchersSub.unsubscribe();
+    }
   }
 
   public canDeactivate(): boolean {
-    return !this.companyDetailForm || !this.companyDetailForm.dirty;
+    return !this.changed;
   }
 
   openOnStart(value: any) {
@@ -353,7 +357,10 @@ export class CompanyDetailComponent
         this.quotaAlertThresholdControl.setValue(
           config.quotaAlertThresholdPercent != null ? config.quotaAlertThresholdPercent : 80,
         );
-        this.loadSemiProductPrices(config.fixedPricesBySemiProduct).then();
+        this.loadSemiProductPrices(config.fixedPricesBySemiProduct).then(() => {
+          this.markAllPristine();
+          this.setupConfigWatchers();
+        });
 
         // If user is not enrolled in company enrolled, disable the form
         if (!this.isCompanyAdmin) {
@@ -410,7 +417,10 @@ export class CompanyDetailComponent
     this.enableQuotaBalanceControl.setValue(false);
     this.quotaAlertThresholdControl.setValue(80);
 
-    this.loadSemiProductPrices().then();
+    this.loadSemiProductPrices().then(() => {
+      this.markAllPristine();
+      this.setupConfigWatchers();
+    });
     this.companyDetailForm = generateFormFromMetadata(
       ApiCompanyGet.formMetadata(),
       this.emptyObject(),
@@ -458,8 +468,76 @@ export class CompanyDetailComponent
     this.companyDetailForm.updateValueAndValidity();
   }
 
-  get changed() {
-    return this.companyDetailForm.dirty;
+  private get configurationControls(): UntypedFormControl[] {
+    return [
+      this.onlyOrganicProductionControl,
+      this.onlyNacionalVarietyControl,
+      this.enableParcelLotControl,
+      this.numericVarietyOptionsControl,
+      this.firstMondayWeekNumberingControl,
+      this.weekColorCodesControl,
+      this.parcelLotFreeTextControl,
+      this.fixedPricePerUnitControl,
+      this.enableDeliveryReceiptControl,
+      this.enablePublicDeliveryReceiptControl,
+      this.simplifySemiProductToCacaoControl,
+      this.enableQuotaBalanceControl,
+      this.quotaAlertThresholdControl,
+      this.valueChainsForm,
+      this.selectedCompanyValueChainsControl,
+    ].filter((c): c is UntypedFormControl => !!c);
+  }
+
+  get changed(): boolean {
+    if (this.companyDetailForm?.dirty) {
+      return true;
+    }
+    if (this.configurationControls.some((c) => c && c.dirty)) {
+      return true;
+    }
+    if (this.semiProductPrices?.some((row) => row.control?.dirty)) {
+      return true;
+    }
+    return false;
+  }
+
+  private setupConfigWatchers(): void {
+    if (this.configWatchersSub) {
+      this.configWatchersSub.unsubscribe();
+    }
+    this.configWatchersSub = new Subscription();
+
+    this.configurationControls.forEach((control) => {
+      this.configWatchersSub.add(
+        control.valueChanges.subscribe(() => {
+          if (this.companyDetailForm && !this.companyDetailForm.dirty) {
+            this.companyDetailForm.markAsDirty();
+          }
+        }),
+      );
+    });
+
+    if (this.semiProductPrices) {
+      this.semiProductPrices.forEach((row) => {
+        if (row.control) {
+          this.configWatchersSub.add(
+            row.control.valueChanges.subscribe(() => {
+              if (this.companyDetailForm && !this.companyDetailForm.dirty) {
+                this.companyDetailForm.markAsDirty();
+              }
+            }),
+          );
+        }
+      });
+    }
+  }
+
+  private markAllPristine(): void {
+    this.companyDetailForm?.markAsPristine();
+    this.configurationControls.forEach((control) => control.markAsPristine());
+    if (this.semiProductPrices) {
+      this.semiProductPrices.forEach((row) => row.control?.markAsPristine());
+    }
   }
 
   goBack(): void {
@@ -529,7 +607,8 @@ export class CompanyDetailComponent
         .pipe(take(1))
         .toPromise();
       if (res && res.status === 'OK') {
-        this.companyDetailForm.markAsPristine();
+        this.markAllPristine();
+        this.setupConfigWatchers();
       }
     } catch (e) {
     } finally {
