@@ -10,10 +10,7 @@ export default async function (webpackConfig: any, options: any, target: any) {
   const mfFn = await withModuleFederation(
     {
       ...config,
-      remotes: [
-        // Production remote URL — served from /shrimpMfe/ by the same nginx container
-        ['shrimpMfe', '/shrimpMfe/remoteEntry.mjs'],
-      ],
+      remotes: [],
     },
     { dts: false },
   );

@@ -64,7 +64,8 @@ export class GenerateQRCodeModalComponent implements OnInit, OnDestroy {
     this.finalProdLabelSubs = this.finalProductLabelForm.valueChanges.subscribe(
       (label: ApiProductLabelBase) => {
         if (label && this.qrCodeTag) {
-          this.qrCodeString = `${environment.appBaseUrl}/${label.language.toLowerCase()}/${environment.qrCodeBasePath}/${label.uuid}/${this.qrCodeTag}`;
+          const basePath = environment.qrCodeBasePath || 'q-cd';
+          this.qrCodeString = `${environment.appBaseUrl}/${label.language.toLowerCase()}/${basePath}/${label.uuid}/${this.qrCodeTag}`;
         } else {
           this.qrCodeString = null;
         }

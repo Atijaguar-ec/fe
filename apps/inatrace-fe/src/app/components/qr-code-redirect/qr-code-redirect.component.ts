@@ -24,9 +24,13 @@ export class QrCodeRedirectComponent implements OnInit {
     if (urlA.length >= 2) {
       if (urlA[1] === 'q-cd') {
         const qrTag = this.route.snapshot.paramMap.get('qrTag');
-        this.router
-          .navigate(['p-cd', labelId, qrTag], { replaceUrl: true })
-          .then();
+        if (qrTag) {
+          this.router
+            .navigate(['p-cd', labelId, qrTag], { replaceUrl: true })
+            .then();
+        } else {
+          this.router.navigate(['p', labelId], { replaceUrl: true }).then();
+        }
       }
       if (urlA[1] === 'q') {
         this.router.navigate(['p', labelId], { replaceUrl: true }).then();

@@ -472,10 +472,12 @@ docker exec <contenedor-be> env | grep AGSTACK
 docker logs <contenedor-be> --since 30m 2>&1 | grep -iE "agstack|geoid"
 ```
 
-### 13.6 No hay registro masivo
+### 13.6 No hay registro masivo (salvo al importar)
 
 Cada parcela se registra a mano, abriendo su globo y pulsando *Actualizar*. No existe una
-acción en lote. Para cientos de productores esto no escala; está anotado como pendiente.
+acción en lote para las parcelas ya cargadas. La excepción, desde el 2026-09-16: la
+importación masiva de polígonos (§19) genera en segundo plano el Geo-ID de los lotes
+que crea.
 
 
 ---
@@ -507,6 +509,8 @@ Claves vigentes:
 | `weekColorCodes` | Muestra el color de la semana |
 | `parcelLotFreeText` | N° Parcela como caja de texto, iniciada en 1 |
 | `fixedPricePerUnit` + `fixedPricesBySemiProduct` | Precio fijo por producto, solo lectura en Entregas |
+| `enableDeliveryReceipt` | Comprobante secuencial ("0001", "0002", ...) en entregas, Historial de lotes y Reporte de compras |
+| `simplifySemiProductToCacao` | Sustituye nombre técnico del semiproducto por "Cacao" en vista básica de Historial de lotes |
 
 **Todas apagadas por defecto**, y esa es la regla al agregar la próxima: si el
 valor ausente no reproduce exactamente el comportamiento anterior, cambiaste el
@@ -806,7 +810,10 @@ npx nx test inatrace-fe --watch=false --browsers=ChromeHeadless \
 
 ---
 
-## 17. Reportes & BI (Superset) está fuera de `main`
+## 18. Reportes & BI (Superset): está en `staging` pero NO en `main`
+
+> Numerada §17 hasta el 2026-09-16 (quedaba repetida con la de Variedad); las
+> referencias a §17 en este archivo y en `backend/` son a Variedad.
 
 > **2026-09-16.** Los commits `30a82f32`…`28fa62a0` (pantalla `company-reports`,
 > menú "Reportes & BI", `SUPERSET_BASE_URL` / `BI_ENVIRONMENT`) se revirtieron en
@@ -821,3 +828,245 @@ npx nx test inatrace-fe --watch=false --browsers=ChromeHeadless \
   alcanza: mirar el cuerpo), y ocultar el menú cuando no haya BI. En test el tablero
   redirigía al login de Superset (`/bi/login/`), no entraba directo como dice el
   comentario del componente.
+
+**Estado desde el 2026-09-16 (tarde):** se repuso **solo en `staging`**
+(revert del revert) para revisarlo con UNOCACE. `main` sigue sin Reportes.
+
+- **Trampa para el próximo pase a producción:** `staging` ya no es igual a `main`
+  más cambios aprobados. Un `git push origin staging:main` (avance directo, como se
+  hizo el 16-sep) **vuelve a meter Reportes en la producción de Fortaleza**. Antes de
+  pasar, o Superset ya existe en `/bi` de producción, o hay que volver a sacar
+  Reportes en una rama de release (`git revert` del commit que lo repuso) y pasar esa
+  rama.
+- Mejor solución de fondo: que el menú y la ruta se oculten cuando el entorno no
+  tiene BI, en vez de depender de revertir commits.
+
+---
+
+## 19. Importar polígonos (GeoJSON): `my-farmers/import-plots`
+
+> Escrito el **2026-09-16**. Espejo del backend: `backend/agent-context.md` §19 (reglas
+> del archivo, alcance, borrado y Geo-ID). *Verificado* con
+> `company-farmers-plots-import.component.spec.ts` (6/6), `nx build` standalone y los 42
+> textos comparados contra el build. **No** se probó la pantalla con sesión real: no hay
+> usuario de prueba de Keycloak en este entorno.
+
+Pedido de UNOCACE: borrar los polígonos cargados y dejar solo los validados en campo.
+La pantalla es la forma prevista de hacerlo; no se toca la BD a mano.
+
+### 19.1 Flujo
+
+1. *Agricultores → Importar polígonos (GeoJSON)*. El botón solo lo ve `SYSTEM_ADMIN`
+   (`isSystemAdmin`), igual que la restricción del backend: borra datos de todas las
+   empresas conectadas.
+2. Elegir archivo y alcance. Por defecto **solo las asociaciones que aparecen en el
+   archivo** (`MATCHED_COMPANIES`); "todos los lotes" es la opción que se usó para el
+   pilotaje de 2 de Mayo.
+3. *Previsualizar*: nada se guarda. Muestra totales, empresas afectadas, incidencias
+   por elemento y agricultores que quedarán sin lotes.
+4. *Reemplazar lotes*: confirmación con los números y envío de esos mismos números.
+
+### 19.2 Reglas que no hay que romper
+
+- **Cambiar archivo o alcance descarta la vista previa** (`optionsChanged()`). Si no,
+  se podría aplicar con otro alcance lo que se previsualizó con uno. Marcar "omitir
+  incidencias" no la descarta: no cambia los números.
+- **Tras intentar aplicar, la vista previa se descarta siempre**, haya salido bien o
+  mal. Si el backend rechaza porque los datos cambiaron, hay que previsualizar de nuevo.
+- `send()` compara `status === OK`: el `TokenInterceptor` convierte los errores HTTP en
+  **valores** (`of(err)`) después de mostrar el toast con el `errorMessage` del backend.
+  No uses `.catch` esperando que el error llegue ahí.
+- El cliente usa el método generado `importPlotsGeoJson` (multipart con `FormData`).
+  El resto de `api/` **no** se regeneró: `generate-api` contra el backend actual trae
+  cambios ajenos (renumera `InlineObject`, cambia `configuration` y el largo del
+  teléfono, agrega el servicio de Whisp). Solo se tomaron los bloques de este endpoint
+  y sus 5 modelos. Si regenerás todo, revisá ese diff aparte.
+- `FormsModule` se importa en `CompanyFarmersModule`: `SharedModule` lo importa pero
+  **no** lo exporta, y sin él `ngModel` no compila (el error solo aparece en `nx build`,
+  no en `tsc`).
+- Textos: 42 claves `companyDetail.farmers.importPlots.*` en los cuatro
+  `assets/locale/*.json` (de y rw en inglés, como el resto). Las de plantilla usan
+  `{$INTERPOLATION}`, `{$INTERPOLATION_1}`…, y la confirmación, los nombres propios
+  `{$deleted}` y `{$created}`.
+
+### 19.3 Después de importar
+
+- Los lotes nuevos traen variedad, pero **no** certificación ni estimado: en Entregas la
+  certificación queda vacía y editable (§12) hasta que UNOCACE la cargue.
+- Los agricultores sin lotes no pueden vender (§12.1).
+
+### 19.4 Pruebas
+
+```bash
+CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  npx nx test inatrace-fe --watch=false --browsers=ChromeHeadless \
+  --include='apps/inatrace-fe/src/app/company/company-farmers/company-farmers-plots-import/company-farmers-plots-import.component.spec.ts'
+```
+
+En los specs usá `toBe(true)`, no `toBeTrue()`: los tipos de Jest tapan los de Jasmine
+y el spec no compila.
+
+## 20. Trazabilidad Pública de Códigos QR (B2C) y Desacoplamiento de Keycloak (2026-09-29)
+
+> **Contexto:** Al escanear el QR o abrir la URL pública generada desde un lote de exportación
+> (`/es/q-cd/:uuid/:qrTag`), el sistema redirigía a la pantalla de bienvenida/login de Keycloak.
+> El módulo B2C (`B2cPageComponent`) fue diseñado para consumidores finales sin cuenta en Keycloak.
+
+### 20.1 Cadena Causal
+1. **Keycloak `onLoad: 'login-required'`:** En `fe/shared/auth/src/lib/auth.provider.ts`, Keycloak
+   se inicializaba en `APP_INITIALIZER` con `login-required` indiscriminadamente. Si el navegador
+   no tenía sesión SSO activa, Keycloak interceptaba antes de evaluar el enrutador de Angular y
+   forzaba redirect a la consola de login.
+2. **`qrCodeBasePath` vacío:** En `environment.prod.ts` y en `staging-frontend.env`, la variable
+   estaba vacía `''`, lo que ensamblaba URLs con doble barra (`/es//<uuid>/<tag>`). Al no coincidir
+   con ninguna ruta, caía en el fallback a `/home` (protegida por guardias de seguridad).
+3. **`AuthService` y `TokenInterceptor`:** Al arrancar la SPA, `AuthService` intentaba pedir
+   `/api/user/profile`. Para un consumidor anónimo, la API respondía `401 Unauthorized`.
+   `TokenInterceptor` no contemplaba rutas públicas en `pathsToIgnore()`, ejecutando `auth.logout()`
+   que llamaba a `keycloak.logout()`, gatillando otra redirección a Keycloak.
+
+### 20.2 Reglas Arquitectónicas que no hay que romper
+- **`isInitialRoutePublic()` en `auth.provider.ts`:** Si `window.location.pathname` coincide con
+  rutas públicas (`q-cd`, `p-cd`, `q`, `p`, `landing`, `blog`, `s/`, `register`, `reset-password`,
+  `confirm-email`, `account-activation`), `onLoad` DEBE ser `undefined` (inicialización silenciosa sin
+  redirección). Para rutas privadas, DEBE ser `'login-required'`.
+- **`AuthService` constructor:** Si `!this.keycloak.authenticated`, NUNCA consultar el perfil de
+  usuario (`refreshUserProfile()`). Emitir `null` y salir.
+- **`TokenInterceptor.pathsToIgnore()`:** Debe incluir todas las rutas públicas para que un 401
+  nunca dispare `auth.logout()`.
+- **`ActivatedUserGuardService`:** Si un usuario no autenticado intenta entrar a `/home` o cualquier
+  ruta protegida, invocar `this.keycloak.login({ redirectUri: window.location.origin + state.url })`.
+- **Fallback de `qrCodeBasePath`:** Siempre debe tener `'q-cd'` como valor por defecto en los
+  environments y en los modales de generación de QR.
+
+## 21. Orden Manual de Campos de Evidencia en Acciones de Proceso (`sortOrder`) (2026-09-29)
+
+- En `processingactionpef` se agregó la columna `sortorder INTEGER NULL` (migración Flyway `V7`).
+- En la configuración de la acción (`company-detail-processing-actions-detail`), el usuario puede asignar
+  un número de orden manual (`# Orden`) para cada campo de evidencia dinámico.
+- En la ejecución de un nuevo proceso (`processing-order-output`), los campos dinámicos se ordenan
+  numéricamente de menor a mayor según `sortOrder` (dejando nulos al final).
+
+## 22. Dominio UNOCACE: Control de Cupo, Alertas Dinámicas e Impresión Dual de Ticket Térmico (7 cm)
+
+### 22.1 Salvaguarda Multi-Tenant en la Interfaz
+- Las capacidades de UNOCACE están gobernadas por `isDeliveryReceiptConfigEnabled` e `isQuotaBalanceConfigEnabled` sobre `companyProfile.configuration`.
+- **Fortaleza del Valle:** No tiene estas opciones activas. Los componentes deben garantizar que los botones y campos no se rendericen para FV.
+
+### 22.2 Impresión Dual en Historial de Lotes (`batch-history.component`)
+- **Dos botones:**
+  - `Imprimir PDF`: Documento estándar A4.
+  - `Imprimir Ticket (7 cm)`: Formato de rollo continuo para impresoras térmicas POS (72mm / Epson TM-T20).
+- **Guardia de Visibilidad:** El botón de ticket térmico tiene `*ngIf="isTicketPrintVisible(stockOrder)"`, el cual evalúa `isDeliveryReceiptConfigEnabled`. FV nunca ve este botón.
+- **Regla Estricta de Negocio:** **Omitir "Representante de los agricultores"** en el ticket térmico (mandato expreso de Trello).
+- **Código QR:** Genera un QR dinámico con la URL completa de trazabilidad web del lote.
+
+### 22.3 Formulario de Entrega (`stock-delivery-details.component`)
+- **Visualización:** El campo "Saldo de cupo" solo se renderiza si `showQuotaBalance` es verdadero (`isQuotaBalanceConfigEnabled` y `facility.displayQuotaBalance !== false`).
+- **Alerta Preventiva (Badge Amarillo):** Se activa con `quotaNearLimitCheck` cuando el acumulado entregado más la entrega actual alcanza o supera el umbral porcentual configurable (`quotaAlertThresholdPercent`, default 80%). No bloquea el guardado.
+- **Bloqueo Estricto al 100%:** Si la entrega supera el saldo de cupo disponible o el saldo es $\le 0$, `quotaBlocked` evalúa a verdadero y `cannotUpdatePO()` inhabilita el botón Guardar.
+
+## 23. Consulta Pública de Comprobante por Código QR y Desacoplamiento de Keycloak (`enablePublicDeliveryReceipt`) (2026-10-08)
+
+### 23.1 Problema
+Al escanear el código QR impreso en el comprobante de entrega físico desde un celular o dispositivo externo, la aplicación no debe exigir inicio de sesión (Keycloak) si la organización tiene activada la trazabilidad abierta. Si la organización es privada (ej. Fortaleza del Valle), el enlace debe dirigir a la ruta privada autenticada.
+
+### 23.2 Configuración en Pantalla de Empresa (`company-detail.component`)
+- En `company-detail.component.html`, el check `enablePublicDeliveryReceiptControl`:
+  ```html
+  <div class="af-form-element pt-0" *ngIf="enableDeliveryReceiptControl.value">
+    <checkbox-input [form]="enablePublicDeliveryReceiptControl">
+      <checkbox-input-rich-label i18n="@@companyDetail.configuration.enablePublicDeliveryReceipt">
+        Permitir consulta pública por código QR del comprobante de entrega sin inicio de sesión (trazabilidad abierta).
+      </checkbox-input-rich-label>
+    </checkbox-input>
+  </div>
+  ```
+- **Condición Jerárquica:** El control solo es visible si `enableDeliveryReceiptControl.value` es `true`.
+- **Persistencia:** Se guarda en `company.configuration['enablePublicDeliveryReceipt']`.
+
+### 23.3 Generación Dinámica del Código QR (`batch-history.component.ts`)
+En `qrCodeString(stockOrder)`:
+```typescript
+const isPublicEnabled = isPublicDeliveryReceiptConfigEnabled(this.companyProfile?.configuration);
+if (isPublicEnabled) {
+  return `${origin}/public/delivery-receipt/${stockOrder.id}`;
+}
+return `${origin}/company/my-stock/all-stock/stock-order/${stockOrder.id}/view`;
+```
+
+### 23.4 Módulo Público y Desacoplamiento de Autenticación
+- **Ruta Pública:** `/public/delivery-receipt/:id` en `app-routing.module.ts`, mapeada a `PublicDeliveryReceiptModule` y `PublicDeliveryReceiptComponent`.
+- **Estilo:** Diseño responsive optimizado para pantalla móvil tipo ticket térmico (monocromo, monospace, datos de pesaje, productor, lote, fecha y desglose de descuentos).
+- **Consumo API:** Llama a `GET /api/public/delivery-receipt/{id}` sin enviar token Bearer.
+- **REGLA CRÍTICA DE AUTENTICACIÓN (Bypass de Keycloak):**
+  Para que un usuario sin sesión activa no sea redirigido a la pantalla de login de Keycloak:
+  1. `fe/shared/auth/src/lib/auth.provider.ts`: `publicPattern` DEBE incluir `public`:
+     ```typescript
+     const publicPattern =
+       /^\/([a-z]{2}\/)?(public|q-cd|p-cd|q|p|landing|blog|s|register|reset-password|confirm-email|account-activation)($|\/)/i;
+     ```
+  2. `apps/inatrace-fe/src/app/core/auth.service.ts`: `pathsToIgnoreRefresh` y `isPublicUrl` deben incluir `'public'` y `'delivery-receipt'`.
+  3. `apps/inatrace-fe/src/app/core/token.interceptor.ts`: `pathsToIgnore()` debe incluir `'public'`.
+
+### 23.5 Convención de Terminología: «Validar Recibo» vs. «Ver Trazabilidad»
+- **Mandato de UX y Lenguaje de Báscula (2026-10-09):**
+  - Para el socio productor que recibe el ticket físico en báscula, la acción concreta es validar que su comprobante de pesaje es oficial, que las libras y precios registrados en el sistema coinciden y consultar su cupo remanente.
+  - **Textos Obligatorios:**
+    - Al pie del QR en el ticket impreso (`batch-history.component.html`): **«Escanear para validar recibo»** (prohibido *"verificar trazabilidad"*).
+    - En la barra superior (`public-delivery-receipt.component.html`): **«Validación de Recibo»** (en vez de *"Trazabilidad Pública"*).
+    - En la insignia con check verde: **«Recibo Validado»** (clave i18n `publicReceipt.badge.verified`).
+    - Al pie del QR en la vista móvil: **«Escanear para validar recibo»** (clave i18n `publicReceipt.footer.qrCaption`).
+
+## 24. Estimación de Producción en el Registro del Agricultor: Unidad en Quintales (qq) (2026-10-08)
+
+### 24.1 Problema y Confusión Operativa
+En el registro de parcelas del agricultor (`company-farmers-plots-detail`), el campo "Estimación de producción" mostraba un valor numérico sin unidad explícita. Al registrar entregas de acopio en libras, los operarios no comprendían la relación de escala (ej. 100 quintales equivalen a 10 000 libras de cupo).
+
+### 24.2 Convención de Interfaz
+- **Etiqueta y Placeholder:** Se clarificó la etiqueta a:
+  `Estimación de producción (Quintales / qq)`
+  con placeholder explicativo `Ej: 100 (1 quintal = 100 libras)`.
+- **Cálculo de Cupo en Entregas:** Al validar el cupo disponible en `stock-delivery-details.component.ts`, la estimación de la parcela en quintales se multiplica por 100 para obtener las libras máximas autorizadas por período anual.
+
+## 25. Listado de Lotes, Micro-Frontends (FontAwesome) y Traducciones i18n (2026-10-08)
+
+### 25.1 Parámetro `requestType` y Ordenamiento en Lotes
+- En `batch-history.component.ts`, el listado de lotes requería enviar el parámetro `requestType` adecuado al backend para filtrar órdenes según el tipo de producto y aplicar el ordenamiento descendente por fecha (`createdDate,desc`).
+
+### 25.2 Alineación de Versión FontAwesome en Module Federation (Nx)
+- En arquitecturas de Micro-Frontends (MFE con Webpack Module Federation), las versiones de `@fortawesome/angular-fontawesome` compartidas (`shared`) entre el shell host y los módulos remotos deben coincidir exactamente. Cualquier divergencia de versión o resolución múltiple genera fallos de inyector (`NullInjectorError: No provider for FaIconLibrary`).
+
+### 25.3 Cobertura de Cadenas en Todos los Idiomas
+- Al incorporar nuevas vistas (`publicReceipt`, `batchHistory`, `orderHistoryView`), las claves i18n deben registrarse simultáneamente en los cuatro archivos de recursos de traducción:
+  - `apps/inatrace-fe/src/assets/locale/es.json` (Español)
+  - `apps/inatrace-fe/src/assets/locale/en.json` (Inglés)
+  - `apps/inatrace-fe/src/assets/locale/de.json` (Alemán)
+  - `apps/inatrace-fe/src/assets/locale/rw.json` (Kinyarwanda)
+- **Regla Anti-Regresión:** No desplegar vistas nuevas con cadenas duras en inglés o español sin su correspondiente clave i18n en los cuatro diccionarios.
+
+---
+
+## 26. Trazabilidad EUDR: Grafo de Lotes vs. Parcelas, Automatización QR y Consultas Satelitales (2026-10-09)
+
+### 26.1 Distinción en Interfaz: Parcela (`Plot`) vs. Lote (`StockOrder`)
+- **Parcela (`Plot`):** Se gestiona en `company-farmers-plots-detail` y mapas GIS (`map.component.ts`). Representa la tierra agrícola, contiene georreferenciación WGS84, área en hectáreas y análisis de deforestación. **Jamás denominar "Lote" a la parcela en la UI ni en los modelos TypeScript.**
+- **Lote (`StockOrder`):** Se gestiona en `batch-history`, `stock-delivery-details` y órdenes de procesamiento. Representa el producto comercial ensacado/agregado.
+
+### 26.2 Automatización y Renderizado de Códigos QR (`qrCodeTag`)
+- El backend autogenera un UUID v4 en `stockOrder.qrCodeTag` al finalizar el procesamiento.
+- **Canal B2C y Tickets de Entrega:**
+  - El QR generado en `delivery-receipt` y vistas B2C debe construirse utilizando `@types/qrcode` o `<canvas>` apuntando a rutas públicas (`/public/delivery-receipt/:id` o `/b2c/:uuid`).
+  - **Regla de Autenticación:** Estas rutas deben estar exoneradas de Keycloak en `auth.provider.ts` (`publicPattern`) y `token.interceptor.ts`. No enviar cabecera `Authorization` para evitar redirecciones o fallos 401 en dispositivos de clientes externos o aduaneros.
+
+### 26.3 Integración Satelital Whisp / AgStack en la UI
+- **Estado Anterior:** Un simple enlace externo `whisp.earthmap.org` en `open-plot-details-externally-modal.component.ts` que abría una pestaña sin guardar evidencia auditable.
+- **Nuevo Estándar:** Consumir los endpoints `/api/whisp/...` para renderizar el veredicto de deforestación (fecha de corte 31.12.2020, cobertura forestal y perturbación) de forma nativa en la ficha de la parcela y asociarlo al lote para el expediente de debida diligencia (DDS).
+
+### 26.4 Reglas de Compilación por Cadena (ADR-016)
+- Para despliegues de Cacao puro (UNOCACE, Fortaleza del Valle):
+  - Compilar con `build:standalone` (`remotes: []`, excluyendo `shrimpMfe`).
+  - La ruta `/shrimp` debe permanecer bloqueada por guard de entorno (`canMatch`).
+
+
+

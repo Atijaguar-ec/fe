@@ -721,8 +721,15 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
     return inputTransactions;
   }
 
+  /**
+   * Genera una salida por cada entrada marcada en la busqueda. Al editar una orden ya
+   * guardada, sus salidas se conservan aparte y aqui solo se generan las de las entradas
+   * nuevas: 'startIndex' es cuantas salidas ya existen, para que el sufijo del lote
+   * ('base/1', 'base/2', ...) continue la numeracion en vez de repetirla.
+   */
   prepareTransferTargetStockOrders(
     sourceStockOrder: ApiStockOrder,
+    startIndex = 0,
   ): ApiStockOrder[] {
     const targetStockOrders: ApiStockOrder[] = [];
 
@@ -734,7 +741,7 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
         facility: sourceStockOrder.facility,
         semiProduct: selectedStockOrder.semiProduct,
         finalProduct: selectedStockOrder.finalProduct,
-        internalLotNumber: `${sourceStockOrder.internalLotNumber}/${index + 1 + 0}`,
+        internalLotNumber: `${sourceStockOrder.internalLotNumber}/${index + 1 + startIndex}`,
         creatorId: this.processingUserId,
         productionDate: selectedStockOrder.productionDate
           ? selectedStockOrder.productionDate

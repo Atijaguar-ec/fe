@@ -14,7 +14,7 @@ const config: ModuleFederationConfig = {
    * declare module 'my-external-remote';
    *
    */
-  remotes: ['shrimpMfe'],
+  remotes: [],
   shared: (libraryName, defaultConfig) => {
     if (libraryName === 'keycloak-angular') {
       return {
@@ -23,11 +23,12 @@ const config: ModuleFederationConfig = {
         strictVersion: true,
       };
     }
-    if (libraryName === '@fortawesome/fontawesome-svg-core') {
+    if (libraryName === '@fortawesome/fontawesome-svg-core' || libraryName.startsWith('@fortawesome/')) {
       return {
         ...defaultConfig,
         singleton: true,
         strictVersion: false,
+        requiredVersion: false,
       };
     }
     if (libraryName === 'lodash') {

@@ -655,6 +655,59 @@
               </checkbox-input-rich-label>
             </checkbox-input>
           </div>
+          <div class="af-form-element pt-0">
+            <checkbox-input
+              [form]="enableDeliveryReceiptControl"
+            >
+              <checkbox-input-rich-label
+                i18n="@@companyDetail.configuration.enableDeliveryReceipt"
+              >
+                Generación automática de comprobante de entrega secuencial (0001, 0002, ...) en Historial de lotes y Reporte de compras.
+              </checkbox-input-rich-label>
+            </checkbox-input>
+          </div>
+          <div class="af-form-element pt-0" *ngIf="enableDeliveryReceiptControl.value">
+            <checkbox-input
+              [form]="enablePublicDeliveryReceiptControl"
+            >
+              <checkbox-input-rich-label
+                i18n="@@companyDetail.configuration.enablePublicDeliveryReceipt"
+              >
+                Permitir consulta pública por código QR del comprobante de entrega sin inicio de sesión (trazabilidad abierta).
+              </checkbox-input-rich-label>
+            </checkbox-input>
+          </div>
+          <div class="af-form-element pt-0">
+            <checkbox-input
+              [form]="simplifySemiProductToCacaoControl"
+            >
+              <checkbox-input-rich-label
+                i18n="@@companyDetail.configuration.simplifySemiProductToCacao"
+              >
+                Mostrar 'Cacao' en lugar del nombre técnico del semiproducto en el Historial de lotes.
+              </checkbox-input-rich-label>
+            </checkbox-input>
+          </div>
+          <div class="af-form-element pt-0">
+            <checkbox-input
+              [form]="enableQuotaBalanceControl"
+            >
+              <checkbox-input-rich-label
+                i18n="@@companyDetail.configuration.enableQuotaBalance"
+              >
+                Control y visualización de saldo de cupo en Entregas.
+              </checkbox-input-rich-label>
+            </checkbox-input>
+          </div>
+          <div class="af-form-element pt-0" *ngIf="enableQuotaBalanceControl.value">
+            <textinput
+              [form]="quotaAlertThresholdControl"
+              label="Umbral de alerta de cupo (%)"
+              i18n-label="@@companyDetail.configuration.quotaAlertThreshold"
+              placeholder="80"
+              style="max-width: 250px;"
+            ></textinput>
+          </div>
         </div>
       </div>
 

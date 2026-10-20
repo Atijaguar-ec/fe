@@ -13,6 +13,17 @@ import { ApiStockOrderHistoryTimelineItem } from '../../../../../api/model/apiSt
 import { ApiFacility } from '../../../../../api/model/apiFacility';
 import { ApiMeasureUnitType } from '../../../../../api/model/apiMeasureUnitType';
 import { ApiUserCustomer } from '../../../../../api/model/apiUserCustomer';
+import { SelectedUserCompanyService } from '../../../../core/selected-user-company.service';
+import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
+import {
+  DELIVERY_RECEIPT_CONFIG_KEY,
+  DELIVERY_RECEIPT_ALT_KEY,
+  SIMPLIFY_SEMI_PRODUCT_KEY,
+  SIMPLIFY_SEMI_PRODUCT_ALT_KEY,
+  isDeliveryReceiptConfigEnabled,
+  isSimplifySemiProductConfigEnabled,
+  isPublicDeliveryReceiptConfigEnabled,
+} from '../../../../shared-services/delivery-receipt.util';
 
 interface GroupedStockOrders {
   processingDate: string;
@@ -33,6 +44,7 @@ export class BatchHistoryComponent implements OnInit {
   qrCodeSize = 150;
 
   @ViewChild('pdfContainer') pdfContainer?: ElementRef<any>;
+  @ViewChild('ticketContainer') ticketContainer?: ElementRef<any>;
 
   faTimes = faTimes;
 
@@ -116,12 +128,67 @@ export class BatchHistoryComponent implements OnInit {
     shareReplay(1),
   );
 
+  selectedCompanyProfile: ApiCompanyGet | null = null;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private stockOrderService: StockOrderControllerService,
     private globalEventsManager: GlobalEventManagerService,
-  ) {}
+    private selectedUserCompanyService: SelectedUserCompanyService,
+  ) {
+    this.selectedUserCompanyService.selectedCompanyProfile$.subscribe(
+      (profile) => (this.selectedCompanyProfile = profile),
+    );
+  }
+
+  isDeliveryReceiptVisible(stockOrder?: ApiStockOrder | null): boolean {
+    if (!stockOrder?.deliveryReceipt) {
+      return false;
+    }
+    const config =
+      (stockOrder.facility?.company as any)?.configuration ||
+      this.selectedCompanyProfile?.configuration;
+    if (
+      config &&
+      (config[DELIVERY_RECEIPT_CONFIG_KEY] === false ||
+        config[DELIVERY_RECEIPT_ALT_KEY] === false)
+    ) {
+      return false;
+    }
+    return isDeliveryReceiptConfigEnabled(config);
+  }
+
+  isTicketPrintVisible(stockOrder?: ApiStockOrder | null): boolean {
+    const config =
+      (stockOrder?.facility?.company as any)?.configuration ||
+      this.selectedCompanyProfile?.configuration;
+    return isDeliveryReceiptConfigEnabled(config);
+  }
+
+  getDisplaySemiProductName(stockOrder?: ApiStockOrder | null): string {
+    if (!stockOrder?.semiProduct) {
+      return '';
+    }
+    if (this.isSimplifySemiProductEnabled(stockOrder)) {
+      return 'Cacao';
+    }
+    return stockOrder.semiProduct.name || '';
+  }
+
+  isSimplifySemiProductEnabled(stockOrder?: ApiStockOrder | null): boolean {
+    const config =
+      (stockOrder?.facility?.company as any)?.configuration ||
+      this.selectedCompanyProfile?.configuration;
+    if (
+      config &&
+      (config[SIMPLIFY_SEMI_PRODUCT_KEY] === false ||
+        config[SIMPLIFY_SEMI_PRODUCT_ALT_KEY] === false)
+    ) {
+      return false;
+    }
+    return isSimplifySemiProductConfigEnabled(config);
+  }
 
   getTargetStockOrders(timelineItem: ApiStockOrderHistoryTimelineItem) {
     return timelineItem.purchaseOrders?.length > 0
@@ -218,11 +285,28 @@ export class BatchHistoryComponent implements OnInit {
     }
   }
 
-  qrCodeString(stockOrder: ApiStockOrder) {
-    if (!stockOrder) {
-      return;
+  qrCodeString(stockOrder: ApiStockOrder): string {
+    if (!stockOrder?.id) {
+      return '';
     }
-    return stockOrder.id.toString();
+    try {
+      const origin = window.location.origin;
+      const config =
+        (stockOrder?.facility?.company as any)?.configuration ||
+        this.selectedCompanyProfile?.configuration;
+
+      if (isPublicDeliveryReceiptConfigEnabled(config)) {
+        return `${origin}/public/delivery-receipt/${stockOrder.id}`;
+      }
+
+      const pathname = window.location.pathname;
+      if (pathname.includes('/stock-order/')) {
+        return `${origin}${pathname}`;
+      }
+      return `${origin}/company/my-stock/all-stock/stock-order/${stockOrder.id}/view`;
+    } catch {
+      return stockOrder.id.toString();
+    }
   }
 
   copyToClipboard() {
@@ -431,5 +515,147 @@ export class BatchHistoryComponent implements OnInit {
         }, 400);
       });
     });
+  }
+
+  async printTicket(stockOrder?: ApiStockOrder | null) {
+    if (!stockOrder) {
+      return;
+    }
+    const element = this.ticketContainer?.nativeElement;
+    if (!element) {
+      return;
+    }
+    this.globalEventsManager.showLoading(true);
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
+
+      const canvas = await html2canvas(element, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        windowWidth: element.scrollWidth,
+      });
+
+      const ticketWidthMm = 72;
+      const pxPerMm = canvas.width / ticketWidthMm;
+      const ticketHeightMm = canvas.height / pxPerMm;
+
+      const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: [ticketWidthMm, Math.max(140, ticketHeightMm + 8)],
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, 4, ticketWidthMm, ticketHeightMm);
+
+      const rawReceipt =
+        stockOrder.deliveryReceipt ||
+        stockOrder.identifier ||
+        (stockOrder.id != null ? stockOrder.id.toString() : 'ticket');
+      const safeReceipt = String(rawReceipt).replace(/[^a-zA-Z0-9\-_]+/g, '_');
+      pdf.save(`ticket-entrega-${safeReceipt}.pdf`);
+    } catch (err) {
+      this.globalEventsManager.openMessageModal({
+        type: 'error',
+        message: $localize`:@@orderHistoryView.ticketGeneration.error:Error al generar el Ticket. Por favor, intente nuevamente.`,
+        options: { centered: true },
+      });
+    } finally {
+      this.globalEventsManager.showLoading(false);
+    }
+  }
+
+  getUnitLabel(order: ApiStockOrder): string {
+    const unit = order?.measureUnitType?.label?.toLowerCase() || '';
+    if (unit.includes('kilo') || unit.includes('kg')) {
+      return 'kilos';
+    }
+    return 'libras';
+  }
+
+  getUnitSingular(order: ApiStockOrder): string {
+    const unit = order?.measureUnitType?.label?.toLowerCase() || '';
+    if (unit.includes('kilo') || unit.includes('kg')) {
+      return 'kilo';
+    }
+    return 'libra';
+  }
+
+  formatTicketWeight(value: any): string {
+    if (value == null || value === '') return '-';
+    const num = Number(value);
+    if (isNaN(num)) return String(value);
+    if (Number.isInteger(num)) {
+      return num.toString();
+    }
+    return num.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  formatTicketMoney(value: any): string {
+    if (value == null || value === '') return '0,00';
+    const num = Number(value);
+    if (isNaN(num)) return String(value);
+    return num.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  hasMoistureDeduction(order: ApiStockOrder): boolean {
+    return this.getMoistureDeduction(order) > 0;
+  }
+
+  getMoistureDeduction(order: ApiStockOrder): number {
+    return this.getMoistureWeightDeduction(order);
+  }
+
+  hasTareDeduction(order: ApiStockOrder): boolean {
+    return Number(order?.tare ?? 0) > 0;
+  }
+
+  hasDamagedWeightDeduction(order: ApiStockOrder): boolean {
+    return Number(order?.damagedWeightDeduction ?? 0) > 0;
+  }
+
+  hasRetention(order: ApiStockOrder): boolean {
+    return Number(order?.finalPriceDiscount ?? 0) > 0;
+  }
+
+  getTicketRetention(order: ApiStockOrder): number {
+    return Number(order?.finalPriceDiscount ?? 0);
+  }
+
+  getTicketSubtotal(order: ApiStockOrder): number {
+    const net = Number(order?.netQuantity ?? order?.totalQuantity ?? 0);
+    const price = Number(order?.pricePerUnit ?? 0);
+    if (price > 0 && net > 0) {
+      return Math.round(net * price * 100) / 100;
+    }
+    if (order?.cost != null && Number(order.cost) > 0) {
+      const retention = this.getTicketRetention(order);
+      return Math.round((Number(order.cost) + retention) * 100) / 100;
+    }
+    return 0;
+  }
+
+  getTicketPricePerUnit(order: ApiStockOrder): number {
+    const price = Number(order?.pricePerUnit ?? 0);
+    if (price > 0) {
+      return price;
+    }
+    const subtotal = this.getTicketSubtotal(order);
+    const net = Number(order?.netQuantity ?? order?.totalQuantity ?? 0);
+    if (subtotal > 0 && net > 0) {
+      return Math.round((subtotal / net) * 100) / 100;
+    }
+    return 0;
+  }
+
+  getTicketFinalPayment(order: ApiStockOrder): number {
+    if (order?.cost != null && Number(order.cost) > 0) {
+      return Number(order.cost);
+    }
+    const subtotal = this.getTicketSubtotal(order);
+    const retention = this.getTicketRetention(order);
+    return Math.max(0, Math.round((subtotal - retention) * 100) / 100);
   }
 }

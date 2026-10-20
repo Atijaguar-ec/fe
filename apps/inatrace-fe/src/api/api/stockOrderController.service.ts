@@ -35,6 +35,7 @@ import { ApiPurchaseOrder } from '../model/apiPurchaseOrder';
 import { ApiResponseApiBaseEntity } from '../model/apiResponseApiBaseEntity';
 import { ApiResponseApiProcessingOrder } from '../model/apiResponseApiProcessingOrder';
 import { ApiResponseApiPurchaseOrder } from '../model/apiResponseApiPurchaseOrder';
+import { ApiResponseApiQuotaBalance } from '../model/apiResponseApiQuotaBalance';
 import { ApiResponseApiStockOrder } from '../model/apiResponseApiStockOrder';
 import { ApiResponseApiStockOrderHistory } from '../model/apiResponseApiStockOrderHistory';
 import { ApiStockOrder } from '../model/apiStockOrder';
@@ -2609,6 +2610,58 @@ export class StockOrderControllerService {
         );
         if(typeof this.configuration.errorHandler === 'function') {
           return handle.pipe(catchError(err => this.configuration.errorHandler(err, 'getStockOrdersInFacilityForCustomer')));
+        }
+        return handle;
+    }
+
+    /**
+     * Get farmer and plot delivery quota balance.
+     */
+    public getQuotaBalance(
+        companyId: number,
+        farmerId: number,
+        parcelLot?: string,
+        semiProductId?: number,
+        deliveryDate?: string,
+        excludeStockOrderId?: number,
+        language?: 'EN' | 'DE' | 'RW' | 'ES'
+    ): Observable<ApiResponseApiQuotaBalance> {
+        let queryParameters = new HttpParams({encoder: new CustomHttpUrlEncodingCodec()});
+        if (companyId !== undefined && companyId !== null) {
+            queryParameters = queryParameters.set('companyId', <any>companyId);
+        }
+        if (farmerId !== undefined && farmerId !== null) {
+            queryParameters = queryParameters.set('farmerId', <any>farmerId);
+        }
+        if (parcelLot !== undefined && parcelLot !== null && parcelLot !== '') {
+            queryParameters = queryParameters.set('parcelLot', <any>parcelLot);
+        }
+        if (semiProductId !== undefined && semiProductId !== null) {
+            queryParameters = queryParameters.set('semiProductId', <any>semiProductId);
+        }
+        if (deliveryDate !== undefined && deliveryDate !== null) {
+            queryParameters = queryParameters.set('deliveryDate', <any>deliveryDate);
+        }
+        if (excludeStockOrderId !== undefined && excludeStockOrderId !== null) {
+            queryParameters = queryParameters.set('excludeStockOrderId', <any>excludeStockOrderId);
+        }
+
+        let headers = this.defaultHeaders;
+        if (language !== undefined && language !== null) {
+            headers = headers.set('language', String(language));
+        }
+        headers = headers.set('Accept', 'application/json');
+
+        const handle = this.httpClient.get<ApiResponseApiQuotaBalance>(
+            `${this.configuration.basePath}/api/chain/stock-order/quota-balance`,
+            {
+                params: queryParameters,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+            }
+        );
+        if (typeof this.configuration.errorHandler === 'function') {
+            return handle.pipe(catchError(err => this.configuration.errorHandler(err, 'getQuotaBalance')));
         }
         return handle;
     }

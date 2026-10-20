@@ -47,6 +47,7 @@ import { FileSaverService } from 'ngx-filesaver';
 import { HttpClient } from '@angular/common/http';
 import { SelfOnboardingService } from '../../../shared-services/self-onboarding.service';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-company-farmers-details',
@@ -198,6 +199,7 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
     private httpClient: HttpClient,
     private selfOnboardingService: SelfOnboardingService,
     private router: Router,
+    private toastr: ToastrService,
   ) {}
 
   static ApiUserCustomerCooperativeCreateEmptyObject(): ApiUserCustomerCooperative {
@@ -511,23 +513,47 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
     }
 
     const fileInput: HTMLInputElement = $event.target as HTMLInputElement;
-    const file = fileInput.files[0];
+    const file = fileInput.files?.[0];
+    if (!file) {
+      return;
+    }
 
     const formData = new FormData();
     formData.append('file', file);
 
     this.globalEventsManager.showLoading(true);
     try {
+      let headers = this.companyService.defaultHeaders;
+      const kc = (window as any).__inatraceKeycloak;
+      if (kc && kc.token) {
+        headers = headers.set('Authorization', `Bearer ${kc.token}`);
+      }
+
       await this.httpClient
         .post(
           `${this.companyService.configuration.basePath}/api/company/userCustomers/${this.farmer.id}/uploadGeoData`,
           formData,
-          { observe: 'response' },
+          {
+            headers: headers,
+            withCredentials: this.companyService.configuration.withCredentials,
+            observe: 'response',
+          },
         )
         .pipe(take(1))
         .toPromise();
 
+      this.toastr.success(
+        $localize`:@@companyFarmersDetails.uploadGeoDataSuccess:Geodatos cargados correctamente`,
+      );
+      fileInput.value = '';
       this.ngOnInit();
+    } catch (err: any) {
+      const errMsg =
+        err?.error?.errorMessage ||
+        err?.error?.message ||
+        err?.message ||
+        $localize`:@@companyFarmersDetails.uploadGeoDataError:Error al cargar los geodatos`;
+      this.toastr.error(errMsg);
     } finally {
       this.globalEventsManager.showLoading(false);
     }

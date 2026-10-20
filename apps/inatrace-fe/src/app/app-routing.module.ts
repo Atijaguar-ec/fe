@@ -332,6 +332,14 @@ const routes: Routes = [
       drobtinice: null
     }
   },
+  {
+    path: 'company-reports',
+    canActivate: [ActivatedUserGuardService],
+    loadChildren: () => import('./company/company-reports/company-reports.module').then(m => m.CompanyReportsModule),
+    data: {
+      drobtinice: null
+    }
+  },
   ///////////////////////
   ///////////////////////
   ///////////////////////
@@ -341,10 +349,6 @@ const routes: Routes = [
     path: 'product-labels',
     canActivate: [ActivatedUserGuardService],
     loadChildren: () => import('./m-product/m-product.module').then(m => m.MProductModule)
-  },
-  {
-    path: 'shrimp',
-    loadChildren: () => import('shrimpMfe/Module').then((m) => m.RemoteEntryModule),
   },
   {
     path: 'account-activation',
@@ -460,9 +464,21 @@ const routes: Routes = [
     pathMatch: 'full'
   },
   {
+    path: 'q-cd/:uuid',
+    component: QrCodeRedirectComponent,
+    pathMatch: 'full'
+  },
+  {
     path: 'q-cd/:uuid/:qrTag',
     component: QrCodeRedirectComponent,
     pathMatch: 'full'
+  },
+  {
+    path: 'public/delivery-receipt/:id',
+    loadChildren: () =>
+      import(
+        './public-delivery-receipt/public-delivery-receipt.module'
+      ).then((m) => m.PublicDeliveryReceiptModule),
   }
 ];
 

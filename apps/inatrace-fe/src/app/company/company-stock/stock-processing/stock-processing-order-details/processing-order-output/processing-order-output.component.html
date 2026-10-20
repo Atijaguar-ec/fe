@@ -337,7 +337,7 @@
     <!-- DISPLAY THE PROCESSING EVIDENCE FIELDS -->
     <ng-container *ngIf="selectedProcAction.requiredEvidenceFields">
       <app-stock-processing-order-fields
-        *ngFor="let fieldInfo of selectedProcAction.requiredEvidenceFields"
+        *ngFor="let fieldInfo of sortedEvidenceFields"
         side="right"
         [isQuote]="actionType === 'SHIPMENT'"
         [fieldInfo]="fieldInfo"

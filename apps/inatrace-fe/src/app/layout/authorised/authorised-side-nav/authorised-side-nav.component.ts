@@ -12,7 +12,6 @@ import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { SelfOnboardingService } from '../../../shared-services/self-onboarding.service';
 import { Router } from '@angular/router';
 import { take } from 'rxjs/operators';
-import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-authorised-side-nav',
@@ -26,7 +25,6 @@ export class AuthorisedSideNavComponent
   model = 1;
   isAdmin = false;
   isConfirmedOnly = false;
-  isShrimpValueChain = environment.enableShrimpModule;
 
   constructor(
     private authService: AuthService,

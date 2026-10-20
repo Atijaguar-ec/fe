@@ -21,6 +21,7 @@ import { CompanyControllerService } from '../../../../../api/api/companyControll
 import { ApiUserCustomer } from '../../../../../api/model/apiUserCustomer';
 import { ApiPlot } from '../../../../../api/model/apiPlot';
 import { ApiStockOrder } from '../../../../../api/model/apiStockOrder';
+import { ApiQuotaBalance } from '../../../../../api/model/apiQuotaBalance';
 import { CertificationTypeControllerService } from '../../../../../api/api/certificationTypeController.service';
 import {dateISOString, defaultEmptyObject, generateFormFromMetadata, parseDecimal} from '../../../../../shared/utils';
 import { ApiStockOrderValidationScheme } from './validation';
@@ -38,9 +39,11 @@ import { SelectedUserCompanyService } from '../../../../core/selected-user-compa
 import { PdfGeneratorService } from '../../../../shared-services/pdf-generator.service';
 import { ApiUserGet } from '../../../../../api/model/apiUserGet';
 import { Subscription } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
 import { ApiCompanyGet } from '../../../../../api/model/apiCompanyGet';
 import { EnvironmentInfoService } from '../../../../core/environment-info.service';
 import { ProductFieldVisibilityService } from '../../../../shared-services/product-field-visibility.service';
+import { isQuotaBalanceConfigEnabled } from '../../../../shared-services/delivery-receipt.util';
 
 @Component({
   selector: 'app-stock-delivery-details',
@@ -89,6 +92,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   netWeightForm = new FormControl(null);
   finalPriceForm = new FormControl(null);
+  quotaBalanceForm = new FormControl('0.00');
+  currentQuotaBalance: ApiQuotaBalance | null = null;
+  quotaBalanceLoading = false;
 
   updatePOInProgress = false;
 
@@ -141,6 +147,8 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   additionalProofsListManager = null;
 
   private userProfileSubs: Subscription;
+  private employeeFormSubs: Subscription;
+  private reloadSequence = 0;
   
 
   constructor(
@@ -158,6 +166,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     private pdfGeneratorService: PdfGeneratorService,
     private envInfo: EnvironmentInfoService,
     public productFieldVisibilityService: ProductFieldVisibilityService,
+    private toasterService: ToastrService,
   ) { }
 
   // Additional proof item factory methods (used when creating ListEditorManger)
@@ -704,6 +713,91 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.tare.label:Tare` + ` (${this.measureUnit})`;
   }
 
+  get quotaBalanceLabel() {
+    return (
+      $localize`:@@productLabelStockPurchaseOrdersModal.textinput.quotaBalance.label:Saldo de cupo` +
+      (this.measureUnit && this.measureUnit !== '-' ? ` (${this.measureUnit})` : '')
+    );
+  }
+
+  get showQuotaBalance(): boolean {
+    const isCompanyEnabled = isQuotaBalanceConfigEnabled(this.companyProfile?.configuration);
+    if (!isCompanyEnabled) {
+      return false;
+    }
+    return this.facility?.displayQuotaBalance !== false;
+  }
+
+  get quotaBalancePlaceholder(): string {
+    if (this.quotaBalanceLoading) {
+      return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.quotaBalance.loading:Calculando...`;
+    }
+    return '0.00';
+  }
+
+  get quotaExceededCheck(): boolean {
+    if (!this.showQuotaBalance || !this.currentQuotaBalance) {
+      return false;
+    }
+    if (this.currentQuotaBalance.isExceeded) {
+      return true;
+    }
+    const balance = this.currentQuotaBalance.remainingBalance;
+    return balance != null && Number(balance) <= 0;
+  }
+
+  get quotaExceededByCurrentDeliveryCheck(): boolean {
+    if (!this.showQuotaBalance || this.quotaExceededCheck) {
+      return false;
+    }
+    const balance = this.currentQuotaBalance?.remainingBalance;
+    if (balance == null) {
+      return false;
+    }
+    const currentQty = Number(this.stockOrderForm?.get('totalGrossQuantity')?.value || 0);
+    return currentQty > 0 && currentQty > balance;
+  }
+
+  get quotaNearLimitCheck(): boolean {
+    return (
+      this.showQuotaBalance &&
+      !this.quotaExceededCheck &&
+      !this.quotaExceededByCurrentDeliveryCheck &&
+      !!this.currentQuotaBalance?.isNearLimit
+    );
+  }
+
+  get isQuotaNoEstimate(): boolean {
+    if (!this.showQuotaBalance || !this.currentQuotaBalance) {
+      return false;
+    }
+    const initial = this.currentQuotaBalance.initialQuota;
+    return initial == null || Number(initial) <= 0;
+  }
+
+  get quotaAlertMessage(): string {
+    if (!this.showQuotaBalance || !this.currentQuotaBalance) {
+      return '';
+    }
+    const unit = this.measureUnit && this.measureUnit !== '-' ? ` ${this.measureUnit}` : '';
+    if (this.isQuotaNoEstimate) {
+      return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.quotaNoEstimate.error:El agricultor o parcela no tiene cupo ni estimación de producción registrada (saldo: 0,00${unit}).`;
+    }
+    if (this.quotaExceededCheck) {
+      const balance = this.currentQuotaBalance.remainingBalance != null
+        ? this.currentQuotaBalance.remainingBalance.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        : '0,00';
+      return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.quotaExhausted.error:El agricultor ha alcanzado o superado el cupo disponible para este año (saldo: ${balance}${unit}).`;
+    }
+    if (this.quotaExceededByCurrentDeliveryCheck) {
+      const balance = this.currentQuotaBalance.remainingBalance != null
+        ? this.currentQuotaBalance.remainingBalance.toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        : '0,00';
+      return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.quotaDeliveryExceeds.error:La cantidad a entregar supera el saldo de cupo disponible (${balance}${unit}).`;
+    }
+    return '';
+  }
+
   get netLabel() {
     return $localize`:@@productLabelStockPurchaseOrdersModal.textinput.netWeight.label:Net weight` + ` (${this.measureUnit})`;
   }
@@ -784,6 +878,66 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     return obj;
   }
 
+  fetchQuotaBalance(parcelLotValue?: string | number) {
+    if (!this.showQuotaBalance) {
+      return;
+    }
+    const farmerId =
+      this.searchFarmers?.value?.id ||
+      this.stockOrderForm?.get('producerUserCustomer')?.value?.id;
+    if (!farmerId) {
+      this.currentQuotaBalance = null;
+      this.quotaBalanceForm.setValue('0.00');
+      return;
+    }
+    const companyId = this.companyProfile?.id;
+    if (!companyId) {
+      return;
+    }
+
+    const parcelLot =
+      parcelLotValue !== undefined
+        ? (parcelLotValue != null ? String(parcelLotValue) : null)
+        : (this.stockOrderForm?.get('parcelLot')?.value != null
+            ? String(this.stockOrderForm.get('parcelLot').value)
+            : null);
+
+    const semiProductId = this.modelChoice ? Number(this.modelChoice) : undefined;
+    const rawDate = this.stockOrderForm?.get('productionDate')?.value;
+    const deliveryDate = rawDate ? dateISOString(rawDate) : undefined;
+    const excludeId = this.order?.id;
+
+    this.quotaBalanceLoading = true;
+    this.stockOrderControllerService
+      .getQuotaBalance(companyId, farmerId, parcelLot, semiProductId, deliveryDate, excludeId)
+      .pipe(take(1))
+      .subscribe({
+        next: (res) => {
+          this.quotaBalanceLoading = false;
+          if (res && res.data) {
+            this.currentQuotaBalance = res.data;
+            if (res.data.remainingBalance != null) {
+              const formatted = res.data.remainingBalance.toLocaleString('es-EC', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              });
+              this.quotaBalanceForm.setValue(formatted);
+            } else {
+              this.quotaBalanceForm.setValue('0.00');
+            }
+          } else {
+            this.currentQuotaBalance = null;
+            this.quotaBalanceForm.setValue('0.00');
+          }
+        },
+        error: () => {
+          this.quotaBalanceLoading = false;
+          this.currentQuotaBalance = null;
+          this.quotaBalanceForm.setValue('0.00');
+        },
+      });
+  }
+
   async ngOnInit() {
 
     this.userProfileSubs = this.authService.userProfile$
@@ -810,6 +964,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     if (this.userProfileSubs) {
       this.userProfileSubs.unsubscribe();
     }
+    this.employeeFormSubs?.unsubscribe();
   }
 
   private newTitle(pageMode: StockOrderType) {
@@ -838,12 +993,24 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private reloadOrder() {
+  private async reloadOrder() {
 
+    // Cada recarga lleva un número: si llega otra mientras ésta espera al servidor, la más
+    // reciente es la única que apaga el indicador de carga y avisa de errores.
+    const sequence = ++this.reloadSequence;
     this.globalEventsManager.showLoading(true);
     this.submitted = false;
 
-    this.initializeData().then(() => {
+    try {
+      await this.initializeData();
+      if (sequence !== this.reloadSequence) {
+        return;
+      }
+      if (this.update && !this.order) {
+        // El interceptor devuelve los errores HTTP como valores normales: sin entrega no se puede armar el formulario.
+        throw new Error('La entrega no se pudo cargar.');
+      }
+
       // Recalcula con companyProfile ya disponible (ngOnInit la llamó antes, sin
       // configuración todavía, solo para no mostrar el combo vacío un instante).
       this.initializeVarietyOptions();
@@ -852,14 +1019,32 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.collectorsCodebook = new CompanyUserCustomersByRoleService(this.companyControllerService, this.companyProfile?.id, 'COLLECTOR', true);
 
       if (this.update) {
-        this.editStockOrder().then();
+        this.editStockOrder().catch((error) => {
+          if (sequence === this.reloadSequence) {
+            this.onReloadError(error);
+          }
+        });
       } else {
         this.newStockOrder();
       }
       this.updateValidators();
       this.initializeListManager();
-      this.globalEventsManager.showLoading(false);
-    });
+    } catch (error) {
+      if (sequence === this.reloadSequence) {
+        this.onReloadError(error);
+      }
+    } finally {
+      if (sequence === this.reloadSequence) {
+        this.globalEventsManager.showLoading(false);
+      }
+    }
+  }
+
+  private onReloadError(error: unknown) {
+    console.error('StockDeliveryDetails: no se pudo cargar la entrega', error);
+    const message = $localize`:@@tokenInterceptor.other.message:Please reload the page.`;
+    const title = $localize`:@@tokenInterceptor.other.title:Communication error!`;
+    this.toasterService.error(message, title);
   }
 
   private async initializeData() {
@@ -954,7 +1139,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.setDate();
 
     // Set current logged-in user as employee
-    this.employeeForm.setValue(this.currentLoggedInUser?.id.toString());
+    const creatorIdVal = this.currentLoggedInUser?.id != null ? this.currentLoggedInUser.id.toString() : null;
+    this.employeeForm.setValue(creatorIdVal);
+    this.stockOrderForm.get('creatorId')?.setValue(creatorIdVal);
 
     // If only one semi-product select it as a default
     if (this.options && this.options.length === 1) {
@@ -1034,7 +1221,9 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       this.setMeasureUnit(this.modelChoice).then();
     }
 
-    this.employeeForm.setValue(this.order.creatorId.toString());
+    const creatorIdEditVal = this.order.creatorId != null ? this.order.creatorId.toString() : null;
+    this.employeeForm.setValue(creatorIdEditVal);
+    this.stockOrderForm.get('creatorId')?.setValue(creatorIdEditVal);
     // TODO: set documents and payments if purchase order
 
     if (this.order.updatedBy && this.order.updatedBy.id) {
@@ -1143,7 +1332,10 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       // despues de volcar los datos), asi que abrir una entrega vieja no le pisa la
       // variedad ni la certificacion con los datos de hoy de la parcela. Tambien es el
       // que limpia esos campos cuando cambia el agricultor (parcelLot pasa a null).
-      parcelLotControl.valueChanges.subscribe((val) => this.applyPlotDefaults(val));
+      parcelLotControl.valueChanges.subscribe((val) => {
+        this.applyPlotDefaults(val);
+        this.fetchQuotaBalance(val);
+      });
     }
 
     const organicControl = this.stockOrderForm.get('organic');
@@ -1188,9 +1380,21 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       productionDateControl.valueChanges.subscribe((val) => {
         if (val) {
           this.applyWeekNumberFor(val);
+          this.fetchQuotaBalance();
         }
       });
     }
+
+    // employeeForm vive tanto como el componente: sin cancelar la anterior, cada recarga sumaría otra suscripción.
+    this.employeeFormSubs?.unsubscribe();
+    this.employeeFormSubs = this.employeeForm.valueChanges.subscribe((val) => {
+      if (this.stockOrderForm?.get('creatorId')) {
+        this.stockOrderForm.get('creatorId').setValue(val);
+        this.stockOrderForm.get('creatorId').updateValueAndValidity();
+      }
+    });
+
+    this.fetchQuotaBalance();
   }
 
   calculateWeekNumber(dateInput: any): number | null {
@@ -1232,11 +1436,18 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     return this.showWeekColor ? weekColor(Number(this.stockOrderForm?.get('weekNumber')?.value)) : null;
   }
 
-  private cannotUpdatePO() {
-    this.prepareData();
+  get isQuotaBlocked(): boolean {
+    return this.showQuotaBalance &&
+      (this.quotaExceededCheck || this.quotaExceededByCurrentDeliveryCheck);
+  }
+
+  cannotUpdatePO(): boolean {
+    if (this.stockOrderForm?.get('creatorId') && !this.stockOrderForm.get('creatorId').value && this.employeeForm?.value) {
+      this.stockOrderForm.get('creatorId').setValue(this.employeeForm.value);
+    }
     return (this.stockOrderForm.invalid || this.searchFarmers.invalid ||
       this.employeeForm.invalid || !this.modelChoice ||
-      this.tareInvalidCheck || this.damagedPriceDeductionInvalidCheck);
+      this.tareInvalidCheck || this.damagedPriceDeductionInvalidCheck || this.isQuotaBlocked);
   }
 
   onSelectedType(type: StockOrderType) {
@@ -1264,6 +1475,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
     this.stockOrderForm.get('producerUserCustomer').updateValueAndValidity();
     this.codebookPreferredWayOfPayment = EnumSifrant.fromObject(this.preferredWayOfPaymentList);
     this.refreshParcelLotOptions(event?.id, undefined, true);
+    this.fetchQuotaBalance();
   }
 
   setCollector(event: ApiUserCustomer) {
@@ -1300,6 +1512,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
     // Update week number requirement when semi-product changes
     this.updateWeekNumberVisibilityAndValidation();
+    this.fetchQuotaBalance();
   }
 
   async setMeasureUnit(semiProdId: number) {

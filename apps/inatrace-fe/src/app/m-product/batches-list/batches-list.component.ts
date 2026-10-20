@@ -30,7 +30,7 @@ export class BatchesListComponent implements OnInit {
 
   reloadPing$ = new BehaviorSubject<boolean>(false);
   pagingParams$ = new BehaviorSubject({});
-  sortingParams$ = new BehaviorSubject({ sortBy: 'name', sort: 'ASC' });
+  sortingParams$ = new BehaviorSubject({ sortBy: 'number', sort: 'ASC' });
   paging$ = new BehaviorSubject<number>(1);
 
   page: number = 0;
@@ -72,7 +72,7 @@ export class BatchesListComponent implements OnInit {
   async setAllBatches() {
     let labelId = this.route.snapshot.params.labelId;
     let res = await this.productController
-      .getProductLabelBatches(labelId, 'COUNT')
+      .getProductLabelBatchesByMap({ id: labelId, requestType: 'COUNT' })
       .pipe(take(1))
       .toPromise();
     if (res && res.status === 'OK' && res.data && res.data.count >= 0) {

@@ -119,6 +119,26 @@
               </div>
             </div>
 
+            <!-- Alerta visual de saldo de cupo cero o excedido al seleccionar agricultor -->
+            <div
+              *ngIf="showQuotaBalance && (quotaExceededCheck || quotaExceededByCurrentDeliveryCheck)"
+              class="af-row"
+            >
+              <div class="af-c12">
+                <div
+                  class="alert alert-danger d-flex align-items-center mb-3 p-2"
+                  role="alert"
+                  style="border-radius: 4px; font-size: 13px;"
+                >
+                  <i class="fa fa-exclamation-triangle mr-2 text-danger" style="font-size: 18px;" aria-hidden="true"></i>
+                  <div>
+                    <strong>Bloqueo de cupo: </strong>
+                    <span>{{ quotaAlertMessage }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="af-row" *ngIf="showCollector">
               <div class="af-c12">
                 <single-choice
@@ -363,6 +383,19 @@
             Purchase details
           </h2>
 
+          <div
+            *ngIf="showQuotaBalance && (quotaExceededCheck || quotaExceededByCurrentDeliveryCheck)"
+            class="alert alert-danger d-flex align-items-center mb-3 p-2"
+            role="alert"
+            style="border-radius: 4px; font-size: 13px;"
+          >
+            <i class="fa fa-ban mr-2 text-danger" style="font-size: 18px;" aria-hidden="true"></i>
+            <div>
+              <strong>No se puede registrar la entrega: </strong>
+              <span>{{ quotaAlertMessage }}</span>
+            </div>
+          </div>
+
           <div class="af-form-element">
             <div class="af-row">
               <div class="af-c12">
@@ -385,8 +418,8 @@
                     [(ngModel)]="modelChoice"
                     [required]="true"
                     notFoundText="Nothing found"
-                    i18-notFoundText="@@productLabelStockPurchaseOrdersModal.singleChoice.semiProduct.nothing"
-                    i18-typeToSearchText="@@productLabelStockPurchaseOrdersModal.singleChoice.semiProduct.enterSearchTerm"
+                    i18n-notFoundText="@@productLabelStockPurchaseOrdersModal.singleChoice.semiProduct.nothing"
+                    i18n-typeToSearchText="@@productLabelStockPurchaseOrdersModal.singleChoice.semiProduct.enterSearchTerm"
                     typeToSearchText="Enter search term"
                     class="custom labelPlaceholder"
                     style="border: none"
@@ -577,8 +610,11 @@
               </div>
             </div>
 
-            <div class="af-row">
-              <div class="af-c6">
+            <div
+              class="af-row"
+              *ngIf="showDamagedWeightDeduction || showQuotaBalance"
+            >
+              <div class="af-c6" *ngIf="showDamagedWeightDeduction">
                 <textinput
                   *ngIf="showDamagedWeightDeduction"
                   [form]="stockOrderForm.get('damagedWeightDeduction')"
@@ -620,6 +656,35 @@
                         @@productLabelStockPurchaseOrdersModal.textinput.deductionGreaterThanWeight.error"
                     >
                       Damaged weight deduction is larger than net weight
+                    </div>
+                  </div>
+                </textinput>
+              </div>
+              <div class="af-c6" *ngIf="showQuotaBalance">
+                <textinput
+                  [form]="quotaBalanceForm"
+                  [label]="quotaBalanceLabel"
+                  style="width: 100%"
+                  [placeholder]="quotaBalancePlaceholder"
+                  [isInvalid]="
+                    quotaExceededCheck || quotaExceededByCurrentDeliveryCheck
+                  "
+                  [readOnly]="true"
+                >
+                  <div *ngIf="quotaExceededCheck || quotaExceededByCurrentDeliveryCheck" class="sc-invalid-feedback">
+                    <div>
+                      {{ quotaAlertMessage }}
+                    </div>
+                  </div>
+                  <div
+                    *ngIf="quotaNearLimitCheck"
+                    style="color: #e67e22; font-size: 12px; margin-top: 4px;"
+                  >
+                    <div
+                      i18n="
+                        @@productLabelStockPurchaseOrdersModal.textinput.quotaNearLimit.warning"
+                    >
+                      El saldo de cupo está próximo a agotarse
                     </div>
                   </div>
                 </textinput>
@@ -954,8 +1019,9 @@
             <button
               class="btn mr-2"
               type="button"
+              [disabled]="isQuotaBlocked || updatePOInProgress || quotaBalanceLoading"
               (click)="
-                !this.updatePOInProgress && createOrUpdatePurchaseOrder(false)
+                !updatePOInProgress && !isQuotaBlocked && createOrUpdatePurchaseOrder(false)
               "
             >
               <span>Save</span>
@@ -963,8 +1029,9 @@
             <button
               class="btn"
               type="button"
+              [disabled]="isQuotaBlocked || updatePOInProgress || quotaBalanceLoading"
               (click)="
-                !this.updatePOInProgress && createOrUpdatePurchaseOrder()
+                !updatePOInProgress && !isQuotaBlocked && createOrUpdatePurchaseOrder()
               "
             >
               <span>Save & Close</span>

@@ -122,6 +122,18 @@ export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
     return !!this.companyProfile?.configuration?.enableParcelLot;
   }
 
+  get sortedEvidenceFields(): ApiProcessingEvidenceField[] {
+    if (!this.selectedProcAction?.requiredEvidenceFields) {
+      return [];
+    }
+    return [...this.selectedProcAction.requiredEvidenceFields].sort((a, b) => {
+      if (a.sortOrder == null && b.sortOrder == null) return 0;
+      if (a.sortOrder == null) return 1;
+      if (b.sortOrder == null) return -1;
+      return a.sortOrder - b.sortOrder;
+    });
+  }
+
   /**
    * Color de la semana del lote de salida, para la empresa que marca cada saco con el
    * hilo de ese color. Se calcula por grupo porque cada salida tiene su propia semana.
