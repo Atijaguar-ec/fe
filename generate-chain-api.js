@@ -5,7 +5,7 @@ const https = require('https');
 var child_process = require('child_process');
 
 var swagger_docs_url = 'http://localhost:5000/static/swagger.json'
-var apiFolder = 'src/api-chain'
+var apiFolder = 'apps/inatrace-fe/src/api-chain'
 var protocol = swagger_docs_url.startsWith('https') ? https : http;
 
 function afterBuild(code) {
@@ -114,7 +114,7 @@ async function refreshFromSpec() {
       file.close();
       processSwaggerJson();
       // generate TS API
-      var proc = child_process.fork("node_modules/openapi-typescript-angular-generator/bin/ng-ts-codegen.js", ['-i', 'src/api-chain/apidocs.json', '-o', 'src/api-chain']);
+      var proc = child_process.fork("node_modules/openapi-typescript-angular-generator/bin/ng-ts-codegen.js", ['-i', 'apps/inatrace-fe/src/api-chain/apidocs.json', '-o', 'apps/inatrace-fe/src/api-chain']);
       proc.on('exit', afterBuild);
     });
   });
@@ -125,10 +125,10 @@ console.log("Generating from: " + swagger_docs_url);
 refreshFromSpec()
 // processSwaggerJson()
 // if (!fs.existsSync(`${ apiFolder }`)) {
-//   fs.mkdirSync(`${ apiFolder }`);
+//   fs.mkdirSync(`${ apiFolder }`, { recursive: true });
 // }
 // // generate TS API
-// var proc = child_process.fork("node_modules/openapi-typescript-angular-generator/bin/ng-ts-codegen.js", ['-i', 'src/api-chain/apidocs.json', '-o', 'src/api']);
+// var proc = child_process.fork("node_modules/openapi-typescript-angular-generator/bin/ng-ts-codegen.js", ['-i', 'apps/inatrace-fe/src/api-chain/apidocs.json', '-o', 'apps/inatrace-fe/src/api']);
 // proc.on('exit', afterBuild);
 
 

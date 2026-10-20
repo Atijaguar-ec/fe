@@ -1,0 +1,733 @@
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import {
+  AbstractControl,
+  UntypedFormArray,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators,
+} from '@angular/forms';
+import { ApiProcessingAction } from '../../../../../../api/model/apiProcessingAction';
+import { ApiCompanyGet } from '../../../../../../api/model/apiCompanyGet';
+import {
+  WeekColor,
+  weekColor,
+  weekColorCodesEnabled,
+} from '../../../../../shared-services/week-number.util';
+import { ProcessingActionType } from '../../../../../../shared/types';
+import { ApiFinalProduct } from '../../../../../../api/model/apiFinalProduct';
+import { ApiProcessingActionOutputSemiProduct } from '../../../../../../api/model/apiProcessingActionOutputSemiProduct';
+import { CompanyFacilitiesForStockUnitProductService } from '../../../../../shared-services/company-facilities-for-stock-unit-product.service';
+import { ApiSemiProduct } from '../../../../../../api/model/apiSemiProduct';
+import { ApiStockOrder } from '../../../../../../api/model/apiStockOrder';
+import {
+  dateISOString,
+  generateFormFromMetadata,
+  parseDecimal,
+} from '../../../../../../shared/utils';
+import { ApiStockOrderValidationScheme } from '../validation';
+import OrderTypeEnum = ApiStockOrder.OrderTypeEnum;
+import { StockProcessingOrderDetailsHelper } from '../stock-processing-order-details.helper';
+import { ApiStockOrderEvidenceFieldValue } from '../../../../../../api/model/apiStockOrderEvidenceFieldValue';
+import { debounceTime, take } from 'rxjs/operators';
+import ProcessingEvidenceField = ApiProcessingEvidenceField.TypeEnum;
+import { ApiProcessingEvidenceField } from '../../../../../../api/model/apiProcessingEvidenceField';
+import { Subscription } from 'rxjs';
+import { StaticSemiProductsService } from '../static-semi-products.service';
+import { EnumSifrant } from '../../../../../shared-services/enum-sifrant';
+
+@Component({
+  selector: 'app-processing-order-output',
+  templateUrl: './processing-order-output.component.html',
+  styleUrls: [
+    './processing-order-output.component.scss',
+    '../stock-processing-order-details-common.scss',
+  ],
+  standalone: false,
+})
+export class ProcessingOrderOutputComponent implements OnInit, OnDestroy {
+  readonly faTrashAlt = faTrashAlt;
+
+  // Se reconstruye en ngOnInit según la configuración de la empresa: con
+  // numericVarietyOptions las entregas guardan la variedad como "1"/"2", y ese
+  // valor se propaga a Procesamiento (ver propagación en
+  // stock-processing-order-details.component.ts). Si el combo no ofrece esas
+  // opciones, EnumSifrant.enumValueToObject() no encuentra el valor y
+  // single-choice lo muestra vacío.
+  varietyOptions: EnumSifrant = EnumSifrant.fromObject({
+    NACIONAL: 'Nacional',
+    CCN51: 'CCN51',
+  });
+
+  // List for holding references to observable subscriptions
+  subscriptions: Subscription[] = [];
+
+  @Input()
+  editing: boolean;
+
+  @Input()
+  submitted: boolean;
+
+  @Input()
+  processingUserId: number;
+
+  @Input()
+  productOrderId: string | null;
+
+  @Input()
+  selectedProcAction: ApiProcessingAction;
+
+  @Input()
+  procActionLotPrefixControl: UntypedFormControl;
+
+  @Input()
+  rightSideEnabled: boolean;
+
+  @Input()
+  targetStockOrdersArray: UntypedFormArray;
+
+  @Input()
+  finalProductOutputFacilitiesCodebook: CompanyFacilitiesForStockUnitProductService;
+
+  @Input()
+  semiProductOutputFacilitiesCodebooks: Map<
+    number,
+    CompanyFacilitiesForStockUnitProductService
+  >;
+
+  @Input()
+  currentOutputFinalProduct: ApiFinalProduct;
+
+  @Input()
+  outputFinalProductNameControl: UntypedFormControl;
+
+  @Input()
+  outputSemiProductsCodebook: StaticSemiProductsService;
+
+  @Input()
+  companyProfile: ApiCompanyGet;
+
+  get shouldShowVariety(): boolean {
+    return !this.companyProfile?.configuration?.onlyNacionalVariety;
+  }
+
+  get shouldShowParcelLot(): boolean {
+    return !!this.companyProfile?.configuration?.enableParcelLot;
+  }
+
+  /**
+   * Color de la semana del lote de salida, para la empresa que marca cada saco con el
+   * hilo de ese color. Se calcula por grupo porque cada salida tiene su propia semana.
+   */
+  weekColorFor(tsoGroup: AbstractControl): WeekColor | null {
+    if (!weekColorCodesEnabled(this.companyProfile?.configuration)) {
+      return null;
+    }
+
+    return weekColor(Number(tsoGroup?.get('weekNumber')?.value));
+  }
+
+  @Output()
+  calcTotalOutputQuantity = new EventEmitter<void>();
+
+  @Output()
+  calcRemainingQuantity = new EventEmitter<void>();
+
+  constructor() {}
+
+  get actionType(): ProcessingActionType {
+    return this.selectedProcAction ? this.selectedProcAction.type : null;
+  }
+
+  get targetStockOrderOutputQuantityLabel() {
+    if (this.actionType === 'SHIPMENT') {
+      return $localize`:@@productLabelStockProcessingOrderDetail.textinput.orderedQuantityLabelWithUnits.label: Ordered quantity in`;
+    } else {
+      return $localize`:@@productLabelStockProcessingOrderDetail.textinput.outputQuantityLabelWithUnits.label: Output quantity in`;
+    }
+  }
+
+  get showAddNewOutputButton() {
+    return this.actionType === 'PROCESSING';
+  }
+
+  getTSOGroupRepackedOutputsArray(tsoGroup: AbstractControl): UntypedFormArray {
+    return tsoGroup.get('repackedOutputsArray') as UntypedFormArray;
+  }
+
+  ngOnInit(): void {
+    if (this.companyProfile?.configuration?.numericVarietyOptions) {
+      this.varietyOptions = EnumSifrant.fromObject({ '1': '1', '2': '2' });
+    }
+    this.varietyOptions.setPlaceholder(
+      $localize`:@@productLabelStockPurchaseOrdersModal.singleChoice.variety.placeholder:Selecciona la variedad`
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
+  }
+
+  removeOutput(index: number) {
+    this.targetStockOrdersArray.removeAt(index);
+    this.calcTotalOutputQuantity.emit();
+    this.calcRemainingQuantity.emit();
+  }
+
+  getOutputFacilityCodebook(
+    tsoGroup: UntypedFormGroup,
+  ): CompanyFacilitiesForStockUnitProductService | null {
+    if (this.finalProductOutputFacilitiesCodebook) {
+      return this.finalProductOutputFacilitiesCodebook;
+    }
+
+    const semiProduct = tsoGroup.get('semiProduct').value as ApiSemiProduct;
+    if (semiProduct) {
+      return this.semiProductOutputFacilitiesCodebooks?.get(semiProduct.id);
+    }
+
+    return null;
+  }
+
+  getRepackedSacQuantityLabel(tsoGroup: AbstractControl) {
+    const outputFinalProduct = tsoGroup.get('finalProduct')
+      .value as ApiFinalProduct;
+    const outputSemiProduct = tsoGroup.get('semiProduct')
+      .value as ApiProcessingActionOutputSemiProduct;
+
+    let unit = '';
+    if (outputFinalProduct) {
+      unit = outputFinalProduct.measurementUnitType.label;
+    } else if (outputSemiProduct) {
+      unit = outputSemiProduct.measurementUnitType.label;
+    }
+
+    return $localize`:@@productLabelStockProcessingOrderDetail.itemNetWeightLabel: Quantity (max. ${this.getTSOGroupRepackedMaxWeight(tsoGroup)} ${unit})`;
+  }
+
+  getTSOGroupRepackedMaxWeight(tsoGroup: AbstractControl): number | null {
+    const outputSemiProduct = tsoGroup.get('semiProduct')
+      .value as ApiProcessingActionOutputSemiProduct;
+    let maxOutputWeight: number | null = null;
+
+    if (this.selectedProcAction.repackedOutputFinalProducts) {
+      maxOutputWeight = this.selectedProcAction.maxOutputWeight;
+    } else if (outputSemiProduct?.repackedOutput) {
+      maxOutputWeight = outputSemiProduct.maxOutputWeight;
+    }
+
+    return maxOutputWeight;
+  }
+
+  prefillRepackedOutputSOQuantities(tsoGroup: AbstractControl) {
+    const repackedOutputsArray = this.getTSOGroupRepackedOutputsArray(tsoGroup);
+
+    let availableQua = tsoGroup.get('totalQuantity').value;
+    const maxAllowedWeight = this.getTSOGroupRepackedMaxWeight(tsoGroup);
+
+    repackedOutputsArray.controls.some(
+      (outputStockOrderGroup: UntypedFormGroup) => {
+        outputStockOrderGroup
+          .get('totalQuantity')
+          .setValue(
+            Number(
+              availableQua > maxAllowedWeight ? maxAllowedWeight : availableQua,
+            ).toFixed(2),
+          );
+        availableQua -= maxAllowedWeight;
+        if (availableQua <= 0) {
+          return true;
+        }
+      },
+    );
+  }
+
+  addRepackedOutputStockOrder(tsoGroup: AbstractControl) {
+    const repackedOutputsArray = this.getTSOGroupRepackedOutputsArray(tsoGroup);
+
+    let sacNumber = null;
+    if (repackedOutputsArray.length > 0) {
+      const lastSacNumber = Number(
+        repackedOutputsArray.controls[repackedOutputsArray.length - 1].get(
+          'sacNumber',
+        ).value,
+      );
+      if (lastSacNumber && lastSacNumber > 0) {
+        sacNumber = lastSacNumber + 1;
+      }
+    }
+
+    repackedOutputsArray.push(
+      this.prepareRepackedSOFormGroup(sacNumber, tsoGroup),
+    );
+  }
+
+  removeRepackedOutputStockOrder(tsoGroup: AbstractControl, index: number) {
+    this.getTSOGroupRepackedOutputsArray(tsoGroup).removeAt(index);
+  }
+
+  notAllOutputQuantityIsUsed(tsoGroup: AbstractControl) {
+    const repackedOutputsArray = this.getTSOGroupRepackedOutputsArray(tsoGroup);
+
+    if (
+      !repackedOutputsArray &&
+      !this.selectedProcAction?.repackedOutputFinalProducts
+    ) {
+      return false;
+    }
+
+    const parsedEnteredOutput = parseDecimal(
+      tsoGroup.get('totalQuantity').value,
+    );
+    if (parsedEnteredOutput == null || isNaN(parsedEnteredOutput)) {
+      return false;
+    }
+
+    let repackedSOQuantity = 0;
+    repackedOutputsArray.controls.forEach((soGroup: UntypedFormGroup) => {
+      const q = parseDecimal(soGroup.get('totalQuantity').value);
+      repackedSOQuantity += q != null && !isNaN(q) ? q : 0;
+    });
+
+    return parsedEnteredOutput > repackedSOQuantity;
+  }
+
+  // Al editar, los sacos no se regeneran al cambiar la cantidad: si el usuario baja el total
+  // y los sacos siguen sumando más, el lote quedaría con más peso del ingresado.
+  repackedQuantityExceedsOutput(tsoGroup: AbstractControl) {
+    const repackedOutputsArray = this.getTSOGroupRepackedOutputsArray(tsoGroup);
+    if (!repackedOutputsArray?.length) {
+      return false;
+    }
+
+    const parsedEnteredOutput = parseDecimal(
+      tsoGroup.get('totalQuantity').value,
+    );
+    if (parsedEnteredOutput == null || isNaN(parsedEnteredOutput)) {
+      return false;
+    }
+
+    let repackedSOQuantity = 0;
+    repackedOutputsArray.controls.forEach((soGroup: UntypedFormGroup) => {
+      const q = parseDecimal(soGroup.get('totalQuantity').value);
+      repackedSOQuantity += q != null && !isNaN(q) ? q : 0;
+    });
+
+    return repackedSOQuantity - parsedEnteredOutput > 0.005;
+  }
+
+  // Al editar no se regeneran los sacos (perderíamos los que ya existen), pero sí se ajustan a la nueva
+  // cantidad: se quitan los sacos que sobran (solo los que no se han usado) y se reparte el peso.
+  private adjustRepackedOutputStockOrders(
+    totalOutputQuantity: any,
+    tsoGroup: AbstractControl,
+  ): void {
+    const repackedOutputsArray = this.getTSOGroupRepackedOutputsArray(tsoGroup);
+    if (!repackedOutputsArray?.length) {
+      return;
+    }
+
+    const numQuantity = parseDecimal(totalOutputQuantity);
+    const maxAllowedWeight = this.getTSOGroupRepackedMaxWeight(tsoGroup);
+    if (
+      numQuantity == null ||
+      isNaN(numQuantity) ||
+      numQuantity <= 0 ||
+      !maxAllowedWeight
+    ) {
+      return;
+    }
+
+    const neededOutputs = Math.ceil(numQuantity / maxAllowedWeight);
+
+    // Quitar los sacos sobrantes, empezando por el final. Los que ya se usaron no se pueden borrar:
+    // se dejan y la validación avisa si el total no cuadra.
+    for (
+      let i = repackedOutputsArray.length - 1;
+      i >= 0 && repackedOutputsArray.length > neededOutputs;
+      i--
+    ) {
+      if (!this.isRepackedOutputUsed(repackedOutputsArray.at(i))) {
+        repackedOutputsArray.removeAt(i);
+      }
+    }
+
+    while (repackedOutputsArray.length < neededOutputs) {
+      this.addRepackedOutputStockOrder(tsoGroup);
+    }
+
+    this.prefillRepackedOutputSOQuantities(tsoGroup);
+  }
+
+  // Un saco está usado si ya se consumió parte de él (lo dice el servidor); los sacos nuevos no tienen cantidades
+  private isRepackedOutputUsed(repackedGroup: AbstractControl): boolean {
+    const total = parseDecimal(repackedGroup.get('totalQuantity')?.value);
+    const available = parseDecimal(
+      repackedGroup.get('availableQuantity')?.value,
+    );
+
+    if (total == null || isNaN(total) || available == null || isNaN(available)) {
+      return false;
+    }
+
+    return total - available > 0.005;
+  }
+
+  private generateRepackedOutputStockOrders(
+    totalOutputQuantity: any,
+    tsoGroup: AbstractControl,
+  ): void {
+    const repackedOutputsArray = this.getTSOGroupRepackedOutputsArray(tsoGroup);
+
+    // If we are updating a processing order, do not regenerate the output stock orders
+    if (this.editing || !repackedOutputsArray) {
+      return;
+    }
+
+    // Se vacía antes de validar: si la cantidad se borra o queda en 0, los sacos
+    // calculados para el valor anterior no deben quedar en pantalla.
+    repackedOutputsArray.clear();
+
+    const numQuantity = parseDecimal(totalOutputQuantity);
+    if (numQuantity == null || isNaN(numQuantity) || numQuantity <= 0) {
+      return;
+    }
+
+    const outputStockOrdersSize = Math.ceil(
+      numQuantity / this.getTSOGroupRepackedMaxWeight(tsoGroup),
+    );
+    for (let i = 0; i < outputStockOrdersSize; i++) {
+      repackedOutputsArray.push(
+        this.prepareRepackedSOFormGroup(i + 1, tsoGroup),
+      );
+    }
+  }
+
+  private prepareRepackedSOFormGroup(
+    sacNumber: number,
+    tsoGroup: AbstractControl,
+  ): UntypedFormGroup {
+    return new UntypedFormGroup({
+      id: new UntypedFormControl(null),
+      totalQuantity: new UntypedFormControl(null, [
+        Validators.required,
+        Validators.max(this.getTSOGroupRepackedMaxWeight(tsoGroup)),
+      ]),
+      sacNumber: new UntypedFormControl(sacNumber, [Validators.required]),
+    });
+  }
+
+  async addNewOutput() {
+    // If no processing action is selected, exit
+    if (!this.selectedProcAction) {
+      return;
+    }
+
+    // Validate if we can add new output
+    switch (this.actionType) {
+      case 'TRANSFER':
+      case 'SHIPMENT':
+      case 'GENERATE_QR_CODE':
+      case 'FINAL_PROCESSING':
+        // If we already have one target Stock order, exit
+        if (this.targetStockOrdersArray.length > 0) {
+          return;
+        }
+    }
+
+    // Create a default Stock order with common shared values
+    const defaultStockOrder: ApiStockOrder = {
+      creatorId: this.processingUserId,
+      orderType:
+        this.actionType === 'SHIPMENT'
+          ? OrderTypeEnum.GENERALORDER
+          : OrderTypeEnum.PROCESSINGORDER,
+      productionDate: dateISOString(new Date()),
+      variety: this.companyProfile?.configuration?.onlyNacionalVariety
+        ? 'NACIONAL'
+        : undefined,
+    };
+
+    const targetStockOrderGroup = generateFormFromMetadata(
+      ApiStockOrder.formMetadata(),
+      defaultStockOrder,
+      ApiStockOrderValidationScheme,
+    );
+    this.targetStockOrdersArray.push(targetStockOrderGroup);
+
+    this.setRequiredFieldsAndListenersForTSO(targetStockOrderGroup);
+
+    // If we have defined output final product, set it the target Stock order form group
+    if (this.currentOutputFinalProduct) {
+      targetStockOrderGroup
+        .get('finalProduct')
+        .setValue(this.currentOutputFinalProduct);
+
+      // If there is only one facility available for the output final product, set it in the target Stock order form group
+      const facilities = await this.finalProductOutputFacilitiesCodebook
+        .getAllCandidates()
+        .toPromise();
+      if (facilities?.length === 1) {
+        targetStockOrderGroup.get('facility').setValue(facilities[0]);
+      }
+    } else if (this.selectedProcAction.outputSemiProducts?.length === 1) {
+      // If we have output semi-products, and there is only one defined in the Processing action, set it automatically
+      targetStockOrderGroup
+        .get('semiProduct')
+        .setValue(this.selectedProcAction.outputSemiProducts[0]);
+    }
+  }
+
+  setRequiredFieldsAndListenersForTSO(tsoGroup: UntypedFormGroup) {
+    // Set validators for specific fields depending on the Processing action type
+    switch (this.actionType) {
+      case 'PROCESSING':
+        StockProcessingOrderDetailsHelper.setFormControlValidators(
+          tsoGroup,
+          'totalQuantity',
+          [Validators.required],
+        );
+      // tslint:disable-next-line:no-switch-case-fall-through
+      case 'GENERATE_QR_CODE':
+        StockProcessingOrderDetailsHelper.setFormControlValidators(
+          tsoGroup,
+          'semiProduct',
+          [Validators.required],
+        );
+        break;
+      case 'SHIPMENT':
+        StockProcessingOrderDetailsHelper.setFormControlValidators(
+          tsoGroup,
+          'totalQuantity',
+          [Validators.required],
+        );
+        StockProcessingOrderDetailsHelper.setFormControlValidators(
+          tsoGroup,
+          'deliveryTime',
+          [Validators.required],
+        );
+        StockProcessingOrderDetailsHelper.setFormControlValidators(
+          tsoGroup,
+          'quoteFacility',
+          [Validators.required],
+        );
+      // tslint:disable-next-line:no-switch-case-fall-through
+      case 'TRANSFER':
+        if (this.selectedProcAction.finalProductAction) {
+          StockProcessingOrderDetailsHelper.setFormControlValidators(
+            tsoGroup,
+            'finalProduct',
+            [Validators.required],
+          );
+        } else {
+          StockProcessingOrderDetailsHelper.setFormControlValidators(
+            tsoGroup,
+            'semiProduct',
+            [Validators.required],
+          );
+        }
+        break;
+    }
+
+    StockProcessingOrderDetailsHelper.setFormControlValidators(
+      tsoGroup,
+      'facility',
+      [Validators.required],
+    );
+
+    // Clear the required fields form
+    const requiredProcEvidenceFieldGroup = new UntypedFormGroup({});
+
+    // Set required fields form group
+    const evidenceFieldsValues: ApiStockOrderEvidenceFieldValue[] =
+      tsoGroup.get('requiredEvidenceFieldValues')?.value
+        ? tsoGroup.get('requiredEvidenceFieldValues').value
+        : [];
+
+    this.selectedProcAction.requiredEvidenceFields.forEach((field) => {
+      let value = null;
+      const evidenceFieldValue = evidenceFieldsValues.find(
+        (efv) =>
+          efv.evidenceFieldId === field.id &&
+          efv.evidenceFieldName === field.fieldName,
+      );
+
+      if (evidenceFieldValue) {
+        switch (field.type) {
+          case ProcessingEvidenceField.NUMBER:
+          case ProcessingEvidenceField.INTEGER:
+          case ProcessingEvidenceField.EXCHANGERATE:
+          case ProcessingEvidenceField.PRICE:
+            value = evidenceFieldValue.numericValue;
+            break;
+          case ProcessingEvidenceField.DATE:
+          case ProcessingEvidenceField.TIMESTAMP:
+            value = evidenceFieldValue.dateValue;
+            break;
+          case ProcessingEvidenceField.STRING:
+          case ProcessingEvidenceField.TEXT:
+            value = evidenceFieldValue.stringValue;
+            break;
+          default:
+            value = evidenceFieldValue.stringValue;
+        }
+      } else {
+        switch (field.type) {
+          case ProcessingEvidenceField.DATE:
+          case ProcessingEvidenceField.TIMESTAMP: {
+            // dateValue es Instant en el backend, asi que el valor por defecto
+            // debe ser un Date (no "yyyy-MM-dd") para que Jackson lo deserialice.
+            // Mediodia, igual que el datepicker, para que el dia no cambie en UTC.
+            const today = new Date();
+            today.setHours(12, 0, 0, 0);
+            value = today;
+            break;
+          }
+        }
+      }
+
+      if (field.mandatory) {
+        requiredProcEvidenceFieldGroup.addControl(
+          field.fieldName,
+          new UntypedFormControl(value, Validators.required),
+        );
+      } else {
+        requiredProcEvidenceFieldGroup.addControl(
+          field.fieldName,
+          new UntypedFormControl(value),
+        );
+      }
+    });
+
+    tsoGroup.setControl(
+      'requiredProcEvidenceFieldGroup',
+      requiredProcEvidenceFieldGroup,
+    );
+
+    // Register value change listeners for specific fields
+    this.subscriptions.push(
+      tsoGroup
+        .get('totalQuantity')
+        .valueChanges.pipe(debounceTime(350))
+        .subscribe((totalQuantity: number) => {
+          setTimeout(() => this.targetStockOrderOutputQuantityChange());
+
+          // When the total output quantity changes we need to re/generate the output stock orders that are
+          // being repacked as part of this processing; This is only applicable when we have selected output semi-product
+          // with the option 'repackedOutputs' and set 'maxOutputWeight'
+          if (this.editing) {
+            // Solo cuando lo cambia el usuario: al cargar la edición el valor se calcula desde los sacos
+            // y no hay que tocarlos
+            if (tsoGroup.get('totalQuantity').dirty) {
+              this.adjustRepackedOutputStockOrders(totalQuantity, tsoGroup);
+            }
+          } else {
+            this.generateRepackedOutputStockOrders(totalQuantity, tsoGroup);
+          }
+        }),
+    );
+
+    this.subscriptions.push(
+      tsoGroup
+        .get('finalProduct')
+        .valueChanges.subscribe((value: ApiFinalProduct | null) =>
+          this.targetStockOrderFinalProductChange(value, tsoGroup),
+        ),
+    );
+
+    this.subscriptions.push(
+      tsoGroup
+        .get('semiProduct')
+        .valueChanges.subscribe((value: ApiFinalProduct | null) =>
+          this.targetStockOrderSemiProductChange(value, tsoGroup),
+        ),
+    );
+
+    // Set specific fields to default disabled state
+    if (!this.editing) {
+      tsoGroup.get('totalQuantity').disable({ emitEvent: false });
+    }
+  }
+
+  private targetStockOrderOutputQuantityChange() {
+    this.calcTotalOutputQuantity.emit();
+    this.calcRemainingQuantity.emit();
+  }
+
+  private targetStockOrderFinalProductChange(
+    finalProduct: ApiFinalProduct | null,
+    targetStockOrderGroup: UntypedFormGroup,
+  ) {
+    // Remove repacked outputs form array
+    targetStockOrderGroup.removeControl('repackedOutputsArray');
+
+    if (finalProduct) {
+      targetStockOrderGroup
+        .get('measureUnitType')
+        .setValue(finalProduct.measurementUnitType);
+      targetStockOrderGroup.get('totalQuantity').enable({ emitEvent: false });
+
+      // If selected processing action has set the option to repack output final product, set the form array control
+      if (this.selectedProcAction.repackedOutputFinalProducts) {
+        targetStockOrderGroup.addControl(
+          'repackedOutputsArray',
+          new UntypedFormArray([]),
+        );
+      }
+    } else {
+      targetStockOrderGroup.get('measureUnitType').setValue(null);
+      targetStockOrderGroup.get('totalQuantity').disable({ emitEvent: false });
+    }
+    targetStockOrderGroup.get('totalQuantity').setValue(null);
+  }
+
+  private targetStockOrderSemiProductChange(
+    semiProduct: ApiProcessingActionOutputSemiProduct | null,
+    targetStockOrderGroup: UntypedFormGroup,
+  ) {
+    // Remove repacked outputs form array
+    targetStockOrderGroup.removeControl('repackedOutputsArray');
+
+    if (semiProduct) {
+      targetStockOrderGroup
+        .get('measureUnitType')
+        .setValue(semiProduct.measurementUnitType);
+      targetStockOrderGroup.get('totalQuantity').enable({ emitEvent: false });
+
+      // If there is only one facility available for this semi-product set it by default
+      const facilitiesCodebook = this.semiProductOutputFacilitiesCodebooks.get(
+        semiProduct.id,
+      );
+      facilitiesCodebook
+        .getAllCandidates()
+        .pipe(take(1))
+        .subscribe((facilities) => {
+          if (facilities.length === 1) {
+            setTimeout(() => {
+              targetStockOrderGroup.get('facility').setValue(facilities[0]);
+            });
+          }
+        });
+
+      // If output semi-product has set option to repack outputs, add the form array control into the target Stock order
+      if (semiProduct.repackedOutput) {
+        targetStockOrderGroup.addControl(
+          'repackedOutputsArray',
+          new UntypedFormArray([]),
+        );
+      }
+    } else {
+      targetStockOrderGroup.get('facility').setValue(null);
+      targetStockOrderGroup.get('measureUnitType').setValue(null);
+      targetStockOrderGroup.get('totalQuantity').disable({ emitEvent: false });
+    }
+    targetStockOrderGroup.get('totalQuantity').setValue(null);
+  }
+}

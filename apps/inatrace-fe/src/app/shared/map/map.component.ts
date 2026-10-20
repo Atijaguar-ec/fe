@@ -1,0 +1,804 @@
+import {
+  AfterViewInit,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
+import { environment } from 'src/environments/environment';
+import * as mapboxgl from 'maplibre-gl';
+import { Observable, Subscription } from 'rxjs';
+import { ApiPlotCoordinate } from '../../../api/model/apiPlotCoordinate';
+import { PlotCoordinatesManagerService } from '../../shared-services/plot-coordinates-manager.service';
+import {
+  PlotActionWrapper,
+  PlotCoordinateAction,
+} from '../../shared-services/plot-coordinate-action-enum';
+import { ApiPlot } from '../../../api/model/apiPlot';
+import { GlobalEventManagerService } from '../../core/global-event-manager.service';
+import { Subject } from 'rxjs/internal/Subject';
+import { CompanyControllerService } from '../../../api/api/companyController.service';
+import { UntypedFormControl } from '@angular/forms';
+
+@Component({
+  selector: 'app-map',
+  templateUrl: './map.component.html',
+  styleUrls: ['./map.component.css'],
+  standalone: false,
+})
+export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
+  private map: mapboxgl.Map;
+  private MAPBOX_STYLE_BASE_PATH = 'mapbox://styles/mapbox/';
+
+  private MAPBOX_SOURCE_PREFIX = 'ina_plot_';
+
+  @Input()
+  mapId = 'map';
+
+  @Input()
+  plotCoordinateDeletionEvent: Observable<PlotCoordinateAction>;
+
+  @Input()
+  plotCoordinatesManager: PlotCoordinatesManagerService;
+
+  @Input()
+  showPlotSubject: Subject<boolean>;
+
+  @Input()
+  editMode = false;
+
+  @Input()
+  plotCoordinates: Array<ApiPlotCoordinate>; // used for adding/editing single plot
+
+  @Input()
+  plots: Array<ApiPlot>; // used for viewing multiple plots
+
+  @Input()
+  pin!: ApiPlotCoordinate;
+
+  @Input()
+  farmerId!: number;
+
+  @Input()
+  initialLat!: number;
+
+  @Input()
+  initialLng!: number;
+
+  @Output()
+  plotCoordinatesChange = new EventEmitter<Array<ApiPlotCoordinate>>();
+
+  @Output()
+  plotGeoIdChange = new EventEmitter<ApiPlot>();
+
+  @Output()
+  geoIdOpenChange = new EventEmitter<string>();
+
+  @Input()
+  showPlotVisible = false;
+
+  @Input()
+  editable!: boolean;
+
+  subscriptions: Subscription = new Subscription();
+  markers: Array<mapboxgl.Marker> = [];
+
+  mapStyle: UntypedFormControl = new UntypedFormControl(
+    'satellite-streets-v12',
+  );
+
+  constructor(
+    private globalEventsManager: GlobalEventManagerService,
+    private companyControllerService: CompanyControllerService,
+  ) {}
+
+  ngOnInit(): void {}
+
+  ngAfterViewInit() {
+    this.initializeMap();
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
+  handlePlotCoordinateEvent(actionWrapper: PlotActionWrapper) {
+    switch (actionWrapper.action) {
+      case PlotCoordinateAction.DELETE_LAST_COORDINATE:
+        this.undoLastPlotCoordinate();
+        break;
+      case PlotCoordinateAction.DELETE_PLOT:
+        this.deletePlot(actionWrapper.plotId);
+        break;
+      case PlotCoordinateAction.ADD_COORDINATE_CURRENT_LOCATION:
+        this.addPlotCoordinateCurrentLocation();
+        break;
+    }
+  }
+
+  getInitialMapExtremes(
+    coordinates: Array<ApiPlotCoordinate>,
+  ): [[number, number], [number, number]] {
+    let latMin = Number(coordinates[0].latitude);
+    let latMax = Number(coordinates[0].latitude);
+    let lngMin = Number(coordinates[0].longitude);
+    let lngMax = Number(coordinates[0].longitude);
+
+    coordinates.forEach((v) => {
+      let lat = Number(v.latitude);
+      let lng = Number(v.longitude);
+      if (latMax < lat) {
+        latMax = lat;
+      }
+      if (latMin > lat) {
+        latMin = lat;
+      }
+      if (lngMax < lng) {
+        lngMax = lng;
+      }
+      if (lngMin > lng) {
+        lngMin = lng;
+      }
+    });
+    const offset = 0.02;
+    return [
+      [lngMin - offset, latMin - offset],
+      [lngMax + offset, latMax + offset],
+    ];
+  }
+
+  setExistingPlots(plots: Array<ApiPlot>) {
+    this.markers.forEach((marker) => marker.remove());
+    this.markers = [];
+    this.plotCoordinates = [];
+
+    // Find the plots that shall be removed
+    const plotsToRemove: Array<ApiPlot> = [];
+    this.plots.forEach((plot) => {
+      const existingPlot = plots.find((p) => plot.plotName === p.plotName);
+      if (existingPlot == null) {
+        plotsToRemove.push(plot);
+      }
+    });
+
+    // Remove layers of plots that are removed
+    plotsToRemove.forEach((plot) => {
+      if (this.map.getLayer(plot.plotName)) {
+        this.map.removeLayer(plot.plotName);
+      }
+      const borderName = plot.plotName + 'Border';
+      if (this.map.getLayer(borderName)) {
+        this.map.removeLayer(borderName);
+      }
+
+      if (this.map.getSource(this.MAPBOX_SOURCE_PREFIX + plot.plotName)) {
+        this.map.removeSource(this.MAPBOX_SOURCE_PREFIX + plot.plotName);
+      }
+    });
+
+    const allPlotsCoordinates = [];
+    plots.forEach((plot) => {
+      if (plot.coordinates) {
+        const valid = plot.coordinates.filter(c => c && c.longitude != null && !isNaN(Number(c.longitude)) && c.latitude != null && !isNaN(Number(c.latitude)));
+        allPlotsCoordinates.push(...valid);
+      }
+    });
+
+    if (allPlotsCoordinates.length > 0) {
+      this.map.fitBounds(this.getInitialMapExtremes(allPlotsCoordinates));
+
+      plots.forEach((plot) => {
+        this.showPlot(
+          plot.plotName,
+          this.getCoordinatesArray(plot.coordinates),
+        );
+        this.setPlotCenterMarker(plot);
+      });
+    }
+  }
+
+  setExistingPlotCoordinates(coordinates: Array<ApiPlotCoordinate>) {
+    if (this.markers.length > 0) {
+      this.deletePlot();
+    }
+    const validCoords = coordinates ? coordinates.filter(c => c && c.longitude != null && !isNaN(Number(c.longitude)) && c.latitude != null && !isNaN(Number(c.latitude))) : [];
+    validCoords.forEach((v) => this.placeMarkerOnMap(Number(v.latitude), Number(v.longitude)));
+    if (validCoords.length > 0) {
+      this.map.fitBounds(this.getInitialMapExtremes(validCoords));
+    }
+    this.plotCoordinatesChange.emit(this.plotCoordinates);
+  }
+
+  undoLastPlotCoordinate() {
+    this.showPlotSubject.next(false);
+
+    const lastMarker = this.markers.pop();
+    lastMarker.remove();
+    this.plotCoordinates.pop();
+    this.plotCoordinatesChange.emit(this.plotCoordinates);
+
+    setTimeout(() => {
+      this.showPlotSubject.next(true);
+    }, 200);
+  }
+
+  deletePlot(plotId?: string) {
+    if (plotId) {
+      this.hidePlot(plotId);
+    } else {
+      this.markers.forEach((m) => m.remove());
+      this.markers = [];
+      this.plotCoordinates = [];
+      this.plotCoordinatesChange.emit(this.plotCoordinates);
+    }
+
+    setTimeout(() => {
+      this.showPlotSubject.next(false);
+    }, 200);
+  }
+
+  addPlotCoordinateCurrentLocation() {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        this.placeMarkerOnMap(lat, lng);
+        this.plotCoordinatesChange.emit(this.plotCoordinates);
+      },
+      (err) =>
+        console.error(
+          `Error while getting current location: ${err.code} ${err.message}`,
+        ),
+    );
+  }
+
+  initializeMap(): void {
+    if (this.editMode) {
+      if (
+        this.editable &&
+        (this.initialLat == null || this.initialLng == null)
+      ) {
+        this.flyToCurrentPosition();
+      }
+    } else {
+      if (
+        (!this.plots || this.plots.length === 0) &&
+        (this.initialLat == null || this.initialLng == null)
+      ) {
+        this.flyToCurrentPosition();
+      }
+    }
+    this.buildMap();
+
+    // Subscribe to Map style radio group changes
+    this.subscriptions.add(
+      this.mapStyle.valueChanges.subscribe((value) => {
+        if (this.map) {
+          if (!environment.mapboxAccessToken) {
+            console.warn('Mapbox Access Token is missing. Switching to free raster fallback style.');
+            this.map.setStyle(this.getFreeFallbackStyle(value));
+          } else {
+            this.map.setStyle(`${this.MAPBOX_STYLE_BASE_PATH}${value}`);
+          }
+        }
+      }),
+    );
+  }
+
+  getFreeFallbackStyle(value: string): any {
+    if (value === 'satellite-streets-v12') {
+      return {
+        version: 8,
+        sources: {
+          'esri-tiles': {
+            type: 'raster',
+            tiles: [
+              'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+            ],
+            tileSize: 256,
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS'
+          }
+        },
+        layers: [
+          {
+            id: 'esri-tiles-layer',
+            type: 'raster',
+            source: 'esri-tiles',
+            minzoom: 0,
+            maxzoom: 19
+          }
+        ]
+      };
+    } else {
+      return {
+        version: 8,
+        sources: {
+          'osm-tiles': {
+            type: 'raster',
+            tiles: [
+              'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            ],
+            tileSize: 256,
+            attribution: '&copy; OpenStreetMap contributors'
+          }
+        },
+        layers: [
+          {
+            id: 'osm-tiles-layer',
+            type: 'raster',
+            source: 'osm-tiles',
+            minzoom: 0,
+            maxzoom: 19
+          }
+        ]
+      };
+    }
+  }
+
+  flyToCurrentPosition(): void {
+    navigator.geolocation.getCurrentPosition((position) => {
+      if (this.map) {
+        this.map.flyTo({
+          center: [position.coords.longitude, position.coords.latitude],
+        });
+      }
+    });
+  }
+
+  buildMap(): void {
+    let mapStyleDefinition: any = `${this.MAPBOX_STYLE_BASE_PATH}${this.mapStyle.value}`;
+
+    if (!environment.mapboxAccessToken) {
+      console.warn(
+        'Mapbox Access Token is missing. Falling back to free raster tiles.',
+      );
+      mapStyleDefinition = this.getFreeFallbackStyle(this.mapStyle.value);
+    }
+ 
+    const mapOptions: any = {
+      accessToken: environment.mapboxAccessToken || 'INVALID_TOKEN_FALLBACK', // Maplibre internally demands a string here but won't validate it if tile source doesn't require it
+      container: this.mapId, // id of div that holds the map
+      style: mapStyleDefinition,
+      zoom: 10,
+      center: [this.initialLng ?? -78.1834, this.initialLat ?? -1.8312],
+      cooperativeGestures: true,
+    };
+    this.map = new mapboxgl.Map(mapOptions);
+
+    // disable map rotation using right click + drag
+    this.map.dragRotate.disable();
+
+    // disable map rotation using touch rotation gesture
+    this.map.touchZoomRotate.disableRotation();
+
+    this.map.on('click', (e) => this.mapClicked(e));
+    this.map.on('load', () => this.mapLoaded());
+
+    // Re-draw layers (polygons) when map style is loaded or conmuted
+    this.map.on('style.load', () => {
+      this.rebuildPlotsAndLayers();
+    });
+  }
+
+  rebuildPlotsAndLayers() {
+    if (!this.map) {
+      return;
+    }
+
+    if (!this.editMode) {
+      if (this.plots && this.plots.length > 0) {
+        this.plots.forEach((plot) => {
+          this.showPlot(
+            plot.plotName,
+            this.getCoordinatesArray(plot.coordinates),
+          );
+        });
+      }
+    } else {
+      if (this.showPlotVisible) {
+        this.showPlot(
+          'polygonPreview',
+          this.getCoordinatesArray(this.plotCoordinates),
+        );
+      }
+    }
+  }
+
+  placeMarkerOnMap(lat: number, lng: number, plot?: ApiPlot, isPin?: boolean) {
+    const idx = this.plotCoordinates.length;
+
+    // create a HTML element for each feature
+    const el = document.createElement('div');
+    el.classList.add('marker');
+    el.innerHTML = isPin
+      ? '<span></span>'
+      : '<span><b>' + (idx + 1) + '</b></span>';
+
+    if (plot) {
+      const cropLabel = $localize`:@@map.modal.crop.title:Crop:`;
+      const sizeLabel = $localize`:@@map.modal.size.title:Size:`;
+      const geoIdLabel = $localize`:@@map.modal.geoId.title:Geo-ID:`;
+      const openInGeoIdLabel = $localize`:@@map.modal.openInWhisp.title:Open in Whisp`;
+      const certificationLabel = $localize`:@@map.modal.certification.title:Certification:`;
+      let euOrganic = $localize`:@@map.modal.eu.organic.title:EU Organic`;
+      const name = plot.plotName;
+      let crop = plot.crop?.name;
+      if (crop === undefined) {
+        crop = '/';
+      }
+      let size: any = plot.size;
+      if (size === undefined) {
+        size = '/';
+      }
+      let unit = plot.unit;
+      if (unit === undefined) {
+        unit = '';
+      }
+
+      const buttonId = 'refresh-geo-btn-' + idx;
+      let geoId = plot.geoId;
+      if (geoId === undefined) {
+        const refreshText = $localize`:@@map.modal.button.refresh.title:Refresh`;
+        geoId = `<button id="${buttonId}" class="btn btn-sm popup-button">${refreshText}</button>`;
+      } else {
+        geoId = `<span class="geoid-content">${geoId}</span>`;
+      }
+
+      const buttonOpenGeoIdLink = 'open-whisp-a-' + idx;
+      let openGeoIdLinkHtml = '';
+      if (plot.geoId !== undefined) {
+        openGeoIdLinkHtml = `<div class="pt-2">
+                                <button id="${buttonOpenGeoIdLink}" class="btn btn-sm popup-button">${openInGeoIdLabel}</button>
+                             </div>`;
+      }
+
+      const isCertified = plot.organicStartOfTransition !== undefined;
+      if (!isCertified) {
+        euOrganic = '/';
+      }
+      const popupHtml = `<div class="marker-popup">
+                                  <div class="marker-popup-row-header">${name}</div>
+                                  <div class="marker-popup-row">
+                                    <div class="row-left">${cropLabel}</div>
+                                    <div class="row-right"><b>${crop}</b></div>
+                                  </div>
+                                  <div class="marker-popup-row">
+                                    <div class="row-left">${sizeLabel}</div>
+                                    <div class="row-right"><b>${size} ${unit}</b></div>
+                                  </div>
+                                  <div class="marker-popup-row">
+                                    <div class="row-left align-content-center geoid-label">${geoIdLabel}</div>
+                                    <div class="row-right"><b>${geoId}</b>
+                                      ${openGeoIdLinkHtml}
+                                    </div>
+                                  </div>
+                                  <div class="marker-popup-row">
+                                    <div class="row-left">${certificationLabel}</div>
+                                    <div class="row-right"><b>${euOrganic}</b></div>
+                                  </div>
+                                </div>`;
+
+      const popup = new mapboxgl.Popup({
+        anchor: 'top',
+        offset: { top: [0, -10] } as any,
+        closeOnClick: true,
+      }).setHTML(popupHtml);
+
+      if (plot.geoId === undefined) {
+        const farmerId = this.farmerId ?? plot['farmerId'];
+
+        popup.on('open', () => {
+          // popup opened so we fire an event
+          document.getElementById(buttonId).addEventListener('click', () => {
+            this.refreshGeoId(farmerId, plot, buttonId);
+          });
+        });
+      } else {
+        popup.on('open', () => {
+          // popup open when geoId exist
+          document
+            .getElementById(buttonOpenGeoIdLink)
+            .addEventListener('click', () => {
+              this.emitGeoIdOpenInWhispClick(plot.geoId);
+            });
+        });
+      }
+
+      // make a marker for each feature and add it to the map
+      const marker = new mapboxgl.Marker(el)
+        .setDraggable(false)
+        .setPopup(popup)
+        .setLngLat([lng, lat])
+        .addTo(this.map);
+
+      this.markers.push(marker);
+    } else {
+      // make a marker for each feature and add it to the map
+      const marker = new mapboxgl.Marker(el)
+        .setDraggable(true)
+        .setLngLat([lng, lat])
+        .addTo(this.map);
+
+      this.markers.push(marker);
+    }
+
+    const coord: ApiPlotCoordinate = {
+      latitude: lat,
+      longitude: lng,
+    };
+
+    this.plotCoordinates.push(coord);
+  }
+
+  refreshGeoId(farmerId: number, plot: ApiPlot, buttonId: string) {
+    this.companyControllerService
+      .refreshGeoIDForUserCustomerPlot(farmerId, plot.id!)
+      .subscribe((res) => {
+        const data = res.data;
+
+        if (data.geoId) {
+          plot.geoId = data.geoId;
+          this.showGeoIdInPopup(buttonId, data.geoId);
+        }
+
+        this.emitRefreshedData(data);
+      });
+  }
+
+  /**
+   * Deja el globo en el mismo estado en que se habria armado si la parcela ya hubiera
+   * llegado con geoId: el identificador como texto y, debajo, el boton para abrir Whisp.
+   *
+   * Hace falta porque el HTML del globo se construye una sola vez, al crear el marcador.
+   * Si en ese momento la parcela no tenia geoId, el boton "Open in Whisp" no se genera ni
+   * se le registra el listener. Antes esto solo reemplazaba el boton por el texto, y el
+   * usuario se quedaba viendo el Geo-ID sin nada que pulsar hasta recargar la pagina.
+   */
+  private showGeoIdInPopup(buttonId: string, geoId: string) {
+    const refreshButton = document.getElementById(buttonId);
+    if (!refreshButton) {
+      return;
+    }
+
+    const value = document.createElement('span');
+    value.classList.add('geoid-content');
+    value.textContent = geoId;
+
+    const openWhispButton = document.createElement('button');
+    openWhispButton.classList.add('btn', 'btn-sm', 'popup-button');
+    openWhispButton.textContent = $localize`:@@map.modal.openInWhisp.title:Open in Whisp`;
+    openWhispButton.addEventListener('click', () =>
+      this.emitGeoIdOpenInWhispClick(geoId),
+    );
+
+    const openWhispRow = document.createElement('div');
+    openWhispRow.classList.add('pt-2');
+    openWhispRow.appendChild(openWhispButton);
+
+    // El boton vive dentro del <b> de la fila del Geo-ID; el boton de Whisp es hermano
+    // suyo dentro de .row-right, igual que en el globo que se arma con geoId.
+    const row = refreshButton.closest('.row-right');
+    refreshButton.replaceWith(value);
+    if (row) {
+      row.appendChild(openWhispRow);
+    }
+  }
+
+  emitRefreshedData(plot: ApiPlot) {
+    this.plotGeoIdChange.emit(plot);
+  }
+
+  emitGeoIdOpenInWhispClick(geoId: string) {
+    this.geoIdOpenChange.emit(geoId);
+  }
+
+  // when the map is clicked, we add the plot-coordinate to the coordinates
+  mapClicked(e) {
+    if (!this.editable) {
+      return;
+    }
+
+    if (this.editMode) {
+      this.showPlotSubject.next(false);
+
+      const lng = e.lngLat.wrap()['lng'];
+      const lat = e.lngLat.wrap()['lat'];
+      this.placeMarkerOnMap(lat, lng);
+      this.plotCoordinatesChange.emit(this.plotCoordinates);
+
+      setTimeout(() => {
+        this.showPlotSubject.next(true);
+      }, 200);
+    }
+  }
+
+  async mapLoaded() {
+    this.map.resize();
+
+    if (this.plotCoordinatesManager) {
+      this.subscriptions.add(
+        this.plotCoordinatesManager.plotCoordinateAction$.subscribe(
+          (actionWrapper) => {
+            this.handlePlotCoordinateEvent(actionWrapper);
+          },
+        ),
+      );
+    }
+
+    if (!this.editMode) {
+      // load plots
+      if (this.plots && this.plots.length > 0) {
+        this.setExistingPlots(this.plots);
+      } else {
+        if (this.pin && this.pin.latitude != null && !isNaN(Number(this.pin.latitude)) && this.pin.longitude != null && !isNaN(Number(this.pin.longitude))) {
+          this.setPin(this.pin);
+          this.map.fitBounds(this.getInitialMapExtremes(this.plotCoordinates));
+        }
+      }
+    } else {
+      if (this.showPlotSubject) {
+        this.subscriptions.add(
+          this.showPlotSubject.asObservable().subscribe((show) => {
+            this.togglePlot(show);
+            this.showPlotVisible = show;
+          }),
+        );
+        // show plot at first
+        setTimeout(() => {
+          this.showPlotSubject.next(true);
+        }, 200);
+      }
+
+      // edit mode
+      if (this.plotCoordinates && this.plotCoordinates.length > 0) {
+        const plotCoordinates = [...this.plotCoordinates];
+        this.plotCoordinates = [];
+        this.setExistingPlotCoordinates(plotCoordinates);
+      }
+
+      if (!this.editable) {
+        this.markers.forEach((marker) => marker.setDraggable(false));
+      }
+    }
+  }
+
+  private setPin(pin: ApiPlotCoordinate) {
+    // remove all previous markers
+    this.markers.forEach((m) => m.remove());
+    this.markers = [];
+    this.plotCoordinates = [];
+
+    this.placeMarkerOnMap(pin.latitude, pin.longitude, null, true);
+    this.plotCoordinatesChange.emit(this.plotCoordinates);
+  }
+
+  showPlot(name: string, coordinates: number[][]) {
+    if (this.map.getLayer(name)) {
+      return;
+    }
+
+    if (coordinates.length < 3) {
+      return;
+    }
+
+    const sourceName = this.MAPBOX_SOURCE_PREFIX + name;
+
+    this.map.addSource(sourceName, {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [coordinates],
+        },
+        properties: {
+          name: 'polygon',
+        },
+      },
+    });
+
+    // Add a new layer to visualize the polygon.
+    this.map.addLayer({
+      id: name,
+      type: 'fill',
+      source: sourceName, // reference the data source
+      layout: {},
+      paint: {
+        'fill-color': '#999933',
+        'fill-opacity': 0.5,
+      },
+    });
+
+    const borderId = name + 'Border';
+
+    this.map.addLayer({
+      id: borderId,
+      type: 'line',
+      source: sourceName,
+      layout: {},
+      paint: {
+        'line-color': '#999933',
+        'line-width': 1,
+      },
+    });
+  }
+
+  hidePlot(plotName?: string) {
+    if (!plotName) {
+      if (this.map.getLayer('polygonPreview')) {
+        this.map.removeLayer('polygonPreview');
+      }
+      if (this.map.getLayer('polygonPreviewBorder')) {
+        this.map.removeLayer('polygonPreviewBorder');
+      }
+
+      if (this.map.getSource(this.MAPBOX_SOURCE_PREFIX + 'polygonPreview')) {
+        this.map.removeSource(this.MAPBOX_SOURCE_PREFIX + 'polygonPreview');
+      }
+    } else {
+      if (this.map.getLayer(plotName)) {
+        this.map.removeLayer(plotName);
+      }
+      const borderName = plotName + 'Border';
+      if (this.map.getLayer(borderName)) {
+        this.map.removeLayer(borderName);
+      }
+
+      if (this.map.getSource(this.MAPBOX_SOURCE_PREFIX + plotName)) {
+        this.map.removeSource(this.MAPBOX_SOURCE_PREFIX + plotName);
+      }
+    }
+  }
+
+  togglePlot(show: boolean) {
+    if (show) {
+      this.showPlot(
+        'polygonPreview',
+        this.getCoordinatesArray(this.plotCoordinates),
+      );
+    } else {
+      this.hidePlot();
+    }
+  }
+
+  getCoordinatesArray(plotCoordinates: ApiPlotCoordinate[]): number[][] {
+    if (!plotCoordinates || plotCoordinates.length === 0) {
+      return [];
+    }
+    const validCoords = plotCoordinates.filter(c => c && c.longitude != null && !isNaN(Number(c.longitude)) && c.latitude != null && !isNaN(Number(c.latitude)));
+    if (validCoords.length === 0) {
+      return [];
+    }
+    const coords = [];
+    validCoords.forEach((v) => coords.push([Number(v.longitude), Number(v.latitude)]));
+    coords.push(coords[0]);
+    return coords;
+  }
+
+  private setPlotCenterMarker(plot: ApiPlot) {
+    const plotCoordinates: ApiPlotCoordinate[] = plot.coordinates;
+
+    if (!plotCoordinates || plotCoordinates.length === 0) {
+      return;
+    }
+
+    let validCoords = plotCoordinates.filter(c => c && c.longitude != null && !isNaN(Number(c.longitude)) && c.latitude != null && !isNaN(Number(c.latitude)));
+    if (validCoords.length === 0) return;
+
+    let lonCenter = validCoords.reduce(
+      (sum, element) => (sum += Number(element.longitude)),
+      0,
+    );
+    lonCenter = lonCenter / validCoords.length;
+
+    let latCenter = validCoords.reduce(
+      (sum, element) => (sum += Number(element.latitude)),
+      0,
+    );
+    latCenter = latCenter / validCoords.length;
+
+    this.placeMarkerOnMap(latCenter, lonCenter, plot);
+  }
+}

@@ -1,0 +1,47 @@
+.keypad-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 360px;
+  margin: 0 auto;
+  user-select: none;
+}
+
+.keypad-btn {
+  /* Size requirements: min 48x48px */
+  min-height: 64px;
+  min-width: 64px;
+  font-size: 28px;
+  border-radius: 12px;
+  border: 1px solid #4a5568;
+  background-color: #2d3748;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.keypad-btn:active {
+  background-color: #4a5568;
+  transform: translateY(2px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn {
+  background-color: #e2e8f0;
+  color: #1a202c;
+  font-weight: bold;
+}
+
+.action-btn:active {
+  background-color: #cbd5e1;
+}
+
+.backspace-btn {
+  grid-column: span 3;
+  font-size: 20px;
+}

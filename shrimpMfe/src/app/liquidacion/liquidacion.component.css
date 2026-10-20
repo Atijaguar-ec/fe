@@ -1,0 +1,98 @@
+.page {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.equation-board {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fcf8;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 30px;
+  margin-top: 10px;
+  margin-bottom: 30px;
+}
+
+.eq-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  flex: 1;
+}
+
+.eq-in { border-top: 4px solid var(--ina-primary); }
+.eq-out { border-top: 4px solid var(--ina-secondary); }
+.eq-shrink { border-top: 4px solid #e53e3e; }
+.eq-shrink.negative { border-top: 4px solid #dd6b20; }
+
+.eq-title { font-size: 0.9rem; font-weight: 700; color: #718096; margin-bottom: 12px; }
+.eq-value { font-size: 2.2rem; font-weight: 800; color: #2d3748; line-height: 1; }
+.eq-label { font-size: 0.85rem; color: #a0aec0; margin-top: 8px; font-style: italic; }
+
+.eq-equal, .eq-plus {
+  font-size: 2.5rem;
+  font-weight: 300;
+  color: #cbd5e0;
+  padding: 0 20px;
+}
+
+.outputs-list {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.outputs-list h3 {
+  margin: 0 0 16px 0;
+  font-size: 1.1rem;
+  color: #2d3748;
+}
+
+.outputs-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.outputs-list li {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #edf2f7;
+}
+.outputs-list li:last-child { border: none; }
+
+.out-dest { font-weight: bold; width: 150px; }
+.out-talla { color: #718096; flex: 1; }
+.out-lbs { color: var(--ina-primary); font-size: 1.1rem; margin-right: 10px; }
+
+.actions {
+  text-align: right;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 20px;
+}
+
+.btn-primary {
+  background: var(--ina-primary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(153,153,51,0.3);
+}

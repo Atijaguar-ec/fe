@@ -1,0 +1,72 @@
+@import '../../../variables';
+
+.icon-inside {
+  position: absolute;
+  right: 10px;
+  top: calc(50% - 12px);
+  pointer-events: none;
+  font-size: 1.125rem;
+  color: #c4c3c3;
+  z-index: 3;
+}
+
+.prefix-or-suffix-input-wrapper {
+  display: flex;
+  background-color: #ffffff;
+  border: 1px solid #ced4da;
+  border-radius: 5px;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+
+  &:focus-within {
+    border-color: $theme-primary-light;
+    box-shadow: 0 0 0 0.2rem $theme-primary-light;
+  }
+}
+
+.prefix-or-suffix-text-input {
+  border: none;
+  transition: none;
+
+  &:focus {
+    box-shadow: none;
+  }
+}
+
+.prefix,
+.suffix {
+  position: relative;
+  display: flex;
+  align-items: center;
+  color: #7b7b93;
+}
+
+.prefix {
+  padding-left: 8px;
+}
+
+.suffix {
+  padding-right: 8px;
+}
+
+.input-wrapper.small-input {
+  line-height: 1.5rem;
+  font-size: 0.8rem;
+
+  input {
+    height: 1.5rem;
+    font-size: 0.8rem;
+    padding-top: 0;
+    padding-bottom: 0;
+
+    &:disabled {
+      margin-right: 8px;
+    }
+  }
+
+  .prefix,
+  .suffix {
+    white-space: nowrap;
+  }
+}

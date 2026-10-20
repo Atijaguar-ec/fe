@@ -4,18 +4,19 @@ Open-source blockchain-based track and trace system for an agricultural commodit
 chain run. It provides transparency and creation of trust through
 digitalization of supply chains, connects every actor along the supply chain, assures quality and fair pricing.
 
-Project is composed of 3 parts:
+Project is composed of 4 parts:
 
-* [Angular frontend](https://github.com/INATrace/fe/tree/main)
+* [Frontend application](https://github.com/INATrace/fe/tree/main)
+* [Mobile app](https://github.com/INATrace/mobile/tree/main)
 * [Java backend](https://github.com/INATrace/backend/tree/main)
 * [Coffee network](https://github.com/INATrace/coffee-network/tree/main)
 
 # INATrace 2
 This new major release includes new functionalities, refactorings, optimizations and bugfixes. The most important additions and changes are:
-* Added support for generic value chains. Different value chains with it's specific settings can now be configured in the system.
+* Added support for generic value chains. Different value chains with its specific settings can now be configured in the system.
 * Multi-tenant system support.
 * Reorganized the content in the Product section. This section now includes only the content that is related to a product.
-* Introduced a new section "Company". This section includes all the content that is related with the company's work process within the value chain.
+* Introduced a new section "Company". This section includes all the content that is related to the company's work process within the value chain.
 * The configuration of farmers and collectors is decoupled from the product, and it's part of the Company section.
 * Added support for importing farmers from a provided Excel file.
 * The company customers are now decoupled from the Stakeholders in the product section and are configured as part of the Company section.
@@ -26,11 +27,14 @@ This new major release includes new functionalities, refactorings, optimizations
 * Translation for facilities, processing actions, semi-products and processing evidence types and fields can be provided in the system as part of it's definition.
 * Added support for currencies in the system. The enabled currencies can be selected in the system settings. These currencies then appear as select options in various parts of the system where the user is expected to select a currency.
 * Added exchange rates for the enabled currencies that are synced on a daily basis. The currencies data is provided by the https://exchangeratesapi.io/ API.
-* The product section now includes Final products. Final products represent the output of a final processing. The final products can be configured by the product admin company.
-* When placing customer order, now we select a final product instead of a sellable semi-product.
+* The product section now includes Final products. Final products represent the output of the final processing. The final products can be configured by the product admin company.
+* When placing a customer order, now we select a final product instead of a sellable semi-product.
 * Added support for new types of processing actions.
 * Added support for bulk purchases for semi-products.
 * Various changes and addition of new functionalities for purchases, processing and payments.
+
+# Technical Documentation
+For detailed technical documentation, please refer to [TECHNICAL_DOCUMENTATION.md](https://github.com/agstack/inatrace-backend/blob/main/TECHNICAL_DOCUMENTATION.md)
 
 # Frontend
 
@@ -40,74 +44,6 @@ This new major release includes new functionalities, refactorings, optimizations
 * Node 14
 * Angular 10
 * Docker
-
----
-
-## Despliegue en producción: Nginx y Docker
-
----
-
-## Aplicar cambios de configuración (nginx.conf)
-
-Cada vez que realices cambios en el archivo `nginx.conf` (o cualquier otro archivo de configuración relevante para el frontend), debes reconstruir la imagen Docker y volver a desplegar el contenedor para que los cambios tengan efecto.
-
-### Pasos para aplicar los cambios:
-
-1. **Construye la nueva imagen del frontend:**
-   ```bash
-   cd /opt/fe
-   ./docker-build.sh inatrace-fe latest
-   ```
-
-2. **Detén y elimina el contenedor anterior:**
-   ```bash
-   docker stop inatrace-fe || true
-   docker rm inatrace-fe || true
-   ```
-
-3. **Levanta el nuevo contenedor con Docker Compose:**
-   ```bash
-   cd /opt/fe/.ci
-   docker compose --env-file .env -f docker-compose.yml up -d --force-recreate
-   ```
-
-4. **Verifica el estado y los logs:**
-   ```bash
-   docker ps
-   docker logs inatrace-fe --tail 100
-   ```
-
-### Notas importantes:
-- Si el backend (`inatrace-be`) no está corriendo, el proxy `/api/` fallará.
-- El archivo `nginx.conf` es la única configuración relevante de Nginx en producción (los otros archivos han sido eliminados para evitar confusión).
-- Si necesitas exponer la API a otros orígenes, revisa los headers CORS en el bloque proxy de nginx.conf.
-
----
-
-- El archivo de configuración de Nginx que se usa por defecto en la imagen Docker del frontend es `fe/nginx.conf`, ya que así está definido en el Dockerfile (`COPY nginx.conf /etc/nginx/nginx.conf`).
-- Los archivos `nginx-docker-compose.conf` y `nginx-production.conf` son variantes avanzadas y solo se usan si los montas explícitamente al correr el contenedor (por ejemplo, con `-v $(pwd)/nginx-docker-compose.conf:/etc/nginx/nginx.conf:ro`).
-- El archivo `.ci/docker-compose.yml` lanza el contenedor del frontend usando la imagen generada y la configuración interna (`nginx.conf`). No hace bind-mount de ningún archivo de configuración por defecto.
-- Si necesitas cambiar la configuración de Nginx en producción, edita `nginx.conf`, reconstruye la imagen y vuelve a desplegar. Si quieres probar una variante, monta el archivo deseado con Docker Compose agregando un volumen.
-
-**Ejemplo de despliegue con Compose:**
-```bash
-cd fe/.ci
-# Asegúrate de que IMAGE_NAME y TAG están correctos en .env
-docker compose --env-file .env -f docker-compose.yml up -d --force-recreate
-```
-
-**Para usar una configuración alternativa de Nginx:**
-Agrega un volumen en docker-compose.yml:
-```yaml
-    volumes:
-      - ../nginx-docker-compose.conf:/etc/nginx/nginx.conf:ro
-```
-
-**IMPORTANTE:**
-- El proxy de `/api/` es gestionado por Nginx en producción. El frontend Angular solo debe hacer peticiones a rutas relativas (`/api/...`). Los archivos de proxy como `proxy.INATrace-local.conf.json` solo se usan en desarrollo local con Angular CLI (`ng serve`).
-
----
-
 * WebStorm or VS Code (recommended)
 * VS Code pluggins:
   * Debugger for Chrome
@@ -121,7 +57,7 @@ Agrega un volumen en docker-compose.yml:
 	
 2. Run ```npm install```
 
-3. Open project in IDE of choice
+3. Open the project in IDE of choice
 
 4. Generate API client from Java backend by running `npm run generate-api`
 
@@ -176,11 +112,11 @@ If the user has multiple companies, an active company can be selected in the "Us
 
 ![Products_icon](docs/images/icon-products.svg)
 
-Each company has its products which are visible in the products tab which is opened by clicking the above icon.
+Each company has its products, which are visible in the products tab which is opened by clicking the above icon.
 
 #### Product settings
 
-Each product can contain information like name, picture, origin, data about social responsibility, enviromental sustainability, etc. This is defined in the "Product settings".
+Each product can contain information like name, picture, origin, data about social responsibility, environmental sustainability, etc. This is defined in the "Product settings".
 
 #### QR labels
 
@@ -210,7 +146,7 @@ Final products are retail products for sale to the end customers.
 
 #### B2C settings
 
-The public facing B2C page has editable colors, fonts and content to allow for corporate identity compliance. The settings are visible on `Product settings` and `QR labels` tabs.
+The public-facing B2C page has editable colors, fonts and content to allow for corporate identity compliance. The settings are visible on `Product settings` and `QR labels` tabs.
 
 The B2C configuration on the `Product settings` is automatically inherited by QR labels. If QR labels define another value, this value overrides the product values. This way QR labels inherit product settings by default, but can be changed on a label-by-label basis.
 
@@ -249,7 +185,7 @@ Shows deliveries of semi-products from farmers and collectors. By selecting a fa
 
 #### Processing
 
-This is where processing actions are recorded e.g. roasting green coffee beans to make roasted coffee beans. Input and output items and quantity are defined and processing evidence can be added.
+This is where processing actions are recorded, e.g., roasting green coffee beans to make roasted coffee beans. Input and output items and quantity are defined and processing evidence can be added.
 
 ![Company_processing](docs/images/inatrace_company_processing_action.png)
 ![Company_processing](docs/images/inatrace_company_processing_action_quantities.png)
@@ -269,7 +205,7 @@ Here, farmers and collectors with their personal and banking details are recorde
 
 ### Dashboard
 
-The Dashboard contains graphical representation of selected Company data. Currently, there is support for display the Deliveries for selected time frame and displaying processing performance for selected Processing action and time frame.
+The Dashboard contains a graphical representation of selected Company data. Currently, there is support for displaying the Deliveries for the selected time frame and displaying processing performance for the selected Processing action and time frame.
 
 #### Deliveries
 
@@ -283,7 +219,7 @@ For every graphical representation section, the user can export the data for the
 
 ### Settings
 
-This section is dedicated to system settings. Settings are accessible by clicking the cog icon in the sidebar. This menu is only available for system administrators. Companies, users, value chains, currencies and settings are configured are configured on these pages.
+This section is dedicated to system settings. Settings are accessible by clicking the cog icon in the sidebar. This menu is only available for system administrators. Companies, users, value chains, currencies and settings are configured on these pages.
 
 #### Companies
 
@@ -307,7 +243,7 @@ Under the "Settings" page and "Types" tab, we can find constants and system-leve
 
 #### Value chains
 
-Value chains are listed on this tab. From here, create a new or edit an existing value chain. Value chains contains Facility types, Measuring unit types and other constants added in the types settings.
+Value chains are listed on this tab. From here, create a new or edit an existing value chain. Value chains contain Facility types, Measuring unit types and other constants added in the types settings.
 
 ![INAtrace_settings_value_chains](docs/images/inatrace_settings_value_chains_details.png)
 

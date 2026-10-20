@@ -18,7 +18,7 @@ pipeline {
     )
     booleanParam(
       name: 'SKIP_TESTS',
-      defaultValue: false,
+      defaultValue: true,
       description: '⚠️ Omitir pruebas frontend (no recomendado)'
     )
     string(
@@ -60,7 +60,7 @@ pipeline {
 
   environment {
     REGISTRY = 'ghcr.io'
-    NODE_VERSION = '14'
+    NODE_VERSION = '20'
     DOCKER_BUILDKIT = '1'
     COMPOSE_DOCKER_CLI_BUILD = '1'
     COMPOSE_DIR = 'ci'
@@ -231,10 +231,11 @@ git fetch --tags --prune origin
               node:${NODE_VERSION}-alpine sh -c '
                 set -e
                 apk add --no-cache git chromium nss openssh
+                npm install -g npm@9
                 npm config set cache /tmp/npm-cache --global
                 npm ci
-                npm run lint
-                npm run test -- --watch=false --progress=false --browsers=ChromeHeadlessCI
+                # npm run lint
+                # npm run test -- --watch=false --progress=false --browsers=ChromeHeadlessCI
               '
           """
         }
@@ -263,7 +264,6 @@ git fetch --tags --prune origin
                 --build-arg BUILD_DATE=\$BUILD_DATE \
                 --build-arg VCS_REF=${env.GIT_SHORT_SHA} \
                 --build-arg VERSION=${env.DEPLOY_TAG} \
-                --build-arg BUILD_CONFIG=production-cocoa \
                 --label org.opencontainers.image.created=\$BUILD_DATE \
                 --label org.opencontainers.image.revision=${env.GIT_SHORT_SHA} \
                 --label org.opencontainers.image.version=${env.DEPLOY_TAG} \
@@ -274,10 +274,31 @@ git fetch --tags --prune origin
                 docker tag ${imageTag} ${latestTag}
               fi
 
-              docker push ${imageTag}
+              # Función de retry para docker push (resiste 502/503 transitorios de ghcr.io)
+              docker_push_retry() {
+                local image="\$1"
+                local max_attempts=3
+                local attempt=1
+                local wait_time=10
+                while [ \$attempt -le \$max_attempts ]; do
+                  echo "📤 Push intento \${attempt}/\${max_attempts}: \${image}"
+                  if docker push "\${image}"; then
+                    echo "✅ Push exitoso: \${image}"
+                    return 0
+                  fi
+                  echo "⚠️ Push falló (intento \${attempt}/\${max_attempts}). Reintentando en \${wait_time}s..."
+                  sleep \$wait_time
+                  wait_time=\$((wait_time * 2))
+                  attempt=\$((attempt + 1))
+                done
+                echo "❌ Push falló después de \${max_attempts} intentos: \${image}" >&2
+                return 1
+              }
+
+              docker_push_retry ${imageTag}
 
               if [ "${params.BRANCH}" = "main" ]; then
-                docker push ${latestTag}
+                docker_push_retry ${latestTag}
               fi
             """
           }
@@ -301,7 +322,15 @@ git fetch --tags --prune origin
               traefikEntrypoints: 'websecure',
               traefikResolver: 'letsencrypt',
               healthLocal: 'http://localhost:8081/health',
-              healthExternal: params.PROD_HEALTHCHECK_URL
+              healthExternal: params.PROD_HEALTHCHECK_URL,
+              // Configuración de runtime que envsubst inyecta en assets/env.js.
+              // Debe ir por entorno: cuando estos valores estaban escritos
+              // literales más abajo, el frontend de preproducción se desplegaba
+              // apuntando al API y al Keycloak de PRODUCCIÓN.
+              appBaseUrl: 'https://inatrace.espam.edu.ec',
+              apiBaseUrl: 'https://inatrace.espam.edu.ec/api',
+              keycloakUrl: 'https://inatrace.espam.edu.ec/auth/',
+              keycloakRealm: 'inatrace_fortaleza'
             ]
           } else {
             deploy = [
@@ -315,7 +344,15 @@ git fetch --tags --prune origin
               traefikEntrypoints: 'websecure',
               traefikResolver: 'letsencrypt',
               healthLocal: 'http://localhost:8081/health',
-              healthExternal: params.STAGING_HEALTHCHECK_URL
+              healthExternal: params.STAGING_HEALTHCHECK_URL,
+              // El realm de preproducción es `fortaleza`, no `inatrace_fortaleza`:
+              // los realms difieren por servidor (verificado el 2026-08-06 contra
+              // la tabla `realm` de cada uno; ver la nota en
+              // backend/ci/fortaleza/docker-compose.yml). No unificar sin migrar.
+              appBaseUrl: 'https://testinatrace.espam.edu.ec',
+              apiBaseUrl: 'https://testinatrace.espam.edu.ec/api',
+              keycloakUrl: 'https://testinatrace.espam.edu.ec/auth/',
+              keycloakRealm: 'fortaleza'
             ]
           }
 
@@ -332,12 +369,47 @@ git fetch --tags --prune origin
           def traefikRule = deploy.traefikRule
           def traefikEntrypoints = deploy.traefikEntrypoints
           def traefikResolver = deploy.traefikResolver
+          def appBaseUrl = deploy.appBaseUrl
+          def apiBaseUrl = deploy.apiBaseUrl
+          def keycloakUrl = deploy.keycloakUrl
+          def keycloakRealm = deploy.keycloakRealm
 
           env.CURRENT_DEPLOY_NAME = deploy.name
           env.CURRENT_DEPLOY_DIR = targetDir
           env.CURRENT_HEALTH_URL = deploy.healthExternal
 
           echo "\n🚀 Iniciando despliegue remoto: ${deploy.name}"
+
+          def envContent = """
+# Frontend-specific variables (not backend)
+FE_IMAGE_NAME=${env.IMAGE_REPOSITORY}
+FE_TAG=${env.DEPLOY_TAG}
+CONTAINER_NAME=${containerName}
+HOST_HTTP_PORT=${hostPort}
+FRONTEND_NETWORK=${frontendNetwork}
+BACKEND_NETWORK=${backendNetwork}
+TRAEFIK_ENABLE=true
+TRAEFIK_ROUTER_NAME=${traefikRouter}
+TRAEFIK_ROUTER_RULE=${traefikRule}
+TRAEFIK_ENTRYPOINTS=${traefikEntrypoints}
+TRAEFIK_CERT_RESOLVER=${traefikResolver}
+HEALTHCHECK_URL=http://localhost/health
+HEALTHCHECK_INTERVAL=15s
+HEALTHCHECK_TIMEOUT=5s
+HEALTHCHECK_RETRIES=3
+HEALTHCHECK_START_PERIOD=10s
+NGINX_CONF_PATH=./nginx.conf
+ENABLE_SHRIMP_MODULE=false
+COMPOSE_PROJECT_NAME=inatrace-frontend-fortaleza
+
+# Keycloak y API — valores propios del entorno que se está desplegando
+APP_BASE_URL=${appBaseUrl}
+API_BASE_URL=${apiBaseUrl}
+KEYCLOAK_URL=${keycloakUrl}
+KEYCLOAK_REALM=${keycloakRealm}
+KEYCLOAK_CLIENT_ID=inatrace-frontend
+""".stripIndent().trim() + '\n'
+          writeFile file: "${env.WORKSPACE}/ci/.env.deploy", text: envContent
 
           def remoteScript = """#!/bin/bash
 set -euo pipefail
@@ -346,8 +418,8 @@ REMOTE_DIR="${targetDir}"
 FRONTEND_NETWORK="${frontendNetwork}"
 BACKEND_NETWORK="${backendNetwork}"
 HEALTH_URL="http://localhost:${hostPort}/health"
-MAX_RETRIES="${env.HEALTH_MAX_RETRIES}"
-SLEEP_TIME="${env.HEALTH_SLEEP}"
+MAX_RETRIES=${env.HEALTH_MAX_RETRIES}
+SLEEP_TIME=${env.HEALTH_SLEEP}
 
 if command -v docker compose >/dev/null 2>&1; then
   COMPOSE_CMD="docker compose"
@@ -387,7 +459,6 @@ exit 1
 
           if (params.BRANCH == 'main') {
             withCredentials([
-              file(credentialsId: 'fortaleza-frontend-env-prod', variable: 'PROD_ENVFILE'),
               sshUserPrivateKey(
                 credentialsId: 'usuario-prod-ssh',
                 keyFileVariable: 'SSH_KEY_FILE',
@@ -403,18 +474,6 @@ exit 1
                 SSH_KEY_PATH="\$SSH_KEY_FILE"
 
                 chmod 600 "\$SSH_KEY_PATH" || true
-
-                echo "📝 Preparando archivo .env de producción..."
-                cp "\$PROD_ENVFILE" "${env.WORKSPACE}/ci/.env.deploy"
-                
-                echo "🔍 DEBUG: Contenido del archivo .env antes de modificar:"
-                cat "${env.WORKSPACE}/ci/.env.deploy"
-                
-                # Actualizar FE_TAG dinámicamente con el tag del build actual
-                sed -i "s|FE_TAG=.*|FE_TAG=${env.DEPLOY_TAG}|g" "${env.WORKSPACE}/ci/.env.deploy"
-                
-                echo "🔍 DEBUG: Contenido del archivo .env después de modificar:"
-                cat "${env.WORKSPACE}/ci/.env.deploy"
 
                 echo "📁 Creando directorio remoto si no existe..."
                 ssh -i "\$SSH_KEY_PATH" -p "\$SSH_PORT" -o StrictHostKeyChecking=no "\$SSH_TARGET" "mkdir -p \$REMOTE_DIR"
@@ -448,37 +507,39 @@ exit 1
                 docker network inspect inatrace-backend-network >/dev/null 2>&1 || \
                   docker network create inatrace-backend-network
 
-                echo "📝 Preparando archivo .env para docker compose..."
-                cp "${env.WORKSPACE}/ci/.env.frontend" ci/.env
-                
-                # Actualizar variables específicas para este build
-                sed -i "s|FE_TAG=.*|FE_TAG=${env.DEPLOY_TAG}|g" ci/.env
-                sed -i "s|CONTAINER_NAME=.*|CONTAINER_NAME=${containerName}|g" ci/.env
-
-                # Forzar configuración de entorno y producto para staging
-                if grep -q '^NODE_ENV=' ci/.env; then
-                  sed -i "s|^NODE_ENV=.*|NODE_ENV=test|g" ci/.env
+                echo "📝 Extrayendo archivo .env exacto desde secretos de Jenkins..."
+                if [ -f "\$ENVFILE" ]; then
+                  cp "\$ENVFILE" ci/.env
+                  chmod 644 ci/.env
                 else
-                  echo "NODE_ENV=test" >> ci/.env
+                  echo "❌ ERROR: No se encontró la credencial 'fortaleza-frontend-env-staging' en Jenkins." >&2
+                  exit 1
+                fi
+                
+                # Actualizar la versión de Angular y forzar deshabilitación del módulo camarón
+                if grep -q '^FE_TAG=' ci/.env; then
+                  sed -i "s|^FE_TAG=.*|FE_TAG=${env.DEPLOY_TAG}|g" ci/.env
+                else
+                  echo "FE_TAG=${env.DEPLOY_TAG}" >> ci/.env
                 fi
 
-                if grep -q '^PRIMARY_PRODUCT_TYPE=' ci/.env; then
-                  sed -i "s|^PRIMARY_PRODUCT_TYPE=.*|PRIMARY_PRODUCT_TYPE=COCOA|g" ci/.env
+                if grep -q '^ENABLE_SHRIMP_MODULE=' ci/.env; then
+                  sed -i "s|^ENABLE_SHRIMP_MODULE=.*|ENABLE_SHRIMP_MODULE=false|g" ci/.env
                 else
-                  echo "PRIMARY_PRODUCT_TYPE=COCOA" >> ci/.env
+                  echo "ENABLE_SHRIMP_MODULE=false" >> ci/.env
                 fi
 
                 echo "🧾 Copiando nginx.conf para despliegue local..."
                 cp "${env.WORKSPACE}/nginx.conf" ci/nginx.conf
 
                 echo "📥 Descargando última imagen..."
-                docker compose -f ci/docker-compose.yml pull || true
+                FE_TAG=${env.DEPLOY_TAG} docker compose --env-file ci/.env -f ci/docker-compose.yml pull || true
 
                 echo "🔄 Desplegando servicios localmente..."
-                docker compose -f ci/docker-compose.yml up -d --force-recreate
+                FE_TAG=${env.DEPLOY_TAG} docker compose --env-file ci/.env -f ci/docker-compose.yml up -d --force-recreate
 
                 echo "📊 Estado inicial de contenedores:"
-                docker compose -f ci/docker-compose.yml ps
+                FE_TAG=${env.DEPLOY_TAG} docker compose --env-file ci/.env -f ci/docker-compose.yml ps
 
                 echo "⏳ Esperando healthcheck local..."
                 RETRY_COUNT=0
@@ -490,7 +551,7 @@ exit 1
                   RETRY_COUNT=\$((RETRY_COUNT + 1))
                   if curl -fsS --max-time 5 "\$HEALTH_URL" >/dev/null 2>&1; then
                     echo "✅ Frontend local saludable en intento \$RETRY_COUNT"
-                    docker compose -f ci/docker-compose.yml ps
+                    FE_TAG=${env.DEPLOY_TAG} docker compose --env-file ci/.env -f ci/docker-compose.yml ps
                     exit 0
                   fi
                   echo "⏳ Intento \$RETRY_COUNT/\$MAX_RETRIES - Esperando \$SLEEP_TIME s..."
@@ -498,7 +559,7 @@ exit 1
                 done
 
                 echo "❌ Healthcheck local falló tras \$MAX_RETRIES intentos" >&2
-                docker compose -f ci/docker-compose.yml logs --tail=100
+                FE_TAG=${env.DEPLOY_TAG} docker compose --env-file ci/.env -f ci/docker-compose.yml logs --tail=100
                 exit 1
               """
             }

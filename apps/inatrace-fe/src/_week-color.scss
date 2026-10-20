@@ -1,0 +1,26 @@
+// Color de la semana (calendario de Fortaleza). Es solo informativo: identifica el
+// hilo con el que se marca cada saco en bodega. Se usa junto a cada campo que muestra
+// el N° de Semana, por eso vive en un parcial y no en un componente.
+.week-color {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  // Alinea con el input de al lado, que lleva su etiqueta encima.
+  padding-top: 28px;
+
+  &__dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &--bordered {
+      border: 1px solid #b0b0b0;
+    }
+  }
+
+  &__name {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+}

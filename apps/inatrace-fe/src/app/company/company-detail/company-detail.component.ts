@@ -1,0 +1,602 @@
+import { Location } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import {
+  UntypedFormArray,
+  UntypedFormControl,
+  UntypedFormGroup,
+} from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { BehaviorSubject, forkJoin, Subscription } from 'rxjs';
+import { take } from 'rxjs/operators';
+import { CompanyControllerService } from 'src/api/api/companyController.service';
+import { ApiCompany } from 'src/api/model/apiCompany';
+import { ApiCompanyGet } from 'src/api/model/apiCompanyGet';
+import { defaultEmptyObject, generateFormFromMetadata } from 'src/shared/utils';
+import { CountryService } from '../../shared-services/countries.service';
+import { GlobalEventManagerService } from '../../core/global-event-manager.service';
+import {
+  ApiCompanyDocumentValidationScheme,
+  ApiCompanyGetValidationScheme,
+} from './validation';
+import { environment } from 'src/environments/environment';
+import { ApiResponseApiBaseEntity } from 'src/api/model/apiResponseApiBaseEntity';
+import { ApiCertification } from 'src/api/model/apiCertification';
+import { ListEditorManager } from '../../shared/list-editor/list-editor-manager';
+import { ApiCertificationValidationScheme } from '../../m-product/product-label/validation';
+import { ApiCompanyDocument } from 'src/api/model/apiCompanyDocument';
+import { CompanyDetailTabManagerComponent } from './company-detail-tab-manager/company-detail-tab-manager.component';
+import { CurrenciesService } from '../../shared-services/currencies.service';
+import { AuthService } from '../../core/auth.service';
+import { ApiValueChain } from '../../../api/model/apiValueChain';
+import { ActiveValueChainService } from '../../shared-services/active-value-chain.service';
+import { ValueChainControllerService } from '../../../api/api/valueChainController.service';
+import { ListNotEmptyValidator } from '../../../shared/validation';
+import { SemiProductControllerService } from '../../../api/api/semiProductController.service';
+import {
+  WEEK_COLOR_CODES_KEY,
+  WEEK_NUMBERING_SCHEME_KEY,
+} from '../../shared-services/week-number.util';
+
+@Component({
+  selector: 'app-company-detail',
+  templateUrl: './company-detail.component.html',
+  styleUrls: ['./company-detail.component.scss'],
+  standalone: false,
+})
+export class CompanyDetailComponent
+  extends CompanyDetailTabManagerComponent
+  implements OnInit, OnDestroy
+{
+  rootTab = 0;
+
+  company: ApiCompany = {
+    headquarters: {},
+  };
+
+  _companyErrorStatus$: BehaviorSubject<string>;
+  companyDetailForm: UntypedFormGroup;
+  countries: any = [];
+  socialMediaForm: UntypedFormGroup;
+  socialMediaDEForm: UntypedFormGroup;
+  _hideWebPageField$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
+    true,
+  );
+  _hideFacebookField$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
+    true,
+  );
+  _hideInstagramField$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
+    true,
+  );
+  _hideTwitterField$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
+    true,
+  );
+  _hideYouTubeField$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
+    true,
+  );
+  _hideOtherField$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
+    true,
+  );
+
+  faTimes = faTimes;
+
+  rootImageUrl: string = environment.relativeImageUploadUrlAllSizes;
+
+  submitted = false;
+  title = '';
+
+  sub: Subscription;
+  valueChainsCodebook: ActiveValueChainService;
+  valueChainsForm = new UntypedFormControl(null);
+  onlyOrganicProductionControl = new UntypedFormControl(false);
+  onlyNacionalVarietyControl = new UntypedFormControl(false);
+  enableParcelLotControl = new UntypedFormControl(false);
+  numericVarietyOptionsControl = new UntypedFormControl(false);
+  firstMondayWeekNumberingControl = new UntypedFormControl(false);
+  weekColorCodesControl = new UntypedFormControl(false);
+  parcelLotFreeTextControl = new UntypedFormControl(false);
+  fixedPricePerUnitControl = new UntypedFormControl(false);
+
+  /**
+   * Precio fijo por semiproducto. Recepcion no conoce el precio y se actualiza
+   * semanalmente, asi que lo carga aca un administrador y en Entregas sale solo
+   * lectura. Se guarda en configuration.fixedPricesBySemiProduct como
+   * { idSemiProducto: precio }; el precio ya guardado en cada entrega no cambia.
+   */
+  semiProductPrices: Array<{ id: number; label: string; control: UntypedFormControl }> = [];
+
+  /**
+   * Lo que traia la empresa, para devolverlo tal cual si la lista de semiproductos no
+   * llego a cargarse: sin esto, guardar la empresa con la lista vacia borraria todos
+   * los precios configurados.
+   */
+  private loadedFixedPrices: { [key: string]: any } = {};
+  private semiProductPricesLoaded = false;
+
+  valueChains: Array<ApiValueChain> = [];
+  selectedCompanyValueChainsControl = new UntypedFormControl(null, [
+    ListNotEmptyValidator(),
+  ]);
+
+  certificationListManager = null;
+  videosListManager = null;
+  productionRecordListManager = null;
+  meetTheFarmerListManager = null;
+
+  companySection = {
+    anchor: 'COMPANY_GENERAL',
+    title: $localize`:@@companyDetail.companySection.general:Company`,
+  };
+
+  companyHeadquartersSection = {
+    anchor: 'COMPANY_HEADQUARTERS',
+    title: $localize`:@@companyDetail.companySection.headquarters:Company headquarters`,
+  };
+
+  socialMediaSection = {
+    anchor: 'COMPANY_SOCIAL_MEDIA',
+    title: $localize`:@@companyDetail.companySection.socialMedia:Social media`,
+  };
+
+  toc = [
+    this.companySection,
+    this.companyHeadquartersSection,
+    this.socialMediaSection,
+  ];
+
+  constructor(
+    protected route: ActivatedRoute,
+    private location: Location,
+    protected companyController: CompanyControllerService,
+    private valueChainController: ValueChainControllerService,
+    protected globalEventsManager: GlobalEventManagerService,
+    public countryCodes: CountryService,
+    public currencyCodes: CurrenciesService,
+    protected router: Router,
+    protected authService: AuthService,
+    private semiProductController: SemiProductControllerService,
+  ) {
+    super(router, route, authService, companyController);
+  }
+
+  static generateSocialMediaForm() {
+    return new UntypedFormGroup({
+      facebook: new UntypedFormControl(null),
+      instagram: new UntypedFormControl(null),
+      twitter: new UntypedFormControl(null),
+      youtube: new UntypedFormControl(null),
+      other: new UntypedFormControl(null),
+    });
+  }
+
+  static ApiCertificationCreateEmptyObject(): ApiCertification {
+    const obj = ApiCertification.formMetadata();
+    return defaultEmptyObject(obj) as ApiCertification;
+  }
+
+  static ApiCertificationEmptyObjectFormFactory(): () => UntypedFormControl {
+    return () => {
+      return new UntypedFormControl(
+        CompanyDetailComponent.ApiCertificationCreateEmptyObject(),
+        ApiCertificationValidationScheme.validators,
+      );
+    };
+  }
+
+  static ApiCompanyDocumentCreateEmptyObject(): ApiCompanyDocument {
+    const obj = ApiCompanyDocument.formMetadata();
+    return defaultEmptyObject(obj) as ApiCompanyDocument;
+  }
+
+  static ApiCompanyDocumentEmptyObjectFormFactory(): () => UntypedFormControl {
+    return () => {
+      return new UntypedFormControl(
+        CompanyDetailComponent.ApiCompanyDocumentCreateEmptyObject(),
+        ApiCompanyDocumentValidationScheme.validators,
+      );
+    };
+  }
+
+  ngOnInit(): void {
+    super.ngOnInit();
+    this._companyErrorStatus$ = new BehaviorSubject<string>('');
+    if (this.mode === 'update') {
+      this.title = $localize`:@@companyDetail.title.edit:Edit company`;
+      this.getCompany();
+    } else {
+      this.title = $localize`:@@companyDetail.title.add:Add company`;
+      this.newCompany();
+    }
+
+    this.valueChainsCodebook = new ActiveValueChainService(
+      this.valueChainController,
+    );
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    if (this.sub) {
+      this.sub.unsubscribe();
+    }
+  }
+
+  public canDeactivate(): boolean {
+    return !this.companyDetailForm || !this.companyDetailForm.dirty;
+  }
+
+  openOnStart(value: any) {
+    return true;
+  }
+
+  async addSelectedValueChain(valueChain: ApiValueChain) {
+    if (!valueChain) {
+      return;
+    }
+    if (this.valueChains.some((vch) => vch?.id === valueChain?.id)) {
+      setTimeout(() => this.valueChainsForm.setValue(null));
+      return;
+    }
+    this.valueChains.push(valueChain);
+    setTimeout(() => {
+      this.selectedCompanyValueChainsControl.setValue(this.valueChains);
+      this.companyDetailForm.markAsDirty();
+      this.valueChainsForm.setValue(null);
+    });
+  }
+
+  deleteValueChain(idx: number) {
+    this.confirmValueChainRemove().then((confirmed) => {
+      if (confirmed) {
+        this.valueChains.splice(idx, 1);
+        setTimeout(() =>
+          this.selectedCompanyValueChainsControl.setValue(this.valueChains),
+        );
+        this.companyDetailForm.markAsDirty();
+      }
+    });
+  }
+
+  private async confirmValueChainRemove(): Promise<boolean> {
+    const result = await this.globalEventsManager.openMessageModal({
+      type: 'warning',
+      message: $localize`:@@companyDetailValueChainModal.removeValueChain.confirm.message:Are you sure you want to remove the value chain? Processing on these value chains will not work anymore.`,
+      options: {
+        centered: true,
+      },
+    });
+
+    return result === 'ok';
+  }
+
+  get mode() {
+    const id = this.route.snapshot.params.id;
+    return id == null ? 'create' : 'update';
+  }
+
+  getCompany(): void {
+    this._companyErrorStatus$.next('');
+    this.globalEventsManager.showLoading(true);
+    const id = +this.route.snapshot.paramMap.get('id');
+
+    this.sub = forkJoin([
+      this.companyController.getCompany(id).pipe(take(1)),
+    ]).subscribe({
+      next: ([company]) => {
+        this.company = company.data;
+        if (!this.company.headquarters) {
+          this.company.headquarters = this.emptyObject().headquarters;
+        }
+
+        if (company.data.valueChains) {
+          this.valueChains = company.data.valueChains
+            ? company.data.valueChains
+            : [];
+          this.selectedCompanyValueChainsControl.setValue(this.valueChains);
+        }
+
+        this.companyDetailForm = generateFormFromMetadata(
+          ApiCompanyGet.formMetadata(),
+          company.data,
+          ApiCompanyGetValidationScheme,
+        );
+        this.socialMediaForm = CompanyDetailComponent.generateSocialMediaForm();
+        (this.companyDetailForm as UntypedFormGroup).setControl(
+          'mediaLinks',
+          this.socialMediaForm,
+        );
+        (this.companyDetailForm as UntypedFormGroup).setControl(
+          'valueChains',
+          this.selectedCompanyValueChainsControl,
+        );
+        this.companyDetailForm.updateValueAndValidity();
+
+        this.fillWebPageAndSocialMediaForm();
+        this.initializeListManagers();
+
+        const config = company.data.configuration || {};
+        this.onlyOrganicProductionControl.setValue(!!config.onlyOrganicProduction);
+        this.onlyNacionalVarietyControl.setValue(!!config.onlyNacionalVariety);
+        this.enableParcelLotControl.setValue(!!config.enableParcelLot);
+        this.numericVarietyOptionsControl.setValue(!!config.numericVarietyOptions);
+        this.firstMondayWeekNumberingControl.setValue(
+          config[WEEK_NUMBERING_SCHEME_KEY] === 'FIRST_MONDAY');
+        this.weekColorCodesControl.setValue(!!config[WEEK_COLOR_CODES_KEY]);
+        this.parcelLotFreeTextControl.setValue(!!config.parcelLotFreeText);
+        this.fixedPricePerUnitControl.setValue(!!config.fixedPricePerUnit);
+        this.loadSemiProductPrices(config.fixedPricesBySemiProduct).then();
+
+        // If user is not enrolled in company enrolled, disable the form
+        if (!this.isCompanyAdmin) {
+          this.companyDetailForm.disable();
+          this.valueChainsForm.disable();
+          this.onlyOrganicProductionControl.disable();
+          this.onlyNacionalVarietyControl.disable();
+          this.enableParcelLotControl.disable();
+          this.numericVarietyOptionsControl.disable();
+          this.firstMondayWeekNumberingControl.disable();
+          this.weekColorCodesControl.disable();
+          this.parcelLotFreeTextControl.disable();
+          this.fixedPricePerUnitControl.disable();
+        }
+
+        this.globalEventsManager.showLoading(false);
+      },
+      error: (error) => {
+        this._companyErrorStatus$.next(error.error.status);
+        this.globalEventsManager.showLoading(false);
+      },
+    });
+  }
+
+  emptyObject() {
+    return {
+      headquarters: {
+        address: null,
+        city: null,
+        country: null,
+        state: null,
+        zip: null,
+      },
+    } as ApiCompanyGet;
+  }
+
+  newCompany() {
+    this.loadSemiProductPrices().then();
+    this.companyDetailForm = generateFormFromMetadata(
+      ApiCompanyGet.formMetadata(),
+      this.emptyObject(),
+      ApiCompanyGetValidationScheme,
+    );
+    this.socialMediaForm = CompanyDetailComponent.generateSocialMediaForm();
+    (this.companyDetailForm as UntypedFormGroup).setControl(
+      'mediaLinks',
+      this.socialMediaForm,
+    );
+    (this.companyDetailForm as UntypedFormGroup).setControl(
+      'valueChains',
+      this.selectedCompanyValueChainsControl,
+    );
+    this.companyDetailForm.updateValueAndValidity();
+    this.initializeListManagers();
+  }
+
+  fillWebPageAndSocialMediaForm(): void {
+    if (!!this.company.webPage) {
+      this._hideWebPageField$.next(false);
+    }
+    for (const [key, value] of Object.entries(this.company.mediaLinks)) {
+      if (key === 'facebook' && !!value) {
+        this._hideFacebookField$.next(false);
+        this.socialMediaForm.get('facebook').setValue(value);
+      }
+      if (key === 'instagram' && !!value) {
+        this._hideInstagramField$.next(false);
+        this.socialMediaForm.get('instagram').setValue(value);
+      }
+      if (key === 'twitter' && !!value) {
+        this._hideTwitterField$.next(false);
+        this.socialMediaForm.get('twitter').setValue(value);
+      }
+      if (key === 'youtube' && !!value) {
+        this._hideYouTubeField$.next(false);
+        this.socialMediaForm.get('youtube').setValue(value);
+      }
+      if (key === 'other' && !!value) {
+        this._hideOtherField$.next(false);
+        this.socialMediaForm.get('other').setValue(value);
+      }
+    }
+    this.companyDetailForm.updateValueAndValidity();
+  }
+
+  get changed() {
+    return this.companyDetailForm.dirty;
+  }
+
+  goBack(): void {
+    this.router.navigate(['companies']).then(() => window.location.reload());
+  }
+
+  async saveCompany() {
+    this.submitted = true;
+    if (this.companyDetailForm.invalid) {
+      this.globalEventsManager.push({
+        action: 'error',
+        notificationType: 'error',
+        title: $localize`:@@companyDetail.saveCompany.error.title:Error`,
+        message: $localize`:@@companyDetail.saveCompany.error.message:Errors on page. Please check!`,
+      });
+      return;
+    }
+
+    try {
+      this.globalEventsManager.showLoading(true);
+      const params = this.route.snapshot.params;
+      const companyId = params.id ? +params.id : undefined;
+
+      // Build a clean payload for ApiCompanyUpdate.
+      // The form is generated from ApiCompanyGet which contains
+      // response-only fields (actions, companyRoles, supportsCollectors)
+      // that the PUT endpoint does not accept.
+      const formValue = { ...this.companyDetailForm.value };
+      delete formValue.actions;
+      delete formValue.companyRoles;
+      delete formValue.supportsCollectors;
+
+      formValue.configuration = formValue.configuration || {};
+      formValue.configuration.onlyOrganicProduction = !!this.onlyOrganicProductionControl.value;
+      formValue.configuration.onlyNacionalVariety = !!this.onlyNacionalVarietyControl.value;
+      formValue.configuration.enableParcelLot = !!this.enableParcelLotControl.value;
+      formValue.configuration.numericVarietyOptions = !!this.numericVarietyOptionsControl.value;
+      formValue.configuration[WEEK_NUMBERING_SCHEME_KEY] =
+        this.firstMondayWeekNumberingControl.value ? 'FIRST_MONDAY' : 'ISO';
+      formValue.configuration[WEEK_COLOR_CODES_KEY] = !!this.weekColorCodesControl.value;
+      formValue.configuration.parcelLotFreeText = !!this.parcelLotFreeTextControl.value;
+      formValue.configuration.fixedPricePerUnit = !!this.fixedPricePerUnitControl.value;
+      formValue.configuration.fixedPricesBySemiProduct = this.collectSemiProductPrices();
+
+      const res: ApiResponseApiBaseEntity = await this.companyController
+        .updateCompany({ ...formValue, id: companyId })
+        .pipe(take(1))
+        .toPromise();
+      if (res && res.status === 'OK') {
+        this.companyDetailForm.markAsPristine();
+      }
+    } catch (e) {
+    } finally {
+      this.globalEventsManager.showLoading(false);
+    }
+  }
+
+  /**
+   * Arma la fila de precio de cada semiproducto y le pone el valor ya configurado.
+   * La etiqueta lleva la unidad de medida porque el precio es por unidad y no
+   * significa lo mismo en libras que en kilos.
+   */
+  private async loadSemiProductPrices(configuredPrices?: { [key: string]: any }) {
+    this.loadedFixedPrices = configuredPrices ?? {};
+    this.semiProductPricesLoaded = false;
+
+    // Al crear una empresa isCompanyAdmin todavia es false (no hay empresa donde estar
+    // inscripto): ahi los precios deben poder escribirse igual que el resto del alta.
+    const readOnly = this.mode === 'update' && !this.isCompanyAdmin;
+
+    try {
+      const response = await this.semiProductController
+        .getSemiProductListByMap({ limit: 1000, offset: 0 })
+        .pipe(take(1))
+        .toPromise();
+
+      this.semiProductPrices = (response?.data?.items ?? []).map((semiProduct) => {
+        const price = configuredPrices?.[String(semiProduct.id)];
+        const control = new UntypedFormControl(price ?? null);
+        if (readOnly) {
+          control.disable();
+        }
+        return {
+          id: semiProduct.id,
+          label: `${semiProduct.name}${
+            semiProduct.measurementUnitType?.label
+              ? ' (' + semiProduct.measurementUnitType.label + ')'
+              : ''
+          }`,
+          control,
+        };
+      });
+      this.semiProductPricesLoaded = true;
+    } catch (_) {
+      this.semiProductPrices = [];
+      this.semiProductPricesLoaded = false;
+    }
+  }
+
+  /** Solo se guardan los semiproductos con precio cargado. */
+  private collectSemiProductPrices(): { [key: string]: number } {
+    if (!this.semiProductPricesLoaded) {
+      return this.loadedFixedPrices as { [key: string]: number };
+    }
+
+    const prices = {};
+    for (const row of this.semiProductPrices) {
+      const value = row.control.value;
+      if (value !== null && value !== undefined && value !== '' && !isNaN(Number(value))) {
+        prices[String(row.id)] = Number(value);
+      }
+    }
+    return prices;
+  }
+
+  async create() {
+    this.submitted = true;
+    this._companyErrorStatus$.next('');
+
+    if (this.companyDetailForm.invalid) {
+      this.globalEventsManager.push({
+        action: 'error',
+        notificationType: 'error',
+        title: $localize`:@@companyDetail.create.error.title:Error`,
+        message: $localize`:@@companyDetail.create.error.message:Errors on page. Please check!`,
+      });
+      return;
+    }
+
+    try {
+      this.globalEventsManager.showLoading(true);
+      const formValue = { ...this.companyDetailForm.value };
+      formValue.configuration = formValue.configuration || {};
+      formValue.configuration.onlyOrganicProduction = !!this.onlyOrganicProductionControl.value;
+      formValue.configuration.onlyNacionalVariety = !!this.onlyNacionalVarietyControl.value;
+      formValue.configuration.enableParcelLot = !!this.enableParcelLotControl.value;
+      formValue.configuration.numericVarietyOptions = !!this.numericVarietyOptionsControl.value;
+      formValue.configuration[WEEK_NUMBERING_SCHEME_KEY] =
+        this.firstMondayWeekNumberingControl.value ? 'FIRST_MONDAY' : 'ISO';
+      formValue.configuration[WEEK_COLOR_CODES_KEY] = !!this.weekColorCodesControl.value;
+      formValue.configuration.parcelLotFreeText = !!this.parcelLotFreeTextControl.value;
+      formValue.configuration.fixedPricePerUnit = !!this.fixedPricePerUnitControl.value;
+      formValue.configuration.fixedPricesBySemiProduct = this.collectSemiProductPrices();
+
+      const res: ApiResponseApiBaseEntity = await this.companyController
+        .createCompany(formValue)
+        .pipe(take(1))
+        .toPromise();
+      if (res && res.status === 'OK') {
+        this.companyDetailForm.markAsPristine();
+        this.goBack();
+      }
+    } catch (e) {
+    } finally {
+      this.globalEventsManager.showLoading(false);
+    }
+  }
+
+  onFileUpload(event) {
+    // console.log(event)
+  }
+  validate() {
+    this.submitted = true;
+  }
+
+  initializeListManagers() {
+    this.certificationListManager = new ListEditorManager<ApiCertification>(
+      this.companyDetailForm.get('certifications') as UntypedFormArray,
+      CompanyDetailComponent.ApiCertificationEmptyObjectFormFactory(),
+      ApiCertificationValidationScheme,
+    );
+    this.videosListManager = new ListEditorManager<ApiCompanyDocument>(
+      this.companyDetailForm.get('documents') as UntypedFormArray,
+      CompanyDetailComponent.ApiCompanyDocumentEmptyObjectFormFactory(),
+      ApiCompanyDocumentValidationScheme,
+    );
+    this.productionRecordListManager =
+      new ListEditorManager<ApiCompanyDocument>(
+        this.companyDetailForm.get('documents') as UntypedFormArray,
+        CompanyDetailComponent.ApiCompanyDocumentEmptyObjectFormFactory(),
+        ApiCompanyDocumentValidationScheme,
+      );
+    this.meetTheFarmerListManager = new ListEditorManager<ApiCompanyDocument>(
+      this.companyDetailForm.get('documents') as UntypedFormArray,
+      CompanyDetailComponent.ApiCompanyDocumentEmptyObjectFormFactory(),
+      ApiCompanyDocumentValidationScheme,
+    );
+  }
+}

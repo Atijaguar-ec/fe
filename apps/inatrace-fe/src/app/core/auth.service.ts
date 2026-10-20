@@ -1,0 +1,127 @@
+import { Injectable } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { of, ReplaySubject } from 'rxjs';
+import { catchError, take } from 'rxjs/operators';
+import { UserControllerService } from 'src/api/api/userController.service';
+import { ApiUserGet } from 'src/api/model/apiUserGet';
+import { LanguageCodeHelper } from '../language-code-helper';
+import Keycloak from 'keycloak-js';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AuthService {
+  private readonly pathsToIgnoreRefresh = ['login', 'p-cd', 'q-cd'];
+
+  private readonly userProfileSubject = new ReplaySubject<ApiUserGet | null>(1);
+  userProfile$ = this.userProfileSubject.asObservable();
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private userController: UserControllerService,
+    private keycloak: Keycloak,
+  ) {
+    let skipRefresh = false;
+    this.route.snapshot.children.forEach((routeChild) => {
+      skipRefresh = routeChild.url
+        .map((urlSegment) => urlSegment.path)
+        .some((path) => this.pathsToIgnoreRefresh.includes(path));
+      if (skipRefresh) {
+        return;
+      }
+    });
+
+    if (!skipRefresh) {
+      setTimeout(() => this.refreshUserProfile());
+    }
+  }
+
+  private async refreshUserProfile() {
+    try {
+      const resp = await this.userController.getProfileForUser().toPromise();
+
+      if (resp) {
+        if (resp.data.language) {
+          LanguageCodeHelper.setCurrentLocale(resp.data.language.toLowerCase());
+          localStorage.setItem(
+            'inatraceLocale',
+            resp.data.language.toLowerCase(),
+          );
+        }
+        this.userProfileSubject.next(resp.data);
+      } else {
+        this.userProfileSubject.next(null);
+      }
+    } catch (error) {
+      this.userProfileSubject.next(null);
+    }
+  }
+
+  login(username: string, password: string, redirect = null) {
+    this.userController
+      .login({
+        username,
+        password,
+      })
+      .pipe(
+        catchError(() => {
+          return of(null);
+        }),
+      )
+      .subscribe(() => {
+        this.refreshUserProfile().then(() => {
+          if (redirect !== null) {
+            if (typeof redirect === 'string') {
+              this.router.navigate([redirect]).then();
+            }
+            if (Array.isArray(redirect)) {
+              this.router.navigate(redirect).then();
+            }
+          }
+        });
+      });
+  }
+
+  async logout() {
+    sessionStorage.clear();
+    localStorage.clear();
+
+    try {
+      await this.userController.logout().pipe(take(1)).toPromise();
+    } catch (e) {
+      console.warn('Logout API call failed, forcing client logout', e);
+    } finally {
+      this.userProfileSubject.next(null);
+
+      // Cerrar sesión de Keycloak (SSO) y redirigir al login
+      const currentUrl = window.location.origin;
+      try {
+        await this.keycloak.logout({ redirectUri: currentUrl });
+      } catch (e) {
+        console.warn('Keycloak logout failed, redirecting manually', e);
+        this.router.navigate(['/login']).then();
+      }
+    }
+  }
+
+  register(email, password, name, surname, redirect = null) {
+    this.userController
+      .createUser({
+        email,
+        name,
+        password,
+        surname,
+      })
+      .pipe(
+        catchError(() => {
+          return of(null);
+        }),
+      )
+      .subscribe(() => {
+        if (redirect !== null) {
+          this.router.navigate([redirect]).then();
+        }
+      });
+  }
+}
