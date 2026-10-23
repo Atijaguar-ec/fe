@@ -895,6 +895,22 @@ La pantalla es la forma prevista de hacerlo; no se toca la BD a mano.
   certificación queda vacía y editable (§12) hasta que UNOCACE la cargue.
 - Los agricultores sin lotes no pueden vender (§12.1).
 
+### 19.3-bis Quién traduce cada error (2026-10-22)
+
+Dos caminos distintos y no hay que mezclarlos:
+
+- **Incidencia por elemento** (`ApiPlotGeoJsonImportIssue.type`): viaja como enum y la
+  traduce esta pantalla, en `issueLabel()`. Sigue igual.
+- **Problema del archivo entero** (no es JSON, no es un `FeatureCollection`, CRS
+  proyectado, elementos que no se pueden guardar): viaja como texto plano en
+  `errorMessage` y el toast lo pinta tal cual, así que **lo traduce el backend** con
+  las claves `plotImport.*` (`backend/agent-context.md` §19.4-bis). No lo vuelvas a
+  traducir aquí: duplicarías el mensaje y se desincronizaría.
+
+El backend elige el idioma por la cabecera `language`, que pone el
+`LanguageInterceptor` en toda petición de `HttpClient` — también en el `post` a pelo
+de `uploadGeoData` en `company-farmers-details.component.ts`.
+
 ### 19.4 Pruebas
 
 ```bash

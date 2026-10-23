@@ -548,11 +548,17 @@ export class CompanyFarmersDetailsComponent implements OnInit, OnDestroy {
       fileInput.value = '';
       this.ngOnInit();
     } catch (err: any) {
+      // The backend sends errorMessage already translated (i18n plotImport.*), and it
+      // names the problem with the file, so it is shown as it comes. Anything else --
+      // a 413 from nginx, a network error -- would be an English Angular string, so it
+      // goes to the console and the user gets the translated fallback.
       const errMsg =
         err?.error?.errorMessage ||
         err?.error?.message ||
-        err?.message ||
         $localize`:@@companyFarmersDetails.uploadGeoDataError:Error al cargar los geodatos`;
+      if (!err?.error?.errorMessage) {
+        console.error('uploadGeoData failed', err);
+      }
       this.toastr.error(errMsg);
     } finally {
       this.globalEventsManager.showLoading(false);
