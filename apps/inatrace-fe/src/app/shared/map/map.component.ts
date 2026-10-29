@@ -84,6 +84,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   subscriptions: Subscription = new Subscription();
   markers: Array<mapboxgl.Marker> = [];
+  plotPopups: Map<string, mapboxgl.Popup> = new Map();
 
   mapStyle: UntypedFormControl = new UntypedFormControl(
     'satellite-streets-v12',
@@ -153,6 +154,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.markers.forEach((marker) => marker.remove());
     this.markers = [];
     this.plotCoordinates = [];
+    this.plotPopups.clear();
 
     // Find the plots that shall be removed
     const plotsToRemove: Array<ApiPlot> = [];
@@ -190,11 +192,11 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       this.map.fitBounds(this.getInitialMapExtremes(allPlotsCoordinates));
 
       plots.forEach((plot) => {
+        this.setPlotCenterMarker(plot);
         this.showPlot(
           plot.plotName,
           this.getCoordinatesArray(plot.coordinates),
         );
-        this.setPlotCenterMarker(plot);
       });
     }
   }
@@ -438,17 +440,18 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       const buttonId = 'refresh-geo-btn-' + idx;
-      let geoId = plot.geoId;
-      if (geoId === undefined) {
+      const hasGeoId = !!(plot.geoId && String(plot.geoId).trim() !== '' && plot.geoId !== 'null');
+      let geoIdContent = '';
+      if (!hasGeoId) {
         const refreshText = $localize`:@@map.modal.button.refresh.title:Refresh`;
-        geoId = `<button id="${buttonId}" class="btn btn-sm popup-button">${refreshText}</button>`;
+        geoIdContent = `<button id="${buttonId}" class="btn btn-sm popup-button">${refreshText}</button>`;
       } else {
-        geoId = `<span class="geoid-content">${geoId}</span>`;
+        geoIdContent = `<span class="geoid-content">${plot.geoId}</span>`;
       }
 
       const buttonOpenGeoIdLink = 'open-whisp-a-' + idx;
       let openGeoIdLinkHtml = '';
-      if (plot.geoId !== undefined) {
+      if (hasGeoId) {
         openGeoIdLinkHtml = `<div class="pt-2">
                                 <button id="${buttonOpenGeoIdLink}" class="btn btn-sm popup-button">${openInGeoIdLabel}</button>
                              </div>`;
@@ -470,7 +473,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
                                   </div>
                                   <div class="marker-popup-row">
                                     <div class="row-left align-content-center geoid-label">${geoIdLabel}</div>
-                                    <div class="row-right"><b>${geoId}</b>
+                                    <div class="row-right"><b>${geoIdContent}</b>
                                       ${openGeoIdLinkHtml}
                                     </div>
                                   </div>
@@ -486,25 +489,25 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         closeOnClick: true,
       }).setHTML(popupHtml);
 
-      if (plot.geoId === undefined) {
-        const farmerId = this.farmerId ?? plot['farmerId'];
-
-        popup.on('open', () => {
-          // popup opened so we fire an event
-          document.getElementById(buttonId).addEventListener('click', () => {
-            this.refreshGeoId(farmerId, plot, buttonId);
-          });
-        });
-      } else {
-        popup.on('open', () => {
-          // popup open when geoId exist
-          document
-            .getElementById(buttonOpenGeoIdLink)
-            .addEventListener('click', () => {
-              this.emitGeoIdOpenInWhispClick(plot.geoId);
-            });
-        });
+      if (plot.plotName) {
+        this.plotPopups.set(plot.plotName, popup);
       }
+
+      const farmerId = this.farmerId ?? plot['farmerId'];
+      popup.on('open', () => {
+        const refreshBtn = document.getElementById(buttonId);
+        if (refreshBtn) {
+          refreshBtn.onclick = () => {
+            this.refreshGeoId(farmerId, plot, buttonId);
+          };
+        }
+        const openWhispBtn = document.getElementById(buttonOpenGeoIdLink);
+        if (openWhispBtn) {
+          openWhispBtn.onclick = () => {
+            this.emitGeoIdOpenInWhispClick(plot.geoId);
+          };
+        }
+      });
 
       // make a marker for each feature and add it to the map
       const marker = new mapboxgl.Marker(el)
@@ -723,6 +726,21 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         'line-width': 1,
       },
     });
+
+    if (name && name !== 'polygonPreview') {
+      this.map.on('click', name, (e: any) => {
+        const popup = this.plotPopups.get(name);
+        if (popup) {
+          popup.setLngLat(e.lngLat).addTo(this.map);
+        }
+      });
+      this.map.on('mouseenter', name, () => {
+        this.map.getCanvas().style.cursor = 'pointer';
+      });
+      this.map.on('mouseleave', name, () => {
+        this.map.getCanvas().style.cursor = '';
+      });
+    }
   }
 
   hidePlot(plotName?: string) {
