@@ -18,8 +18,8 @@ El Frontend no redacta manualmente sus modelos que mapean al backend. Utiliza **
 Todo elemento del antiguo flujo lógico de "Shrimp" (Camarones) ha sido completamente mitigado de la aplicación base. El enfoque actual está regido por los procesos de acopio de **Cacao para Fortaleza del Valle**:
 1. **Modelos Predictivos (UI-Calc Mode)**: En componentes clave de formularios (como `stock-delivery-details`), la UI está obligada a proveer feedback predictivo instantáneo al agricultor. 
    - **Fórmula válida (es la del backend, que es el que persiste):**
-     `Base = Bruto − Tara − Merma` · `Descuento humedad = Base × Humedad% / 100` (2 decimales, HALF_UP) · `Neto = Base − Descuento humedad`.
-     ⚠️ Hasta 2026-09-15 este archivo decía `Neto = (Bruto − Tara) × Humedad% / 100`: eso es el **descuento**, no el neto. No "corrijas" el código hacia esa fórmula. Ver `backend/agent-context.md` §5.
+     `Entregado = Bruto − Tara` · `Descuento humedad = Entregado × Humedad% / 100` (2 decimales, HALF_UP) · `Neto = Entregado − Descuento humedad − Merma`.
+     ⚠️ Regla UNOCACE (Trello #32): el descuento por humedad se aplica a la cantidad entregada en baba (`Bruto - Tara`), y luego se descuenta la merma/peso dañado. Con $CL=100$, $DH=30\%$ y $DP=1$, $Neto = 100 - 30 - 1 = 69.00$ (no 69.30). Ver `backend/agent-context.md` §5.
    - Se procesa localmente en los hooks como `setToBePaid()`.
 2. **Validaciones Numéricas**: Se emplean FormArrays explícitos de Angular (`validation.ts`) controlando fronteras lógicas (`[Validators.min(0), Validators.max(100)]` para variables como la humedad del grano).
 3. Todo campo vital de Cacao (Variedad, Semana, Humedad, Parcela) opera mediante `ReactiveForms`.

@@ -612,7 +612,84 @@
 
             <div
               class="af-row"
-              *ngIf="showDamagedWeightDeduction || showQuotaBalance"
+              *ngIf="showMoisturePercentage || (showQuotaBalance && !showDamagedWeightDeduction)"
+            >
+              <div class="af-c6" *ngIf="showMoisturePercentage">
+                <textinput
+                  [form]="stockOrderForm.get('moisturePercentage')"
+                  label="Moisture discount (%)"
+                  i18n-label="
+                    @@productLabelStockPurchaseOrdersModal.textinput.moistureDiscount.label"
+                  style="width: 100%"
+                  placeholder="Enter moisture discount"
+                  i18n-placeholder="
+                    @@productLabelStockPurchaseOrdersModal.textinput.moistureDiscount.placeholder"
+                  [isInvalid]="
+                    submitted &&
+                    stockOrderForm.get('moisturePercentage').invalid
+                  "
+                  [readOnly]="readonlyMoisturePercentage"
+                >
+                  <ng-container *ngIf="submitted">
+                    <div
+                      *ngIf="
+                        stockOrderForm.get('moisturePercentage')
+                          .errors as errors
+                      "
+                      class="sc-invalid-feedback"
+                    >
+                      <div
+                        *ngIf="errors.required"
+                        i18n="
+                          @@productLabelStockPurchaseOrdersModal.textinput.moistureDiscount.error"
+                      >
+                        Moisture discount is required
+                      </div>
+                      <div
+                        *ngIf="errors.min || errors.max"
+                        i18n="
+                          @@productLabelStockPurchaseOrdersModal.textinput.moistureDiscount.rangeError"
+                      >
+                        Moisture discount must be between 0 and 100
+                      </div>
+                    </div>
+                  </ng-container>
+                </textinput>
+              </div>
+              <div class="af-c6" *ngIf="showQuotaBalance">
+                <textinput
+                  [form]="quotaBalanceForm"
+                  [label]="quotaBalanceLabel"
+                  style="width: 100%"
+                  [placeholder]="quotaBalancePlaceholder"
+                  [isInvalid]="
+                    quotaExceededCheck || quotaExceededByCurrentDeliveryCheck
+                  "
+                  [readOnly]="true"
+                >
+                  <div *ngIf="quotaExceededCheck || quotaExceededByCurrentDeliveryCheck" class="sc-invalid-feedback">
+                    <div>
+                      {{ quotaAlertMessage }}
+                    </div>
+                  </div>
+                  <div
+                    *ngIf="quotaNearLimitCheck"
+                    style="color: #e67e22; font-size: 12px; margin-top: 4px;"
+                  >
+                    <div
+                      i18n="
+                        @@productLabelStockPurchaseOrdersModal.textinput.quotaNearLimit.warning"
+                      >
+                      El saldo de cupo está próximo a agotarse
+                    </div>
+                  </div>
+                </textinput>
+              </div>
+            </div>
+
+            <div
+              class="af-row"
+              *ngIf="showDamagedWeightDeduction || (showQuotaBalance && !showMoisturePercentage)"
             >
               <div class="af-c6" *ngIf="showDamagedWeightDeduction">
                 <textinput
@@ -654,13 +731,13 @@
                     <div
                       i18n="
                         @@productLabelStockPurchaseOrdersModal.textinput.deductionGreaterThanWeight.error"
-                    >
+                      >
                       Damaged weight deduction is larger than net weight
                     </div>
                   </div>
                 </textinput>
               </div>
-              <div class="af-c6" *ngIf="showQuotaBalance">
+              <div class="af-c6" *ngIf="showQuotaBalance && !showMoisturePercentage">
                 <textinput
                   [form]="quotaBalanceForm"
                   [label]="quotaBalanceLabel"
@@ -683,55 +760,10 @@
                     <div
                       i18n="
                         @@productLabelStockPurchaseOrdersModal.textinput.quotaNearLimit.warning"
-                    >
+                      >
                       El saldo de cupo está próximo a agotarse
                     </div>
                   </div>
-                </textinput>
-              </div>
-            </div>
-
-            <div class="af-row" *ngIf="showMoisturePercentage">
-              <div class="af-c6">
-                <textinput
-                  [form]="stockOrderForm.get('moisturePercentage')"
-                  label="Moisture discount (%)"
-                  i18n-label="
-                    @@productLabelStockPurchaseOrdersModal.textinput.moistureDiscount.label"
-                  style="width: 100%"
-                  placeholder="Enter moisture discount"
-                  i18n-placeholder="
-                    @@productLabelStockPurchaseOrdersModal.textinput.moistureDiscount.placeholder"
-                  [isInvalid]="
-                    submitted &&
-                    stockOrderForm.get('moisturePercentage').invalid
-                  "
-                  [readOnly]="readonlyMoisturePercentage"
-                >
-                  <ng-container *ngIf="submitted">
-                    <div
-                      *ngIf="
-                        stockOrderForm.get('moisturePercentage')
-                          .errors as errors
-                      "
-                      class="sc-invalid-feedback"
-                    >
-                      <div
-                        *ngIf="errors.required"
-                        i18n="
-                          @@productLabelStockPurchaseOrdersModal.textinput.moistureDiscount.error"
-                      >
-                        Moisture discount is required
-                      </div>
-                      <div
-                        *ngIf="errors.min || errors.max"
-                        i18n="
-                          @@productLabelStockPurchaseOrdersModal.textinput.moistureDiscount.rangeError"
-                      >
-                        Moisture discount must be between 0 and 100
-                      </div>
-                    </div>
-                  </ng-container>
                 </textinput>
               </div>
             </div>

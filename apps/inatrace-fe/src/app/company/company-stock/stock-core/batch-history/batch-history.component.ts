@@ -406,26 +406,22 @@ export class BatchHistoryComponent implements OnInit {
       currentWeight -= Number(order.tare);
     }
 
+    // Moisture percentage deduction
+    if (order.moisturePercentage && Number(order.moisturePercentage) > 0) {
+      const moistureLabel = $localize`:@@orderHistoryView.deductions.moisture:Humedad`;
+      const percentage = Number(order.moisturePercentage).toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 0 });
+      const moistureDeduction = this.getMoistureWeightDeduction(order);
+      if (moistureDeduction > 0) {
+        deductions.push(`${moistureLabel} (${percentage}%): -${this.formatQuantity(order, moistureDeduction)}`);
+        currentWeight -= moistureDeduction;
+      }
+    }
+
     // Damaged weight deduction
     if (order.damagedWeightDeduction && Number(order.damagedWeightDeduction) > 0) {
       const damageLabel = $localize`:@@orderHistoryView.deductions.damage:Descuento peso`;
       deductions.push(`${damageLabel}: -${this.formatQuantity(order, order.damagedWeightDeduction)}`);
       currentWeight -= Number(order.damagedWeightDeduction);
-    }
-
-    // Moisture percentage deduction
-    if (order.moisturePercentage && Number(order.moisturePercentage) > 0) {
-      const moistureLabel = $localize`:@@orderHistoryView.deductions.moisture:Humedad`;
-      const percentage = Number(order.moisturePercentage).toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 0 });
-      
-      // Calculate what remains after moisture percentage
-      const baseWeight = Math.max(0, currentWeight);
-      const netAfterMoisture = baseWeight * (Number(order.moisturePercentage) / 100);
-      const moistureDeduction = baseWeight - netAfterMoisture;
-      
-      if (moistureDeduction > 0) {
-        deductions.push(`${moistureLabel} (${percentage}%): -${this.formatQuantity(order, moistureDeduction)}`);
-      }
     }
 
     return deductions.length > 0 ? deductions.join(' | ') : '-';
@@ -442,11 +438,9 @@ export class BatchHistoryComponent implements OnInit {
 
     const gross = Number(order.totalGrossQuantity ?? order.totalQuantity ?? 0);
     const tare = Number(order.tare ?? 0);
-    const damaged = Number(order.damagedWeightDeduction ?? 0);
-    const baseWeight = Math.max(0, gross - tare - damaged);
+    const delivered = Math.max(0, gross - tare);
     const moistureFactor = Number(order.moisturePercentage) / 100;
-    const netAfterMoisture = baseWeight * moistureFactor;
-    const deduction = baseWeight - netAfterMoisture;
+    const deduction = Math.round((delivered * moistureFactor) * 100) / 100;
     return deduction > 0 ? deduction : 0;
   }
 

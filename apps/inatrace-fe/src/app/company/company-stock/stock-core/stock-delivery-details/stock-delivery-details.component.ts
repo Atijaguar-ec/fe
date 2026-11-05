@@ -1528,27 +1528,30 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
   setToBePaid() {
 
     if (this.stockOrderForm && this.stockOrderForm.get('totalGrossQuantity').value && this.stockOrderForm.get('pricePerUnit').value) {
-      const grossQuantity = Number(this.stockOrderForm.get('totalGrossQuantity').value);
-      let baseWeight = grossQuantity;
-      let pricePerUnit = this.stockOrderForm.get('pricePerUnit').value;
+      const grossQuantity = parseDecimal(this.stockOrderForm.get('totalGrossQuantity').value) ?? 0;
+      let deliveredWeight = grossQuantity;
+      let pricePerUnit = parseDecimal(this.stockOrderForm.get('pricePerUnit').value) ?? 0;
 
       const tareControl = this.stockOrderForm.get('tare');
       if (tareControl && tareControl.value) {
-        baseWeight -= Number(tareControl.value);
+        deliveredWeight -= (parseDecimal(tareControl.value) ?? 0);
       }
+      deliveredWeight = Math.max(0, deliveredWeight);
+
+      let moistureDeduction = 0;
+      const moistureControl = this.stockOrderForm.get('moisturePercentage');
+      if (moistureControl && moistureControl.value != null && moistureControl.value !== '') {
+        const moisturePercent = parseDecimal(moistureControl.value) ?? 0;
+        if (moisturePercent > 0) {
+          moistureDeduction = Math.round((deliveredWeight * (moisturePercent / 100)) * 100) / 100;
+        }
+      }
+
+      let netWeight = deliveredWeight - moistureDeduction;
+
       const damagedWeightControl = this.stockOrderForm.get('damagedWeightDeduction');
       if (damagedWeightControl && damagedWeightControl.value) {
-        baseWeight -= Number(damagedWeightControl.value);
-      }
-
-      baseWeight = Math.max(0, baseWeight);
-
-      let netWeight = baseWeight;
-      const moistureControl = this.stockOrderForm.get('moisturePercentage');
-      if (moistureControl && moistureControl.value) {
-        const moisturePercent = Number(moistureControl.value);
-        const moistureDeduction = baseWeight * (moisturePercent / 100);
-        netWeight = baseWeight - moistureDeduction;
+        netWeight -= (parseDecimal(damagedWeightControl.value) ?? 0);
       }
 
       if (netWeight < 0) {
@@ -1558,7 +1561,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       // Apply price deductions
       const damagedPriceControl = this.stockOrderForm.get('damagedPriceDeduction');
       if (damagedPriceControl && damagedPriceControl.value) {
-        pricePerUnit -= damagedPriceControl.value;
+        pricePerUnit -= (parseDecimal(damagedPriceControl.value) ?? 0);
       }
 
       const perUnitTotal = Math.max(pricePerUnit, 0);
@@ -1566,7 +1569,7 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
       const finalPriceDiscountControl = this.stockOrderForm.get('finalPriceDiscount');
       if (finalPriceDiscountControl && finalPriceDiscountControl.value) {
-        total -= Number(finalPriceDiscountControl.value);
+        total -= (parseDecimal(finalPriceDiscountControl.value) ?? 0);
       }
 
       if (total < 0) {
@@ -1655,26 +1658,34 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   netWeight() {
     if (this.stockOrderForm && this.stockOrderForm.get('totalGrossQuantity').value) {
-      const grossQuantity = Number(this.stockOrderForm.get('totalGrossQuantity').value);
-      let baseWeight = grossQuantity;
+      const grossQuantity = parseDecimal(this.stockOrderForm.get('totalGrossQuantity').value) ?? 0;
+      let deliveredWeight = grossQuantity;
 
-      if (this.stockOrderForm.get('tare').value) {
-        baseWeight -= Number(this.stockOrderForm.get('tare').value);
+      const tareControl = this.stockOrderForm.get('tare');
+      if (tareControl && tareControl.value) {
+        deliveredWeight -= (parseDecimal(tareControl.value) ?? 0);
       }
-      if (this.stockOrderForm.get('damagedWeightDeduction').value) {
-        baseWeight -= Number(this.stockOrderForm.get('damagedWeightDeduction').value);
-      }
+      deliveredWeight = Math.max(0, deliveredWeight);
 
-      baseWeight = Math.max(0, baseWeight);
-
-      let finalNetWeight = baseWeight;
-      if (this.stockOrderForm.get('moisturePercentage').value) {
-        const moisturePercent = Number(this.stockOrderForm.get('moisturePercentage').value);
-        const moistureDeduction = baseWeight * (moisturePercent / 100);
-        finalNetWeight = baseWeight - moistureDeduction;
-        this.stockOrderForm.get('moistureWeightDeduction').setValue(moistureDeduction.toFixed(2), { emitEvent: false });
+      let moistureDeduction = 0;
+      const moistureControl = this.stockOrderForm.get('moisturePercentage');
+      if (moistureControl && moistureControl.value != null && moistureControl.value !== '') {
+        const moisturePercent = parseDecimal(moistureControl.value) ?? 0;
+        if (moisturePercent > 0) {
+          moistureDeduction = Math.round((deliveredWeight * (moisturePercent / 100)) * 100) / 100;
+          this.stockOrderForm.get('moistureWeightDeduction').setValue(moistureDeduction.toFixed(2), { emitEvent: false });
+        } else {
+          this.stockOrderForm.get('moistureWeightDeduction').setValue('0.00', { emitEvent: false });
+        }
       } else {
         this.stockOrderForm.get('moistureWeightDeduction').setValue(null, { emitEvent: false });
+      }
+
+      let finalNetWeight = deliveredWeight - moistureDeduction;
+
+      const damagedControl = this.stockOrderForm.get('damagedWeightDeduction');
+      if (damagedControl && damagedControl.value) {
+        finalNetWeight -= (parseDecimal(damagedControl.value) ?? 0);
       }
 
       finalNetWeight = Math.max(0, finalNetWeight);
@@ -1686,16 +1697,17 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
 
   finalPrice() {
     if (this.stockOrderForm && this.stockOrderForm.get('pricePerUnit').value) {
-      let finalPrice = this.stockOrderForm.get('pricePerUnit').value;
-      if (this.stockOrderForm.get('damagedPriceDeduction').value) {
-        finalPrice -= this.stockOrderForm.get('damagedPriceDeduction').value;
+      let finalPrice = parseDecimal(this.stockOrderForm.get('pricePerUnit').value) ?? 0;
+      const damagedPriceControl = this.stockOrderForm.get('damagedPriceDeduction');
+      if (damagedPriceControl && damagedPriceControl.value) {
+        finalPrice -= (parseDecimal(damagedPriceControl.value) ?? 0);
       }
 
       const finalPriceDiscountControl = this.stockOrderForm.get('finalPriceDiscount');
-      const netWeightValue = Number(this.netWeightForm.value ?? 0);
+      const netWeightValue = parseDecimal(this.netWeightForm.value) ?? 0;
       let total = finalPrice * netWeightValue;
       if (finalPriceDiscountControl && finalPriceDiscountControl.value) {
-        total -= Number(finalPriceDiscountControl.value);
+        total -= (parseDecimal(finalPriceDiscountControl.value) ?? 0);
       }
 
       if (total < 0) {
@@ -1988,6 +2000,10 @@ export class StockDeliveryDetailsComponent implements OnInit, OnDestroy {
       if (data.damagedWeightDeduction != null) data.damagedWeightDeduction = parseDecimal(data.damagedWeightDeduction);
       if (data.damagedPriceDeduction != null) data.damagedPriceDeduction = parseDecimal(data.damagedPriceDeduction);
       if (data.sacNumber != null) data.sacNumber = parseDecimal(data.sacNumber);
+      if (data.moisturePercentage != null) data.moisturePercentage = parseDecimal(data.moisturePercentage);
+      if (data.moistureWeightDeduction != null) data.moistureWeightDeduction = parseDecimal(data.moistureWeightDeduction);
+      if (data.netQuantity != null) data.netQuantity = parseDecimal(data.netQuantity);
+      if (data.finalPriceDiscount != null) data.finalPriceDiscount = parseDecimal(data.finalPriceDiscount);
 
       // Remove null/undefined keys
       Object.keys(data as any).forEach((key) => ((data as any)[key] == null) && delete (data as any)[key]);
