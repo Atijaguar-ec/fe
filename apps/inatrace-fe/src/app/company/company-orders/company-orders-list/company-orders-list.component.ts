@@ -158,7 +158,7 @@ export class CompanyOrdersListComponent implements OnInit {
     });
     Object.assign(modalRef.componentInstance, {
       qrCodeTag: order.qrCodeTag,
-      qrCodeFinalProduct: order.qrCodeTagFinalProduct,
+      qrCodeFinalProduct: order.qrCodeTagFinalProduct || order.finalProduct,
     });
   }
 

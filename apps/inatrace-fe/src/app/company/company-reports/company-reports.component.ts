@@ -52,37 +52,13 @@ export class CompanyReportsComponent implements OnInit {
           id: 'beneficio',
           label: 'Balance de Masas & Beneficio',
           slugSuffix: 'cacao-beneficio-balance',
-          description: 'Control de beneficio post-cosecha, mermas escalonadas (15%, 10%, 45%, 5%), fermentación, secado y ensacado.',
+          description: 'Control operacional de beneficio post-cosecha y balance de masas (8 tablas oficiales según Anexo 2).',
         },
         {
           id: 'agrocalidad',
           label: 'Agrocalidad (Sistema GUIA)',
           slugSuffix: 'cacao-agrocalidad-guia',
           description: 'Reporte regulatorio oficial para exportación al Sistema GUIA.',
-        },
-        {
-          id: 'acopio',
-          label: 'Acopio Semanal & Calidad',
-          slugSuffix: 'cacao-acopio-calidad',
-          description: 'Evolución semanal de compras por variedad (Nacional vs CCN-51).',
-        },
-        {
-          id: 'procesos',
-          label: 'Rendimientos & Procesamiento',
-          slugSuffix: 'cacao-procesos-rendimientos',
-          description: 'Rendimientos de transformación y trazabilidad de lotes procesados.',
-        },
-        {
-          id: 'parcelas',
-          label: 'Productores & Parcelas',
-          slugSuffix: 'cacao-productores-parcelas',
-          description: 'Georreferenciación y distribución de parcelas de productores.',
-        },
-        {
-          id: 'pagos',
-          label: 'Liquidación & Pagos',
-          slugSuffix: 'cacao-pagos-conciliacion',
-          description: 'Conciliación de pagos frente a costos de compra registrados.',
         },
       ];
       this.activeTabId = 'beneficio';

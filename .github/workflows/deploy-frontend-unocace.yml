@@ -2,7 +2,7 @@
 # 🍫 Frontend CI/CD - UNOCACE (Staging)
 # ============================================================================
 # Despliega el frontend de UNOCACE como ARCHIVOS ESTÁTICOS en
-# 95.217.182.220:/var/www/inatrace-fe-dist, servidos por el Nginx del host.
+# el servidor staging (${{ secrets.STAGE_UNOCACE_HOST }}:/var/www/inatrace-fe-dist), servidos por el Nginx del host.
 # Verificado en vivo el 2026-07-28.
 #
 # Reemplaza el workflow anterior, que desplegaba un contenedor Docker con

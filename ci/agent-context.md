@@ -6,13 +6,13 @@ Este documento describe la topología de la infraestructura para el despliegue d
 
 La arquitectura consta de **dos servidores principales** (o un servidor local + uno remoto):
 
-### Servidor de Jenkins/Pre-producción (Ej: 190.15.143.254)
+### Servidor de Jenkins/Pre-producción (Ej: <STAGING_HOST>)
 Este servidor cumple una doble función:
 - Aloja el **agente/servidor de Jenkins**.
 - Actúa como **ambiente de Staging/Pre-producción** (`testinatrace.espam.edu.ec`).
 - **Despliegue:** Jenkins ejecuta comandos de forma **local** usando `docker-compose`.
 
-### Servidor de Producción (Ej: 10.10.102.26)
+### Servidor de Producción (Ej: <PROD_INTERNAL_HOST>)
 - Entorno de producción aislado.
 - **Despliegue:** Jenkins se conecta hacia este servidor de forma **remota vía SSH** (`scp` y `bash`) para levantar los contenedores de producción.
 

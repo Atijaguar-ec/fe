@@ -354,7 +354,7 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
             return availableStockOrders.filter(
               (apiStockOrder) =>
                 !apiStockOrder.qrCodeTag ||
-                apiStockOrder.qrCodeTagFinalProduct.id === finalProduct.id,
+                apiStockOrder.qrCodeTagFinalProduct?.id === finalProduct.id,
             );
           } else {
             return availableStockOrders;
@@ -481,7 +481,7 @@ export class ProcessingOrderInputComponent implements OnInit, OnDestroy {
 
     Object.assign(modalRef.componentInstance, {
       qrCodeTag: order.qrCodeTag,
-      qrCodeFinalProduct: order.qrCodeTagFinalProduct,
+      qrCodeFinalProduct: order.qrCodeTagFinalProduct || order.finalProduct,
     });
   }
 

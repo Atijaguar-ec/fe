@@ -21,15 +21,16 @@ Cada organización (tenant) posee flujos comerciales y operacionales diferentes:
 
 ### 2.1. Fortaleza del Valle (`fortaleza`)
 1. `beneficio`: **Balance de Masas & Beneficio** (`slugSuffix: cacao-beneficio-balance`)
-   - Cuadro general de mermas escalonadas (15%, 10%, 45%, 5%) y rotación de colores (`ROJO`, `AZUL`, `BLANCO`, `VERDE`, `AMARILLO`).
-   - Registro de recepción y fermentación (cajones).
-   - Registro de secado-semiseco (marquesinas y tendales solares).
-   - Registro de secado final y ensacado (sacos de 69 kg y remanente estricto `< 69 kg`).
+   - 8 Tablas oficiales replicadas 1:1 según Anexo 2 Reporte Técnico:
+     1. `Informe de Arqueo de Peso de Bascula` (Hoja 1)
+     2. `REG. DE RECEPCIÓN Y PROCESO DE FERMENTACIÓN` (Hoja 2)
+     3. `REG. DE PROCESO DE SECADO` (Hoja 4)
+     4. `DATOS DE INGRESO EN ALMACENAMIENTO` (Hoja 3)
+     5. `SALDO / EXISTENCIA` (Hoja 5)
+     6. `DATOS DE SALIDA` (Hoja 6)
+     7. `PRODUCTORES EN CUARENTENA` (Hoja 7, Tabla 1)
+     8. `REGISTRO DE INGRESO DE CACAO EN BABA Y OBTENIDO EN SECO POR SEMANA Y CALIFICACION` (Hoja 7, Tabla 2)
 2. `agrocalidad`: **Agrocalidad (Sistema GUIA)** (`slugSuffix: cacao-agrocalidad-guia`)
-3. `acopio`: **Acopio Semanal & Calidad** (`slugSuffix: cacao-acopio-calidad`)
-4. `procesos`: **Rendimientos & Procesamiento** (`slugSuffix: cacao-procesos-rendimientos`)
-5. `parcelas`: **Productores & Parcelas** (`slugSuffix: cacao-productores-parcelas`)
-6. `pagos`: **Liquidación & Pagos** (`slugSuffix: cacao-pagos-conciliacion`)
 
 ### 2.2. UNOCACE (`unocace`)
 1. `agrocalidad`: **Agrocalidad (Sistema GUIA)** (`slugSuffix: cacao-agrocalidad-guia`)
@@ -62,10 +63,10 @@ NX_DAEMON=false npm run build:prod
 
 # 2. Empaquetar y transferir al servidor
 tar -czf /tmp/fe-dist.tar.gz -C dist/apps/inatrace-fe .
-scp -i ~/.ssh/cedia_key /tmp/fe-dist.tar.gz giz@190.15.143.254:/tmp/
+scp -i <PATH_TO_SSH_KEY> /tmp/fe-dist.tar.gz ${SSH_USER}@<STAGING_HOST>:/tmp/
 
 # 3. Aplicar en el contenedor Docker y recargar Nginx
-ssh -i ~/.ssh/cedia_key giz@190.15.143.254 "
+ssh -i <PATH_TO_SSH_KEY> ${SSH_USER}@<STAGING_HOST> "
   docker exec inatrace-frontend cp /app/assets/env.js /tmp/env.js.bak && \
   docker cp /tmp/fe-dist.tar.gz inatrace-frontend:/tmp/fe-dist.tar.gz && \
   docker exec inatrace-frontend tar -xzf /tmp/fe-dist.tar.gz -C /app && \

@@ -1,6 +1,24 @@
-# INATrace
+# INATrace - Frontend
 
-Open-source blockchain-based track and trace system for an agricultural commodities (such as coffee) supply
+> ## 📍 Bifurcación Adaptada para Ecuador (UNOCACE · Fortaleza del Valle · Dufer)
+>
+> Este repositorio es la bifurcación activa de la interfaz web para el despliegue de INATrace en Ecuador (GIZ / Atijaguar).
+>
+> | Si eres… | Empieza por |
+> |---|---|
+> | **Agente de IA o desarrollador** | [`agent-context.md`](agent-context.md) — arquitectura Nx, Angular 19, microfrontends `shrimpMfe`, `keycloak-angular` y reglas de build |
+> | **Documentación centralizada** | [Repositorio `ina-docs`](https://github.com/Atijaguar-ec/ina-docs) — arquitectura general, C4 y especificaciones |
+> | **Quien despliega a una institución** | [`ci/agent-context.md`](ci/agent-context.md) o workflows en `.github/workflows/` |
+>
+> **Stack técnico real de esta bifurcación:**
+> - **Angular 19 / Nx Monorepo**: Monorepo con librerías compartidas (`shared-ui`, `shared-auth`, `shared-models`).
+> - **Module Federation (Microfrontends)**: Integración desacoplada del módulo industrial de camarón (`shrimpMfe`).
+> - **Autenticación OIDC con Keycloak 26**: PKCE flow con `keycloak-angular` y guards de enrutamiento.
+> - **Dashboards Analíticos**: Embebido de tableros Apache Superset para balances de masa y reportes regulatorios.
+
+---
+
+### Descripción del Proyecto Upstream (Histórico)
 chain run. It provides transparency and creation of trust through
 digitalization of supply chains, connects every actor along the supply chain, assures quality and fair pricing.
 

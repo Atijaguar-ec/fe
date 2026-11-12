@@ -23,13 +23,13 @@ pipeline {
     )
     string(
       name: 'SSH_HOST',
-      defaultValue: '10.10.102.26',
-      description: 'Host o IP del servidor remoto Fortaleza (test/prod)'
+      defaultValue: env.SSH_HOST ?: '',
+      description: 'Host o IP del servidor remoto Fortaleza (inyectado por entorno o secret)'
     )
     string(
       name: 'SSH_USER',
-      defaultValue: 'administrador',
-      description: 'Usuario SSH en el servidor remoto'
+      defaultValue: env.SSH_USER ?: '',
+      description: 'Usuario SSH en el servidor remoto (usa credencial SSH de Jenkins)'
     )
     string(
       name: 'SSH_PORT',

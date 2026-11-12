@@ -42,23 +42,27 @@ export class GenerateQRCodeModalComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.finalProductLabelsCodebook = new FinalProductLabelsService(
-      this.qrCodeFinalProduct.product.id,
-      this.qrCodeFinalProduct.id,
-      this.productController,
-    );
-    this.finalProductNameForm.setValue(
-      `${this.qrCodeFinalProduct.name} (${this.qrCodeFinalProduct.product.name})`,
-    );
+    if (this.qrCodeFinalProduct?.product?.id) {
+      this.finalProductLabelsCodebook = new FinalProductLabelsService(
+        this.qrCodeFinalProduct.product.id,
+        this.qrCodeFinalProduct.id,
+        this.productController,
+      );
+      this.finalProductNameForm.setValue(
+        `${this.qrCodeFinalProduct.name} (${this.qrCodeFinalProduct.product.name})`,
+      );
 
-    // If only one label is present, set it as selected value
-    this.labelsCodebookSubs = this.finalProductLabelsCodebook
-      .getAllCandidates()
-      .subscribe((labels) => {
-        if (labels && labels.length === 1) {
-          this.finalProductLabelForm.setValue(labels[0]);
-        }
-      });
+      // If only one label is present, set it as selected value
+      this.labelsCodebookSubs = this.finalProductLabelsCodebook
+        .getAllCandidates()
+        .subscribe((labels) => {
+          if (labels && labels.length === 1) {
+            this.finalProductLabelForm.setValue(labels[0]);
+          }
+        });
+    } else if (this.qrCodeFinalProduct) {
+      this.finalProductNameForm.setValue(this.qrCodeFinalProduct.name || '');
+    }
 
     // When the selected Final product label changes, update the QR code string
     this.finalProdLabelSubs = this.finalProductLabelForm.valueChanges.subscribe(
