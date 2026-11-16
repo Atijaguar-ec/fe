@@ -49,19 +49,49 @@ export class CompanyReportsComponent implements OnInit {
     if (this.orgSlug === 'fortaleza') {
       this.reportTabs = [
         {
-          id: 'beneficio',
-          label: 'Balance de Masas & Beneficio',
-          slugSuffix: 'cacao-beneficio-balance',
-          description: 'Control operacional de beneficio post-cosecha y balance de masas (8 tablas oficiales según Anexo 2).',
+          id: 'arqueo',
+          label: '1. Arqueo de Báscula',
+          slugSuffix: 'cacao-arqueo-bascula',
+          description: 'Informe de Arqueo de Peso de Báscula por productor.',
         },
         {
-          id: 'agrocalidad',
-          label: 'Agrocalidad (Sistema GUIA)',
-          slugSuffix: 'cacao-agrocalidad-guia',
-          description: 'Reporte regulatorio oficial para exportación al Sistema GUIA.',
+          id: 'fermentacion',
+          label: '2. Recepción y Fermentación',
+          slugSuffix: 'cacao-fermentacion',
+          description: 'Registro de Recepción y Proceso de Fermentación.',
+        },
+        {
+          id: 'almacenamiento',
+          label: '3. Ingreso Almacenamiento',
+          slugSuffix: 'cacao-almacenamiento',
+          description: 'Datos de Ingreso en Almacenamiento (sacos de 69 kg y remanente).',
+        },
+        {
+          id: 'secado',
+          label: '4. Proceso de Secado',
+          slugSuffix: 'cacao-secado',
+          description: 'Registro de Proceso de Secado.',
+        },
+        {
+          id: 'existencia',
+          label: '5. Saldo / Existencia',
+          slugSuffix: 'cacao-existencia',
+          description: 'Cacao en Existencia — Saldos por semana y centro.',
+        },
+        {
+          id: 'salidas',
+          label: '6. Datos de Salida',
+          slugSuffix: 'cacao-salidas',
+          description: 'Registro de Salidas y Despachos Comerciales.',
+        },
+        {
+          id: 'cuarentena',
+          label: '7. Cuarentena y Calificación',
+          slugSuffix: 'cacao-cuarentena-calificacion',
+          description: 'Productores en Cuarentena y Calificación Semanal Macrocentro.',
         },
       ];
-      this.activeTabId = 'beneficio';
+      this.activeTabId = 'arqueo';
     } else {
       this.reportTabs = [
         {
@@ -116,7 +146,7 @@ export class CompanyReportsComponent implements OnInit {
       return;
     }
     const slug = `${this.orgSlug}-${tab.slugSuffix}-${this.biEnvironment}`;
-    const url = `${this.supersetBaseUrl}/superset/dashboard/${slug}/`;
+    const url = `${this.supersetBaseUrl}/superset/dashboard/${slug}/?standalone=2`;
     this.iframeSrc = this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
