@@ -1086,3 +1086,32 @@ En el registro de parcelas del agricultor (`company-farmers-plots-detail`), el c
 
 
 
+
+---
+
+## 27. Reportes & BI con `@superset-ui/embedded-sdk` y Estudio de Reportes (`/company-reports/studio`) (2026-11-19)
+
+> **Fuente canónica de reglas BI de cacao:** [`inatrace-bi/AGENTS.md`](../inatrace-bi/AGENTS.md) y `ADR-BI-005` (`ADR-BI-004`). Este apartado documenta la implementación Angular en `fe/`.
+
+### 27.1 Arquitectura Cero Pública y Dependencia Exacta
+- **Paquete fijado:** `@superset-ui/embedded-sdk` versión exacta `0.4.0` en `package.json` (`--save-exact`).
+- **Regla de permisos:** Todo acceso en `/company-reports` y `/company-reports/studio` requiere sesión autenticada en INATrace (`Keycloak`); nunca añadir rutas BI a `publicPattern` de `auth.provider.ts` ni a `pathsToIgnore()` de `token.interceptor.ts`.
+
+### 27.2 Servicio API y Trampa del `TokenInterceptor` (`bi-reports-api.service.ts`)
+- **Trampa resuelta:** `TokenInterceptor` (`app/core/token.interceptor.ts`) captura los `HttpErrorResponse` de Angular y retorna `of(err)` como emisión exitosa del Observable. Sin desempaquetado defensivo, un `403`/`422`/`503` desde `/api/bi/*` llegaba como evento normal y permitía montar un iframe roto.
+- **Contrato en `BiReportsApiService`:** `unwrapResponse()` y `removeCustomDashboard()` verifican explícitamente `if (res instanceof HttpErrorResponse) throw res;` antes de validar `res.status === 'OK'`, y `extractBiErrorMessage()` traduce errores HTTP/red a mensajes diagnósticos en español.
+- `SupersetEmbedSdkService` encapsula `embedDashboard(params)` para facilitar inyección y pruebas unitarias deterministas sin cargar iframes reales.
+
+### 27.3 Vista Ejecutiva (`CompanyReportsComponent` — `/company-reports`)
+- Consume `SelectedUserCompanyService.selectedCompanyProfile$`, obtiene el catálogo autorizado (`GET /api/bi/dashboards`) y solicita tokens por pestaña (`POST /api/bi/guest-token`) usando `supersetDomain` (`https://.../bi`, con prefijo `SUPERSET_APP_ROOT`) y `embeddedUuid` devueltos por el backend (nunca UUIDs hardcoded).
+- **Seguridad y UX:** monta con `referrerPolicy: 'strict-origin-when-cross-origin'`, renueva `fetchGuestToken` en cada ciclo, ejecuta `unmount()` con control de generación (`activeMountGeneration`) al cambiar de pestaña o destruir el componente, soporta deep-linking `?report=<slug>` (`replaceUrl: true`), botón **Actualizar**, modo **Pantalla completa** (cierra con `Esc`), `role="tablist"`/`role="tab"`, esqueleto shimmer de carga y tarjeta de error con **Reintentar**.
+- El enlace **Estudio de Reportes** solo se renderiza si `catalog.studioEnabled` es `true` (`SYSTEM_ADMIN` o `REGIONAL_ADMIN`).
+
+### 27.4 Estudio de Reportes (`CompanyReportsStudioComponent` — `/company-reports/studio`)
+- **Protección:** ruta hija protegida con `SystemOrRegionalAdminGuardService` en `company-reports-routing.module.ts` y enlace lateral en `company-left-panel.component.html` oculto con `*ngIf="isSystemOrRegionalAdmin"` (complementado con `[routerLinkActiveOptions]="{ exact: true }"` en `/company-reports`).
+- **Funcionalidad:** embebe `/bi/` same-origin en `iframe` (SSO Keycloak OIDC con `Admin` para `SYSTEM_ADMIN`, `Alpha` para `REGIONAL_ADMIN`), botón **Nueva pestaña** (`rel="noopener noreferrer"`), panel colapsable por defecto al cargar Superset, guía de 3 pasos (`query_context`, `Embed dashboard`, roles), chips de vistas `bi.*` copiables al portapapeles, validación del prefijo reservado `<org>-cacao-`, edición en sitio y retiro con confirmación inline en dos pasos (sin `window.confirm`).
+
+### 27.5 Regla de Tests Unitarios Frontend (`@types/jasmine@3.1`)
+- El workspace tipa `@types/jasmine/ts3.1`: usar `.toBe(true)` / `.toBe(false)` y `.and.returnValue(Promise.resolve(...))`; **no** usar `.toBeTrue()`, `.toBeFalse()` ni `.and.resolveTo()`.
+- Verificación obligatoria en modificaciones de BI:
+  `NX_DAEMON=false npx nx test inatrace-fe --watch=false --browsers=ChromeHeadless --include='apps/inatrace-fe/src/app/company/company-reports/**/*.spec.ts'` y `NX_DAEMON=false npm run build:prod`.
