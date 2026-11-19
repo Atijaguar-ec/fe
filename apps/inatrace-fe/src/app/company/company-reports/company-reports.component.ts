@@ -1,21 +1,24 @@
-import { Component, OnInit } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { environment } from '../../../environments/environment';
-import { EnvironmentInfoService } from '../../core/environment-info.service';
-
-export interface ReportTab {
-  id: string;
-  label: string;
-  slugSuffix: string;
-  description: string;
-}
+import {
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
+import { EmbeddedDashboard } from '@superset-ui/embedded-sdk';
+import { Subscription, firstValueFrom } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { SelectedUserCompanyService } from '../../core/selected-user-company.service';
+import {
+  BiDashboardDto,
+  BiReportsApiService,
+  SupersetEmbedSdkService,
+  extractBiErrorMessage,
+} from './bi-reports-api.service';
 
 /**
- * Reports & BI — Directly embeds Superset dashboards for the active organization.
- *
- * Provides responsive multi-dashboard navigation tabs so the operator can seamlessly
- * switch between Agrocalidad, Certified Purchases, Weekly Collection, Processing Yields,
- * Plot Georeferencing, and Payment Settlement dashboards.
+ * Reports & BI — Renders Superset dashboards authorized for the active company
+ * using @superset-ui/embedded-sdk and short-lived guest tokens issued by backend/.
  */
 @Component({
   selector: 'app-company-reports',
@@ -23,200 +26,149 @@ export interface ReportTab {
   styleUrls: ['./company-reports.component.scss'],
   standalone: false,
 })
-export class CompanyReportsComponent implements OnInit {
-  orgSlug = '';
-  supersetBaseUrl = '';
-  biEnvironment = '';
-  iframeSrc: SafeResourceUrl | null = null;
-  activeTabId = '';
-  reportTabs: ReportTab[] = [];
+export class CompanyReportsComponent implements OnInit, OnDestroy {
+  @ViewChild('supersetMountPoint', { static: false })
+  supersetMountPoint?: ElementRef<HTMLDivElement>;
+
+  companyId: number | null = null;
+  reportTabs: BiDashboardDto[] = [];
+  activeSlug = '';
+  studioEnabled = false;
+  loadingCatalog = false;
+  loadingDashboard = false;
+  errorMessage: string | null = null;
+
+  private mountedDashboard: EmbeddedDashboard | null = null;
+  private companySub: Subscription | null = null;
+  private activeMountGeneration = 0;
 
   constructor(
-    private sanitizer: DomSanitizer,
-    private envInfo: EnvironmentInfoService
+    private selectedCompanyService: SelectedUserCompanyService,
+    private biReportsApi: BiReportsApiService,
+    private embedSdk: SupersetEmbedSdkService,
   ) {}
 
   ngOnInit(): void {
-    this.supersetBaseUrl = this.resolveSupersetBaseUrl();
-    this.biEnvironment = this.resolveBiEnvironment();
-    this.orgSlug = this.resolveOrgSlug();
-
-    this.initReportTabs();
-    this.selectTab(this.activeTabId);
+    this.companySub = this.selectedCompanyService.selectedCompanyProfile$
+      .pipe(filter((company) => !!company && typeof company.id === 'number'))
+      .subscribe((company) => {
+        if (this.companyId !== company.id) {
+          this.companyId = company.id;
+          void this.loadCatalog(company.id);
+        }
+      });
   }
 
-  private initReportTabs(): void {
-    if (this.orgSlug === 'fortaleza') {
-      this.reportTabs = [
-        {
-          id: 'arqueo',
-          label: 'REGISTRO DE PESO POR PRODUCTOR',
-          slugSuffix: 'cacao-arqueo-bascula',
-          description: 'Informe de Arqueo de Peso de Bascula.',
-        },
-        {
-          id: 'fermentacion',
-          label: 'REG. RECEPCIÓN Y FERMENTACIÓN',
-          slugSuffix: 'cacao-fermentacion',
-          description: 'REG. DE RECEPCIÓN Y PROCESO DE FERMENTACIÓN.',
-        },
-        {
-          id: 'almacenamiento',
-          label: 'REG. INGRESO ALMACENAMIENTO',
-          slugSuffix: 'cacao-almacenamiento',
-          description: 'DATOS DE INGRESO EN ALMACENAMIENTO.',
-        },
-        {
-          id: 'secado',
-          label: 'REG. SECADO',
-          slugSuffix: 'cacao-secado',
-          description: 'REG. DE PROCESO DE SECADO.',
-        },
-        {
-          id: 'existencia',
-          label: 'CACAO EN EXISTENCIA',
-          slugSuffix: 'cacao-existencia',
-          description: 'SALDO / EXISTENCIA.',
-        },
-        {
-          id: 'salidas',
-          label: 'REGISTRO DE SALIDA',
-          slugSuffix: 'cacao-salidas',
-          description: 'DATOS DE SALIDA.',
-        },
-        {
-          id: 'cuarentena',
-          label: 'cuarentena',
-          slugSuffix: 'cacao-cuarentena-calificacion',
-          description: 'PRODUCTORES EN CUARENTENA y REGISTRO DE INGRESO DE CACAO EN BABA Y OBTENIDO EN SECO POR SEMANA Y CALIFICACION.',
-        },
-      ];
-      this.activeTabId = 'arqueo';
-    } else {
-      this.reportTabs = [
-        {
-          id: 'agrocalidad',
-          label: 'Agrocalidad (Sistema GUIA)',
-          slugSuffix: 'cacao-agrocalidad-guia',
-          description: 'Reporte regulatorio oficial de 20 variables para exportación al Sistema GUIA.',
-        },
-        {
-          id: 'compras',
-          label: 'Compras Certificadas',
-          slugSuffix: 'cacao-compras-certificadas',
-          description: 'Desglose por certificación (Orgánico, Transición, Convencional Fairtrade).',
-        },
-        {
-          id: 'acopio',
-          label: 'Acopio Semanal & Calidad',
-          slugSuffix: 'cacao-acopio-calidad',
-          description: 'Evolución semanal de compras por variedad (Nacional vs CCN-51).',
-        },
-        {
-          id: 'procesos',
-          label: 'Rendimientos & Procesamiento',
-          slugSuffix: 'cacao-procesos-rendimientos',
-          description: 'Rendimientos de transformación y trazabilidad de lotes procesados.',
-        },
-        {
-          id: 'parcelas',
-          label: 'Productores & Parcelas',
-          slugSuffix: 'cacao-productores-parcelas',
-          description: 'Georreferenciación y distribución de parcelas de productores.',
-        },
-        {
-          id: 'pagos',
-          label: 'Liquidación & Pagos',
-          slugSuffix: 'cacao-pagos-conciliacion',
-          description: 'Conciliación de pagos frente a costos de compra registrados.',
-        },
-      ];
-      this.activeTabId = 'agrocalidad';
+  ngOnDestroy(): void {
+    this.companySub?.unsubscribe();
+    this.unmountCurrentDashboard();
+  }
+
+  async loadCatalog(companyId: number): Promise<void> {
+    this.companyId = companyId;
+    this.loadingCatalog = true;
+    this.errorMessage = null;
+    this.unmountCurrentDashboard();
+
+    try {
+      const catalog = await firstValueFrom(this.biReportsApi.getDashboards(companyId));
+      this.studioEnabled = Boolean(catalog.studioEnabled);
+      this.reportTabs = catalog.dashboards || [];
+      if (this.reportTabs.length === 0) {
+        this.activeSlug = '';
+        this.errorMessage = 'No existen tableros habilitados para su rol en esta empresa.';
+        return;
+      }
+      await this.selectTab(this.reportTabs[0].slug);
+    } catch (err) {
+      this.reportTabs = [];
+      this.activeSlug = '';
+      this.errorMessage = extractBiErrorMessage(
+        err,
+        'No se pudo cargar el catálogo de reportes BI.',
+      );
+    } finally {
+      this.loadingCatalog = false;
     }
   }
 
-  selectTab(tabId: string): void {
-    this.activeTabId = tabId;
-    const tab = this.reportTabs.find((t) => t.id === tabId);
-    if (!tab) {
+  async selectTab(slug: string): Promise<void> {
+    if (!this.companyId || !slug) {
       return;
     }
-    if (!this.supersetBaseUrl) {
-      this.iframeSrc = null;
-      return;
-    }
-    const slug = `${this.orgSlug}-${tab.slugSuffix}-${this.biEnvironment}`;
-    const url = `${this.supersetBaseUrl}/superset/dashboard/${slug}/?standalone=2`;
-    this.iframeSrc = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-  }
+    this.activeSlug = slug;
+    this.errorMessage = null;
+    this.loadingDashboard = true;
+    const generation = ++this.activeMountGeneration;
+    this.unmountCurrentDashboard();
 
-  /**
-   * Resolves the Superset base URL.
-   * Priority:
-   * 1. Explicitly configured supersetBaseUrl in environment/env.js
-   * 2. Default reverse-proxy path `/bi` under current origin
-   */
-  private resolveSupersetBaseUrl(): string {
-    const configured = (environment as any).supersetBaseUrl;
-    if (configured && typeof configured === 'string' && configured.trim().length > 0) {
-      return configured.trim().replace(/\/+$/, '');
-    }
-    if (typeof window !== 'undefined' && window.location) {
-      return `${window.location.origin}/bi`;
-    }
-    return '/bi';
-  }
-
-  /**
-   * Resolves the target BI environment ('staging' or 'production').
-   * Detects staging/test environments from hostname first to prevent wrong dashboard slug routing.
-   */
-  private resolveBiEnvironment(): string {
-    if (typeof window !== 'undefined' && window.location) {
-      const host = window.location.hostname.toLowerCase();
-      if (host.includes('test') || host.includes('staging') || host.includes('localhost')) {
-        return 'staging';
+    try {
+      const tokenResp = await firstValueFrom(
+        this.biReportsApi.createGuestToken({
+          companyId: this.companyId,
+          slug,
+        }),
+      );
+      if (generation !== this.activeMountGeneration) {
+        return;
+      }
+      const mountPoint = this.supersetMountPoint?.nativeElement;
+      if (!mountPoint) {
+        this.errorMessage = 'No se encontró el contenedor para montar el tablero.';
+        return;
+      }
+      const companyId = this.companyId;
+      let initialTokenUsed = false;
+      this.mountedDashboard = await this.embedSdk.embed({
+        id: tokenResp.embeddedUuid,
+        supersetDomain: tokenResp.supersetDomain,
+        mountPoint,
+        referrerPolicy: 'strict-origin-when-cross-origin',
+        fetchGuestToken: async () => {
+          if (!initialTokenUsed) {
+            initialTokenUsed = true;
+            return tokenResp.guestToken;
+          }
+          const refreshed = await firstValueFrom(
+            this.biReportsApi.createGuestToken({ companyId, slug }),
+          );
+          return refreshed.guestToken;
+        },
+        dashboardUiConfig: {
+          hideTitle: true,
+          filters: {
+            visible: true,
+            expanded: false,
+          },
+        },
+      });
+    } catch (err) {
+      if (generation === this.activeMountGeneration) {
+        this.unmountCurrentDashboard();
+        this.errorMessage = extractBiErrorMessage(
+          err,
+          'No se pudo cargar el tablero seleccionado.',
+        );
+      }
+    } finally {
+      if (generation === this.activeMountGeneration) {
+        this.loadingDashboard = false;
       }
     }
-    const envBi = (window as any)['env']?.biEnvironment || (environment as any).biEnvironment;
-    if (envBi && typeof envBi === 'string' && envBi.trim().length > 0) {
-      return envBi.trim().toLowerCase();
-    }
-    return environment.production ? 'production' : 'staging';
   }
 
-  /**
-   * Resolves the tenant organization slug ('unocace' or 'fortaleza').
-   */
-  private resolveOrgSlug(): string {
-    const company = (this.envInfo.companyName || '').toLowerCase().trim();
-    if (company.includes('fortaleza')) {
-      return 'fortaleza';
+  private unmountCurrentDashboard(): void {
+    if (this.mountedDashboard) {
+      try {
+        this.mountedDashboard.unmount();
+      } catch {
+        // Ignore teardown errors when switching views rapidly
+      }
+      this.mountedDashboard = null;
     }
-    if (company.includes('unocace')) {
-      return 'unocace';
+    const mountPoint = this.supersetMountPoint?.nativeElement;
+    if (mountPoint) {
+      mountPoint.innerHTML = '';
     }
-
-    const realm =
-      ((window as any)['env'] || {})['keycloakRealm'] ||
-      environment.keycloakRealm ||
-      '';
-    const normalizedRealm = realm.toLowerCase().trim();
-    if (normalizedRealm.includes('fortaleza')) {
-      return 'fortaleza';
-    }
-    if (normalizedRealm.includes('unocace')) {
-      return 'unocace';
-    }
-
-    const host = typeof window !== 'undefined' && window.location ? window.location.hostname.toLowerCase() : '';
-    if (host.includes('fortaleza') || host.includes('espam')) {
-      return 'fortaleza';
-    }
-    if (host.includes('unocace')) {
-      return 'unocace';
-    }
-
-    return 'fortaleza';
   }
 }

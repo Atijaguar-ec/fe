@@ -12,6 +12,10 @@
 }
 
 .reports-tabs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 14px;
   background: #fff;
   border: 1px solid #dee2e6;
@@ -53,6 +57,38 @@
   }
 }
 
+.studio-link-button {
+  white-space: nowrap;
+  padding: 7px 14px;
+  border-radius: 4px;
+  border: 1px solid #1f5c4a;
+  color: #1f5c4a;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    background: #1f5c4a;
+    color: #ffffff;
+  }
+}
+
+.reports-error-banner {
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid #f5c2c7;
+  background: #f8d7da;
+  color: #842029;
+  font-size: 0.92rem;
+}
+
+.reports-loading-bar {
+  margin-bottom: 10px;
+  font-size: 0.88rem;
+  color: #495057;
+}
+
 .dashboard-frame-container {
   width: 100%;
 }
@@ -66,27 +102,21 @@
   overflow: hidden;
   background: #fff;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+
+  &.hidden {
+    display: none;
+  }
 }
 
 .dashboard-frame {
   width: 100%;
   height: 100%;
-  border: none;
   display: block;
-}
 
-.no-dashboard-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 350px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  border: 2px dashed #dee2e6;
-  margin: 20px;
-
-  p {
-    color: $theme-secondary-text;
-    font-size: 0.95rem;
+  ::ng-deep iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
   }
 }

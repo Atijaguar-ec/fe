@@ -42,6 +42,7 @@
     "@ng-select/ng-select": "^13.9.1",
     "@nx/angular": "22.6.1",
     "@popperjs/core": "^2.11.8",
+    "@superset-ui/embedded-sdk": "0.4.0",
     "@tinymce/tinymce-angular": "^7.0.0",
     "@turf/turf": "^6.5.0",
     "@types/node": "^12.12.42",

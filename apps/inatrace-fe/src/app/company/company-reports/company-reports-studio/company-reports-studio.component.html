@@ -1,0 +1,165 @@
+<app-authorised-layout>
+  <app-company-left-panel></app-company-left-panel>
+
+  <div class="main studio-container">
+    <div class="af-form-wrapper">
+      <div class="studio-toolbar">
+        <div class="studio-nav-group">
+          <button
+            type="button"
+            class="studio-nav-btn"
+            [class.active]="activeSection === 'dashboards'"
+            (click)="navigateStudio('dashboards')"
+          >
+            Tableros
+          </button>
+          <button
+            type="button"
+            class="studio-nav-btn"
+            [class.active]="activeSection === 'charts'"
+            (click)="navigateStudio('charts')"
+          >
+            Crear Gráfico
+          </button>
+          <button
+            type="button"
+            class="studio-nav-btn"
+            [class.active]="activeSection === 'sqllab'"
+            (click)="navigateStudio('sqllab')"
+          >
+            SQL Lab (Solo lectura)
+          </button>
+        </div>
+
+        <div class="studio-actions-group">
+          <button
+            type="button"
+            class="studio-toggle-btn"
+            (click)="publishPanelOpen = !publishPanelOpen"
+          >
+            {{ publishPanelOpen ? 'Ocultar publicación' : 'Publicar tablero en Reportes' }}
+          </button>
+          <a class="studio-back-link" routerLink="/company-reports">
+            Volver a Reportes
+          </a>
+        </div>
+      </div>
+
+      <div *ngIf="errorMessage" class="studio-error-banner" role="alert">
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="publishPanelOpen" class="publish-panel">
+        <div class="publish-panel-grid">
+          <form [formGroup]="publishForm" (ngSubmit)="onPublishSubmit()" class="publish-form">
+            <h4>Publicar tablero diseñado en Reportes &amp; BI</h4>
+            <p class="publish-hint">
+              1. Guarde los gráficos y el tablero en Superset usando únicamente las vistas autorizadas
+              ({{ allowedDatasets.join(', ') }}).
+              2. Active <strong>Embed dashboard</strong> en Superset con el dominio del portal.
+              3. No use el prefijo reservado <code>{{ organizationSlug }}-cacao-</code> en el slug.
+            </p>
+
+            <div class="form-row">
+              <label for="studioSlug">Slug del tablero en Superset *</label>
+              <input
+                id="studioSlug"
+                type="text"
+                formControlName="slug"
+                placeholder="ej. fv-resumen-semanal"
+              />
+              <small *ngIf="hasReservedPrefix()" class="field-error">
+                El slug no puede iniciar con {{ organizationSlug }}-cacao-.
+              </small>
+            </div>
+
+            <div class="form-row">
+              <label for="studioLabel">Nombre de la pestaña *</label>
+              <input
+                id="studioLabel"
+                type="text"
+                formControlName="label"
+                placeholder="ej. Resumen Semanal"
+              />
+            </div>
+
+            <div class="form-row">
+              <label for="studioDescription">Descripción</label>
+              <input
+                id="studioDescription"
+                type="text"
+                formControlName="description"
+                placeholder="Descripción opcional"
+              />
+            </div>
+
+            <div class="form-row">
+              <label>Roles autorizados *</label>
+              <div class="roles-checkboxes">
+                <label *ngFor="let role of roleOptions" class="role-checkbox-item">
+                  <input
+                    type="checkbox"
+                    [checked]="isRoleSelected(role.value)"
+                    (change)="toggleRole(role.value, $any($event.target).checked)"
+                  />
+                  <span>{{ role.label }}</span>
+                </label>
+              </div>
+              <small *ngIf="selectedRoles.size === 0" class="field-error">
+                Seleccione al menos un rol autorizado.
+              </small>
+            </div>
+
+            <button
+              type="submit"
+              class="publish-submit-btn"
+              [disabled]="!canSubmitPublish()"
+            >
+              {{ submitting ? 'Validando...' : 'Publicar tablero' }}
+            </button>
+          </form>
+
+          <div class="published-list">
+            <h4>Tableros personalizados publicados</h4>
+            <p *ngIf="customDashboards.length === 0" class="empty-published">
+              No hay tableros personalizados publicados para esta empresa.
+            </p>
+            <ul *ngIf="customDashboards.length > 0" class="custom-dashboard-items">
+              <li *ngFor="let item of customDashboards" class="custom-dashboard-item">
+                <div>
+                  <strong>{{ item.label }}</strong>
+                  <div class="meta">
+                    <code>{{ item.slug }}</code> · Roles: {{ item.allowedRoles.join(', ') }}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="remove-custom-btn"
+                  [disabled]="submitting"
+                  (click)="onRemoveCustomDashboard(item.slug)"
+                >
+                  Quitar
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="studio-frame-wrapper">
+        <iframe
+          *ngIf="studioIframeSrc; else noStudioUrl"
+          class="studio-frame"
+          [src]="studioIframeSrc"
+          frameborder="0"
+          allowfullscreen
+        ></iframe>
+        <ng-template #noStudioUrl>
+          <div class="studio-placeholder">
+            Configure el servicio BI en el backend para abrir el Estudio de Superset.
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</app-authorised-layout>

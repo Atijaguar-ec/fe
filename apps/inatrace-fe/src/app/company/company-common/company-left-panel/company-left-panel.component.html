@@ -118,10 +118,22 @@
       <a
         class="link-normal"
         routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
         routerLink="/company-reports"
         i18n="@@companyLeftPanel.reports"
       >
         Reportes &amp; BI
+      </a>
+    </li>
+
+    <li *ngIf="isSystemOrRegionalAdmin">
+      <a
+        class="link-normal"
+        routerLinkActive="active"
+        routerLink="/company-reports/studio"
+        i18n="@@companyLeftPanel.reportsStudio"
+      >
+        Estudio de Reportes
       </a>
     </li>
   </ul>
