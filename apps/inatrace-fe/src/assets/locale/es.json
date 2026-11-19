@@ -1909,6 +1909,8 @@
     "companyLeftPanel.collectors": "Colectores",
     "companyLeftPanel.customers": "Clientes",
     "companyLeftPanel.reports": "Reportes & BI",
+    "companyLeftPanel.reportsStudio": "Estudio de Reportes",
+    "companyReports.openStudio": "Estudio de Reportes",
     "companyReports.title": "Reportes & BI",
     "companyReports.button.openSuperset": "↗ Abrir en pestaña completa",
     "companyReports.noDashboard": "Configure la URL de Superset para visualizar los reportes.",

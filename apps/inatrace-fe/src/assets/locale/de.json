@@ -288,6 +288,8 @@
     "companyLeftPanel.collectors": "Sammler*innen",
     "companyLeftPanel.customers": "Kunden",
     "companyLeftPanel.reports": "Berichte & BI",
+    "companyLeftPanel.reportsStudio": "Berichtsstudio",
+    "companyReports.openStudio": "Berichtsstudio",
     "productLabelStakeholders.title.buyers": "Käufer",
     "productLabelStakeholders.button.newBuyer": "{$START_TAG_SPAN}+ Käufer hinzufügen{$CLOSE_TAG_SPAN}",
     "productLabelStakeholders.title.producers": "Produzent*innen",
