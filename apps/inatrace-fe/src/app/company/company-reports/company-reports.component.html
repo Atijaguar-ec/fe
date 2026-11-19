@@ -1,37 +1,117 @@
 <app-authorised-layout>
   <app-company-left-panel></app-company-left-panel>
 
-  <div class="main reports-container">
+  <div class="main reports-container" [class.reports-fullscreen]="isFullscreen">
     <div class="af-form-wrapper">
-      <div class="reports-tabs-header">
-        <div class="reports-tabs-nav">
+      <div class="executive-header">
+        <div class="executive-title-group">
+          <div class="executive-title-row">
+            <h2 class="executive-title">
+              {{ activeDashboard?.label || 'Reportes & BI' }}
+            </h2>
+            <span
+              *ngIf="activeDashboard"
+              class="dashboard-badge"
+              [class.badge-official]="activeDashboard.isOfficial"
+              [class.badge-custom]="!activeDashboard.isOfficial"
+            >
+              {{ activeDashboard.isOfficial ? 'Oficial' : 'Personalizado' }}
+            </span>
+          </div>
+          <p class="executive-subtitle">
+            {{ activeDashboard?.description || 'Inteligencia operativa y trazabilidad certificada con Apache Superset.' }}
+          </p>
+        </div>
+
+        <div class="executive-actions">
           <button
             type="button"
+            class="action-btn action-btn-secondary"
+            [disabled]="loadingCatalog || loadingDashboard || companyId === null"
+            (click)="refreshActiveDashboard()"
+            title="Recargar datos y renovar sesión del tablero"
+          >
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>Actualizar</span>
+          </button>
+
+          <button
+            type="button"
+            class="action-btn action-btn-secondary"
+            [attr.aria-pressed]="isFullscreen"
+            (click)="toggleFullscreen()"
+            [title]="isFullscreen ? 'Salir de pantalla completa (Esc)' : 'Expandir tablero a pantalla completa'"
+          >
+            <svg *ngIf="!isFullscreen" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4m8 0h4v4m0 8v4h-4M8 20H4v-4" />
+            </svg>
+            <svg *ngIf="isFullscreen" class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 4v5H4m11-5v5h5m-5 11v-5h5M9 20v-5H4" />
+            </svg>
+            <span>{{ isFullscreen ? 'Salir' : 'Pantalla completa' }}</span>
+          </button>
+
+          <a
+            *ngIf="studioEnabled"
+            class="studio-link-button"
+            routerLink="/company-reports/studio"
+            i18n="@@companyReports.openStudio"
+          >
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+            <span>Estudio de Reportes</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="reports-tabs-header" *ngIf="reportTabs.length > 0">
+        <div
+          class="reports-tabs-nav"
+          role="tablist"
+          aria-label="Tableros BI disponibles"
+        >
+          <button
+            type="button"
+            role="tab"
             *ngFor="let tab of reportTabs"
             class="reports-tab-button"
             [class.active]="activeSlug === tab.slug"
+            [attr.aria-selected]="activeSlug === tab.slug"
             (click)="selectTab(tab.slug)"
             [title]="tab.description"
           >
-            {{ tab.label }}
+            <span
+              *ngIf="!tab.isOfficial"
+              class="custom-dot"
+              aria-hidden="true"
+              title="Tablero personalizado"
+            ></span>
+            <span>{{ tab.label }}</span>
           </button>
         </div>
-        <a
-          *ngIf="studioEnabled"
-          class="studio-link-button"
-          routerLink="/company-reports/studio"
-          i18n="@@companyReports.openStudio"
+      </div>
+
+      <div *ngIf="errorMessage" class="reports-error-card" role="alert">
+        <div class="error-card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86l-7.5 13A2 2 0 004.5 20h15a2 2 0 001.71-3.14l-7.5-13a2 2 0 00-3.42 0z" />
+          </svg>
+        </div>
+        <div class="error-card-body">
+          <strong class="error-card-title">No se pudo mostrar el reporte</strong>
+          <p class="error-card-message">{{ errorMessage }}</p>
+        </div>
+        <button
+          type="button"
+          class="error-retry-btn"
+          [disabled]="loadingCatalog || loadingDashboard"
+          (click)="retryCurrent()"
         >
-          Estudio de Reportes
-        </a>
-      </div>
-
-      <div *ngIf="errorMessage" class="reports-error-banner" role="alert">
-        {{ errorMessage }}
-      </div>
-
-      <div *ngIf="loadingCatalog || loadingDashboard" class="reports-loading-bar">
-        Cargando reporte...
+          Reintentar
+        </button>
       </div>
 
       <div class="dashboard-frame-container">
@@ -39,6 +119,26 @@
           class="dashboard-frame-wrapper"
           [class.hidden]="!!errorMessage || reportTabs.length === 0"
         >
+          <div
+            *ngIf="loadingCatalog || loadingDashboard"
+            class="reports-skeleton-overlay"
+            aria-busy="true"
+            aria-live="polite"
+          >
+            <div class="skeleton-toolbar">
+              <div class="skeleton-bar skeleton-title"></div>
+              <div class="skeleton-bar skeleton-chip"></div>
+            </div>
+            <div class="skeleton-table">
+              <div class="skeleton-row skeleton-header-row"></div>
+              <div class="skeleton-row"></div>
+              <div class="skeleton-row"></div>
+              <div class="skeleton-row"></div>
+              <div class="skeleton-row short"></div>
+            </div>
+            <span class="skeleton-status-label">Cargando tablero analítico...</span>
+          </div>
+
           <div #supersetMountPoint class="dashboard-frame"></div>
         </div>
       </div>

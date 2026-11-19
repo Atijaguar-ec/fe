@@ -42,11 +42,20 @@ export class CompanyReportsStudioComponent implements OnInit, OnDestroy {
   customDashboards: BiDashboardDto[] = [];
   activeSection: 'dashboards' | 'charts' | 'sqllab' = 'dashboards';
   studioIframeSrc: SafeResourceUrl | null = null;
+  studioExternalUrl = '';
 
   publishPanelOpen = true;
+  iframeLoading = false;
   submitting = false;
+  editingSlug: string | null = null;
+  pendingDeleteSlug: string | null = null;
   errorMessage: string | null = null;
-  selectedRoles: Set<string> = new Set(['USER', 'COMPANY_ADMIN', 'REGIONAL_ADMIN', 'SYSTEM_ADMIN']);
+  selectedRoles: Set<string> = new Set([
+    'USER',
+    'COMPANY_ADMIN',
+    'REGIONAL_ADMIN',
+    'SYSTEM_ADMIN',
+  ]);
 
   publishForm: FormGroup;
   private companySub: Subscription | null = null;
@@ -81,6 +90,7 @@ export class CompanyReportsStudioComponent implements OnInit, OnDestroy {
   }
 
   async loadStudioContext(companyId: number): Promise<void> {
+    this.companyId = companyId;
     this.errorMessage = null;
     try {
       const catalog = await firstValueFrom(this.biReportsApi.getDashboards(companyId));
@@ -88,7 +98,10 @@ export class CompanyReportsStudioComponent implements OnInit, OnDestroy {
       this.supersetDomain = (catalog.supersetDomain || '').replace(/\/+$/, '');
       this.allowedDatasets = catalog.allowedDatasets || [];
       this.customDashboards = (catalog.dashboards || []).filter((d) => !d.isOfficial);
-      this.navigateStudio('dashboards');
+      if (this.supersetDomain && !this.editingSlug) {
+        this.publishPanelOpen = false;
+      }
+      this.navigateStudio(this.activeSection);
     } catch (err) {
       this.errorMessage = extractBiErrorMessage(
         err,
@@ -101,6 +114,8 @@ export class CompanyReportsStudioComponent implements OnInit, OnDestroy {
     this.activeSection = section;
     if (!this.supersetDomain) {
       this.studioIframeSrc = null;
+      this.studioExternalUrl = '';
+      this.iframeLoading = false;
       return;
     }
     const pathMap: Record<'dashboards' | 'charts' | 'sqllab', string> = {
@@ -109,7 +124,13 @@ export class CompanyReportsStudioComponent implements OnInit, OnDestroy {
       sqllab: '/sqllab/',
     };
     const targetUrl = `${this.supersetDomain}${pathMap[section]}`;
+    this.iframeLoading = true;
+    this.studioExternalUrl = targetUrl;
     this.studioIframeSrc = this.sanitizer.bypassSecurityTrustResourceUrl(targetUrl);
+  }
+
+  onIframeLoad(): void {
+    this.iframeLoading = false;
   }
 
   toggleRole(roleValue: string, checked: boolean): void {
@@ -125,7 +146,9 @@ export class CompanyReportsStudioComponent implements OnInit, OnDestroy {
   }
 
   hasReservedPrefix(): boolean {
-    const slug = String(this.publishForm.get('slug')?.value || '').trim().toLowerCase();
+    const slug = String(this.publishForm.get('slug')?.value || '')
+      .trim()
+      .toLowerCase();
     return Boolean(this.organizationSlug && slug.startsWith(`${this.organizationSlug}-cacao-`));
   }
 
@@ -139,6 +162,55 @@ export class CompanyReportsStudioComponent implements OnInit, OnDestroy {
     );
   }
 
+  startEditCustomDashboard(item: BiDashboardDto): void {
+    this.editingSlug = item.slug;
+    this.pendingDeleteSlug = null;
+    this.publishPanelOpen = true;
+    this.publishForm.setValue({
+      slug: item.slug,
+      label: item.label || '',
+      description: item.description || '',
+    });
+    const roles = item.allowedRoles && item.allowedRoles.length > 0
+      ? item.allowedRoles
+      : ['USER', 'COMPANY_ADMIN', 'REGIONAL_ADMIN', 'SYSTEM_ADMIN'];
+    this.selectedRoles = new Set(roles);
+  }
+
+  cancelEdit(): void {
+    this.editingSlug = null;
+    this.publishForm.reset({ slug: '', label: '', description: '' });
+    this.selectedRoles = new Set([
+      'USER',
+      'COMPANY_ADMIN',
+      'REGIONAL_ADMIN',
+      'SYSTEM_ADMIN',
+    ]);
+  }
+
+  async copyDatasetName(dataset: string): Promise<void> {
+    if (!dataset) {
+      return;
+    }
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(dataset);
+      } else if (typeof document !== 'undefined') {
+        const textarea = document.createElement('textarea');
+        textarea.value = dataset;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      this.toastr.info(`Vista '${dataset}' copiada al portapapeles.`, 'Estudio BI');
+    } catch {
+      this.toastr.info(`Vista disponible: ${dataset}`, 'Estudio BI');
+    }
+  }
+
   async onPublishSubmit(): Promise<void> {
     if (!this.canSubmitPublish() || this.companyId == null) {
       return;
@@ -147,6 +219,7 @@ export class CompanyReportsStudioComponent implements OnInit, OnDestroy {
     this.errorMessage = null;
 
     const raw = this.publishForm.value;
+    const wasEditing = this.editingSlug !== null;
     try {
       await firstValueFrom(
         this.biReportsApi.registerCustomDashboard({
@@ -157,8 +230,13 @@ export class CompanyReportsStudioComponent implements OnInit, OnDestroy {
           allowedRoles: Array.from(this.selectedRoles),
         }),
       );
-      this.toastr.success('Tablero publicado en Reportes & BI.', 'Estudio BI');
-      this.publishForm.reset({ slug: '', label: '', description: '' });
+      this.toastr.success(
+        wasEditing
+          ? 'Tablero actualizado en Reportes & BI.'
+          : 'Tablero publicado en Reportes & BI.',
+        'Estudio BI',
+      );
+      this.cancelEdit();
       await this.loadStudioContext(this.companyId);
     } catch (err) {
       const msg = extractBiErrorMessage(err, 'No se pudo publicar el tablero.');
@@ -169,7 +247,15 @@ export class CompanyReportsStudioComponent implements OnInit, OnDestroy {
     }
   }
 
-  async onRemoveCustomDashboard(slug: string): Promise<void> {
+  requestRemoveCustomDashboard(slug: string): void {
+    this.pendingDeleteSlug = slug;
+  }
+
+  cancelRemoveCustomDashboard(): void {
+    this.pendingDeleteSlug = null;
+  }
+
+  async confirmRemoveCustomDashboard(slug: string): Promise<void> {
     if (this.companyId == null || this.submitting) {
       return;
     }
@@ -177,6 +263,10 @@ export class CompanyReportsStudioComponent implements OnInit, OnDestroy {
     this.errorMessage = null;
     try {
       await firstValueFrom(this.biReportsApi.removeCustomDashboard(this.companyId, slug));
+      this.pendingDeleteSlug = null;
+      if (this.editingSlug === slug) {
+        this.cancelEdit();
+      }
       this.toastr.info(`Tablero '${slug}' retirado de Reportes & BI.`, 'Estudio BI');
       await this.loadStudioContext(this.companyId);
     } catch (err) {

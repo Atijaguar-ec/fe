@@ -1,6 +1,7 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ReplaySubject, of, throwError } from 'rxjs';
 import { SelectedUserCompanyService } from '../../core/selected-user-company.service';
@@ -18,6 +19,7 @@ describe('CompanyReportsComponent', () => {
   let apiSpy: jasmine.SpyObj<BiReportsApiService>;
   let sdkSpy: jasmine.SpyObj<SupersetEmbedSdkService>;
   let mountedMock: { unmount: jasmine.Spy };
+  let router: Router;
 
   const sampleCatalog: BiDashboardCatalogResponse = {
     supersetDomain: 'https://testinatrace.espam.edu.ec/bi',
@@ -56,7 +58,7 @@ describe('CompanyReportsComponent', () => {
 
     await TestBed.configureTestingModule({
       declarations: [CompanyReportsComponent],
-      imports: [RouterTestingModule],
+      imports: [RouterTestingModule.withRoutes([])],
       providers: [
         {
           provide: SelectedUserCompanyService,
@@ -68,6 +70,7 @@ describe('CompanyReportsComponent', () => {
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
+    router = TestBed.inject(Router);
     fixture = TestBed.createComponent(CompanyReportsComponent);
     component = fixture.componentInstance;
   });
@@ -136,5 +139,60 @@ describe('CompanyReportsComponent', () => {
     component.ngOnDestroy();
 
     expect(mountedMock.unmount).toHaveBeenCalledTimes(2);
+  });
+
+  it('selects tab requested by ?report query parameter when authorized', async () => {
+    apiSpy.getDashboards.and.returnValue(of(sampleCatalog));
+    apiSpy.createGuestToken.and.returnValue(
+      of({
+        supersetDomain: 'https://testinatrace.espam.edu.ec/bi',
+        embeddedUuid: 'uuid-custom-2',
+        guestToken: 'guest.jwt.custom',
+        expiresInSeconds: 300,
+      }),
+    );
+
+    await router.navigate([], { queryParams: { report: 'fv-custom' } });
+    fixture.detectChanges();
+    await component.loadCatalog(5);
+
+    expect(component.activeSlug).toBe('fv-custom');
+    expect(component.activeDashboard?.isOfficial).toBe(false);
+    expect(apiSpy.createGuestToken).toHaveBeenCalledWith({
+      companyId: 5,
+      slug: 'fv-custom',
+    });
+  });
+
+  it('retries failed dashboard mount and toggles fullscreen cleanly with Escape', async () => {
+    apiSpy.getDashboards.and.returnValue(of(sampleCatalog));
+    apiSpy.createGuestToken.and.returnValues(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 503,
+            error: { status: 'UPSTREAM_HTTP_ERROR', errorMessage: 'Superset temporalmente no disponible.' },
+          }),
+      ),
+      of({
+        supersetDomain: 'https://testinatrace.espam.edu.ec/bi',
+        embeddedUuid: 'uuid-fv-1',
+        guestToken: 'guest.jwt.recovered',
+        expiresInSeconds: 300,
+      }),
+    );
+
+    fixture.detectChanges();
+    await component.loadCatalog(5);
+    expect(component.errorMessage).toContain('Superset temporalmente no disponible.');
+
+    await component.retryCurrent();
+    expect(component.errorMessage).toBeNull();
+    expect(sdkSpy.embed).toHaveBeenCalledTimes(1);
+
+    component.toggleFullscreen();
+    expect(component.isFullscreen).toBe(true);
+    component.onEscapeKey();
+    expect(component.isFullscreen).toBe(false);
   });
 });

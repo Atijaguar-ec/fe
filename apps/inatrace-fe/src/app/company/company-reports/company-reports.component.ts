@@ -1,10 +1,12 @@
 import {
   Component,
   ElementRef,
+  HostListener,
   OnDestroy,
   OnInit,
   ViewChild,
 } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { EmbeddedDashboard } from '@superset-ui/embedded-sdk';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -36,6 +38,7 @@ export class CompanyReportsComponent implements OnInit, OnDestroy {
   studioEnabled = false;
   loadingCatalog = false;
   loadingDashboard = false;
+  isFullscreen = false;
   errorMessage: string | null = null;
 
   private mountedDashboard: EmbeddedDashboard | null = null;
@@ -46,7 +49,16 @@ export class CompanyReportsComponent implements OnInit, OnDestroy {
     private selectedCompanyService: SelectedUserCompanyService,
     private biReportsApi: BiReportsApiService,
     private embedSdk: SupersetEmbedSdkService,
+    private route: ActivatedRoute,
+    private router: Router,
   ) {}
+
+  get activeDashboard(): BiDashboardDto | null {
+    if (!this.activeSlug) {
+      return null;
+    }
+    return this.reportTabs.find((tab) => tab.slug === this.activeSlug) ?? null;
+  }
 
   ngOnInit(): void {
     this.companySub = this.selectedCompanyService.selectedCompanyProfile$
@@ -64,6 +76,13 @@ export class CompanyReportsComponent implements OnInit, OnDestroy {
     this.unmountCurrentDashboard();
   }
 
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.isFullscreen) {
+      this.isFullscreen = false;
+    }
+  }
+
   async loadCatalog(companyId: number): Promise<void> {
     this.companyId = companyId;
     this.loadingCatalog = true;
@@ -79,7 +98,16 @@ export class CompanyReportsComponent implements OnInit, OnDestroy {
         this.errorMessage = 'No existen tableros habilitados para su rol en esta empresa.';
         return;
       }
-      await this.selectTab(this.reportTabs[0].slug);
+
+      const requestedSlug = String(this.route.snapshot?.queryParamMap?.get('report') || '')
+        .trim()
+        .toLowerCase();
+      const targetTab =
+        this.reportTabs.find((tab) => tab.slug === requestedSlug) ||
+        this.reportTabs.find((tab) => tab.slug === this.activeSlug) ||
+        this.reportTabs[0];
+
+      await this.selectTab(targetTab.slug, requestedSlug !== targetTab.slug);
     } catch (err) {
       this.reportTabs = [];
       this.activeSlug = '';
@@ -92,7 +120,7 @@ export class CompanyReportsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async selectTab(slug: string): Promise<void> {
+  async selectTab(slug: string, syncQueryParam = true): Promise<void> {
     if (!this.companyId || !slug) {
       return;
     }
@@ -101,6 +129,15 @@ export class CompanyReportsComponent implements OnInit, OnDestroy {
     this.loadingDashboard = true;
     const generation = ++this.activeMountGeneration;
     this.unmountCurrentDashboard();
+
+    if (syncQueryParam) {
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { report: slug },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    }
 
     try {
       const tokenResp = await firstValueFrom(
@@ -155,6 +192,36 @@ export class CompanyReportsComponent implements OnInit, OnDestroy {
         this.loadingDashboard = false;
       }
     }
+  }
+
+  async refreshActiveDashboard(): Promise<void> {
+    if (this.loadingCatalog || this.loadingDashboard) {
+      return;
+    }
+    if (this.activeSlug) {
+      await this.selectTab(this.activeSlug, false);
+    } else if (this.companyId != null) {
+      await this.loadCatalog(this.companyId);
+    }
+  }
+
+  async retryCurrent(): Promise<void> {
+    if (this.companyId == null) {
+      return;
+    }
+    if (this.reportTabs.length === 0) {
+      await this.loadCatalog(this.companyId);
+      return;
+    }
+    if (this.activeSlug) {
+      await this.selectTab(this.activeSlug, false);
+    } else {
+      await this.loadCatalog(this.companyId);
+    }
+  }
+
+  toggleFullscreen(): void {
+    this.isFullscreen = !this.isFullscreen;
   }
 
   private unmountCurrentDashboard(): void {

@@ -32,7 +32,16 @@ describe('CompanyReportsStudioComponent', () => {
         organizationSlug: 'fortaleza',
         studioEnabled: true,
         allowedDatasets: ['bi.rpt_cacao_beneficio_fortaleza'],
-        dashboards: [],
+        dashboards: [
+          {
+            slug: 'fv-resumen-existente',
+            label: 'Resumen Existente',
+            description: 'Tablero propio',
+            isOfficial: false,
+            sortOrder: 100,
+            allowedRoles: ['USER', 'REGIONAL_ADMIN'],
+          },
+        ],
       }),
     );
 
@@ -111,5 +120,46 @@ describe('CompanyReportsStudioComponent', () => {
     expect(payload.slug).toBe('fv-resumen-valido');
     expect(payload.allowedRoles.length).toBeGreaterThan(0);
     expect(toastrSpy.success).toHaveBeenCalled();
+  });
+
+  it('loads custom dashboard into edit form and updates existing entry', async () => {
+    const existing = component.customDashboards[0];
+    component.publishPanelOpen = false;
+
+    component.startEditCustomDashboard(existing);
+    expect(component.publishPanelOpen).toBe(true);
+    expect(component.editingSlug).toBe('fv-resumen-existente');
+    expect(component.publishForm.get('label')?.value).toBe('Resumen Existente');
+    expect(component.isRoleSelected('USER')).toBe(true);
+    expect(component.isRoleSelected('SYSTEM_ADMIN')).toBe(false);
+
+    apiSpy.registerCustomDashboard.and.returnValue(
+      of({
+        ...existing,
+        label: 'Resumen Actualizado',
+      }),
+    );
+    component.publishForm.patchValue({ label: 'Resumen Actualizado' });
+    await component.onPublishSubmit();
+
+    expect(component.editingSlug).toBeNull();
+    expect(apiSpy.registerCustomDashboard.calls.mostRecent().args[0].label).toBe('Resumen Actualizado');
+  });
+
+  it('uses two-step confirmation before removing a custom dashboard', async () => {
+    apiSpy.removeCustomDashboard.and.returnValue(of(void 0));
+
+    component.requestRemoveCustomDashboard('fv-resumen-existente');
+    expect(component.pendingDeleteSlug).toBe('fv-resumen-existente');
+    expect(apiSpy.removeCustomDashboard).not.toHaveBeenCalled();
+
+    component.cancelRemoveCustomDashboard();
+    expect(component.pendingDeleteSlug).toBeNull();
+
+    component.requestRemoveCustomDashboard('fv-resumen-existente');
+    await component.confirmRemoveCustomDashboard('fv-resumen-existente');
+    expect(apiSpy.removeCustomDashboard).toHaveBeenCalledWith(5, 'fv-resumen-existente');
+    expect(component.pendingDeleteSlug).toBeNull();
+    expect(toastrSpy.info).toHaveBeenCalled();
   });
 });

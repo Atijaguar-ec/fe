@@ -4,27 +4,33 @@
   <div class="main studio-container">
     <div class="af-form-wrapper">
       <div class="studio-toolbar">
-        <div class="studio-nav-group">
+        <div class="studio-nav-group" role="tablist" aria-label="Espacios de Superset">
           <button
             type="button"
+            role="tab"
             class="studio-nav-btn"
             [class.active]="activeSection === 'dashboards'"
+            [attr.aria-selected]="activeSection === 'dashboards'"
             (click)="navigateStudio('dashboards')"
           >
             Tableros
           </button>
           <button
             type="button"
+            role="tab"
             class="studio-nav-btn"
             [class.active]="activeSection === 'charts'"
+            [attr.aria-selected]="activeSection === 'charts'"
             (click)="navigateStudio('charts')"
           >
             Crear Gráfico
           </button>
           <button
             type="button"
+            role="tab"
             class="studio-nav-btn"
             [class.active]="activeSection === 'sqllab'"
+            [attr.aria-selected]="activeSection === 'sqllab'"
             (click)="navigateStudio('sqllab')"
           >
             SQL Lab (Solo lectura)
@@ -35,10 +41,28 @@
           <button
             type="button"
             class="studio-toggle-btn"
+            [class.open]="publishPanelOpen"
+            [attr.aria-expanded]="publishPanelOpen"
             (click)="publishPanelOpen = !publishPanelOpen"
           >
-            {{ publishPanelOpen ? 'Ocultar publicación' : 'Publicar tablero en Reportes' }}
+            <span>{{ publishPanelOpen ? 'Ocultar publicación' : 'Publicar y gestionar' }}</span>
+            <span class="count-pill">{{ customDashboards.length }}</span>
           </button>
+
+          <a
+            *ngIf="studioExternalUrl"
+            class="studio-external-link"
+            [href]="studioExternalUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Abrir Superset en una nueva pestaña"
+          >
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            <span>Nueva pestaña</span>
+          </a>
+
           <a class="studio-back-link" routerLink="/company-reports">
             Volver a Reportes
           </a>
@@ -50,15 +74,49 @@
       </div>
 
       <div *ngIf="publishPanelOpen" class="publish-panel">
+        <div class="publish-guide-strip">
+          <div class="guide-step">
+            <span class="step-num">1</span>
+            <span>Diseña el tablero y guarda los gráficos (<code>query_context</code>) usando solo vistas <code>bi.*</code>.</span>
+          </div>
+          <div class="guide-step">
+            <span class="step-num">2</span>
+            <span>Activa <strong>Embed dashboard</strong> en Superset autorizando el dominio del portal.</span>
+          </div>
+          <div class="guide-step">
+            <span class="step-num">3</span>
+            <span>Registra el slug (sin el prefijo <code>{{ organizationSlug }}-cacao-</code>) y asigna roles.</span>
+          </div>
+        </div>
+
+        <div *ngIf="allowedDatasets.length > 0" class="datasets-bar">
+          <span class="datasets-label">Vistas autorizadas (clic para copiar):</span>
+          <div class="dataset-chips">
+            <button
+              type="button"
+              class="dataset-chip"
+              *ngFor="let ds of allowedDatasets"
+              (click)="copyDatasetName(ds)"
+              [title]="'Copiar ' + ds"
+            >
+              {{ ds }}
+            </button>
+          </div>
+        </div>
+
         <div class="publish-panel-grid">
           <form [formGroup]="publishForm" (ngSubmit)="onPublishSubmit()" class="publish-form">
-            <h4>Publicar tablero diseñado en Reportes &amp; BI</h4>
-            <p class="publish-hint">
-              1. Guarde los gráficos y el tablero en Superset usando únicamente las vistas autorizadas
-              ({{ allowedDatasets.join(', ') }}).
-              2. Active <strong>Embed dashboard</strong> en Superset con el dominio del portal.
-              3. No use el prefijo reservado <code>{{ organizationSlug }}-cacao-</code> en el slug.
-            </p>
+            <div class="publish-form-header">
+              <h4>{{ editingSlug ? 'Actualizar tablero publicado' : 'Publicar tablero diseñado en Reportes & BI' }}</h4>
+              <button
+                *ngIf="editingSlug"
+                type="button"
+                class="cancel-edit-btn"
+                (click)="cancelEdit()"
+              >
+                Cancelar edición
+              </button>
+            </div>
 
             <div class="form-row">
               <label for="studioSlug">Slug del tablero en Superset *</label>
@@ -66,6 +124,7 @@
                 id="studioSlug"
                 type="text"
                 formControlName="slug"
+                [readonly]="editingSlug !== null"
                 placeholder="ej. fv-resumen-semanal"
               />
               <small *ngIf="hasReservedPrefix()" class="field-error">
@@ -115,31 +174,66 @@
               class="publish-submit-btn"
               [disabled]="!canSubmitPublish()"
             >
-              {{ submitting ? 'Validando...' : 'Publicar tablero' }}
+              {{ submitting ? 'Validando...' : (editingSlug ? 'Actualizar tablero' : 'Publicar tablero') }}
             </button>
           </form>
 
           <div class="published-list">
-            <h4>Tableros personalizados publicados</h4>
+            <h4>Tableros personalizados publicados ({{ customDashboards.length }})</h4>
             <p *ngIf="customDashboards.length === 0" class="empty-published">
               No hay tableros personalizados publicados para esta empresa.
             </p>
             <ul *ngIf="customDashboards.length > 0" class="custom-dashboard-items">
-              <li *ngFor="let item of customDashboards" class="custom-dashboard-item">
-                <div>
+              <li
+                *ngFor="let item of customDashboards"
+                class="custom-dashboard-item"
+                [class.editing]="editingSlug === item.slug"
+              >
+                <div class="custom-item-info">
                   <strong>{{ item.label }}</strong>
                   <div class="meta">
                     <code>{{ item.slug }}</code> · Roles: {{ item.allowedRoles.join(', ') }}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  class="remove-custom-btn"
-                  [disabled]="submitting"
-                  (click)="onRemoveCustomDashboard(item.slug)"
-                >
-                  Quitar
-                </button>
+                <div class="custom-item-actions" *ngIf="pendingDeleteSlug !== item.slug; else confirmDeleteBlock">
+                  <button
+                    type="button"
+                    class="edit-custom-btn"
+                    [disabled]="submitting"
+                    (click)="startEditCustomDashboard(item)"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    class="remove-custom-btn"
+                    [disabled]="submitting"
+                    (click)="requestRemoveCustomDashboard(item.slug)"
+                  >
+                    Retirar
+                  </button>
+                </div>
+                <ng-template #confirmDeleteBlock>
+                  <div class="confirm-delete-group">
+                    <span class="confirm-prompt">¿Retirar?</span>
+                    <button
+                      type="button"
+                      class="confirm-remove-btn"
+                      [disabled]="submitting"
+                      (click)="confirmRemoveCustomDashboard(item.slug)"
+                    >
+                      Confirmar
+                    </button>
+                    <button
+                      type="button"
+                      class="cancel-remove-btn"
+                      [disabled]="submitting"
+                      (click)="cancelRemoveCustomDashboard()"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </ng-template>
               </li>
             </ul>
           </div>
@@ -147,10 +241,16 @@
       </div>
 
       <div class="studio-frame-wrapper">
+        <div *ngIf="iframeLoading" class="studio-loading-overlay" aria-busy="true" aria-live="polite">
+          <div class="loading-spinner"></div>
+          <span>Cargando Estudio Apache Superset...</span>
+        </div>
+
         <iframe
           *ngIf="studioIframeSrc; else noStudioUrl"
           class="studio-frame"
           [src]="studioIframeSrc"
+          (load)="onIframeLoad()"
           frameborder="0"
           allowfullscreen
         ></iframe>
