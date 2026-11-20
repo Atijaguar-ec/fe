@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Version: 1.0.0
+# Version: 1.1.0
 # Configures Nginx reverse proxy, rate-limiting for public QR traceability endpoints,
-# and TLS (Let's Encrypt Certbot or internal LAN self-signed certificate).
+# and TLS (Let's Encrypt Certbot with renewal hooks or internal LAN self-signed certificate without HSTS).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -140,11 +140,12 @@ case "${TLS_MODE}" in
       command -v certbot >/dev/null 2>&1 || { log_error "certbot is required for --tls-mode letsencrypt"; exit 1; }
       [[ -n "${EMAIL}" ]] || { log_error "--email is required when obtaining a new Let's Encrypt certificate"; exit 1; }
       log_info "Obtaining Let's Encrypt certificate for ${DOMAIN}..."
-      systemctl stop nginx || true
       certbot certonly --standalone \
         --non-interactive \
         --agree-tos \
         --email "${EMAIL}" \
+        --pre-hook "systemctl stop nginx" \
+        --post-hook "systemctl start nginx" \
         -d "${DOMAIN}"
       log_ok "Let's Encrypt certificate issued at ${SSL_CERT_PATH}"
     else
@@ -188,10 +189,10 @@ SITE_ENABLED="/etc/nginx/sites-enabled/${NGINX_SITE_NAME}.conf"
 
 python3 - "${TEMPLATE_DIR}/nginx-inatrace.conf" "${SITE_AVAIL}" \
   "${DOMAIN}" "${FRONTEND_PORT}" "${KEYCLOAK_PORT}" "${BACKEND_PORT}" \
-  "${SSL_CERT_PATH}" "${SSL_KEY_PATH}" <<'PY_RENDER'
+  "${SSL_CERT_PATH}" "${SSL_KEY_PATH}" "${TLS_MODE}" <<'PY_RENDER'
 import sys
 
-src, dst, domain, fe_port, kc_port, be_port, cert_path, key_path = sys.argv[1:]
+src, dst, domain, fe_port, kc_port, be_port, cert_path, key_path, tls_mode = sys.argv[1:]
 with open(src, encoding="utf-8") as fh:
     content = fh.read()
 
@@ -206,11 +207,16 @@ replacements = {
 for k, v in replacements.items():
     content = content.replace(k, v)
 
-# Exclude duplicate limit_req_zone if nginx-http-limit_req_zone.conf is installed in conf.d
-filtered = [
-    line for line in content.splitlines(keepends=True)
-    if not line.lstrip().startswith("limit_req_zone ")
-]
+# Exclude duplicate limit_req_zone (installed in conf.d/inatrace-ratelimit.conf)
+# and omit HSTS header in lan-selfsigned mode so browsers do not hard-block self-signed certs.
+filtered = []
+for line in content.splitlines(keepends=True):
+    s = line.lstrip()
+    if s.startswith("limit_req_zone "):
+        continue
+    if tls_mode == "lan-selfsigned" and "Strict-Transport-Security" in line:
+        continue
+    filtered.append(line)
 with open(dst, "w", encoding="utf-8") as fh:
     fh.writelines(filtered)
 PY_RENDER
