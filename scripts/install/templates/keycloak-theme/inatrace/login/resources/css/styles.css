@@ -1,0 +1,171 @@
+body {
+  font-family: 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0b376b;
+  background-image: url('../img/landing-background.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 1000px;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+.login-row {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 550px;
+  border-radius: 20px;
+  background-color: transparent; /* Permite ver el fondo detras del right side */
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+}
+
+.login-left {
+  flex: 1 1 50%;
+  background-color: #ffffff; /* Izquierda tiene fondo blanco sólido */
+  display: flex;
+  flex-direction: column;
+  padding: 50px 60px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.logo-fixed-container {
+  margin-bottom: 40px;
+}
+
+.logo-fixed-container img {
+  max-width: 200px;
+}
+
+.login-left-inner {
+  max-width: 350px;
+  width: 100%;
+}
+
+.login-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #929a39; /* Verde olivo INATrace */
+  margin-bottom: 5px;
+}
+
+.login-subtitle {
+  color: #888888;
+  font-size: 13px;
+  margin-bottom: 40px;
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+.text-input-label {
+  display: block;
+  font-size: 13px;
+  color: #444;
+  margin-bottom: 8px;
+}
+
+.text-input-bigger {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 6px;
+  border: 1px solid #e1e5eb;
+  background-color: #f7f9ff;
+  box-sizing: border-box;
+  font-size: 14px;
+  color: #333;
+}
+
+.text-input-bigger:focus {
+  outline: none;
+  border-color: #929a39;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(146, 154, 57, 0.2);
+}
+
+.login-forgot-password {
+  color: #999;
+  font-size: 12px;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 15px;
+}
+
+.login-forgot-password:hover {
+  text-decoration: underline;
+  color: #666;
+}
+
+.btn-register {
+  width: 100%;
+  padding: 14px;
+  color: white;
+  background-color: #a49f3e; /* Color boton Inatrace */
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.2s;
+}
+
+.btn-register:hover {
+  background-color: #8b8733;
+}
+
+.login-right {
+  flex: 1 1 50%;
+  /* A la derecha ponemos el fondo blanco transparente para revelar la red de los nodos por detrás */
+  background-color: rgba(247, 248, 250, 0.96);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 60px;
+  box-sizing: border-box;
+  border-left: 1px solid rgba(0,0,0,0.05);
+}
+
+.login-right-side-text {
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #a49f3e;
+  text-align: left;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 13px;
+  margin-top: 5px;
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f8dbdf;
+  border-radius: 6px;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .login-row {
+    flex-direction: column;
+    height: auto;
+  }
+  .login-left, .login-right {
+    flex: 1 1 100%;
+  }
+  .login-right {
+    padding: 40px;
+    background-color: #f7f8fa;
+  }
+}
